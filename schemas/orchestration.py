@@ -1,0 +1,27 @@
+from enum import Enum
+from typing import Optional
+from pydantic import BaseModel, Field
+
+class EventTypes(Enum):
+    LOCATION_CHANGE = "LOCATION_CHANGE"
+    LOCATION_MUTATION = "LOCATION_MUTATION"
+    LOCATION_STATUS_CHANGE = "LOCATION_STATUS_CHANGE"
+    
+    ITEM_TRANSFER = "ITEM_TRANSFER" # for moving from inventory to scene, scene to inventory, scene to scene
+    ITEM_STATUS_CHANGE = "ITEM_STATUS_CHANGE"
+    ITEM_MOVEMENT = "ITEM_MOVEMENT"
+    ITEM_MUTATION = "ITEM_MUTATION"
+    
+    CHARACTER_STATUS_CHANGE = "CHARACTER_STATUS_CHANGE"
+    CHARACTER_DEATH = "CHARACTER_DEATH"
+    CHARACTER_STATS_UPDATE = "CHARACTER_STATS_UPDATE"
+    CHARACTER_MOVEMENT = "CHARACTER_MOVEMENT"
+    
+
+class Event(BaseModel):
+    """An event that triggers orchestration logic."""
+    event_type: str = Field(..., description="Type of the event.")
+    event_initiator: Optional[str] = Field(..., description="Who or what initiated the event.")
+    event_subject: Optional[str] = Field(..., description="The subject involved in the event.")
+    description: str = Field(..., description="Detailed description of the event.")
+    
