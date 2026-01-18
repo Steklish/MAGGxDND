@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Optional
 from pydantic import BaseModel, Field
+from schemas.in_game import Character
 
 class EventTypes(Enum):
     LOCATION_CHANGE = "LOCATION_CHANGE"
@@ -16,6 +17,7 @@ class EventTypes(Enum):
     CHARACTER_DEATH = "CHARACTER_DEATH"
     CHARACTER_STATS_UPDATE = "CHARACTER_STATS_UPDATE"
     CHARACTER_MOVEMENT = "CHARACTER_MOVEMENT"
+    CHARACTER_TRANSFER = "CHARACTER_TRANSFER" # this was just removed
     
 
 class Event(BaseModel):
@@ -24,4 +26,7 @@ class Event(BaseModel):
     event_initiator: Optional[str] = Field(..., description="Who or what initiated the event.")
     event_subject: Optional[str] = Field(..., description="The subject involved in the event.")
     description: str = Field(..., description="Detailed description of the event.")
-    
+
+class GenericManipulationCommand(BaseModel):
+    description: str = Field(..., description="A description of the manipulation command.")
+    details: str = Field(..., description="The details of the manipulation command in JSON format.")
