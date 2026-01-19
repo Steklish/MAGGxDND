@@ -45,57 +45,7 @@ class BaseManipulation:
 
 class ObjectTransferManipulation(BaseManipulation):
     """Handles moving objects between scenes or inventories."""
-    def manipulate(self, prompt: str):
-        """Handles the logic for moving objects between scenes or inventories."""
-        self.logger.info(f"ObjectTransferManipulation executing with prompt: {prompt}")
-        # Parse the prompt to identify the object, source, and destination.
-        try:
-            transfer_details = json.loads(prompt)
-            object_name = transfer_details['object']
-            source = transfer_details['source']
-            destination = transfer_details['destination']
-        except (json.JSONDecodeError, KeyError) as e:
-            self.logger.error(f"Invalid prompt format: {e}")
-            return []
-
-        # Get objects from source
-        if source == "scene":
-            objects = self.state.current_scene.objects
-        else:
-            character = next((c for c in self.state.player_characters + self.state.npcs if c.name == source), None)
-            if not character:
-                self.logger.error(f"Source character {source} not found.")
-                return []
-            objects = character.inventory
-
-        # Find object to transfer
-        obj_to_transfer = next((obj for obj in objects if obj.name == object_name), None)
-        if not obj_to_transfer:
-            self.logger.error(f"Object {object_name} not found in {source}.")
-            return []
-        
-        # Remove object from source
-        objects.remove(obj_to_transfer)
-
-        # Add object to destination
-        if destination == "scene":
-            self.state.current_scene.objects.append(obj_to_transfer)
-        else:
-            character = next((c for c in self.state.player_characters + self.state.npcs if c.name == destination), None)
-            if not character:
-                self.logger.error(f"Destination character {destination} not found.")
-                return []
-            character.inventory.append(obj_to_transfer)
-
-        # Create event
-        event = Event(
-            event_type="ITEM_TRANSFER",
-            event_initiator="system",
-            event_subject=object_name,
-            description=f"Object {object_name} transferred from {source} to {destination}."
-        )
-
-        return [event]    
+    pass  
 
 class SceneManipulation(BaseManipulation):
     """Handles changes to the scene, such as adding or removing objects."""

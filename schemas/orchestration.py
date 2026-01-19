@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 from pydantic import BaseModel, Field
 from schemas.in_game import Character
 
@@ -20,6 +20,7 @@ class EventTypes(Enum):
     CHARACTER_TRANSFER = "CHARACTER_TRANSFER" # this was just removed
     
 
+
 class Event(BaseModel):
     """An event that triggers orchestration logic."""
     event_type: str = Field(..., description="Type of the event.")
@@ -27,6 +28,17 @@ class Event(BaseModel):
     event_subject: Optional[str] = Field(..., description="The subject involved in the event.")
     description: str = Field(..., description="Detailed description of the event.")
 
+class EventList(BaseModel):
+    event_list : List[Event] = Field(description="list of events from a prompt")
+
 class GenericManipulationCommand(BaseModel):
     description: str = Field(..., description="A description of the manipulation command.")
     details: str = Field(..., description="The details of the manipulation command in JSON format.")
+    
+    
+class TransferEventBreakDown(BaseModel):
+    pass
+
+class CharacterManipulationBrakdown(BaseModel):
+    target : str = Field(description="Characters identifier or name (exactly as a character named)")
+    

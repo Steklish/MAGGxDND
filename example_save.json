@@ -1,0 +1,164 @@
+{
+    "player_characters": [
+        {
+            "name": "Sir Reginald",
+            "race": "Human",
+            "char_class": "Fighter",
+            "level": 5,
+            "backstory_summary": "A noble knight sworn to protect the innocent and uphold justice.",
+            "personality_traits": [
+                "Brave",
+                "Honorable",
+                "Just",
+                "Loyal"
+            ],
+            "max_hp": 50,
+            "current_hp": 50,
+            "temp_hp": 0,
+            "armor_class": 18,
+            "speed": 30,
+            "initiative_bonus": 1,
+            "abilities": {
+                "strength": 16,
+                "dexterity": 12,
+                "constitution": 14,
+                "intelligence": 10,
+                "wisdom": 10,
+                "charisma": 15
+            },
+            "inventory": [
+                {
+                    "name": "Longsword +1",
+                    "quantity": 1,
+                    "is_equipped": true,
+                    "description": "A masterfully crafted longsword imbued with a faint magical aura.",
+                    "damage_dice": "1d8",
+                    "damage_type": "Slashing",
+                    "obj_type": null,
+                    "state": "normal",
+                    "is_locked": null,
+                    "is_hidden": null,
+                    "content": [],
+                    "tags": []
+                },
+                {
+                    "name": "Shield",
+                    "quantity": 1,
+                    "is_equipped": true,
+                    "description": "A sturdy steel shield emblazoned with the knight's family crest.",
+                    "damage_dice": null,
+                    "damage_type": null,
+                    "obj_type": null,
+                    "state": "normal",
+                    "is_locked": null,
+                    "is_hidden": null,
+                    "content": [],
+                    "tags": []
+                },
+                {
+                    "name": "Plate Armor",
+                    "quantity": 1,
+                    "is_equipped": true,
+                    "description": "Full plate armor providing excellent protection.",
+                    "damage_dice": null,
+                    "damage_type": null,
+                    "obj_type": null,
+                    "state": "normal",
+                    "is_locked": null,
+                    "is_hidden": null,
+                    "content": [],
+                    "tags": []
+                },
+                {
+                    "name": "Potion of Healing",
+                    "quantity": 3,
+                    "is_equipped": false,
+                    "description": "Restores 2d4 + 2 hit points.",
+                    "damage_dice": null,
+                    "damage_type": null,
+                    "obj_type": null,
+                    "state": "normal",
+                    "is_locked": null,
+                    "is_hidden": null,
+                    "content": [],
+                    "tags": []
+                }
+            ],
+            "active_conditions": [],
+            "resources": {
+                "second_wind": 1,
+                "action_surge": 1
+            },
+            "proficiency_bonus": 3,
+            "is_alive": true
+        }
+    ],
+    "npcs": [],
+    "current_scene": {
+        "name": "Eerie Forest Clearing",
+        "description": "The forest clearing is shrouded in a dark and eerie atmosphere. Twisted trees claw at the sky, their branches gnarled and skeletal. A faint mist clings to the ground, obscuring the path ahead and adding to the unsettling silence.",
+        "gm_secret": "An ancient evil dwells beneath the roots of the oldest tree.",
+        "objects": [
+            {
+                "id": "twisted_tree_01",
+                "name": "Twisted Tree",
+                "description": "A massive, ancient tree with gnarled branches that reach out like skeletal arms. Its bark is rough and covered in strange symbols.",
+                "obj_type": "Interactable",
+                "state": "active",
+                "is_locked": false,
+                "is_hidden": false,
+                "content": [],
+                "tags": [
+                    "ancient",
+                    "ominous"
+                ],
+                "quantity": 1,
+                "is_equipped": null,
+                "damage_dice": null,
+                "damage_type": null,
+                "item_description": null
+            },
+            {
+                "id": "misty_well_01",
+                "name": "Misty Well",
+                "description": "A stone well, half-hidden in the mist. The water within seems to glow faintly.",
+                "obj_type": "Container",
+                "state": "closed",
+                "is_locked": false,
+                "is_hidden": true,
+                "content": [
+                    "rusty_bucket",
+                    "strange_amulet"
+                ],
+                "tags": [
+                    "magical",
+                    "hidden"
+                ],
+                "quantity": 1,
+                "is_equipped": null,
+                "damage_dice": null,
+                "damage_type": null,
+                "item_description": null
+            },
+            {
+                "id": "rotting_log_01",
+                "name": "Rotting Log",
+                "description": "A large, decaying log covered in moss and fungi.",
+                "obj_type": "Prop",
+                "state": "active",
+                "is_locked": false,
+                "is_hidden": false,
+                "content": [],
+                "tags": [
+                    "decaying",
+                    "natural"
+                ],
+                "quantity": 1,
+                "is_equipped": null,
+                "damage_dice": null,
+                "damage_type": null,
+                "item_description": null
+            }
+        ]
+    }
+}
