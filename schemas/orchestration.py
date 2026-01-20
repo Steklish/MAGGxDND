@@ -23,7 +23,7 @@ class EventTypes(Enum):
 
 class Event(BaseModel):
     """An event that triggers orchestration logic."""
-    event_type: str = Field(..., description="Type of the event.")
+    event_type: EventTypes = Field(..., description="Type of the event.")
     event_initiator: Optional[str] = Field(..., description="Who or what initiated the event.")
     event_subject: Optional[str] = Field(..., description="The subject involved in the event.")
     description: str = Field(..., description="Detailed description of the event.")
@@ -34,11 +34,13 @@ class EventList(BaseModel):
 class GenericManipulationCommand(BaseModel):
     description: str = Field(..., description="A description of the manipulation command.")
     details: str = Field(..., description="The details of the manipulation command in JSON format.")
-    
+
+class CharacterManipulationBrakdown(BaseModel):
+    character_name: str = Field(..., description="The name of the character to be manipulated.")
+    target : str  = Field(..., description="The attribute to be changed (e.g., current_hp, strength, inventory).")
+    attribute: List[str] = Field(description="text attributes involved")
+    value: str = Field(..., description="Numeric values involved.")
+    operation: str = Field(..., description="The operation to be performed (add/subtract/append/remove/replace only).")
     
 class TransferEventBreakDown(BaseModel):
     pass
-
-class CharacterManipulationBrakdown(BaseModel):
-    target : str = Field(description="Characters identifier or name (exactly as a character named)")
-    
