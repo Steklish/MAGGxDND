@@ -32,24 +32,24 @@ manipulator = Manipulator(
 #     prompt="A dark and eerie forest clearing at night, with twisted trees and a faint mist."
 # )
 
-# ch1 = generator.generate_one_shot(
-#     pydantic_model=Character,
-#     prompt="A brave knight in shining armor, wielding a longsword and shield."
-# )
+ch1 = generator.generate_one_shot(
+    pydantic_model=Character,
+    prompt="A wizard named Ogorek."
+)
 # print(json.dumps(scene.dict(), indent=2))
 
 # session.init_new_session(
 #     scene=scene,
 #     player_characters=[ch1]
 # )
-
 # session.save_session("example_save_02.json")
 session.load_session_from_save("example_save_02.json")
-events = session.external_privileged_action("The Gnarled Tree is on fire")
+session.npcs.append(ch1)
+events = session.external_privileged_action("Reginald gives his sword to Ogorek")
 print(events)
 for e in events:
     manipulator.manage(e)
 
-print(json.dumps(session.current_scene.dict(), indent=2))
+print(json.dumps(session.npcs[0].dict(), indent=2))
 
 # print(json.dumps(session.player_characters[0].dict(), indent=2))

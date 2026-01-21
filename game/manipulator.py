@@ -34,6 +34,7 @@ class Manipulator:
         self.manipulations.append(CharacterMutationManipulation(self.generator, self.state, self.archive, self.logger))
         self.manipulations.append(SceneManipulation(self.generator, self.state, self.archive, self.logger))
         self.manipulations.append(SceneObjectMutationManipulation(self.generator, self.state, self.archive, self.logger))
+        self.manipulations.append(ObjectTransferManipulation(self.generator, self.state, self.archive, self.logger))
 
         for manipulation in self.manipulations:
             self.logger.info(f"Initialized manipulation: {manipulation.__class__.__name__}")

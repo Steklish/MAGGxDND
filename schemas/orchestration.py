@@ -8,13 +8,18 @@ class EventTypes(Enum):
     LOCATION_MUTATION = "LOCATION_MUTATION"
     LOCATION_STATUS_CHANGE = "LOCATION_STATUS_CHANGE"
     SCENE_UPDATE = "SCENE_UPDATE"
-    
+
+    OBJECT_TRANSFER="OBJECT_TRANSFER"
     ITEM_TRANSFER = "ITEM_TRANSFER" # for moving from inventory to scene, scene to inventory, scene to scene
     ITEM_STATUS_CHANGE = "ITEM_STATUS_CHANGE"
     ITEM_MOVEMENT = "ITEM_MOVEMENT"
     ITEM_MUTATION = "ITEM_MUTATION"
     ITEM_INTERACTION = "ITEM_INTERACTION"
-    
+    ITEM_PICKUP = "ITEM_PICKUP"
+    ITEM_DROP = "ITEM_DROP"
+    CONTAINER_ACCESS = "CONTAINER_ACCESS"
+    CONTAINER_TRANSFER = "CONTAINER_TRANSFER"
+
     CHARACTER_STATUS_CHANGE = "CHARACTER_STATUS_CHANGE"
     CHARACTER_DEATH = "CHARACTER_DEATH"
     CHARACTER_STATS_UPDATE = "CHARACTER_STATS_UPDATE"
@@ -28,8 +33,9 @@ class Event(BaseModel):
     event_type: EventTypes = Field(..., description="Type of the event.")
     event_initiator: Optional[str] = Field(..., description="Who or what initiated the event.")
     event_subject: Optional[str] = Field(..., description="The subject involved in the event.")
+    event_target: Optional[str] = Field(description="Target object or character involved.")
     description: str = Field(..., description="Detailed description of the event.")
-
+    
 class EventList(BaseModel):
     event_list : List[Event] = Field(description="list of events from a prompt")
 
@@ -45,7 +51,11 @@ class CharacterManipulationBrakdown(BaseModel):
     operation: str = Field(..., description="The operation to be performed (add/subtract/append/remove/replace only).")
     
 class TransferEventBreakDown(BaseModel):
-    pass
+    source: str = Field(..., description="Source of the transfer: 'scene', 'inventory', or 'container'")
+    target: str = Field(..., description="Target of the transfer: 'inventory', 'scene', or 'container'")
+    object_name: str = Field(..., description="Name of the object being transferred")
+    quantity: int = Field(1, ge=1, description="Number of objects to transfer")
+    target_container: Optional[str] = Field(None, description="Name of the target container if target is 'container'")
 
 class SceneManipulationCommand(BaseModel):
     target : str  = Field(..., description="The attribute to be changed (e.g., lighting, temperature, objects).")
