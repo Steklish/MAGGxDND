@@ -100,6 +100,25 @@
         "gm_secret": "An ancient evil dwells beneath the roots of the oldest tree.",
         "objects": [
             {
+                "id": "chest_01",
+                "name": "Treasure Chest",
+                "description": "An old wooden chest with metal reinforcements",
+                "obj_type": "Prop",
+                "state": "closed",
+                "is_locked": true,
+                "is_hidden": false,
+                "content": [
+                "gold_coin",
+                "health_potion"
+                ],
+                "tags": [],
+                "quantity": 1,
+                "is_equipped": null,
+                "damage_dice": null,
+                "damage_type": null,
+                "item_description": null
+            },
+            {
                 "id": "twisted_tree_01",
                 "name": "Twisted Tree",
                 "description": "A massive, ancient tree with gnarled branches that reach out like skeletal arms. Its bark is rough and covered in strange symbols.",

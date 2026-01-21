@@ -103,12 +103,17 @@ class Session:
     def external_privileged_action(self, prompt: str = ""):
         """Perform a privileged external action within the game session. (DM moves)"""
         
+        rules = f"""
+        1. Determine which objects involved into the request.
+        2. Be the most specific (if there is a certain object in the scene you should set event type to item-based not the entire scene)
+        """
         prompt_text = f"""
         You need to generate authoritative events based on the situation and a request e g "The dragon gets 1d8+2 damage. (based on items properties)" or "character 1 hits character 2 with a sword"
-        
+        # rules:
+        {rules}
         # prompt 
         {prompt}
-        # scene
+        # scene:
         {self.get_session_context()}
         """
         events = self.generator.generate_one_shot(

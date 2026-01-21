@@ -50,7 +50,7 @@ class CharacterMutationManipulation(BaseManipulation):
         else:
             raise ValueError("No target found")
         # self.logger.debug(f"Task generated {best} / total > {names} / {character_pool}" )
-        self.logger.debug(f"breakdown object here {task}")
+        # self.logger.debug(f"breakdown object here {task}")
 
         for c in character_pool:
             if c.name == best:

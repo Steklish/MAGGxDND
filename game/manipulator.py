@@ -3,11 +3,12 @@ from typing import List
 from game.engine import Session
 from skls_generator.generator import Generator
 from schemas.orchestration import Event
-from game.base_manipulation import Archive, BaseManipulation
-from game.object_transfer_manipulation import ObjectTransferManipulation
-from game.scene_manipulation import SceneManipulation
-from game.character_mutation_manipulation import CharacterMutationManipulation
-from game.character_transfer_manipulation import CharacterTransferManipulation
+from game.manipulators.base_manipulation import Archive, BaseManipulation
+from game.manipulators.object_transfer_manipulation import ObjectTransferManipulation
+from game.manipulators.scene_manipulation import SceneManipulation
+from game.manipulators.character_mutation_manipulation import CharacterMutationManipulation
+from game.manipulators.character_transfer_manipulation import CharacterTransferManipulation
+from game.manipulators.scene_object_mutation_manipulation import SceneObjectMutationManipulation
 
 
 
@@ -31,6 +32,8 @@ class Manipulator:
     
     def init_manipulations(self):
         self.manipulations.append(CharacterMutationManipulation(self.generator, self.state, self.archive, self.logger))
-        
+        self.manipulations.append(SceneManipulation(self.generator, self.state, self.archive, self.logger))
+        self.manipulations.append(SceneObjectMutationManipulation(self.generator, self.state, self.archive, self.logger))
+
         for manipulation in self.manipulations:
             self.logger.info(f"Initialized manipulation: {manipulation.__class__.__name__}")

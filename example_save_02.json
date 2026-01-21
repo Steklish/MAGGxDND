@@ -1,0 +1,206 @@
+{
+    "player_characters": [
+        {
+            "name": "Sir Reginald Strongforth",
+            "race": "Human",
+            "char_class": "Fighter",
+            "level": 5,
+            "backstory_summary": "A noble knight sworn to protect the innocent, Sir Reginald has faced many dangers and always emerged victorious.",
+            "personality_traits": [
+                "Brave",
+                "Honorable",
+                "Loyal",
+                "Just"
+            ],
+            "max_hp": 50,
+            "current_hp": 50,
+            "temp_hp": 0,
+            "armor_class": 18,
+            "speed": 30,
+            "initiative_bonus": 1,
+            "abilities": {
+                "strength": 16,
+                "dexterity": 12,
+                "constitution": 14,
+                "intelligence": 10,
+                "wisdom": 13,
+                "charisma": 8
+            },
+            "inventory": [
+                {
+                    "id": null,
+                    "name": "Longsword +1",
+                    "description": "A masterfully crafted longsword with a faint magical aura.",
+                    "obj_type": null,
+                    "state": "normal",
+                    "quantity": 1,
+                    "is_equipped": true,
+                    "damage_dice": "1d8",
+                    "damage_type": "Slashing",
+                    "is_locked": null,
+                    "is_hidden": null,
+                    "content": null,
+                    "capacity": null,
+                    "contained_objects": null,
+                    "tags": [
+                        "magical"
+                    ],
+                    "item_description": "A reliable and powerful weapon."
+                },
+                {
+                    "id": null,
+                    "name": "Shield",
+                    "description": "A sturdy steel shield emblazoned with the knight's crest.",
+                    "obj_type": null,
+                    "state": "normal",
+                    "quantity": 1,
+                    "is_equipped": true,
+                    "damage_dice": null,
+                    "damage_type": null,
+                    "is_locked": null,
+                    "is_hidden": null,
+                    "content": null,
+                    "capacity": null,
+                    "contained_objects": null,
+                    "tags": null,
+                    "item_description": "Provides excellent protection."
+                },
+                {
+                    "id": null,
+                    "name": "Plate Armor",
+                    "description": "Full plate armor, providing excellent protection.",
+                    "obj_type": null,
+                    "state": "normal",
+                    "quantity": 1,
+                    "is_equipped": true,
+                    "damage_dice": null,
+                    "damage_type": null,
+                    "is_locked": null,
+                    "is_hidden": null,
+                    "content": null,
+                    "capacity": null,
+                    "contained_objects": null,
+                    "tags": null,
+                    "item_description": "Heavy but offers superior defense."
+                },
+                {
+                    "id": null,
+                    "name": "Potion of Healing",
+                    "description": "A vial filled with a glowing red liquid.",
+                    "obj_type": null,
+                    "state": "normal",
+                    "quantity": 3,
+                    "is_equipped": false,
+                    "damage_dice": null,
+                    "damage_type": null,
+                    "is_locked": null,
+                    "is_hidden": null,
+                    "content": null,
+                    "capacity": null,
+                    "contained_objects": null,
+                    "tags": [
+                        "healing"
+                    ],
+                    "item_description": "Restores hit points."
+                }
+            ],
+            "active_conditions": [],
+            "resources": {
+                "action_surge": 1,
+                "second_wind": 1
+            },
+            "proficiency_bonus": 3,
+            "is_alive": true
+        }
+    ],
+    "npcs": [],
+    "current_scene": {
+        "name": "Eerie Forest Clearing",
+        "description": "The air hangs heavy with a damp chill as you step into a clearing. Twisted, gnarled trees claw at the sky, their branches interwoven like skeletal fingers. A faint, ethereal mist swirls around your feet, obscuring the ground and lending an unsettling atmosphere to the scene.",
+        "gm_secret": "The clearing is a nexus point for Feywild crossings, making it susceptible to unpredictable magical phenomena.",
+        "objects": [
+            {
+                "id": "gnarled_tree_01",
+                "name": "Gnarled Tree",
+                "description": "An ancient tree, its bark twisted and scarred with age. Strange symbols are carved into its trunk.",
+                "obj_type": "Prop",
+                "state": "normal",
+                "quantity": 1,
+                "is_equipped": false,
+                "damage_dice": null,
+                "damage_type": null,
+                "is_locked": null,
+                "is_hidden": false,
+                "content": [],
+                "capacity": null,
+                "contained_objects": [],
+                "tags": [
+                    "ancient",
+                    "symbols"
+                ],
+                "item_description": null
+            },
+            {
+                "id": "misty_pool_01",
+                "name": "Misty Pool",
+                "description": "A small pool of water, shrouded in mist. The surface shimmers with an unnatural light.",
+                "obj_type": "Interactable",
+                "state": "normal",
+                "quantity": 1,
+                "is_equipped": false,
+                "damage_dice": null,
+                "damage_type": null,
+                "is_locked": null,
+                "is_hidden": false,
+                "content": [],
+                "capacity": null,
+                "contained_objects": [],
+                "tags": [
+                    "magical",
+                    "glowing"
+                ],
+                "item_description": null
+            },
+            {
+                "id": "rotting_log_01",
+                "name": "Rotting Log",
+                "description": "A decaying log covered in moss and fungi. It looks like something might be hidden inside.",
+                "obj_type": "Container",
+                "state": "normal",
+                "quantity": 1,
+                "is_equipped": false,
+                "damage_dice": null,
+                "damage_type": null,
+                "is_locked": false,
+                "is_hidden": true,
+                "content": null,
+                "capacity": 3,
+                "contained_objects": [
+                    {
+                        "id": null,
+                        "name": "Rusty Dagger",
+                        "description": "A corroded dagger, its blade pitted with rust.",
+                        "obj_type": null,
+                        "state": "normal",
+                        "quantity": 1,
+                        "is_equipped": false,
+                        "damage_dice": "1d4",
+                        "damage_type": "Piercing",
+                        "is_locked": null,
+                        "is_hidden": null,
+                        "content": [],
+                        "capacity": null,
+                        "contained_objects": [],
+                        "tags": [],
+                        "item_description": "A rusty dagger found inside the rotting log."
+                    }
+                ],
+                "tags": [
+                    "hidden",
+                    "decaying"
+                ],
+                "item_description": null
+            }
+        ]
+    }
+}

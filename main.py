@@ -43,13 +43,13 @@ manipulator = Manipulator(
 #     player_characters=[ch1]
 # )
 
-# session.save_session("example_save.json")
-session.load_session_from_save("example_save.json")
-events = session.external_privileged_action("Sir Reginald now set on fire and poisoned")
+# session.save_session("example_save_02.json")
+session.load_session_from_save("example_save_02.json")
+events = session.external_privileged_action("The Gnarled Tree is on fire")
 print(events)
 for e in events:
     manipulator.manage(e)
 
-print(json.dumps(session.player_characters[0].dict(), indent=2))
+print(json.dumps(session.current_scene.dict(), indent=2))
 
 # print(json.dumps(session.player_characters[0].dict(), indent=2))
