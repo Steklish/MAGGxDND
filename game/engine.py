@@ -40,6 +40,8 @@ class Session:
             logger=self.logger,
             generator=self.generator
         )
+        # Start continuous processing for the NPC
+        new_NPC.start_continuous_processing()
         self.logger.debug(f"Initialized NPC: {npc_character.name}")
         return new_NPC
     

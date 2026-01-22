@@ -1,6 +1,7 @@
 import json
 import os
 from game.engine import Session
+from game.event_pool import EventPool
 from game.manipulator import Manipulator
 from schemas.in_game import Character, SceneNode
 from skls_generator.generator import Generator
@@ -22,7 +23,8 @@ session = Session(
     session_name="example_session",
     chroma_client=chroma_client,
     logger=logger,
-    generator=generator
+    generator=generator,
+    event_pool=EventPool()
 )
 manipulator = Manipulator(
     generator=generator,
@@ -30,10 +32,6 @@ manipulator = Manipulator(
     archive=None,
     logger=logger
 )
-
-event_pool = session.event_pool
-
-
 
 # -- LOAD OR INIT GAME STATE --
 
@@ -54,12 +52,9 @@ ch1 = generator.generate_one_shot(
 # )
 # session.save_session("./saves/example_save_02.json")
 session.load_session_from_save("./saves/example_save_02.json")
-session.npcs.append(ch1)
 events = session.external_privileged_action("Reginald gives his sword to Ogorek")
 print(events)
 for e in events:
     manipulator.manage(e)
-
-print(json.dumps(session.npcs[0].dict(), indent=2))
 
 # print(json.dumps(session.player_characters[0].dict(), indent=2))

@@ -120,7 +120,6 @@ class Character(BaseModel):
     temp_hp: int = Field(0, ge=0, description="Temporary buffer HP that is lost before real HP.")
     armor_class: int = Field(10, description="Target number to hit this character.")
     speed: int = Field(30, description="Movement speed in feet per turn.")
-    initiative_bonus: int = Field(0, description="Modifier added to initiative rolls.")
 
     # 3. Core Stats
     abilities: AbilityScores = Field(..., description="The nested object containing STR, DEX, CON, etc.")
@@ -151,7 +150,13 @@ class Character(BaseModel):
     def get_modifier(self, score: int) -> int:
         """Helper to calculate standard DnD modifier: (Score - 10) / 2."""
         return (score - 10) // 2
-    
+
+    @computed_field
+    @property
+    def initiative_bonus(self) -> int:
+        """Calculated initiative bonus based on Dexterity modifier."""
+        return self.get_modifier(self.abilities.dexterity)
+
 class NPCCharacter(Character):
     """An NPC variant that may have additional AI-specific fields in the future."""
     motivation: Optional[str] = Field(None, description="What drives this NPC?")

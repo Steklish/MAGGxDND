@@ -27,6 +27,7 @@ class EventTypes(Enum):
     CHARACTER_TRANSFER = "CHARACTER_TRANSFER" # this was just removed
     
     NPC_ACTION = "NPC_ACTION"
+    LOG="LOG"
     
 
 class Event(BaseModel):
