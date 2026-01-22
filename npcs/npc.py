@@ -62,44 +62,7 @@ class NPC:
         self.logger = logger
         self.generator = generator
         self._running = False
-        self._actor_thread = None
-        self._processing_interval = (5 - self.character.initiative_bonus) / 2   # seconds between checking for events
-
-    def start_continuous_processing(self):
-        """Start continuous event processing in a separate thread."""
-        if not self._running:
-            self._running = True
-            self._actor_thread = threading.Thread(target=self._continuous_process_events, daemon=True)
-            self._actor_thread.start()
-            self.logger.info(f"Started continuous processing for NPC: {self.character.name}")
-
-    def stop_continuous_processing(self):
-        """Stop continuous event processing."""
-        self._running = False
-        if self._actor_thread:
-            self._actor_thread.join(timeout=1.0)  # Wait up to 1 second for thread to finish
-            self.logger.info(f"Stopped continuous processing for NPC: {self.character.name}")
-
-    def _continuous_process_events(self):
-        """Continuously process events from the queue."""
-        while self._running:
-            try:
-                # Check if there are events to process
-                if not self.event_queue.empty():
-                    # Get all events from the queue
-                    events = self.event_queue.get_all()
-                    if events:
-                        # Process the events
-                        self.handle_events(events)
-
-                # Sleep for the processing interval to prevent busy-waiting
-                time.sleep(self._processing_interval)
-
-            except Exception as e:
-                self.logger.error(f"Error in continuous event processing for {self.character.name}: {e}")
-                # Brief pause before continuing to avoid rapid error loops
-                time.sleep(0.5)
-        
+ 
     def _filter_relevant_events(self, events: list[Event]) -> list[Event]:
         """Filter events to only those relevant to this NPC."""
         relevant_events = []
@@ -108,13 +71,22 @@ class NPC:
                 relevant_events.append(event)
         return relevant_events
     
-    def handle_events(self, events: list[Event]):
+    def run(self, context : str) -> str | None:
+        events = self.event_queue.get_all()
+        self.event_queue.clear()
+        decision = self._handle_events(events, context)
+        self.logger.debug(f"NPC {self.character.name} processed {len(events)} events.")
+
+    
+    def _handle_events(self, events: list[Event], context : str) -> str | None:
         """Process a list of events and decide on an action."""
 
         decision = self.generator.generate_one_shot(
             pydantic_model=NPCActDecision,
             prompt=f"""
-            ## You are an NPC named {self.character.name}.
+            ##  Scene context:
+            {context}
+            ## You are an NPC named {self.character.name} in this scene.
             ## here are your state:
             {self.character.dict()}
 
@@ -125,21 +97,10 @@ class NPC:
 
         if decision.will_act:
             self.logger.info(f"NPC {self.character.name} decided to act: {decision.action_description}")
-            # Here you would generate a new event based on the action description
-            # For simplicity, we will just log it
-            if decision.action_description:
-                new_event = Event(
-                    event_type=EventTypes.NPC_ACTION,
-                    event_initiator=self.character.name,
-                    event_subject=None,
-                    event_target=None,
-                    description=decision.action_description
-                )
-            else:
-                raise ValueError("NPC decided to act but no action description provided.")
-
             # saving and trimming the NPC memory
             self.character.memory += str(decision.action_description)
             self.character.memory = self.character.memory[-MEMORY_LENGTH_LIMIT:]
-
-            self.event_queue.publish_to_others(new_event)
+            return decision.action_description
+        else:
+            self.logger.debug(f"NPC {self.character.name} decided not to act.")
+            return None

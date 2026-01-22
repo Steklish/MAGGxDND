@@ -26,11 +26,14 @@ session = Session(
     generator=generator,
     event_pool=EventPool()
 )
-manipulator = Manipulator(
-    generator=generator,
-    state=session,
-    archive=None,
-    logger=logger
+
+session.inject_manipulator(
+    manipulator = Manipulator(
+        generator=generator,
+        state=session,
+        archive=None,
+        logger=logger
+    )
 )
 
 # -- LOAD OR INIT GAME STATE --
@@ -52,9 +55,5 @@ ch1 = generator.generate_one_shot(
 # )
 # session.save_session("./saves/example_save_02.json")
 session.load_session_from_save("./saves/example_save_02.json")
-events = session.external_privileged_action("Reginald gives his sword to Ogorek")
-print(events)
-for e in events:
-    manipulator.manage(e)
 
 # print(json.dumps(session.player_characters[0].dict(), indent=2))

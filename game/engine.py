@@ -1,6 +1,11 @@
-from typing import List
+import time
+from typing import TYPE_CHECKING, List
 import uuid
 from game.event_pool import EventPool
+if TYPE_CHECKING:
+    from game.manipulator import Manipulator
+    
+from magg.magg import Magg
 from npcs.npc import NPC
 from schemas.in_game import Character, GameModes, NPCCharacter, SceneNode
 from skls_embeddings import ChromaClient
@@ -30,6 +35,16 @@ class Session:
         self.game_mode : GameModes = GameModes.STORY
         self.character_bindings : List[CharacterToUserBinding] = []
         self.messages : List[Message] = []
+        self.tick_time_seconds = 0.1  # Time between each game tick
+        self.game_master : Magg = Magg(
+            generator=generator,
+            archive=None,
+            logger=logger,
+            event_queue=event_pool.subscribe("magg")
+        )
+        
+    def inject_manipulator(self, manipulator : 'Manipulator'):
+        self.manipulator = manipulator
         
     
     def _init_npc(self, npc_character : NPCCharacter):
@@ -41,7 +56,6 @@ class Session:
             generator=self.generator
         )
         # Start continuous processing for the NPC
-        new_NPC.start_continuous_processing()
         self.logger.debug(f"Initialized NPC: {npc_character.name}")
         return new_NPC
     
@@ -122,7 +136,22 @@ class Session:
         """Perform an external action within the game session. (players moves)"""
         return []
 
-    def external_privileged_action(self, prompt: str = ""):
+    def execute_events(self, event_list : list[Event]):
+        """Process an event through the session's manipulator."""
+        for event in event_list:
+            self.manipulator.manage(event)
+
+    def proccess_npcs_in_order_once(self):
+            self._sort_npcs_by_initiative()
+            for npc in self.npcs:
+                decision = npc.run(self.get_session_context())
+                if decision:
+                    events = self._external_action(decision, actor=npc.character.name)
+                    self.execute_events(events)
+        
+
+
+    def _external_action(self, prompt: str = "", actor : str | None = None) -> List[Event]:
         """Perform a privileged external action within the game session. (DM moves)"""
         
         rules = f"""
@@ -134,6 +163,7 @@ class Session:
         # rules:
         {rules}
         # prompt 
+        {f"## actor: {actor}\nrequest: " if actor else ""}
         {prompt}
         # scene:
         {self.get_session_context()}
@@ -144,7 +174,7 @@ class Session:
         )
         return events.event_list
 
-    def sort_npcs_by_initiative(self):
+    def _sort_npcs_by_initiative(self):
         """Sort NPCs based on their initiative scores."""
         self.npcs.sort(key=lambda npc: npc.character.initiative_bonus, reverse=True)
         self.logger.debug("Sorted NPCs by initiative.")
