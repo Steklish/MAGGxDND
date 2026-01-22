@@ -41,7 +41,7 @@ class CharacterMutationManipulation(BaseManipulation):
             prompt=task_prompt
         )
 
-        character_pool = self.state.player_characters + self.state.npcs
+        character_pool = self.state.player_characters + [n.character for n in self.state.npcs]
         names = [c.name for c in character_pool]
         target = None
         best = process.extractOne(task.character_name, names)

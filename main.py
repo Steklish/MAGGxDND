@@ -15,6 +15,9 @@ logger.setLevel("DEBUG")
 generator = Generator(GoogleGenAI(os.getenv("GEMINI_API_KEY")), logger_instance=logger)
 chroma_client = ChromaClient(EmbeddingClient(), logger_instance=logger)
 
+
+# -- INIT SESSION AND MANIPULATOR --
+
 session = Session(
     session_name="example_session",
     chroma_client=chroma_client,
@@ -27,6 +30,13 @@ manipulator = Manipulator(
     archive=None,
     logger=logger
 )
+
+event_pool = session.event_pool
+
+
+
+# -- LOAD OR INIT GAME STATE --
+
 # scene = generator.generate_one_shot(
 #     pydantic_model=SceneNode,
 #     prompt="A dark and eerie forest clearing at night, with twisted trees and a faint mist."
@@ -42,8 +52,8 @@ ch1 = generator.generate_one_shot(
 #     scene=scene,
 #     player_characters=[ch1]
 # )
-# session.save_session("example_save_02.json")
-session.load_session_from_save("example_save_02.json")
+# session.save_session("./saves/example_save_02.json")
+session.load_session_from_save("./saves/example_save_02.json")
 session.npcs.append(ch1)
 events = session.external_privileged_action("Reginald gives his sword to Ogorek")
 print(events)

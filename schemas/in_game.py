@@ -1,8 +1,12 @@
 from enum import Enum
 from typing import List, Optional
-from pydantic import BaseModel, Field, conint, computed_field
+from pydantic import BaseModel, Field, computed_field
 
 # --- Enums for Strict Typing ---
+class GameModes(str, Enum):
+    STORY = "STORY" # for story and peaceful / social scenes
+    COMBAT = "COMBAT" # for combats with strict turns order and rules
+
 class Alignment(str, Enum):
     LAWFUL_GOOD = "Lawful Good"
     NEUTRAL_GOOD = "Neutral Good"
@@ -152,7 +156,7 @@ class NPCCharacter(Character):
     """An NPC variant that may have additional AI-specific fields in the future."""
     motivation: Optional[str] = Field(None, description="What drives this NPC?")
     alignment: Optional[Alignment] = Field(None, description="Moral alignment of the NPC.")
-    
+    memory : str = Field("", description="NPC's internal memory log.")
     
 class SceneNode(BaseModel):
     """

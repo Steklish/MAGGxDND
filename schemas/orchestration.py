@@ -26,7 +26,8 @@ class EventTypes(Enum):
     CHARACTER_MOVEMENT = "CHARACTER_MOVEMENT"
     CHARACTER_TRANSFER = "CHARACTER_TRANSFER" # this was just removed
     
-
+    NPC_ACTION = "NPC_ACTION"
+    
 
 class Event(BaseModel):
     """An event that triggers orchestration logic."""
@@ -69,3 +70,28 @@ class SceneObjectManipulationCommand(BaseModel):
     attribute: List[str] = Field(description="text attributes involved")
     value: str = Field(..., description="Values involved (numeric for quantities, string for states).")
     operation: str = Field(..., description="The operation to be performed (add/subtract/append/remove/replace only).")
+    
+class Message(BaseModel):
+    sender_name : str
+    text : str
+    
+class CharacterToUserBinding(BaseModel):
+    username : str = Field(description="Username")
+    character_name : str = Field(description="Undercontrolled character name")
+    
+class UserInterationType(Enum):
+    CHARACTER_ACTION = "CHARACTER_ACTION"
+    META_COMMENT = "META_COMMENT"
+    DM_INTERACTION = "DM_INTERACTION"
+    
+class UserInteractionProcessing(BaseModel):
+    interaction_type : UserInterationType
+    user_request_saturated : str = Field(description="Enhanecd user's request with all the details available and necessary")
+    
+class CombatRulesCheck(BaseModel):
+    is_rule_violation : bool = Field(description="Whether the action violates combat rules")
+    violation_details : Optional[str] = Field(None, description="Details of the rule violation, if any")
+    
+class StoryRulesCheck(BaseModel):
+    is_rule_violation : bool = Field(description="Whether the action violates story rules")
+    violation_details : Optional[str] = Field(None, description="Details of the rule violation, if any")

@@ -1,9 +1,12 @@
 from typing import List
-from schemas.in_game import Character, SceneNode
+import uuid
+from game.event_pool import EventPool
+from npcs.npc import NPC
+from schemas.in_game import Character, GameModes, NPCCharacter, SceneNode
 from skls_embeddings import ChromaClient
 from skls_generator import Generator
 from logging import Logger
-from schemas.orchestration import Event, EventList
+from schemas.orchestration import CharacterToUserBinding, Event, EventList, Message
 import json
 from schemas.save_game import SaveGameData
 
@@ -12,22 +15,39 @@ class Session:
                  session_name, 
                  chroma_client : ChromaClient, 
                  logger : Logger,
-                 generator : Generator
+                 generator : Generator, 
+                 event_pool : EventPool,
                  ) -> None:
         self.session_name = session_name
         self.generator = generator
         self.chroma_client = chroma_client
         self.logger = logger
+        self.event_pool = event_pool
         self.collection_name = f"game_session_{session_name}"
         self.player_characters : List[Character] = []
-        self.npcs : List[Character] = []
+        self.npcs : List[NPC] = []
         self.current_scene : SceneNode = None # type: ignore
+        self.game_mode : GameModes = GameModes.STORY
+        self.character_bindings : List[CharacterToUserBinding] = []
+        self.messages : List[Message] = []
+        
+    
+    def _init_npc(self, npc_character : NPCCharacter):
+        """Initialize an NPC in the session."""
+        new_NPC = NPC(
+            character=npc_character,
+            event_queuee=self.event_pool.subscribe(uuid.uuid4().hex),
+            logger=self.logger,
+            generator=self.generator
+        )
+        self.logger.debug(f"Initialized NPC: {npc_character.name}")
+        return new_NPC
     
     def save_session(self, filename: str):
         """Saves session data to a JSON file."""
         save_data = SaveGameData(
             player_characters=self.player_characters,
-            npcs=self.npcs,
+            npcs=[n.character for n in self.npcs],
             current_scene=self.current_scene
         ).dict()
         with open(filename, 'w') as f:
@@ -45,9 +65,10 @@ class Session:
             # Assuming SceneNode has 'name' and 'description' attributes
             scene_info = f"Location: {getattr(self.current_scene, 'name', 'Unknown')}\n"
             scene_info += f"Description: {getattr(self.current_scene, 'description', 'No description available.')}"
+            scene_info += f"Game mode: {self.game_mode.value}"
 
         # 2. Format Characters (Helper function)
-        def format_char_list(chars: List[Character]) -> str:
+        def format_char_list(chars: List[Character] | List[NPCCharacter]) -> str:
             if not chars:
                 return "None"
             
@@ -81,22 +102,21 @@ class Session:
 {format_char_list(self.player_characters)}
 
 #### 3. NON-PLAYER CHARACTERS (NPCs)
-{format_char_list(self.npcs)}
+{format_char_list([n.character for n in self.npcs])}
 """
         return context_str.strip()
     
     def init_new_session(self,
                          scene : SceneNode,
                          player_characters : List[Character] = [],
-                         npcs : List[Character] = []
                          ):
         '''
         Initialize a new game session with player characters and NPCs.
         '''
         self.player_characters = player_characters
-        self.npcs = npcs
+        self.npcs = []
         self.current_scene = scene
-        self.logger.info(f"Initialized session '{self.session_name}' with {len(player_characters)} PCs and {len(npcs)} NPCs.")
+        self.logger.info(f"Initialized session '{self.session_name}' with {len(player_characters)} PCs")
         """Perform an external action within the game session. (players moves)"""
         return []
 
@@ -124,7 +144,7 @@ class Session:
 
     def sort_npcs_by_initiative(self):
         """Sort NPCs based on their initiative scores."""
-        self.npcs.sort(key=lambda npc: npc.initiative_bonus, reverse=True)
+        self.npcs.sort(key=lambda npc: npc.character.initiative_bonus, reverse=True)
         self.logger.debug("Sorted NPCs by initiative.")
 
     def load_session_from_save(self, filename: str):
@@ -134,7 +154,12 @@ class Session:
                 save_data = json.load(f)
             loaded_data = SaveGameData(**save_data)
             self.player_characters = loaded_data.player_characters
-            self.npcs = loaded_data.npcs
+            
+            npcs = []
+            for n in loaded_data.npcs:
+                npc = self._init_npc(n)
+                npcs.append(npc)
+            self.npcs = npcs
             self.current_scene = loaded_data.current_scene
             self.logger.info(f"Session loaded from {filename}")
         except FileNotFoundError:

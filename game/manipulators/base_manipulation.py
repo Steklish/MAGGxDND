@@ -35,7 +35,7 @@ class BaseManipulation:
         self.logger = logger
 
     def get_related_objects(self, event : Event) -> List[Any]:
-        character_pool = self.state.player_characters + self.state.npcs
+        character_pool = self.state.player_characters + [n.character for n in self.state.npcs]
         names = [c.name for c in character_pool]
         selected_objects = []
         for name in names:
