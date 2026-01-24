@@ -76,7 +76,7 @@ class NPC:
         self.event_queue.clear()
         decision = self._handle_events(events, context)
         self.logger.debug(f"NPC {self.character.name} processed {len(events)} events.")
-
+        return decision
     
     def _handle_events(self, events: list[Event], context : str) -> str | None:
         """Process a list of events and decide on an action."""

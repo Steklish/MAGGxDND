@@ -3,7 +3,8 @@ import os
 from game.engine import Session
 from game.event_pool import EventPool
 from game.manipulator import Manipulator
-from schemas.in_game import Character, SceneNode
+from game.orchestrator import Orchestrator
+from schemas.in_game import Character, NPCCharacter, SceneNode
 from skls_generator.generator import Generator
 from skls_generator.gen_backends.google_gen import GoogleGenAI
 from skls_core.logging import get_skls_logger
@@ -36,6 +37,15 @@ session.inject_manipulator(
     )
 )
 
+orchestrator = Orchestrator(
+    generator=generator,
+    logger=logger
+)
+orchestrator.add_state(session)
+
+
+session._init_orchestrator(orchestrator)
+
 # -- LOAD OR INIT GAME STATE --
 
 # scene = generator.generate_one_shot(
@@ -43,17 +53,23 @@ session.inject_manipulator(
 #     prompt="A dark and eerie forest clearing at night, with twisted trees and a faint mist."
 # )
 
-ch1 = generator.generate_one_shot(
-    pydantic_model=Character,
-    prompt="A wizard named Ogorek."
-)
+# ch1 = generator.generate_one_shot(
+#     pydantic_model=Character,
+#     prompt="A wizard named Ogorek."
+# )
+
+# npc1 = generator.generate_one_shot(
+#     pydantic_model=NPCCharacter,
+#     prompt="An evil ork warrior."
+# )
 # print(json.dumps(scene.dict(), indent=2))
 
 # session.init_new_session(
 #     scene=scene,
-#     player_characters=[ch1]
+#     player_characters=[ch1],
+#     npcs=[npc1]
 # )
-# session.save_session("./saves/example_save_02.json")
-session.load_session_from_save("./saves/example_save_02.json")
-
+# session.save_session("./saves/ex_01.json")
+session.load_session_from_save("./saves/ex_01.json")
+session.start_game_loop_simple()
 # print(json.dumps(session.player_characters[0].dict(), indent=2))

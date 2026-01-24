@@ -1,6 +1,7 @@
 from logging import Logger
-from typing import Any, List
-from game.engine import Session
+from typing import TYPE_CHECKING, Any, List
+if TYPE_CHECKING:
+    from game.engine import Session
 import json
 from schemas.orchestration import Event
 
@@ -28,7 +29,7 @@ class Archive:
 
 class BaseManipulation:
     event_types_binded = []
-    def __init__(self, generator, state : Session, archive, logger : Logger) -> None:
+    def __init__(self, generator, state : 'Session', archive, logger : Logger) -> None:
         self.generator = generator
         self.archive = archive
         self.state = state

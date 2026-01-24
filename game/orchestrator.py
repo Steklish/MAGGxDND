@@ -1,6 +1,8 @@
 from logging import Logger
-from typing import List
-from game.engine import Session
+from typing import TYPE_CHECKING, List
+
+if TYPE_CHECKING:
+    from game.engine import Session
 from skls_generator.generator import Generator
 from schemas.orchestration import Event, StoryRulesCheck, UserInteractionProcessing, UserInterationType
 from game.manipulators.base_manipulation import Archive, BaseManipulation
@@ -10,24 +12,25 @@ MAX_EVENTS_PROVIDED = 5
 
 class Orchestrator:
     """Class that handles input from users and passes it to a appropriate handler"""
-    def __init__(self, generator : Generator, state : Session, logger : Logger) -> None:
+    def __init__(self, generator : Generator, logger : Logger) -> None:
         self.generator = generator
         self.manipulations : List[BaseManipulation] = []
-        self.state = state
         self.logger = logger
         
-        with open("/prompts/character_action_rules.md", "r") as f:
+        with open("prompts/character_action_rules.md", "r") as f:
             self.character_action_rules = f.read()
-            
-        with open("/prompts/combat.md", "r") as f:
+
+        with open("prompts/combat.md", "r") as f:
             self.combat_rules = f.read()
-        with open("/prompts/story.md", "r") as f:
+        with open("prompts/story.md", "r") as f:
             self.story_rules = f.read()
         
-        
+    def add_state(self, state : "Session"):
+        self.state = state
         
     def request(self, username : str, request_text : str):
-        
+        if not self.state:
+            raise ValueError("Orchestrator has no state assigned.")
         m_history = ""
         for m in self.state.messages[0:MAX_MESSAGES_HISTORY_PROVIDED]:
             m_history += f"\n\n sender: {m.sender_name}\n text: {m.text}"
