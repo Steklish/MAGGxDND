@@ -4,10 +4,9 @@ import threading
 from typing import TYPE_CHECKING, List, Optional, Union
 import uuid
 from game.event_pool import EventPool
-
+from magg.magg import Magg
 if TYPE_CHECKING:
     from game.manipulator import Manipulator
-    from magg.magg import Magg  # Moved to TYPE_CHECKING to avoid runtime import
     from game.orchestrator import Orchestrator
     
 from npcs.npc import NPC
@@ -46,7 +45,7 @@ class Session:
         # Game loop attributes
         self._game_loop_running = False
         self._game_loop_thread = None
-
+        self._initialize_game_master()  # Initialize game master after avoiding circular import
         # Turn-based system attributes
         self.turn_queue = []  # Priority queue (min-heap) for turn order
         self.next_turn_time = 0.0  # Global time tracker
@@ -58,7 +57,6 @@ class Session:
     def _initialize_game_master(self):
         """Initialize the game master (MAGG) after avoiding circular import issues."""
         if self.game_master is None:
-            from magg.magg import Magg
             self.game_master = Magg(
                 generator=self.generator,
                 archive=None,
@@ -174,8 +172,6 @@ class Session:
             npc = self._init_npc(n)
             self.npcs.append(npc)
         self.current_scene = scene
-        self._initialize_game_master()  # Initialize game master after avoiding circular import
-        self.initialize_turn_queue()  # Initialize the turn queue for the new session
         self.logger.info(f"Initialized session '{self.session_name}' with {len(player_characters)} PCs")
         """Perform an external action within the game session. (players moves)"""
         return []
@@ -355,9 +351,11 @@ class Session:
                 # For now, we'll just log it
 
     def start_game_loop_simple(self):
+        if not self.game_master:
+            raise ValueError("Game master (MAGG) is not initialized.")
+        self.initialize_turn_queue()
         while True:
             try:
-                self.initialize_turn_queue()
                 character : Player | NPC
                 character, is_npc, time = self.get_next_character_turn()
                 if character:
@@ -366,6 +364,10 @@ class Session:
                 if decision:
                     events = self._external_action(decision, actor=character.character.name)
                     self.execute_events(events)
+                    narrative = self.game_master.comment(self.get_session_context())
+                    print(f"\033[31mDM Comment: {narrative}\033[0m")
+                else:
+                    self.logger.info(f"{character.character.name} chose to skip their turn.")
             except KeyboardInterrupt:
                 self.logger.info("Game loop interrupted by user.")
                 break

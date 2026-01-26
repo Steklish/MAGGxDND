@@ -49,7 +49,7 @@ class NPC:
         EventTypes.CHARACTER_STATS_UPDATE,
         EventTypes.CHARACTER_MOVEMENT,
         EventTypes.CHARACTER_TRANSFER,
-        EventTypes.NPC_ACTION
+        # EventTypes.NPC_ACTION
         ]
         
     def __init__(self, character : NPCCharacter,
@@ -71,7 +71,7 @@ class NPC:
                 relevant_events.append(event)
         return relevant_events
     
-    def run(self, context : str) -> str | None:
+    def run(self, context : str, combat : bool = False) -> str | None:
         events = self.event_queue.get_all()
         self.event_queue.clear()
         decision = self._handle_events(events, context)
