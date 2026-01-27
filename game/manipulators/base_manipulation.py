@@ -48,8 +48,9 @@ class BaseManipulation:
     def execute(self, event: Event):
         """Executes the manipulation based on the provided prompt. (Wrapper)"""
         self.logger.debug(f"Executing manipulation {self.__class__.__name__}")
-        self.manipulate(event)
+        result = self.manipulate(event)
+        return result if result is not None else []
 
-    def manipulate(self, event: Event):
+    def manipulate(self, event: Event) -> List[Event]:
         """Core manipulation logic to be implemented by subclasses."""
         raise NotImplementedError("This method should be overridden by subclasses.")

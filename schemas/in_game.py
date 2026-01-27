@@ -2,6 +2,12 @@ from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel, Field, computed_field
 
+class Coordinate3D(BaseModel):
+    """3D coordinate system for spatial positioning."""
+    x: float = Field(default=0.0, description="X coordinate (horizontal axis)")
+    y: float = Field(default=0.0, description="Y coordinate (vertical axis)")
+    z: float = Field(default=0.0, description="Z coordinate (depth axis)")
+
 # --- Enums for Strict Typing ---
 class GameModes(str, Enum):
     STORY = "STORY" # for story and peaceful / social scenes
@@ -132,6 +138,11 @@ class Character(BaseModel):
     # Using a flexible dict allows for different systems (Ki points, Spell Slots, Rage charges)
     resources: dict = Field(default_factory=dict, description="Trackable resources. Example: {'spell_slots_lvl1': 3, 'rages': 2}")
 
+    # 6. Spatial Information
+    position: Coordinate3D = Field(default_factory=Coordinate3D, description="Current position of the character in 3D space")
+    facing_direction: Coordinate3D = Field(default_factory=lambda: Coordinate3D(x=1.0, y=0.0, z=0.0),
+                                          description="Direction the character is facing (unit vector)")
+
     # --- Computed Helpers (Logic) ---
     # These create derived fields automatically when serialized, giving the AI the math results.
 
@@ -162,6 +173,7 @@ class NPCCharacter(Character):
     motivation: Optional[str] = Field(None, description="What drives this NPC?")
     alignment: Optional[Alignment] = Field(None, description="Moral alignment of the NPC.")
     memory : str = Field("", description="NPC's internal memory log.")
+    current_scene: str = Field(description="Name of the scene the NPC is currently in")
     
 class SceneNode(BaseModel):
     """
@@ -176,3 +188,9 @@ class SceneNode(BaseModel):
         description="Hidden info for the GM only. E.g. 'The rug covers a pit trap', 'The barmaid is a spy'."
     )
     objects: List['UnifiedObject'] = Field(default_factory=list, description="Interactable items present.")
+
+    # Spatial information
+    center_position: Coordinate3D = Field(default_factory=Coordinate3D, description="Center position of the scene")
+    dimensions: Coordinate3D = Field(default_factory=lambda: Coordinate3D(x=10.0, y=10.0, z=10.0),
+                                   description="Dimensions of the scene (width, height, depth)")
+    scale_unit: str = Field("feet", description="Unit of measurement for coordinates (e.g., feet, meters)")

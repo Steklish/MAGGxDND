@@ -1,5 +1,5 @@
 from game.manipulators.base_manipulation import BaseManipulation
-from game.utils import roll
+from utils.dice_utils import roll
 from skls_generator.generator import Generator
 from schemas.orchestration import Event, EventTypes, SceneObjectManipulationCommand
 from thefuzz import process
@@ -7,6 +7,7 @@ from typing import Any, List, Tuple
 from logging import Logger
 from game.engine import Session
 from schemas.in_game import UnifiedObject
+from utils.spatial_utils import calculate_spatial_distances
 
 
 class SceneObjectMutationManipulation(BaseManipulation):
@@ -26,17 +27,29 @@ class SceneObjectMutationManipulation(BaseManipulation):
 
     event_types_binded = [EventTypes.ITEM_STATUS_CHANGE,
                          EventTypes.ITEM_MUTATION,
-                         EventTypes.ITEM_INTERACTION]
+                         EventTypes.ITEM_INTERACTION,
+                         EventTypes.ITEM_MOVEMENT]
 
     def __init__(self, generator : Generator, state : Session, archive, logger : Logger) -> None:
         super().__init__(generator, state, archive, logger)
 
-    def manipulate(self, event):
+    def manipulate(self, event) -> List[Event]:
         # Get all scene objects in the current scene
         scene_objects = self.state.current_scene.objects
         all_object_names = self._get_all_object_names(scene_objects)
 
-        task_prompt = f"create a specific authoritative task from the event {event} \n\n Follow the following rules {self.task_rules}.\n\n # object schema for attribute matches: \n {UnifiedObject.schema()}"
+        # Calculate spatial distances if relevant
+        spatial_info = calculate_spatial_distances(self.state, event)
+
+        task_prompt = f"""Create a specific authoritative task from the event {event}
+
+        Spatial Information (if applicable):
+        {spatial_info}
+
+        Follow the following rules {self.task_rules}.
+
+        # object schema for attribute matches:
+        {UnifiedObject.schema()}"""
 
         task = self.generator.generate_one_shot(
             pydantic_model=SceneObjectManipulationCommand,
@@ -62,7 +75,28 @@ class SceneObjectMutationManipulation(BaseManipulation):
         if not target:
             raise ValueError(f"No scene object found with name: {task.object_name}")
 
+        # Store before state for action result
+        parent_obj, field_name = self._resolve_attribute_path(target, task.target)
+        original_value = getattr(parent_obj, field_name)
+
         self._apply_change(target, task)
+
+        # Get the new value after applying the change
+        new_value = getattr(parent_obj, field_name)
+
+        # Create action result event
+        action_result = Event(
+            event_type=EventTypes.ACTION_RESULT,
+            event_initiator=event.event_initiator,
+            event_subject=target.name,
+            event_target=task.target,
+            description=f"Applied {task.operation} operation to object '{target.name}' attribute '{task.target}': {original_value} -> {new_value}",
+            start_position=event.start_position,
+            end_position=event.end_position,
+            distance=event.distance
+        )
+
+        return [action_result]
 
     def _get_all_object_names(self, objects, prefix=""):
         """Recursively collect all object names including nested objects."""
@@ -161,6 +195,8 @@ class SceneObjectMutationManipulation(BaseManipulation):
         # Retrieve the current value to determine how to handle it
         current_val = getattr(parent_obj, field_name)
 
+        self.logger.debug(f"Applying object change to {obj.name}: {task.operation} {field_name} with value {task.value} (current: {current_val})")
+
         # --- BRANCH A: Numeric Operations (quantity, etc.) ---
         if isinstance(current_val, int):
             self._handle_numeric_op(parent_obj, field_name, current_val, task)
@@ -172,7 +208,9 @@ class SceneObjectMutationManipulation(BaseManipulation):
         # --- BRANCH C: String/Boolean Operations (state, description, is_locked, etc.) ---
         elif isinstance(current_val, str):
             if task.operation == "replace" or task.operation == "set":
+                old_val = getattr(parent_obj, field_name)
                 setattr(parent_obj, field_name, task.value)
+                self.logger.debug(f"Set {obj.name}.{field_name} to '{task.value}' (was '{old_val}')")
         elif isinstance(current_val, bool):
             if task.operation == "replace" or task.operation == "set":
                 # Convert the value to boolean
@@ -180,7 +218,9 @@ class SceneObjectMutationManipulation(BaseManipulation):
                     new_val = task.value.lower() in ['true', '1', 'yes', 'on']
                 else:
                     new_val = bool(task.value)
+                old_val = getattr(parent_obj, field_name)
                 setattr(parent_obj, field_name, new_val)
+                self.logger.debug(f"Set {obj.name}.{field_name} to {new_val} (was {old_val})")
         elif isinstance(current_val, list) and field_name == "contained_objects":
             # Handle operations on contained_objects list
             self._handle_contained_objects_op(parent_obj, field_name, current_val, task)

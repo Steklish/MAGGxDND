@@ -1,11 +1,12 @@
 from game.manipulators.base_manipulation import BaseManipulation
-from game.utils import roll
+from utils.dice_utils import roll
 from skls_generator.generator import Generator
-from schemas.orchestration import EventTypes, Character, CharacterManipulationBrakdown
+from schemas.orchestration import Event, EventTypes, Character, CharacterManipulationBrakdown
 from thefuzz import process
 from typing import Any, List, Tuple
 from logging import Logger
 from game.engine import Session
+from utils.spatial_utils import calculate_spatial_distances
 
 
 class CharacterMutationManipulation(BaseManipulation):
@@ -20,22 +21,36 @@ class CharacterMutationManipulation(BaseManipulation):
         2.4 Numeric value should follow dnd dice notation or a constatnt number (e g 10d4+1 where 10d4 means addition of 10 times rolled dice with 4 planes and + 1 constatly on top of that)
         2.5 for non-numeric values use attribute field
     3. If the target is an object attibute you MUST use its exactly as it spelled in reference objects.
+    4. If inventory or spells or other objects involved you may need to yse their stats to choose numeric values.
     """
 
     event_types_binded = [EventTypes.CHARACTER_STATS_UPDATE,
-                                   EventTypes.CHARACTER_STATUS_CHANGE]
+                                   EventTypes.CHARACTER_STATUS_CHANGE,
+                                   EventTypes.CHARACTER_DEATH]
 
     def __init__(self, generator : Generator, state : Session, archive, logger : Logger) -> None:
         super().__init__(generator, state, archive, logger)
 
-    def manipulate(self, event):
+    def manipulate(self, event) -> List[Event]:
         objects = self.get_related_objects(event)
         objects_text = ""
         for o in objects:
             objects_text += '\n'
             objects_text += str(o.__str__ if o else None)
-        task_prompt = f"create a specific authoritive task from the event {event} \n\n Follow the following rules {self.task_rules}.\n\n # object schema for attribute matches: \n {Character.schema()}"
-        # self.logger.debug(f"Task prompt: {task_prompt}")
+
+        # Calculate spatial distances between mentioned objects if spatial system is enabled
+        spatial_info = calculate_spatial_distances(self.state, event)
+
+        task_prompt = f"""Create a specific authoritative task from the event {event}
+
+        Spatial Information (if applicable):
+        {spatial_info}
+
+        Follow the following rules {self.task_rules}.
+
+        # object schema for attribute matches:
+        {Character.schema()}"""
+
         task = self.generator.generate_one_shot(
             pydantic_model=CharacterManipulationBrakdown,
             prompt=task_prompt
@@ -49,8 +64,6 @@ class CharacterMutationManipulation(BaseManipulation):
             best = best[0]
         else:
             raise ValueError("No target found")
-        # self.logger.debug(f"Task generated {best} / total > {names} / {character_pool}" )
-        # self.logger.debug(f"breakdown object here {task}")
 
         for c in character_pool:
             if c.name == best:
@@ -58,7 +71,29 @@ class CharacterMutationManipulation(BaseManipulation):
                 break
         if not target:
             raise ValueError("No target found")
+
+        # Store before state for action result
+        parent_obj, field_name = self._resolve_attribute_path(target, task.target)
+        original_value = getattr(parent_obj, field_name)
+
         self._apply_change(target, task)
+
+        # Get the new value after applying the change
+        new_value = getattr(parent_obj, field_name)
+
+        # Create action result event
+        action_result = Event(
+            event_type=EventTypes.ACTION_RESULT,
+            event_initiator=event.event_initiator,
+            event_subject=target.name,
+            event_target=task.target,
+            description=f"From request {event.description}:\n Applied {task.operation} operation to {target.name}'s {task.target}: {original_value} -> {new_value}",
+            start_position=event.start_position,
+            end_position=event.end_position,
+            distance=event.distance
+        )
+
+        return [action_result]
 
     def _apply_change(self, char: Character, task: CharacterManipulationBrakdown):
         """Dispatches logic based on the attribute type (Numeric vs List/State)."""
@@ -69,6 +104,8 @@ class CharacterMutationManipulation(BaseManipulation):
 
         # Retrieve the current value to determine how to handle it
         current_val = getattr(parent_obj, field_name)
+
+        self.logger.debug(f"Applying change to {char.name}: {task.operation} {field_name} with value {task.value} (current: {current_val})")
 
         # --- BRANCH A: Numeric Operations (HP, Str, Speed) ---
         if isinstance(current_val, int):
@@ -82,6 +119,7 @@ class CharacterMutationManipulation(BaseManipulation):
         elif isinstance(current_val, str):
              if task.operation == "replace" or task.operation == "set":
                  setattr(parent_obj, field_name, task.value)
+                 self.logger.debug(f"Set {char.name}.{field_name} to '{task.value}' (was '{current_val}')")
 
     def _handle_numeric_op(self, obj: Any, field: str, current_val: int, task: CharacterManipulationBrakdown):
         """Handles dice parsing and math."""
@@ -93,10 +131,13 @@ class CharacterMutationManipulation(BaseManipulation):
 
         if task.operation in ["add", "heal", "buff"]:
             new_val += change_amount
+            self.logger.debug(f"Adding {change_amount} to {field} (was {current_val}, now {new_val})")
         elif task.operation in ["subtract", "sub", "damage", "debuff"]:
             new_val -= change_amount
+            self.logger.debug(f"Subtracting {change_amount} from {field} (was {current_val}, now {new_val})")
         elif task.operation in ["set", "replace"]:
             new_val = change_amount
+            self.logger.debug(f"Setting {field} to {change_amount} (was {current_val}, now {new_val})")
         else:
             raise ValueError(f"Unknown operation: {task.operation}")
 
@@ -117,22 +158,32 @@ class CharacterMutationManipulation(BaseManipulation):
 
         clean_value = task.value.title() # "poisoned" -> "Poisoned"
 
+        self.logger.debug(f"Handling list operation on {field}: {task.operation} '{clean_value}', current list: {current_list}")
+
         if task.operation in ["append", "add"]:
             if clean_value not in current_list:
                 current_list.append(clean_value)
-                self.logger.debug(f"➕ Added status '{clean_value}' to {field}.")
+                self.logger.debug(f"➕ Added status '{clean_value}' to {field}. New list: {current_list}")
+            else:
+                self.logger.debug(f"'{clean_value}' already exists in {field}, skipping add operation.")
 
         elif task.operation in ["remove", "subtract", "delete"]:
             if clean_value in current_list:
                 current_list.remove(clean_value)
-                self.logger.debug(f"➖ Removed status '{clean_value}' from {field}.")
+                self.logger.debug(f"➖ Removed status '{clean_value}' from {field}. New list: {current_list}")
+            else:
+                self.logger.debug(f"'{clean_value}' not found in {field}, skipping remove operation.")
 
         elif task.operation == "replace":
             # Replaces the whole list (e.g. clear all conditions)
             if clean_value.lower() in ["none", "clear", "empty"]:
+                old_list = current_list.copy()
                 setattr(obj, field, [])
+                self.logger.debug(f"🔄 Cleared all values from {field}. Old list: {old_list}, new list: {getattr(obj, field)}")
             else:
+                old_list = current_list.copy()
                 setattr(obj, field, [clean_value])
+                self.logger.debug(f"🔄 Replaced {field}. Old list: {old_list}, new list: {getattr(obj, field)}")
 
     def _resolve_attribute_path(self, char: Character, attr_name: str) -> Tuple[Any, str]:
         """

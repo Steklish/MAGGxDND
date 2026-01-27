@@ -9,6 +9,7 @@ from game.manipulators.object_transfer_manipulation import ObjectTransferManipul
 from game.manipulators.scene_manipulation import SceneManipulation
 from game.manipulators.character_mutation_manipulation import CharacterMutationManipulation
 from game.manipulators.character_transfer_manipulation import CharacterTransferManipulation
+from game.manipulators.npc_transfer_manipulation import NPCTransferManipulation
 from game.manipulators.scene_object_mutation_manipulation import SceneObjectMutationManipulation
 
 
@@ -27,7 +28,12 @@ class Manipulator:
     def manage(self, event : Event):
         for manipulator in self.manipulations:
             if event.event_type in manipulator.event_types_binded:
-                manipulator.execute(event)
+                result_events = manipulator.execute(event)
+                # Process any result events returned by the manipulator
+                if result_events:
+                    for result_event in result_events:
+                        # Add result events to the event pool for other systems to process
+                        self.state.event_pool.add_event(result_event)
                 break
         else:
             raise ValueError(f"No manipulator for this event type found. Event type is {event.event_type.value}")
@@ -37,6 +43,8 @@ class Manipulator:
         self.manipulations.append(SceneManipulation(self.generator, self.state, self.archive, self.logger))
         self.manipulations.append(SceneObjectMutationManipulation(self.generator, self.state, self.archive, self.logger))
         self.manipulations.append(ObjectTransferManipulation(self.generator, self.state, self.archive, self.logger))
+        self.manipulations.append(CharacterTransferManipulation(self.generator, self.state, self.archive, self.logger))
+        self.manipulations.append(NPCTransferManipulation(self.generator, self.state, self.archive, self.logger))
 
         for manipulation in self.manipulations:
             self.logger.info(f"Initialized manipulation: {manipulation.__class__.__name__}")

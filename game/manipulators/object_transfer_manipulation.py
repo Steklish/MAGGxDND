@@ -6,6 +6,7 @@ from logging import Logger
 from game.engine import Session
 from schemas.in_game import UnifiedObject
 import copy
+from utils.spatial_utils import calculate_spatial_distances
 
 
 class ObjectTransferManipulation(BaseManipulation):
@@ -26,7 +27,7 @@ class ObjectTransferManipulation(BaseManipulation):
     7. Use exact object names as they appear in the scene context
     8. For container operations, specify both the object name and target container name
     """
-    
+
     event_types_binded = [EventTypes.OBJECT_TRANSFER,
                          EventTypes.ITEM_PICKUP,
                          EventTypes.ITEM_DROP,
@@ -37,19 +38,29 @@ class ObjectTransferManipulation(BaseManipulation):
     def __init__(self, generator: Generator, state: Session, archive, logger: Logger) -> None:
         super().__init__(generator, state, archive, logger)
 
-    def manipulate(self, event: Event):
+    def manipulate(self, event: Event) -> List[Event]:
         """Process the object transfer event."""
         # Get the scene context to help the LLM understand object names
-        
+
+        # Calculate spatial distances if relevant
+        spatial_info = calculate_spatial_distances(self.state, event)
+
         # Create a prompt for the LLM to generate a transfer command
         prompt = f"""
         Create a specific authoritative transfer command from the event {event}
+
+        Spatial Information (if applicable):
+        {spatial_info}
+
         Follow the following rules {self.task_rules}.
 
         Scene Context:
         {self.state.get_session_context()}
 
         """
+
+        self.logger.debug(f"Processing transfer event: {event.event_type.value} - {event.description}")
+        self.logger.debug(f"Event context: {event.event_initiator} -> {event.event_subject} -> {event.event_target}")
 
         transfer_command = self.generator.generate_one_shot(
             pydantic_model=TransferEventBreakDown,
@@ -62,19 +73,41 @@ class ObjectTransferManipulation(BaseManipulation):
         quantity = transfer_command.quantity
         target_container_name = transfer_command.target_container
 
+        self.logger.debug(f"Generated transfer command: {source} -> {target} | {quantity}x '{object_name}' | Container: {target_container_name}")
+
         # Determine transfer direction and execute
         if source == "scene" and target == "inventory":
+            self.logger.debug(f"Executing scene->inventory transfer: {quantity}x '{object_name}'")
             self._transfer_from_scene_to_inventory(object_name, quantity)
         elif source == "inventory" and target == "scene":
+            self.logger.debug(f"Executing inventory->scene transfer: {quantity}x '{object_name}'")
             self._transfer_from_inventory_to_scene(object_name, quantity)
         elif source == "container" and target == "inventory":
+            self.logger.debug(f"Executing container->inventory transfer: {quantity}x '{object_name}'")
             self._transfer_from_container_to_inventory(object_name, quantity)
         elif source == "inventory" and target == "container":
+            self.logger.debug(f"Executing inventory->container transfer: {quantity}x '{object_name}' to container '{target_container_name}'")
             self._transfer_from_inventory_to_container(object_name, quantity, target_container_name)
         elif source == "container" and target == "container":
+            self.logger.debug(f"Executing container->container transfer: {quantity}x '{object_name}' to container '{target_container_name}'")
             self._transfer_from_container_to_container(object_name, quantity, target_container_name)
         else:
+            self.logger.error(f"Unsupported transfer direction: {source} to {target}")
             raise ValueError(f"Unsupported transfer direction: {source} to {target}")
+
+        # Create action result event
+        action_result = Event(
+            event_type=EventTypes.ACTION_RESULT,
+            event_initiator=event.event_initiator,
+            event_subject=object_name,
+            event_target=f"{source} -> {target}",
+            description=f"Transferred {quantity}x '{object_name}' from {source} to {target}",
+            start_position=event.start_position,
+            end_position=event.end_position,
+            distance=event.distance
+        )
+
+        return [action_result]
 
 
     def _transfer_from_scene_to_inventory(self, object_name: str, quantity: int):
@@ -99,29 +132,38 @@ class ObjectTransferManipulation(BaseManipulation):
             if contained_obj:
                 container = obj
                 actual_obj = contained_obj
-        
+
+        # Log the transfer details
+        self.logger.debug(f"Transferring {quantity}x '{actual_obj.name}' from scene to {player_character.name}'s inventory")
+        self.logger.debug(f"Before transfer - Object quantity: {actual_obj.quantity}, Player inventory count: {len(player_character.inventory)}")
+
         # Handle quantity transfer
         if actual_obj.quantity > quantity:
             # Create a new object with the transferred quantity
             transferred_obj = copy.deepcopy(actual_obj)
             transferred_obj.quantity = quantity
             actual_obj.quantity -= quantity
-            
+
             # Add to player inventory
             player_character.inventory.append(transferred_obj)
+            self.logger.debug(f"Partial transfer: reduced scene object quantity to {actual_obj.quantity}, added {transferred_obj.quantity} to inventory")
         else:
             # Transfer the entire object
             if container:
                 # Remove from container's contained_objects
-                container.contained_objects.remove(actual_obj) # type: ignore
+                if container.contained_objects: container.contained_objects.remove(actual_obj) # type: ignore
+                self.logger.debug(f"Removed '{actual_obj.name}' from container '{container.name}'")
             else:
                 # Remove from scene objects
                 scene_objects.remove(actual_obj)
-            
+                self.logger.debug(f"Removed '{actual_obj.name}' from scene objects")
+
             # Add to player inventory
             player_character.inventory.append(actual_obj)
-        
+            self.logger.debug(f"Full transfer: moved entire object to inventory")
+
         self.logger.info(f"Transferred {quantity}x '{actual_obj.name}' from scene to inventory")
+        self.logger.debug(f"After transfer - Player inventory count: {len(player_character.inventory)}")
 
     def _transfer_from_inventory_to_scene(self, object_name: str, quantity: int):
         """Transfer an object from the player's inventory to the scene."""
@@ -136,6 +178,10 @@ class ObjectTransferManipulation(BaseManipulation):
         if not obj:
             raise ValueError(f"Object '{object_name}' not found in player inventory")
 
+        # Log the transfer details
+        self.logger.debug(f"Transferring {quantity}x '{obj.name}' from {player_character.name}'s inventory to scene")
+        self.logger.debug(f"Before transfer - Object quantity: {obj.quantity}, Player inventory count: {len(player_character.inventory)}")
+
         # Handle quantity transfer
         if obj.quantity > quantity:
             # Create a new object with the transferred quantity
@@ -145,14 +191,17 @@ class ObjectTransferManipulation(BaseManipulation):
 
             # Add to scene objects
             scene_objects.append(transferred_obj)
+            self.logger.debug(f"Partial transfer: reduced inventory object quantity to {obj.quantity}, added {transferred_obj.quantity} to scene")
         else:
             # Transfer the entire object
             player_character.inventory.remove(obj)
 
             # Add to scene objects
             scene_objects.append(obj)
+            self.logger.debug(f"Full transfer: moved entire object to scene")
 
         self.logger.info(f"Transferred {quantity}x '{obj.name}' from inventory to scene")
+        self.logger.debug(f"After transfer - Player inventory count: {len(player_character.inventory)}, Scene objects count: {len(scene_objects)}")
 
     def _transfer_from_container_to_inventory(self, object_name: str, quantity: int):
         """Transfer an object from a container in the scene to the player's inventory."""
@@ -167,6 +216,10 @@ class ObjectTransferManipulation(BaseManipulation):
         if not obj:
             raise ValueError(f"Object '{object_name}' not found in any container in the scene")
 
+        # Log the transfer details
+        self.logger.debug(f"Transferring {quantity}x '{obj.name}' from container '{container.name}' to {player_character.name}'s inventory")
+        self.logger.debug(f"Before transfer - Object quantity: {obj.quantity}, Player inventory count: {len(player_character.inventory)}")
+
         # Handle quantity transfer
         if obj.quantity > quantity:
             # Create a new object with the transferred quantity
@@ -176,14 +229,17 @@ class ObjectTransferManipulation(BaseManipulation):
 
             # Add to player inventory
             player_character.inventory.append(transferred_obj)
+            self.logger.debug(f"Partial transfer: reduced container object quantity to {obj.quantity}, added {transferred_obj.quantity} to inventory")
         else:
             # Transfer the entire object
-            container.contained_objects.remove(obj) # type: ignore
+            if container.contained_objects: container.contained_objects.remove(obj) # type: ignore
 
             # Add to player inventory
             player_character.inventory.append(obj)
+            self.logger.debug(f"Full transfer: moved entire object from container to inventory")
 
         self.logger.info(f"Transferred {quantity}x '{obj.name}' from container '{container.name}' to inventory")
+        self.logger.debug(f"After transfer - Player inventory count: {len(player_character.inventory)}, Container objects count: {len(container.contained_objects) if container.contained_objects else 0}")
 
     def _transfer_from_inventory_to_container(self, object_name: str, quantity: int, target_container_name: str):
         """Transfer an object from the player's inventory to a container in the scene."""

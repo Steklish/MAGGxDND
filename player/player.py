@@ -17,7 +17,11 @@ class Player:
         # In a real implementation, this would get input from the actual player
         # For now, returning None to indicate the player is waiting for input
         self.logger.debug(f"Waiting for player input for {self.character.name}")
-        request = input(f"Player {self.character.name}, enter your action: ")
+        request = input(
+            f"\033[35mPlayer {self.character.name}, enter your action "
+            f"(current position: ({self.character.position.x}, "
+            f"{self.character.position.y}, {self.character.position.z})): \033[0m"
+        )
         if request.strip() == "":
             return None
         return request
