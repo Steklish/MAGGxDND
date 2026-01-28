@@ -21,11 +21,7 @@ class SceneManipulation(BaseManipulation):
 
     event_types_binded = [EventTypes.SCENE_UPDATE,
                           EventTypes.LOCATION_STATUS_CHANGE,
-                          EventTypes.LOCATION_MUTATION,
-                          EventTypes.CHARACTER_MOVEMENT,
-                          EventTypes.CHARACTER_POSITION_UPDATE,
-                          EventTypes.CHARACTER_TELEPORT,
-                          EventTypes.CHARACTER_PATHFINDING]
+                          EventTypes.LOCATION_MUTATION]
 
     def __init__(self, generator : Generator, state : Session, archive, logger : Logger) -> None:
         super().__init__(generator, state, archive, logger)

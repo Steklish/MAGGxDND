@@ -29,28 +29,6 @@ class NPC:
         You are an NPC in a role-playing game. React to events happening around you based on your personality and objectives.
         """
         
-    events_binded_to_npc = [
-        EventTypes.LOCATION_CHANGE,
-        EventTypes.LOCATION_MUTATION,
-        EventTypes.LOCATION_STATUS_CHANGE,
-        EventTypes.SCENE_UPDATE,
-        EventTypes.OBJECT_TRANSFER,
-        EventTypes.ITEM_TRANSFER,
-        # EventTypes.ITEM_STATUS_CHANGE,
-        EventTypes.ITEM_MOVEMENT,
-        # EventTypes.ITEM_MUTATION,
-        EventTypes.ITEM_INTERACTION,
-        EventTypes.ITEM_PICKUP,
-        EventTypes.ITEM_DROP,
-        # EventTypes.CONTAINER_ACCESS,
-        EventTypes.CONTAINER_TRANSFER,
-        EventTypes.CHARACTER_STATUS_CHANGE,
-        EventTypes.CHARACTER_DEATH,
-        EventTypes.CHARACTER_STATS_UPDATE,
-        EventTypes.CHARACTER_MOVEMENT,
-        # EventTypes.NPC_ACTION
-        ]
-        
     def __init__(self, character : NPCCharacter,
                  event_queuee : SubscriberQueue,
                  logger : Logger,
@@ -62,15 +40,13 @@ class NPC:
         self.generator = generator
         self._running = False
  
-    def _filter_relevant_events(self, events: list[Event]) -> list[Event]:
-        """Filter events to only those relevant to this NPC."""
-        relevant_events = []
-        for event in events:
-            if event.event_type in self.events_binded_to_npc:
-                relevant_events.append(event)
-        return relevant_events
     
-    def run(self, context : str, combat : bool = False) -> str | None:
+    def run(self, *arg, **kwarg) -> str | None:
+        """Process events and decide on an action."""
+        context = kwarg.get("context", None)
+        if context is None:
+            self.logger.error("No context provided to NPC run method.")
+            raise ValueError("Context is required for NPC decision making.")
         events = self.event_queue.get_all()
         self.event_queue.clear()
         decision = self._handle_events(events, context)
@@ -101,7 +77,7 @@ class NPC:
             {spatial_context}
 
             ## Here are the recent events in the game:
-            {', '.join([str(e.dict()) for e in self._filter_relevant_events(events)])}
+            {', '.join([str(e.dict()) for e in events])}
             Based on these events, decide if you need to act and what to do if you need to react in some way.
             """)
 
@@ -134,8 +110,7 @@ class NPC:
         """Generate spatial context from recent events."""
         spatial_events = [e for e in events if e.event_type in [
             EventTypes.CHARACTER_POSITION_UPDATE,
-            EventTypes.CHARACTER_MOVEMENT,
-            EventTypes.CHARACTER_TELEPORT
+            EventTypes.CHARACTER_MOVEMENT
         ]]
 
         if not spatial_events:

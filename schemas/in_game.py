@@ -91,6 +91,9 @@ class UnifiedObject(BaseModel):
     capacity: Optional[int] = Field(None, description="Maximum number of objects this container can hold.")
     contained_objects: Optional[List['UnifiedObject']] = Field(default_factory=list, description="Other objects contained within this object.")
 
+    # Spatial information (for objects in scenes)
+    position: Optional[Coordinate3D] = Field(default_factory=Coordinate3D, description="Current position of the object in 3D space when in a scene")
+
     # Metadata
     tags: Optional[List[str]] = Field(default_factory=list, description="Keywords for the GM: ['trapped', 'magical', 'explosive'].")
     item_description: Optional[str] = Field(None, description="Description when taken as an inventory item.")

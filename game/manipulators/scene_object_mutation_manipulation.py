@@ -27,8 +27,7 @@ class SceneObjectMutationManipulation(BaseManipulation):
 
     event_types_binded = [EventTypes.ITEM_STATUS_CHANGE,
                          EventTypes.ITEM_MUTATION,
-                         EventTypes.ITEM_INTERACTION,
-                         EventTypes.ITEM_MOVEMENT]
+                         EventTypes.ITEM_INTERACTION]
 
     def __init__(self, generator : Generator, state : Session, archive, logger : Logger) -> None:
         super().__init__(generator, state, archive, logger)

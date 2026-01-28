@@ -28,6 +28,7 @@ class Session:
                  logger : Logger,
                  generator : Generator,
                  event_pool : EventPool,
+                 magg_logger : Logger
                  ) -> None:
         self.session_name = session_name
         self.generator = generator
@@ -47,7 +48,7 @@ class Session:
         # Game loop attributes
         self._game_loop_running = False
         self._game_loop_thread = None
-        self._initialize_game_master()  # Initialize game master after avoiding circular import
+        self._initialize_game_master(magg_logger)  # Initialize game master after avoiding circular import
         # Turn-based system attributes
         self.turn_queue = []  # Priority queue (min-heap) for turn order
         self.next_turn_time = 0.0  # Global time tracker
@@ -64,13 +65,15 @@ class Session:
     def _init_orchestrator(self, orchestrator : 'Orchestrator'):
         self.orchestrator = orchestrator
 
-    def _initialize_game_master(self):
+    def _initialize_game_master(self, magg_logger=None):
         """Initialize the game master (MAGG) after avoiding circular import issues."""
         if self.game_master is None:
+            # Use provided MAGG logger if available, otherwise use session logger
+            logger_to_use = magg_logger if magg_logger else self.logger
             self.game_master = Magg(
                 generator=self.generator,
                 archive=None,
-                logger=self.logger,
+                logger=logger_to_use,
                 event_queue=self.event_pool.subscribe("magg")
             )
         
@@ -78,25 +81,29 @@ class Session:
         self.manipulator = manipulator
 
     
-    def _init_npc(self, npc_character : NPCCharacter):
+    def _init_npc(self, npc_character : NPCCharacter, npc_logger=None):
         """Initialize an NPC in the session."""
+        # Use provided NPC logger if available, otherwise use session logger
+        logger_to_use = npc_logger if npc_logger else self.logger
         new_NPC = NPC(
             character=npc_character,
             event_queuee=self.event_pool.subscribe(uuid.uuid4().hex),
-            logger=self.logger,
+            logger=logger_to_use,
             generator=self.generator
         )
-        self.logger.debug(f"Initialized NPC: {npc_character.name}")
+        logger_to_use.debug(f"Initialized NPC: {npc_character.name}")
         return new_NPC
 
-    def _init_player(self, character: Character, orchestrator: 'Orchestrator'):
+    def _init_player(self, character: Character, orchestrator: 'Orchestrator', player_logger=None):
         """Initialize a Player in the session."""
+        # Use provided Player logger if available, otherwise use session logger
+        logger_to_use = player_logger if player_logger else self.logger
         new_player = Player(
             character=character,
-            logger=self.logger,
+            logger=logger_to_use,
             orchestrator=orchestrator
         )
-        self.logger.debug(f"Initialized Player: {character.name}")
+        logger_to_use.debug(f"Initialized Player: {character.name}")
         return new_player
     
     def save_session(self, filename: str):
@@ -193,7 +200,9 @@ class Session:
     def init_new_session(self,
                          scene : SceneNode,
                          player_characters : List[Character] = [],
-                         npcs : List[NPCCharacter] = []
+                         npcs : List[NPCCharacter] = [],
+                         npc_logger=None,
+                         player_logger=None
                          ):
         '''
         Initialize a new game session with player characters and NPCs.
@@ -202,12 +211,12 @@ class Session:
         # Initialize Player objects for each character
         self.players = []
         for character in player_characters:
-            player = self._init_player(character, self.orchestrator)
+            player = self._init_player(character, self.orchestrator, player_logger)
             self.players.append(player)
 
         self.npcs = []
         for n in npcs:
-            npc = self._init_npc(n)
+            npc = self._init_npc(n, npc_logger)
             # Assign NPC to current scene if not already assigned
             if not npc.character.current_scene:
                 npc.character.current_scene = scene.name
@@ -240,7 +249,7 @@ class Session:
 
         # Process Players (though they typically wait for user input)
         for player in self.players:
-            decision = player.run()
+            decision = player.run(state=self)
             if decision:
                 events = self._external_action(decision, actor=player.character.name)
                 self.execute_events(events)
@@ -534,38 +543,6 @@ class Session:
 
         return character_obj, is_npc, next_turn_time
 
-    def process_next_character_turn(self):
-        """Process the next character's turn in the turn queue."""
-        if self.game_mode != GameModes.COMBAT:
-            # In story mode, just process all characters in initiative order once
-            self.process_characters_in_order_once()
-            return
-
-        character_obj, is_npc, turn_time = self.get_next_character_turn()
-
-        if character_obj is None:
-            return
-
-        if is_npc:
-            # Process NPC turn
-            decision = character_obj.run(self.get_session_context())
-            if decision:
-                events = self._external_action(decision, actor=character_obj.character.name)
-                self.execute_events(events)
-        else:
-            # Process Player turn
-            decision = character_obj.run(self.get_session_context())
-            if decision:
-                # Player decisions would typically be processed differently
-                # For now, we'll treat them similarly to NPC actions
-                events = self._external_action(decision, actor=character_obj.character.name)
-                self.execute_events(events)
-            else:
-                # For player characters, we might want to notify that it's their turn
-                # This could trigger UI updates or notifications to players
-                self.logger.debug(f"It's {character_obj.character.name}'s turn (PC)")
-                # In a real implementation, this would wait for player input
-                # For now, we'll just log it
 
     def start_game_loop_simple(self):
         if not self.game_master:
@@ -577,7 +554,7 @@ class Session:
                 character, is_npc, time = self.get_next_character_turn()
                 if character:
                     self.logger.info(f"Next turn: {character.character.name} (NPC: {is_npc}) at time {time}")
-                decision = character.run(context=self.get_session_context())
+                decision = character.run(context=self.get_session_context(), state=self)
                 if decision:
                     events = self._external_action(decision, actor=character.character.name)
                     self.logger.debug(f"Generated events: {events}")

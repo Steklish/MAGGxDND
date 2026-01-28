@@ -20,6 +20,7 @@ class Magg:
         self.logger = logger
         self.event_queue = event_queue
         self.logger.debug("Magg initialized")
+        self.memory = ""
         
     def _events_to_string(self, events : List[Event]) -> str:
         events_str = ""
@@ -33,15 +34,19 @@ class Magg:
         events_str = self._events_to_string(events)
         prompt = f"""
         {self.character_prompt}
-        Generate a concise comment about the following game events
+        Generate a concise comment about the following game events.
         ## Game state:
         {state}
         
         ## Passed events:
         {events_str}
+        
+        # there is also past conversation history provided with your answers included (use it for natural conversation flow):
+        {self.memory}
         """
         comment = self.generator.generate_one_shot(
             pydantic_model=SimpleComment,
             prompt=prompt
         )
+        self.memory += f"\nMagg comment: {comment.comment}\n"
         return comment.comment

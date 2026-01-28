@@ -8,6 +8,8 @@ from game.manipulators.base_manipulation import Archive, BaseManipulation
 from game.manipulators.object_transfer_manipulation import ObjectTransferManipulation
 from game.manipulators.scene_manipulation import SceneManipulation
 from game.manipulators.character_mutation_manipulation import CharacterMutationManipulation
+from game.manipulators.character_movement_manipulation import CharacterMovementManipulation
+from game.manipulators.scene_object_movement_manipulation import SceneObjectMovementManipulation
 from game.manipulators.character_transfer_manipulation import CharacterTransferManipulation
 from game.manipulators.npc_transfer_manipulation import NPCTransferManipulation
 from game.manipulators.scene_object_mutation_manipulation import SceneObjectMutationManipulation
@@ -40,6 +42,8 @@ class Manipulator:
     
     def init_manipulations(self):
         self.manipulations.append(CharacterMutationManipulation(self.generator, self.state, self.archive, self.logger))
+        self.manipulations.append(CharacterMovementManipulation(self.generator, self.state, self.archive, self.logger))
+        self.manipulations.append(SceneObjectMovementManipulation(self.generator, self.state, self.archive, self.logger))
         self.manipulations.append(SceneManipulation(self.generator, self.state, self.archive, self.logger))
         self.manipulations.append(SceneObjectMutationManipulation(self.generator, self.state, self.archive, self.logger))
         self.manipulations.append(ObjectTransferManipulation(self.generator, self.state, self.archive, self.logger))
