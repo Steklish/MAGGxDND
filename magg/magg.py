@@ -43,12 +43,11 @@ class Magg:
         if self.session is None:
             raise ValueError("Session not injected into Magg")
         
-        session_str = self.session.get_session_context()
         prompt = f"""
         {self.character_prompt}
         Generate a vivid description of the current scene in the DND game.
         ## Game state:
-        {session_str}
+        {self.session.get_session_context()}
         
         # there is also past conversation history provided with your answers included (use it for natural conversation flow):
         {self.session.get_messages_formatted()}
@@ -70,23 +69,38 @@ class Magg:
         events = self.event_queue.get_all()
         self.event_queue.clear()
         
-        session_str = self.session.get_session_context()
         events_str = self._events_to_string(events)
         prompt = f"""
-        {self.character_prompt}
-        
-        Generate a concise comment about the following game events YOU must include all the value changes that took part in events provided. You also must mention everything that is provided in events even if you won't get into much details.  Dont mention 3d coordinates though. Describe events in a way that is engaging and keeps players interested in the game. You are allowed to come up with some flavor and details to make the comment more engaging but you must not contradict the events provided.z
-        ## Game state:
-        {session_str}
-        
-        ## Passed events (necessary to mention):
-        {events_str}
-        
-        # there is also past conversation history provided with your answers included (use it for natural conversation flow):
-        {self.session.get_messages_formatted()}
-        
-        those messages are past messages so you dont need to mention them in your comment unless they are relevant to the events provided. Dont repeat yourself. Your messages are seigned as 'Mage'.
-        """
+### ROLE & PERSONA
+{self.character_prompt}
+
+### INSTRUCTIONS
+You are commenting on the latest game events. Your goal is to be **engaging, immersive, and consistent** with your persona.
+
+**Strict Requirements:**
+1. **Narrative Integration:** You MUST mention every value change (Health, Mana, Gold, etc.) listed in the events, but you must weave them into the description of the action (e.g., "The blow cost you 5 HP!" rather than "You lost 5 HP.").
+2. **Completeness:** Briefly acknowledge every event provided in the `<current_events>` block.
+3. **Immersion:** Do NOT mention internal engine data like 3D coordinates (x,y,z) or entity IDs.
+4. **Brevity:** Keep it concise. Do not ramble.
+5. **Flow:** Use the conversation history for context, but do not repeat what has already been said.
+
+### CONTEXT
+<game_state>
+{self.session.get_session_context()}
+</game_state>
+
+<conversation_history>
+{self.session.get_messages_formatted()}
+</conversation_history>
+
+### INPUT DATA
+<current_events>
+{events_str}
+</current_events>
+
+### YOUR RESPONSE
+Based on the <current_events> above, generate your in-character comment:
+"""
         comment = self.generator.generate_one_shot(
             pydantic_model=SimpleComment,
             prompt=prompt

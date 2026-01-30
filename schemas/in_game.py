@@ -315,9 +315,12 @@ class Character(BaseModel):
 
     @computed_field
     @property
-    def initiative_bonus(self) -> int:
-        """Calculated initiative bonus based on Dexterity modifier."""
-        return self.get_modifier(self.stats.dexterity)
+    def initiative_bonus(self) -> float:
+        """
+        Calculated initiative bonus based on Dexterity modifier and character speed.
+        Used for tuen order calculation. Speed based queue, not DnD style.
+        """
+        return self.stats.dexterity  + self.speed
 
     @computed_field
     @property

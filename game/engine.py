@@ -44,17 +44,12 @@ class Session:
         self.game_mode : GameModes = GameModes.STORY
         self.character_bindings : List[CharacterToUserBinding] = []
         self.messages : List[Message] = []
-        self.tick_time_seconds = 0.1  # Time between each game tick
         self._game_master = None  # Will be initialized later to avoid circular import
-        # Game loop attributes
-        self._game_loop_running = False
-        self._game_loop_thread = None
         self._init_mage(magg_logger)  # Initialize game master after avoiding circular import
+        self.turn_queue : list[tuple[Player | NPC, float, float]] = []
         # Turn-based system attributes
-        self.turn_queue = []  # Priority queue (min-heap) for turn order
-        self.next_turn_time = 0.0  # Global time tracker
-        self.turn_distance = 100.0  # Distance for turn calculation (constant)
-
+        self.turn_time = 0.0  # Global time tracker
+        self.turn_distance = 10
         # Spatial system attributes
         self.spatial_enabled = True  # Flag to enable/disable spatial features
 
@@ -452,77 +447,46 @@ class Session:
         except Exception as e:
             self.logger.error(f"Error loading session: {e}")
 
-    def _calculate_next_turn_time(self, initiative: int) -> float:
-        """Calculate the next turn time for a character based on their initiative.
-
-        The formula is: current_time + (distance / speed)
-        Where speed is the initiative value.
-        Higher initiative means faster turn arrival.
-        """
-        if initiative <= 0:
-            initiative = 1  # Prevent division by zero
-
-        time_to_next_turn = self.turn_distance / initiative
-        return self.next_turn_time + time_to_next_turn
-
-    def _add_character_to_turn_queue(self, character: Union[Character, NPCCharacter], obj: Union[Character, NPC, Player], is_npc: bool):
+    def _add_character_to_turn_queue(self, char : NPC | Player):
+        time_added = self.turn_time
+        next_move_time = self.turn_time + time_added / char.character.initiative_bonus
+        self.turn_queue.append((char, time_added, next_move_time))
+        
+    def _add_all_characters_to_turn_queue(self):
         """Add a character to the turn queue with their calculated next turn time."""
-        initiative = character.initiative_bonus
-        next_turn_time = self._calculate_next_turn_time(initiative)
-
-        # Push to heap: (next_turn_time, is_npc, character_id, character_object)
-        heapq.heappush(self.turn_queue, (next_turn_time, is_npc, character.name, obj))
-
-    def initialize_turn_queue(self):
+        for o in self.npcs + self.players:
+            self._add_character_to_turn_queue(o)
+        
+        
+    def _initialize_turn_queue(self):
         """Initialize the turn queue with all characters (both PCs and NPCs)."""
         self.turn_queue = []
-        self.next_turn_time = 0.0
-
-        # Add player characters to the turn queue
-        for i, player in enumerate(self.players):
-            self._add_character_to_turn_queue(player.character, player, False)
-
-        # Add NPCs to the turn queue
-        for npc in self.npcs:
-            self._add_character_to_turn_queue(npc.character, npc, True)
-
+        self.turn_time = 0.0
+        self._add_all_characters_to_turn_queue()
         self.logger.debug(f"Initialized turn queue with {len(self.players)} PCs and {len(self.npcs)} NPCs")
 
-    def get_next_character_turn(self) -> tuple[Player | NPC, bool, float]:
-        """Get the next character whose turn it is, based on initiative.
-
-        Returns:
-            tuple: (character_object, is_npc_boolean, next_turn_time)
-        """
-        if not self.turn_queue:
-            self.initialize_turn_queue()
-            if not self.turn_queue:
-                raise ValueError("Turn queue is empty after initialization.")
-
-        # Pop the character with the earliest next turn time
-        next_turn_time, is_npc, character_name, character_obj = heapq.heappop(self.turn_queue)
-
-        # Update global time to this character's turn time
-        self.next_turn_time = next_turn_time
-
-        # Calculate and add this character back to the queue for their next turn
-        # Both NPCs and Players store their character in the .character attribute
-        initiative = character_obj.character.initiative_bonus
-        next_next_turn_time = self._calculate_next_turn_time(initiative)
-        heapq.heappush(self.turn_queue, (next_next_turn_time, is_npc, character_name, character_obj))
-
-        return character_obj, is_npc, next_turn_time
-
+    def _get_next_character_turn(self) -> Player | NPC:
+        def time_sort(a):
+            return a[2]
+        self.turn_queue.sort(key=time_sort)
+        next_char, time_added, next_turn = self.turn_queue[0]
+        self.turn_time = float(next_turn)
+        self.turn_queue.pop(0)
+        return next_char
+    
+    def _print_turn_queue(self):
+        print(f"Turn queue is {[self.turn_queue]}")
+        
 
     def start_game_loop_simple(self):
         if not self.game_master:
             raise ValueError("Game master (MAGG) is not initialized.")
-        self.initialize_turn_queue()
+        self._initialize_turn_queue()
         start_description = self.game_master.get_simple_description()
         print(f"\033[31mDM {self.game_mode.value}: {start_description}\033[0m\n")
         while True:
             try:
-                character, is_npc, time = self.get_next_character_turn()
+                character= self._get_next_character_turn()
                 
                 decision = character.run()
                 self.logger.debug(f"Character {character.character.name} decision {decision.verdict_type.value}")
@@ -531,6 +495,7 @@ class Session:
                     events = self._external_action(prompt=decision.details, actor=character.character.name)
                     self.logger.debug(f"Generated events after NPC decision: {events}")
                     self.execute_events(events)
+                    narrative = self.game_master.comment()
                     
                 elif decision.verdict_type == OrchestrationVerdictType.ILLEGAL_PLAYER_ACTION:
                     assert decision.details is not None
