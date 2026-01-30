@@ -22,7 +22,7 @@ def calculate_spatial_distances(state: Session, event: Event) -> str:
         return "Spatial system is disabled."
     
     # Get all characters that might be involved in the event
-    character_pool = state.player_characters + [n.character for n in state.npcs]
+    character_pool = [n.character for n in state.players] + [n.character for n in state.npcs]
     
     # Identify characters mentioned in the event
     mentioned_chars = []

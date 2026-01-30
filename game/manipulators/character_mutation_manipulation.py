@@ -56,8 +56,7 @@ class CharacterMutationManipulation(BaseManipulation):
             prompt=task_prompt
         )
 
-        character_pool = self.state.player_characters + [n.character for n in self.state.npcs]
-        names = [c.name for c in character_pool]
+        names = [c.name for c in self._get_all_caracters()]
         target = None
         best = process.extractOne(task.character_name, names)
         if best:
@@ -65,7 +64,7 @@ class CharacterMutationManipulation(BaseManipulation):
         else:
             raise ValueError("No target found")
 
-        for c in character_pool:
+        for c in self._get_all_caracters():
             if c.name == best:
                 target = c
                 break
@@ -119,7 +118,7 @@ class CharacterMutationManipulation(BaseManipulation):
         elif isinstance(current_val, str):
              if task.operation == "replace" or task.operation == "set":
                  setattr(parent_obj, field_name, task.value)
-                 self.logger.debug(f"Set {char.name}.{field_name} to '{task.value}' (was '{current_val}')")
+                 self.logger.info(f"Set {char.name}.{field_name} to '{task.value}' (was '{current_val}')")
 
     def _handle_numeric_op(self, obj: Any, field: str, current_val: int, task: CharacterManipulationBrakdown):
         """Handles dice parsing and math."""
@@ -150,7 +149,7 @@ class CharacterMutationManipulation(BaseManipulation):
                 new_val = min(new_val, obj.max_hp)
 
         setattr(obj, field, int(new_val))
-        self.logger.debug(f"🔢 {field} changed: {current_val} -> {new_val} (Operation: {task.operation} {task.value})")
+        self.logger.info(f"🔢 {field} changed: {current_val} -> {new_val} (Operation: {task.operation} {task.value})")
 
     def _handle_list_op(self, obj: Any, field: str, current_list: list, task: CharacterManipulationBrakdown):
         """Handles States/Conditions (e.g., ['Prone'] -> ['Prone', 'Poisoned'])."""
@@ -163,14 +162,14 @@ class CharacterMutationManipulation(BaseManipulation):
         if task.operation in ["append", "add"]:
             if clean_value not in current_list:
                 current_list.append(clean_value)
-                self.logger.debug(f"➕ Added status '{clean_value}' to {field}. New list: {current_list}")
+                self.logger.info(f"➕ Added status '{clean_value}' to {field}. New list: {current_list}")
             else:
                 self.logger.debug(f"'{clean_value}' already exists in {field}, skipping add operation.")
 
         elif task.operation in ["remove", "subtract", "delete"]:
             if clean_value in current_list:
                 current_list.remove(clean_value)
-                self.logger.debug(f"➖ Removed status '{clean_value}' from {field}. New list: {current_list}")
+                self.logger.info(f"➖ Removed status '{clean_value}' from {field}. New list: {current_list}")
             else:
                 self.logger.debug(f"'{clean_value}' not found in {field}, skipping remove operation.")
 
@@ -179,11 +178,11 @@ class CharacterMutationManipulation(BaseManipulation):
             if clean_value.lower() in ["none", "clear", "empty"]:
                 old_list = current_list.copy()
                 setattr(obj, field, [])
-                self.logger.debug(f"🔄 Cleared all values from {field}. Old list: {old_list}, new list: {getattr(obj, field)}")
+                self.logger.info(f"🔄 Cleared all values from {field}. Old list: {old_list}, new list: {getattr(obj, field)}")
             else:
                 old_list = current_list.copy()
                 setattr(obj, field, [clean_value])
-                self.logger.debug(f"🔄 Replaced {field}. Old list: {old_list}, new list: {getattr(obj, field)}")
+                self.logger.info(f"🔄 Replaced {field}. Old list: {old_list}, new list: {getattr(obj, field)}")
 
     def _resolve_attribute_path(self, char: Character, attr_name: str) -> Tuple[Any, str]:
         """

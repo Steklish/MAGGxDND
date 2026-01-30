@@ -38,7 +38,10 @@ class Manipulator:
                         self.state.event_pool.add_event(result_event)
                 break
         else:
-            raise ValueError(f"No manipulator for this event type found. Event type is {event.event_type.value}")
+            if event.event_type != "ACTION_RESULT":
+                raise ValueError(f"No manipulator for this event type found. Event type is {event.event_type.value}")
+            else:
+                self.logger.warning(f"Ignored ACTION_RESULT event: {event}")
     
     def init_manipulations(self):
         self.manipulations.append(CharacterMutationManipulation(self.generator, self.state, self.archive, self.logger))

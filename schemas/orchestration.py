@@ -153,16 +153,27 @@ class CharacterToUserBinding(BaseModel):
 class UserInterationType(Enum):
     CHARACTER_ACTION = "CHARACTER_ACTION"
     META_COMMENT = "META_COMMENT"
-    DM_INTERACTION = "DM_INTERACTION"
     
 class UserInteractionProcessing(BaseModel):
     interaction_type : UserInterationType
     user_request_saturated : str = Field(description="Enhanecd user's request with all the details available and necessary")
     
-class CombatRulesCheck(BaseModel):
-    is_rule_violation : bool = Field(description="Whether the action violates combat rules")
+    
+class RulesCheck(BaseModel):
+    is_rule_violation : bool = Field(description="Whether the action violates rules")
     violation_details : Optional[str] = Field(None, description="Details of the rule violation, if any")
     
-class StoryRulesCheck(BaseModel):
-    is_rule_violation : bool = Field(description="Whether the action violates story rules")
-    violation_details : Optional[str] = Field(None, description="Details of the rule violation, if any")
+class OrchestrationVerdictType(Enum):
+    ALLOWED_PLAYER_ACTION = "ALLOWED_PLAYER_ACTION"
+    ILLEGAL_PLAYER_ACTION = "ILLEGAL_PLAYER_ACTION"
+    META_REQUEST = "META_REQUEST"
+    NPC_ACTION = "NPC_ACTION"
+    SKIPPED = "SKIPPED"
+    
+class OrchestrationVerdict(BaseModel):
+    original_request : Optional[str] = Field(default=None, description="Original request text from the player or NPC")
+    verdict_type : OrchestrationVerdictType = Field(default=OrchestrationVerdictType.SKIPPED)
+    details : Optional[str] = Field(default=None, description="Additional details about the verdict")
+    
+class RuleViolationObject(BaseModel):
+    details : str

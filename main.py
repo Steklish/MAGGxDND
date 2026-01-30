@@ -1,7 +1,9 @@
+import io
 import json
 import os
 import sys
 import logging
+import subprocess
 from logging.handlers import RotatingFileHandler
 from game.engine import Session
 from game.event_pool import EventPool
@@ -13,39 +15,49 @@ from skls_generator.gen_backends.google_gen import GoogleGenAI
 from skls_embeddings.chroma_client import ChromaClient
 from skls_embeddings.embedding_client import EmbeddingClient
 
+# Set console code page to UTF-8 on Windows to handle Unicode characters properly
+if os.name == 'nt':  # Windows
+    subprocess.run(['chcp', '65001'], shell=True)
+
+# Force stdout to use UTF-8 encoding
+sys.stdout.reconfigure(encoding='utf-8') # type: ignore
+
 
 # Custom logging setup to handle Unicode characters
 def setup_unicode_logging(log_file_path: str = './log/application.log'):
     """Setup logging with Unicode support."""
-    # Create log directory if it doesn't exist
     os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 
-    # Create formatter
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                                  datefmt='%Y-%m-%d %H:%M:%S')
 
-    # Create file handler with UTF-8 encoding
+    # 1. File Handler (Keep this, it was correct)
     file_handler = RotatingFileHandler(
         log_file_path,
-        maxBytes=10*1024*1024,  # 10MB
+        maxBytes=10*1024*1024,
         backupCount=5,
-        encoding='utf-8'  # Explicitly set UTF-8 encoding
+        encoding='utf-8'
     )
     file_handler.setFormatter(formatter)
 
-    # Create console handler with proper encoding for Windows
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(formatter)
 
-    # Configure root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
-    root_logger.addHandler(file_handler)
-    root_logger.addHandler(console_handler)
+    
+    # Avoid adding duplicate handlers if function is called twice
+    if not root_logger.handlers:
+        root_logger.addHandler(file_handler)
+        root_logger.addHandler(console_handler)
 
 
 os.makedirs('log', exist_ok=True)
 setup_unicode_logging('./log/application.log')
+
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
+
 
 # Create specific named loggers for different components while preserving global configuration
 main_logger = logging.getLogger("game.main")
@@ -57,13 +69,15 @@ npc_logger = logging.getLogger("npc.core")
 player_logger = logging.getLogger("player.core")
 
 # Set log levels for different components
-main_logger.setLevel("DEBUG")
-engine_logger.setLevel("DEBUG")
-manipulator_logger.setLevel("DEBUG")
-orchestrator_logger.setLevel("DEBUG")
-magg_logger.setLevel("DEBUG")
-npc_logger.setLevel("DEBUG")
-player_logger.setLevel("DEBUG")
+main_logger.setLevel(logging.WARNING)
+engine_logger.setLevel(logging.DEBUG)
+manipulator_logger.setLevel(logging.INFO)
+orchestrator_logger.setLevel(logging.DEBUG)
+magg_logger.setLevel(logging.INFO)
+npc_logger.setLevel(logging.INFO)
+player_logger.setLevel(logging.INFO)
+
+print("Starting the game...")
 
 generator = Generator(GoogleGenAI(api_key=os.getenv("GEMINI_API_KEY"), logger=main_logger), logger_instance=main_logger)
 chroma_client = ChromaClient(EmbeddingClient(), logger_instance=main_logger)
@@ -107,14 +121,13 @@ scene = generator.generate_one_shot(
 
 ch1 = generator.generate_one_shot(
     pydantic_model=Character,
-    prompt="A wizard named Ogorek."
+    prompt="A wizard named Ogorek. has some random spells"
 )
 
 npc1 = generator.generate_one_shot(
     pydantic_model=NPCCharacter,
-    prompt="An evil ork warrior."
+    prompt="An evil ork warrior with an axe."
 )
-# print(json.dumps(scene.dict(), indent=2))
 
 npc1.current_scene = scene.name
 session.init_new_session(
@@ -124,7 +137,7 @@ session.init_new_session(
     npc_logger=npc_logger,
     player_logger=player_logger
 )
-# session.save_session("./saves/ex_01.json")
+session.save_session("./saves/ex_01.json")
 # session.load_session_from_save("./saves/ex_01.json")
-session.start_game_loop_simple()
+# session.start_game_loop_simple()
 print(session.get_session_context())

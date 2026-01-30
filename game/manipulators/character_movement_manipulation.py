@@ -34,8 +34,7 @@ class CharacterMovementManipulation(BaseManipulation):
         spatial_info = calculate_spatial_distances(self.state, event)
 
         # Determine the character to move
-        character_pool = self.state.player_characters + [n.character for n in self.state.npcs]
-        names = [c.name for c in character_pool]
+        names = [c.name for c in self._get_all_caracters()]
         
         # Find the character based on event information
         target_name = event.event_subject or event.event_initiator or event.event_target
@@ -51,7 +50,7 @@ class CharacterMovementManipulation(BaseManipulation):
         target_name = best_match[0]
         target_character = None
         
-        for char in character_pool:
+        for char in self._get_all_caracters():
             if char.name == target_name:
                 target_character = char
                 break
@@ -107,7 +106,7 @@ class CharacterMovementManipulation(BaseManipulation):
                 distance=distance
             )
 
-            self.logger.debug(f"Character {target_character.name} moved to ({target_pos.x}, {target_pos.y}, {target_pos.z})")
+            self.logger.info(f"Character {target_character.name} moved to ({target_pos.x}, {target_pos.y}, {target_pos.z})")
             return [action_result]
         else:
             self.logger.warning(f"Failed to move character {target_character.name} to invalid position")

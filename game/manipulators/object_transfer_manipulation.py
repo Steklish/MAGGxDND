@@ -73,7 +73,7 @@ class ObjectTransferManipulation(BaseManipulation):
         quantity = transfer_command.quantity
         target_container_name = transfer_command.target_container
 
-        self.logger.debug(f"Generated transfer command: {source} -> {target} | {quantity}x '{object_name}' | Container: {target_container_name}")
+        self.logger.info(f"Generated transfer command: {source} -> {target} | {quantity}x '{object_name}' | Container: {target_container_name}")
 
         # Determine transfer direction and execute
         if source == "scene" and target == "inventory":
@@ -114,9 +114,9 @@ class ObjectTransferManipulation(BaseManipulation):
         """Transfer an object from the scene to the player's inventory."""
         scene_objects = self.state.current_scene.objects
         # Get the first player character (assuming single player for now)
-        if not self.state.player_characters:
+        if not self.state.players:
             raise ValueError("No player characters available")
-        player_character = self.state.player_characters[0]
+        player_character = self.state.players[0].character
 
         # Find the object in the scene
         obj = self._find_object_in_list(object_name, scene_objects)
@@ -169,9 +169,9 @@ class ObjectTransferManipulation(BaseManipulation):
         """Transfer an object from the player's inventory to the scene."""
         scene_objects = self.state.current_scene.objects
         # Get the first player character (assuming single player for now)
-        if not self.state.player_characters:
+        if not self.state.players:
             raise ValueError("No player characters available")
-        player_character = self.state.player_characters[0]
+        player_character = self.state.players[0].character
 
         # Find the object in the player's inventory
         obj = self._find_object_in_list(object_name, player_character.inventory)
@@ -207,9 +207,9 @@ class ObjectTransferManipulation(BaseManipulation):
         """Transfer an object from a container in the scene to the player's inventory."""
         scene_objects = self.state.current_scene.objects
         # Get the first player character (assuming single player for now)
-        if not self.state.player_characters:
+        if not self.state.players:
             raise ValueError("No player characters available")
-        player_character = self.state.player_characters[0]
+        player_character = self.state.players[0].character
 
         # Find the object in any container in the scene
         container, obj = self._find_object_in_containers(object_name, scene_objects)
@@ -245,9 +245,9 @@ class ObjectTransferManipulation(BaseManipulation):
         """Transfer an object from the player's inventory to a container in the scene."""
         scene_objects = self.state.current_scene.objects
         # Get the first player character (assuming single player for now)
-        if not self.state.player_characters:
+        if not self.state.players:
             raise ValueError("No player characters available")
-        player_character = self.state.player_characters[0]
+        player_character = self.state.players[0].character
 
         # Find the object in the player's inventory
         obj = self._find_object_in_list(object_name, player_character.inventory)

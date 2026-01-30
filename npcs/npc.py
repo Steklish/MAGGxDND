@@ -1,11 +1,12 @@
-import threading
-import time
 from logging import Logger
-from game.event_pool import EventPool, SubscriberQueue
+from typing import TYPE_CHECKING
+from game.event_pool import SubscriberQueue
 from npcs.schemas import NPCActDecision
-from schemas.in_game import Character, NPCCharacter
-from schemas.orchestration import Event, EventTypes
+from schemas.in_game import NPCCharacter
+from schemas.orchestration import Event, EventTypes, OrchestrationVerdict, OrchestrationVerdictType
 from skls_generator.generator import Generator
+if TYPE_CHECKING:
+    from game.engine import Session
 
 MEMORY_LENGTH_LIMIT = 2000  # characters
 
@@ -39,19 +40,34 @@ class NPC:
         self.logger = logger
         self.generator = generator
         self._running = False
- 
+        self._session: 'Session | None' = None
+        
+        
+    @property
+    def session(self) -> "Session":
+        if self._session is None:
+            raise ValueError("Session not injected to an NPC!")
+        return self._session
     
-    def run(self, *arg, **kwarg) -> str | None:
+        
+    def inject_state(self, state : 'Session') -> None:
+        self._session = state
+       
+    
+    def run(self) -> OrchestrationVerdict:
         """Process events and decide on an action."""
-        context = kwarg.get("context", None)
-        if context is None:
-            self.logger.error("No context provided to NPC run method.")
-            raise ValueError("Context is required for NPC decision making.")
+        
         events = self.event_queue.get_all()
         self.event_queue.clear()
-        decision = self._handle_events(events, context)
+        decision = self._handle_events(events, self.session.get_session_context())
         self.logger.debug(f"NPC {self.character.name} processed {len(events)} events.")
-        return decision
+        if decision is None:
+            return OrchestrationVerdict()
+        else:
+            return OrchestrationVerdict(
+                verdict_type=OrchestrationVerdictType.NPC_ACTION,
+                details=decision
+            )
     
     def _handle_events(self, events: list[Event], context : str) -> str | None:
         """Process a list of events and decide on an action."""

@@ -1,9 +1,11 @@
 from logging import Logger
 from typing import TYPE_CHECKING
+
+from schemas.orchestration import Message, OrchestrationVerdict, OrchestrationVerdictType, UserInterationType
 if TYPE_CHECKING:
     from game.engine import Session
 from game.orchestrator import Orchestrator
-from schemas.in_game import Character
+from schemas.in_game import Character, GameModes
 
 
 class Player:
@@ -14,27 +16,67 @@ class Player:
         self.character = character
         self.logger = logger
         self.orchestrator = orchestrator
-
-    def run(self, *arg, **kwarg) -> str | None:
-        """Player's turn. Returns the player's action decision or none if a player skips their turn."""
-        kwarg.setdefault("state", None)
-        state = kwarg["state"]
-        if not state:
-            self.logger.warning("Player run called without state")
-            raise ValueError("State is required for player run")
-        else:
-            state : 'Session' = state
+        self._session: 'Session | None' = None
         
-        self.logger.debug(f"Waiting for player input for {self.character.name}")
-        request = input(
+    
+    @property
+    def session(self) -> "Session":
+        if self._session is None:
+            raise ValueError("Session not injected to a Player!")
+        return self._session
+    
+        
+    def inject_state(self, state : 'Session') -> None:
+        self._session = state
+       
+    def request_terminal_input(self) -> str:
+        # Prepare the prompt with proper encoding handling
+        prompt = (
             f"\033[35mPlayer {self.character.name}, enter your action "
             f"(current position: ({self.character.position.x}, "
             f"{self.character.position.y}, {self.character.position.z})): \033[0m"
         )
-        state.game_master.memory += f"\nPlayer {self.character.name} action input: {request}\n" # type: ignore
+        return input(prompt)
         
-        if request.strip() == "":
-            return None
-        return request
+    def run(self) -> OrchestrationVerdict:
+        """Player's turn. Returns the player's action decision or none if a player skips their turn. (Mostly for combat mode.)"""
+       
+        self.logger.debug(f"Waiting for player input for {self.character.name}")
 
         
+
+        request = self.request_terminal_input()
+        
+        if request.strip() == "":
+            return OrchestrationVerdict()
+
+        new_message = Message(
+            sender_name=self.character.name,
+            text=request)
+        self.session.new_message(new_message)
+        
+        user_interaction = self.orchestrator.request(
+            username=self.character.name,
+            request_text=request
+        )
+        
+        if user_interaction.interaction_type == UserInterationType.CHARACTER_ACTION:
+            if self.session.game_mode == GameModes.COMBAT:
+                return self.orchestrator.character_action_combat(
+                    character=self,
+                    request_text=request,
+                    processed_interaction=user_interaction
+                )
+            else:
+                return self.orchestrator.character_action_story(
+                    character=self,
+                    request_text=request,
+                    processed_interaction=user_interaction
+                )
+        elif user_interaction.interaction_type == UserInterationType.META_COMMENT:
+            return OrchestrationVerdict(
+                verdict_type=OrchestrationVerdictType.META_REQUEST,
+                details=request
+            )
+
+        return OrchestrationVerdict()

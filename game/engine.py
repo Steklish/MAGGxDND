@@ -16,10 +16,12 @@ from schemas.in_game import Character, GameModes, NPCCharacter, SceneNode, Coord
 from skls_embeddings import ChromaClient
 from skls_generator import Generator
 from logging import Logger
-from schemas.orchestration import CharacterToUserBinding, Event, EventList, Message, EventTypes
+from schemas.orchestration import CharacterToUserBinding, Event, EventList, Message, EventTypes, OrchestrationVerdictType
 from schemas.orchestration import SpatialMovementCommand, SpatialTeleportCommand, DistanceCalculationRequest
 import json
 from schemas.save_game import SaveGameData
+
+MAX_MESSAGES_STORED = 20
 
 class Session:
     def __init__(self,
@@ -36,7 +38,6 @@ class Session:
         self.logger = logger
         self.event_pool = event_pool
         self.collection_name = f"game_session_{session_name}"
-        self.player_characters : List[Character] = []
         self.players : List[Player] = []
         self.npcs : List[NPC] = []
         self.current_scene : SceneNode = None # type: ignore
@@ -44,11 +45,11 @@ class Session:
         self.character_bindings : List[CharacterToUserBinding] = []
         self.messages : List[Message] = []
         self.tick_time_seconds = 0.1  # Time between each game tick
-        self.game_master = None  # Will be initialized later to avoid circular import
+        self._game_master = None  # Will be initialized later to avoid circular import
         # Game loop attributes
         self._game_loop_running = False
         self._game_loop_thread = None
-        self._initialize_game_master(magg_logger)  # Initialize game master after avoiding circular import
+        self._init_mage(magg_logger)  # Initialize game master after avoiding circular import
         # Turn-based system attributes
         self.turn_queue = []  # Priority queue (min-heap) for turn order
         self.next_turn_time = 0.0  # Global time tracker
@@ -61,21 +62,38 @@ class Session:
         self.location_graph: Dict[str, Set[str]] = {}  # Graph of connected locations
         self.all_locations: Dict[str, SceneNode] = {}  # Store all visited/known locations
         self.current_location_name: Optional[str] = None  # Track current location name
+        self._orchestrator : 'Orchestrator | None'  # Will be set later
 
+
+    @property
+    def game_master(self) -> 'Magg':
+        if self._game_master is None:
+            raise ValueError("Mage not initialized!")
+        return self._game_master
+
+
+    @property
+    def orchestrator(self) -> 'Orchestrator':
+        if self._orchestrator is None:
+            raise ValueError("Orchestrator not initialized!")
+        return self._orchestrator
+        
     def _init_orchestrator(self, orchestrator : 'Orchestrator'):
-        self.orchestrator = orchestrator
+        self._orchestrator = orchestrator
 
-    def _initialize_game_master(self, magg_logger=None):
+
+    def _init_mage(self, magg_logger=None):
         """Initialize the game master (MAGG) after avoiding circular import issues."""
-        if self.game_master is None:
+        if self._game_master is None:
             # Use provided MAGG logger if available, otherwise use session logger
             logger_to_use = magg_logger if magg_logger else self.logger
-            self.game_master = Magg(
+            self._game_master = Magg(
                 generator=self.generator,
                 archive=None,
                 logger=logger_to_use,
                 event_queue=self.event_pool.subscribe("magg")
             )
+            self.game_master.inject_state(self)
         
     def inject_manipulator(self, manipulator : 'Manipulator'):
         self.manipulator = manipulator
@@ -91,6 +109,7 @@ class Session:
             logger=logger_to_use,
             generator=self.generator
         )
+        new_NPC.inject_state(self)
         logger_to_use.debug(f"Initialized NPC: {npc_character.name}")
         return new_NPC
 
@@ -103,6 +122,7 @@ class Session:
             logger=logger_to_use,
             orchestrator=orchestrator
         )
+        new_player.inject_state(self)
         logger_to_use.debug(f"Initialized Player: {character.name}")
         return new_player
     
@@ -110,20 +130,22 @@ class Session:
         """Saves session data to a JSON file."""
         # Prepare data for serialization
         save_dict = {
-            "player_characters": [char.dict() for char in self.player_characters],
+            "game_mode": self.game_mode.value,
+            "player_characters": [char.character.dict() for char in self.players],
             "npcs": [npc.character.dict() for npc in self.npcs],
             "current_scene": self.current_scene.dict(),
             # Location graph data - convert sets to lists for JSON
             "location_graph": {k: list(v) for k, v in self.location_graph.items()},
             "all_locations": {name: scene.dict() for name, scene in self.all_locations.items()},
-            "current_location_name": self.current_location_name
+            "current_location_name": self.current_location_name,
+            "messages": [msg.dict() for msg in self.messages]
         }
 
         with open(filename, 'w') as f:
             json.dump(save_dict, f, indent=4)
         self.logger.info(f"Session saved to {filename}")
 
-    def get_session_context(self, include_json_details: bool = False) -> str:
+    def get_session_context(self) -> str:
         """
         Generates a text representation of the current session state
         optimized for LLM consumption.
@@ -154,46 +176,18 @@ class Session:
         if all_locations:
             scene_info += f"\nAll known locations: {', '.join(all_locations)}"
 
-        # 2. Format Characters (Helper function)
-        def format_char_list(chars: List[Character] | List[NPCCharacter]) -> str:
-            if not chars:
-                return "None"
-
-            summary = ""
-            for char in chars:
-                # We assume Character is a Pydantic model
-                # We extract key fields to save tokens, rather than dumping the whole JSON
-                char_data = char.dict() if hasattr(char, 'dict') else char.__dict__
-
-                name = char_data.get('name', 'Unnamed')
-                race = char_data.get('race', 'Unknown Race')
-                c_class = char_data.get('class_name', 'Unknown Class')
-                hp = f"{char_data.get('current_hp', '?')}/{char_data.get('max_hp', '?')}"
-                status = char_data.get('status_effects', [])
-
-                # Add position information
-                position = getattr(char, 'position', Coordinate3D())
-                pos_info = f"Position: ({position.x}, {position.y}, {position.z})"
-
-                summary += f"- {name} ({race} {c_class}) | HP: {hp} | Status: {status} | {pos_info}\n"
-
-                # If specifically requested, dump the full raw data for the LLM (uses more tokens)
-                if include_json_details:
-                    summary += f"  > Raw Data: {json.dumps(char_data)}\n"
-            return summary
-
         # 3. Construct the Context String
         context_str = f"""
-### CURRENT SESSION STATE: {self.session_name}
+### CURRENT SESSION STATE:
 
 #### 1. CURRENT SCENE
 {scene_info}
 
 #### 2. PLAYER CHARACTERS (PCs)
-{format_char_list(self.player_characters)}
+{[c.character.short_summary for c in self.players]}
 
 #### 3. NON-PLAYER CHARACTERS (NPCs)
-{format_char_list([n.character for n in self.npcs])}
+{[n.character.short_summary if n.character.current_scene == self.current_location_name else None for n in self.npcs]}
 """
         return context_str.strip()
     
@@ -207,8 +201,6 @@ class Session:
         '''
         Initialize a new game session with player characters and NPCs.
         '''
-        self.player_characters = player_characters
-        # Initialize Player objects for each character
         self.players = []
         for character in player_characters:
             player = self._init_player(character, self.orchestrator, player_logger)
@@ -235,24 +227,6 @@ class Session:
         for event in event_list:
             self.manipulator.manage(event)
 
-    def process_characters_in_order_once(self):
-        """Process all characters (NPCs and Players) in initiative order once, used in story mode."""
-        # Sort NPCs by initiative
-        self._sort_npcs_by_initiative()
-
-        # Process NPCs
-        for npc in self.npcs:
-            decision = npc.run(self.get_session_context())
-            if decision:
-                events = self._external_action(decision, actor=npc.character.name)
-                self.execute_events(events)
-
-        # Process Players (though they typically wait for user input)
-        for player in self.players:
-            decision = player.run(state=self)
-            if decision:
-                events = self._external_action(decision, actor=player.character.name)
-                self.execute_events(events)
         
 
 
@@ -377,6 +351,8 @@ class Session:
         2. Be the most specific (if there is a certain object in the scene you should set event type to item-based not the entire scene)
         3. Always include spatial commands if the action involves movement or position changes.
         4. Choose the appropriate event type based on the action being performed:
+        5. There are special types of requests from user when in battle. If an attack requested you Must generate an event that includes damage calculation based on character and item stats.
+        6. Do not generate ACTION_RESULT events.
 
         EVENT TYPE RESPONSIBILITIES:
         - LOCATION_CHANGE: Moving characters between locations/scenes
@@ -405,26 +381,19 @@ class Session:
         """
 
         prompt_text = f"""
-        You need to generate authoritative events based on the situation and a request e.g. "The dragon gets 1d8+2 damage. (based on items properties)" or "character 1 hits character 2 with a sword"
+        You need to generate authoritative events based on the situation and a request e.g. "The dragon gets 1d8+2 damage. (based on items properties)" or "character 1 hits character 2 with a sword and dealing 1d6+3 damage"
 
         # EVENT TYPE RESPONSIBILITIES:
         {rules}
-
-        # MANIPULATOR BINDINGS:
-        - CharacterMutationManipulation handles: CHARACTER_STATS_UPDATE, CHARACTER_STATUS_CHANGE, CHARACTER_DEATH
-        - SceneManipulation handles: SCENE_UPDATE, LOCATION_STATUS_CHANGE, LOCATION_MUTATION, CHARACTER_MOVEMENT, CHARACTER_POSITION_UPDATE, CHARACTER_TELEPORT, CHARACTER_PATHFINDING
-        - SceneObjectMutationManipulation handles: ITEM_STATUS_CHANGE, ITEM_MUTATION, ITEM_INTERACTION, ITEM_MOVEMENT
-        - ObjectTransferManipulation handles: OBJECT_TRANSFER, ITEM_PICKUP, ITEM_DROP, CONTAINER_ACCESS, CONTAINER_TRANSFER, ITEM_TRANSFER
-        - CharacterTransferManipulation handles: CHARACTER_TRANSFER, LOCATION_CHANGE (for both player characters and NPCs)
-        - NPCTransferManipulation handles: NPC_TRANSFER (for NPC-specific actions)
-
-        NOTE: LOCATION_CHANGE events are handled by CharacterTransferManipulation for both player characters and NPCs. For NPC-specific transfers that don't affect the main session location, use NPC_TRANSFER events.
 
         # prompt
         {f"## actor: {actor}\nrequest: " if actor else ""}
         {prompt}
         # scene:
         {self.get_session_context()}
+        
+        # Last messages history (meta game) - for references:
+        {self.get_messages_formatted()}
         """
         events = self.generator.generate_one_shot(
             pydantic_model=EventList,
@@ -443,13 +412,11 @@ class Session:
             with open(filename, 'r') as f:
                 save_data = json.load(f)
 
-            # Load player characters
-            from schemas.in_game import Character, NPCCharacter
-            self.player_characters = [Character(**char_data) for char_data in save_data["player_characters"]]
+            player_characters = [Character(**char_data) for char_data in save_data["player_characters"]]
 
             # Initialize Player objects for each character
             self.players = []
-            for character in self.player_characters:
+            for character in player_characters:
                 player = self._init_player(character, self.orchestrator)
                 self.players.append(player)
 
@@ -462,7 +429,10 @@ class Session:
                 if not npc.character.current_scene:
                     npc.character.current_scene = self.current_scene.name
                 self.npcs.append(npc)
-
+            for message_data in save_data.get("messages", []):
+                message = Message(**message_data)
+                self.messages.append(message)
+            self.game_mode = GameModes(save_data["game_mode"])
             # Restore location graph data
             # Convert lists back to sets
             self.location_graph = {
@@ -518,7 +488,7 @@ class Session:
 
         self.logger.debug(f"Initialized turn queue with {len(self.players)} PCs and {len(self.npcs)} NPCs")
 
-    def get_next_character_turn(self) -> tuple:
+    def get_next_character_turn(self) -> tuple[Player | NPC, bool, float]:
         """Get the next character whose turn it is, based on initiative.
 
         Returns:
@@ -527,7 +497,7 @@ class Session:
         if not self.turn_queue:
             self.initialize_turn_queue()
             if not self.turn_queue:
-                return None, False, 0.0
+                raise ValueError("Turn queue is empty after initialization.")
 
         # Pop the character with the earliest next turn time
         next_turn_time, is_npc, character_name, character_obj = heapq.heappop(self.turn_queue)
@@ -548,21 +518,53 @@ class Session:
         if not self.game_master:
             raise ValueError("Game master (MAGG) is not initialized.")
         self.initialize_turn_queue()
+        start_description = self.game_master.get_simple_description()
+        print(f"\033[31mDM {self.game_mode.value}: {start_description}\033[0m\n")
         while True:
             try:
-                character : Player | NPC
                 character, is_npc, time = self.get_next_character_turn()
-                if character:
-                    self.logger.info(f"Next turn: {character.character.name} (NPC: {is_npc}) at time {time}")
-                decision = character.run(context=self.get_session_context(), state=self)
-                if decision:
-                    events = self._external_action(decision, actor=character.character.name)
-                    self.logger.debug(f"Generated events: {events}")
+                
+                decision = character.run()
+                self.logger.debug(f"Character {character.character.name} decision {decision.verdict_type.value}")
+                if decision.verdict_type == OrchestrationVerdictType.NPC_ACTION:
+                    assert decision.details is not None
+                    events = self._external_action(prompt=decision.details, actor=character.character.name)
+                    self.logger.debug(f"Generated events after NPC decision: {events}")
                     self.execute_events(events)
-                    narrative = self.game_master.comment(self.get_session_context())
-                    print(f"\033[31mDM Comment: {narrative}\033[0m")
+                    
+                elif decision.verdict_type == OrchestrationVerdictType.ILLEGAL_PLAYER_ACTION:
+                    assert decision.details is not None
+                    narrative = self.game_master.illegal_action_comment(
+                        prompt=decision.original_request,
+                        name=character.character.name,
+                        reasoning=decision.details
+                    )
+                    self.logger.info(f"Generated narrative after ILLEGAL PLAYER decision: {decision.details}")
+                        
+                elif decision.verdict_type == OrchestrationVerdictType.ALLOWED_PLAYER_ACTION:
+                    events = self._external_action(prompt=decision.details if decision.details else "Not provided", actor=character.character.name)
+                    self.logger.debug(f"Generated events after PLAYER decision: {events}")
+                    self.execute_events(events)
+                    narrative = self.game_master.comment()
                 else:
                     self.logger.info(f"{character.character.name} chose to skip their turn.")
+                    self.logger.debug(decision)
+                
+                print(f"\033[31mDM Comment: {narrative}\033[0m")
             except KeyboardInterrupt:
                 self.logger.info("Game loop interrupted by user.")
                 break
+    
+    def new_message(self, message: Message):
+        """Add a new message to the session's message history."""
+        self.messages.append(message)
+        # Keep only the last MAX_MESSAGES_STORED messages
+        if len(self.messages) > MAX_MESSAGES_STORED:
+            self.messages = self.messages[-MAX_MESSAGES_STORED:]
+            
+    def get_messages_formatted(self) -> str:
+        """Get all messages formatted as a single string."""
+        formatted_messages = ""
+        for msg in self.messages:
+            formatted_messages += f"{msg.sender_name}: {msg.text}\n"
+        return formatted_messages

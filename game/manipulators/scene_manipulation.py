@@ -83,6 +83,6 @@ class SceneManipulation(BaseManipulation):
         if task.operation in ["replace", "set"]:
             old_description = scene.description
             scene.description = task.value
-            self.logger.debug(f"📝 Scene description changed: '{old_description}' -> '{scene.description}'")
+            self.logger.info(f"📝 Scene description changed: '{old_description}' -> '{scene.description}'")
         else:
             raise ValueError(f"SceneManipulation only supports 'replace' or 'set' operations, got: {task.operation}")

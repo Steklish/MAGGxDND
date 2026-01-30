@@ -35,9 +35,11 @@ class BaseManipulation:
         self.state = state
         self.logger = logger
 
+    def _get_all_caracters(self):
+        return [n.character for n in self.state.players] + [n.character for n in self.state.npcs]
+        
     def get_related_objects(self, event : Event) -> List[Any]:
-        character_pool = self.state.player_characters + [n.character for n in self.state.npcs]
-        names = [c.name for c in character_pool]
+        names = [c.name for c in self._get_all_caracters()]
         selected_objects = []
         for name in names:
             if name == event.event_initiator or name == event.event_subject:

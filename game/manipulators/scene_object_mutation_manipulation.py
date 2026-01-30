@@ -239,7 +239,7 @@ class SceneObjectMutationManipulation(BaseManipulation):
                     break
             if obj_to_remove:
                 current_list.remove(obj_to_remove)
-                self.logger.debug(f"➖ Removed '{obj_to_remove.name}' from contained_objects.")
+                self.logger.info(f"➖ Removed '{obj_to_remove.name}' from contained_objects.")
             else:
                 self.logger.warning(f"Object '{task.value}' not found in contained_objects to remove.")
         elif task.operation == "replace":
@@ -267,7 +267,7 @@ class SceneObjectMutationManipulation(BaseManipulation):
             raise ValueError(f"Unknown operation: {task.operation}")
 
         setattr(obj, field, int(new_val))
-        self.logger.debug(f"🔢 {field} changed: {current_val} -> {new_val} (Operation: {task.operation} {task.value})")
+        self.logger.info(f"🔢 {field} changed: {current_val} -> {new_val} (Operation: {task.operation} {task.value})")
 
     def _handle_list_op(self, obj: Any, field: str, current_list: list, task: SceneObjectManipulationCommand):
         """Handles list operations (e.g., adding/removing tags from scene objects)."""
@@ -277,12 +277,12 @@ class SceneObjectMutationManipulation(BaseManipulation):
         if task.operation in ["append", "add"]:
             if clean_value not in current_list:
                 current_list.append(clean_value)
-                self.logger.debug(f"➕ Added '{clean_value}' to {field}.")
+                self.logger.info(f"➕ Added '{clean_value}' to {field}.")
 
         elif task.operation in ["remove", "subtract", "delete"]:
             if clean_value in current_list:
                 current_list.remove(clean_value)
-                self.logger.debug(f"➖ Removed '{clean_value}' from {field}.")
+                self.logger.info(f"➖ Removed '{clean_value}' from {field}.")
 
         elif task.operation == "replace":
             # Replaces the whole list

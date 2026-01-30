@@ -82,9 +82,9 @@ class CharacterTransferManipulation(BaseManipulation):
         character_source = "player"  # Track if this is a player or NPC
 
         # First, check player characters
-        for char in self.state.player_characters:
-            if char.name.lower() == breakdown.character_name.lower():
-                target_character = char
+        for char in self.state.players:
+            if char.character.name.lower() == breakdown.character_name.lower():
+                target_character = char.character
                 character_source = "player"
                 break
 

@@ -117,7 +117,7 @@ class SceneObjectMovementManipulation(BaseManipulation):
                 distance=distance
             )
 
-            self.logger.debug(f"Object {target_object.name} moved to ({target_pos.x}, {target_pos.y}, {target_pos.z})")
+            self.logger.info(f"Object {target_object.name} moved to ({target_pos.x}, {target_pos.y}, {target_pos.z})")
             return [action_result]
         else:
             self.logger.warning(f"Failed to move object {target_object.name} to invalid position")
