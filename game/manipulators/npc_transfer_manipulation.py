@@ -2,11 +2,12 @@ from game.manipulators.base_manipulation import BaseManipulation
 from skls_generator.generator import Generator
 from schemas.orchestration import Event, EventTypes, NPCTransferDecision, NPCTransferBreakdown
 from thefuzz import process
-from typing import List
+from typing import List, TYPE_CHECKING
 from logging import Logger
-from game.engine import Session
 from schemas.in_game import SceneNode
 
+if TYPE_CHECKING:
+    from game.engine import Session
 
 class NPCTransferManipulation(BaseManipulation):
     """Handles moving NPCs between scenes independently from player characters."""
@@ -23,8 +24,9 @@ class NPCTransferManipulation(BaseManipulation):
 
     event_types_binded = [EventTypes.NPC_TRANSFER]
 
-    def __init__(self, generator : Generator, state : Session, archive, logger : Logger) -> None:
-        super().__init__(generator, state, archive, logger)
+    def __init__(self, generator : Generator, logger : Logger, session: 'Session') -> None:
+        super().__init__(generator, logger)
+        self.state = session
 
     def manipulate(self, event: Event) -> List[Event]:
         # Get spatial distances if available

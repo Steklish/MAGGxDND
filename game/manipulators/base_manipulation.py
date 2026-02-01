@@ -29,12 +29,9 @@ class Archive:
 
 class BaseManipulation:
     event_types_binded = []
-    def __init__(self, generator, state : 'Session', archive, logger : Logger) -> None:
+    def __init__(self, generator, logger : Logger) -> None:
         self.generator = generator
-        self.archive = archive
-        self.state = state
         self.logger = logger
-
     def _get_all_caracters(self):
         return [n.character for n in self.state.players] + [n.character for n in self.state.npcs]
         

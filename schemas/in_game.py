@@ -96,6 +96,7 @@ class UnifiedObject(BaseModel):
     # Metadata
     tags: Optional[List[str]] = Field(default_factory=list, description="Keywords for the GM: ['trapped', 'magical', 'explosive'].")
     item_description: Optional[str] = Field(None, description="Description when taken as an inventory item.")
+    available_manipulators: List[str] = Field(default_factory=list, description="List of manipulators this object enables.")
 
     @computed_field
     @property
@@ -227,6 +228,7 @@ class SpellAbility(BaseModel):
 
     # Metadata
     tags: List[str] = Field(default_factory=list, description="AI helper tags: ['aoe', 'buff', 'control', 'finisher'].")
+    available_manipulators: List[str] = Field(default_factory=list, description="List of manipulators this spell enables.")
 
     @computed_field
     @property
@@ -287,6 +289,7 @@ class Character(BaseModel):
 
     # 6. Spatial Information
     position: Coordinate2D = Field(default_factory=lambda: Coordinate2D(x=0.0, y=0.0), description="Current position of the character in 2D space")
+    current_scene: Optional[str] = Field(None, description="Name of the scene the character is currently in")
     
     abilities: List[SpellAbility] = Field(
         default_factory=list, 
@@ -367,7 +370,6 @@ class NPCCharacter(Character):
     motivation: Optional[str] = Field(None, description="What drives this NPC?")
     alignment: Optional[Alignment] = Field(None, description="Moral alignment of the NPC.")
     memory : str = Field("", description="NPC's internal memory log.")
-    current_scene: str = Field(description="Name of the scene the NPC is currently in")
     
 class SceneNode(BaseModel):
     """

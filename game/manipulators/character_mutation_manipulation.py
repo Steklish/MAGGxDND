@@ -3,11 +3,12 @@ from utils.dice_utils import roll
 from skls_generator.generator import Generator
 from schemas.orchestration import Event, EventTypes, Character, CharacterManipulationBrakdown
 from thefuzz import process
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, TYPE_CHECKING
 from logging import Logger
-from game.engine import Session
 from utils.spatial_utils import calculate_spatial_distances
 
+if TYPE_CHECKING:
+    from game.engine import Session
 
 class CharacterMutationManipulation(BaseManipulation):
     """Handles character-related manipulations, such as status effects or inventory changes."""
@@ -28,22 +29,21 @@ class CharacterMutationManipulation(BaseManipulation):
                                    EventTypes.CHARACTER_STATUS_CHANGE,
                                    EventTypes.CHARACTER_DEATH]
 
-    def __init__(self, generator : Generator, state : Session, archive, logger : Logger) -> None:
-        super().__init__(generator, state, archive, logger)
+    def __init__(self, generator : Generator, logger : Logger, session: 'Session') -> None:
+        super().__init__(generator, logger)
+        self.state = session
 
-    def manipulate(self, event) -> List[Event]:
+    def manipulate(self, character: Character, event: Event) -> List[Event]:
+        # Check if this mutation is targeting this character
+        if event.event_subject != character.name:
+            return []
+
         if event.event_type == EventTypes.CHARACTER_DEATH:
-            return self._handle_character_death(event)
+            return self._handle_character_death(character, event)
         else:
-            return self._handle_character_mutation(event)
+            return self._handle_character_mutation(character, event)
 
-    def _handle_character_mutation(self, event) -> List[Event]:
-        objects = self.get_related_objects(event)
-        objects_text = ""
-        for o in objects:
-            objects_text += '\n'
-            objects_text += str(o.__str__ if o else None)
-
+    def _handle_character_mutation(self, character: Character, event: Event) -> List[Event]:
         # Calculate spatial distances between mentioned objects if spatial system is enabled
         spatial_info = calculate_spatial_distances(self.state, event)
 
@@ -62,20 +62,7 @@ class CharacterMutationManipulation(BaseManipulation):
             prompt=task_prompt
         )
 
-        names = [c.name for c in self._get_all_caracters()]
-        target = None
-        best = process.extractOne(task.character_name, names)
-        if best:
-            best = best[0]
-        else:
-            raise ValueError("No target found")
-
-        for c in self._get_all_caracters():
-            if c.name == best:
-                target = c
-                break
-        if not target:
-            raise ValueError("No target found")
+        target = character # The target is the entity itself
 
         # Store before state for action result
         parent_obj, field_name = self._resolve_attribute_path(target, task.target)
@@ -113,28 +100,17 @@ class CharacterMutationManipulation(BaseManipulation):
 
         return result_events
 
-    def _handle_character_death(self, event: Event) -> List[Event]:
+    def _handle_character_death(self, character: Character, event: Event) -> List[Event]:
         """Handle character death events."""
-        # Find the character who died
-        names = [c.name for c in self._get_all_caracters()]
-        target = None
-        best = process.extractOne(event.event_subject, names)
-        if best:
-            best = best[0]
-        else:
-            raise ValueError(f"No target found for death event: {event.event_subject}")
-
-        for c in self._get_all_caracters():
-            if c.name == best:
-                target = c
-                break
-        if not target:
-            raise ValueError(f"No target found: {best}")
+        target = character
 
         # Mark the character as dead by setting HP to 0
         target.current_hp = 0
 
         # Remove the character from active participants (players or NPCs)
+        # Note: Modifying self.state directly here. This logic might belong in the Engine, 
+        # but the manipulator is doing the 'manipulation'.
+        
         # Check if it's a player character
         player_found = False
         for i, player in enumerate(self.state.players):

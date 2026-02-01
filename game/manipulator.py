@@ -5,26 +5,27 @@ from game.event_pool import SubscriberQueue
 from skls_generator.generator import Generator
 from schemas.orchestration import Event, EventList
 from game.manipulators.base_manipulation import Archive, BaseManipulation
-from game.manipulators.object_transfer_manipulation import ObjectTransferManipulation
-from game.manipulators.scene_manipulation import SceneManipulation
+from game.global_manipulators.object_transfer_manipulation import ObjectTransferManipulation
+from game.global_manipulators.scene_manipulation import SceneManipulation
 from game.manipulators.character_mutation_manipulation import CharacterMutationManipulation
 from game.manipulators.character_movement_manipulation import CharacterMovementManipulation
-from game.manipulators.scene_object_movement_manipulation import SceneObjectMovementManipulation
+from game.global_manipulators.scene_object_movement_manipulation import SceneObjectMovementManipulation
 from game.manipulators.character_transfer_manipulation import CharacterTransferManipulation
 from game.manipulators.npc_transfer_manipulation import NPCTransferManipulation
-from game.manipulators.scene_object_mutation_manipulation import SceneObjectMutationManipulation
+from game.global_manipulators.scene_object_mutation_manipulation import SceneObjectMutationManipulation
 
 
 
 class Manipulator:
-    def __init__(self, generator : Generator, state : Session, archive : Archive | None, logger : Logger) -> None:
+    def __init__(self, generator : Generator, state : Session, archive : Archive | None, logger : Logger, entity_specific: bool = False) -> None:
         self.generator = generator
         self.manipulations : List[BaseManipulation] = []
         self.state = state
         self.archive = archive
         self.logger = logger
+        self.entity_specific = entity_specific
         self.init_manipulations()
-        self.logger.info("Manipulator initialized")
+        self.logger.info(f"Manipulator initialized (entity_specific={entity_specific})")
         
     
     def external_action(self, prompt: str = "", actor : str | None = None) -> List[Event]:
@@ -92,19 +93,34 @@ class Manipulator:
                 break
         else:
             if event.event_type != "ACTION_RESULT":
-                raise ValueError(f"No manipulator for this event type found. Event type is {event.event_type.value}")
+                # self.logger.warning(f"No manipulator for this event type found. Event type is {event.event_type.value}")
+                pass
             else:
                 self.logger.warning(f"Ignored ACTION_RESULT event: {event}")
     
     def init_manipulations(self):
-        self.manipulations.append(CharacterMutationManipulation(self.generator, self.state, self.archive, self.logger))
-        self.manipulations.append(CharacterMovementManipulation(self.generator, self.state, self.archive, self.logger))
-        self.manipulations.append(SceneObjectMovementManipulation(self.generator, self.state, self.archive, self.logger))
-        self.manipulations.append(SceneManipulation(self.generator, self.state, self.archive, self.logger))
-        self.manipulations.append(SceneObjectMutationManipulation(self.generator, self.state, self.archive, self.logger))
-        self.manipulations.append(ObjectTransferManipulation(self.generator, self.state, self.archive, self.logger))
-        self.manipulations.append(CharacterTransferManipulation(self.generator, self.state, self.archive, self.logger))
-        self.manipulations.append(NPCTransferManipulation(self.generator, self.state, self.archive, self.logger))
+        if self.entity_specific:
+            # Entity-specific manipulations - only manipulations relevant to entity actions
+            # These are now handled within GameEntity, but keeping them here for compatibility if needed
+            self.manipulations.append(CharacterMutationManipulation(self.generator, self.logger, self.state))
+            self.manipulations.append(CharacterMovementManipulation(self.generator, self.logger, self.state))
+            self.manipulations.append(ObjectTransferManipulation(self.generator, self.state, self.archive, self.logger))
+            self.manipulations.append(CharacterTransferManipulation(self.generator, self.logger, self.state))
+            # Add attack manipulation for entity-specific actions
+            from game.manipulators.attack_manipulation import AttackManipulation
+            self.manipulations.append(AttackManipulation(self.generator, self.logger, self.state))
+        else:
+            # Global manipulations - all manipulations for global system
+            # Note: Using the updated signatures
+            self.manipulations.append(SceneObjectMovementManipulation(self.generator, self.state, self.archive, self.logger))
+            self.manipulations.append(SceneManipulation(self.generator, self.state, self.archive, self.logger))
+            self.manipulations.append(SceneObjectMutationManipulation(self.generator, self.state, self.archive, self.logger))
+            self.manipulations.append(ObjectTransferManipulation(self.generator, self.state, self.archive, self.logger))
+            # These might still be needed globally if the DM initiates them
+            self.manipulations.append(CharacterMutationManipulation(self.generator, self.logger, self.state))
+            self.manipulations.append(CharacterMovementManipulation(self.generator, self.logger, self.state))
+            self.manipulations.append(CharacterTransferManipulation(self.generator, self.logger, self.state))
+            self.manipulations.append(NPCTransferManipulation(self.generator, self.logger, self.state))
 
         for manipulation in self.manipulations:
             self.logger.info(f"Initialized manipulation: {manipulation.__class__.__name__}")

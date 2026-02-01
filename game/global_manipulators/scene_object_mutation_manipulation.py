@@ -30,7 +30,9 @@ class SceneObjectMutationManipulation(BaseManipulation):
                          EventTypes.ITEM_INTERACTION]
 
     def __init__(self, generator : Generator, state : Session, archive, logger : Logger) -> None:
-        super().__init__(generator, state, archive, logger)
+        super().__init__(generator, logger)
+        self.state = state
+        self.archive = archive
 
     def manipulate(self, event) -> List[Event]:
         # Get all scene objects in the current scene

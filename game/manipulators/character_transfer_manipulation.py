@@ -1,11 +1,12 @@
-from typing import List
+from typing import List, TYPE_CHECKING
 from game.manipulators.base_manipulation import BaseManipulation
 from skls_generator.generator import Generator
 from schemas.orchestration import CharacterTransferBreakdown, CharacterTransferDecision, Event, EventTypes
 from logging import Logger
-from game.engine import Session
 from schemas.in_game import SceneNode
 
+if TYPE_CHECKING:
+    from game.engine import Session
 
 class CharacterTransferManipulation(BaseManipulation):
     """Handles moving characters between scenes or creating characters."""
@@ -23,8 +24,9 @@ class CharacterTransferManipulation(BaseManipulation):
     event_types_binded = [EventTypes.CHARACTER_TRANSFER,
                          EventTypes.LOCATION_CHANGE]
 
-    def __init__(self, generator : Generator, state : Session, archive, logger : Logger) -> None:
-        super().__init__(generator, state, archive, logger)
+    def __init__(self, generator : Generator, logger : Logger, session: 'Session') -> None:
+        super().__init__(generator, logger)
+        self.state = session
 
     def manipulate(self, event: Event) -> List[Event]:
         # Get spatial distances if available

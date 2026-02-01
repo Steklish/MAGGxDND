@@ -7,18 +7,21 @@ from schemas.orchestration import Event, EventTypes, Message
 from skls_generator.generator import Generator
 if TYPE_CHECKING:
     from game.engine import Session
+from game.game_entity import GameEntity
+from game.manipulators.attack_manipulation import AttackManipulation
+from game.manipulators.character_movement_manipulation import CharacterMovementManipulation
 
 MEMORY_LENGTH_LIMIT = 2000  # characters
 
 
-class NPC:
-    """The idea is that the NPC class creature is intependent actor 
-    (independent from game master/ narrator) but the narrator 
-    will describe its actions. 
+class NPC(GameEntity):
+    """The idea is that the NPC class creature is intependent actor
+    (independent from game master/ narrator) but the narrator
+    will describe its actions.
     It listens to the events and decides if to act or not.
-    
+
     If an NPC acts after an event, it will generate a new event.
-    
+
     Multiple events can be processed at a time.
     """
     try:
@@ -29,29 +32,27 @@ class NPC:
         npc_instruction = """
         You are an NPC in a role-playing game. React to events happening around you based on your personality and objectives.
         """
-        
+
     def __init__(self, character : NPCCharacter,
                  event_queuee : SubscriberQueue,
                  logger : Logger,
-                 generator : Generator
+                 generator : Generator,
+                 session: 'Session',
                  ) -> None:
+        super().__init__(session=session)
         self.character = character
         self.event_queue = event_queuee
-        self.logger = logger
-        self.generator = generator
+        self._npc_logger = logger  # Store the logger separately to avoid conflict with GameEntity's logger property
+        self._npc_generator = generator  # Store the generator separately to avoid conflict with GameEntity's generator property
         self._running = False
-        self._session: 'Session | None' = None
-        
-        
-    @property
-    def session(self) -> "Session":
-        if self._session is None:
-            raise ValueError("Session not injected to an NPC!")
-        return self._session
-    
-        
-    def inject_state(self, state : 'Session') -> None:
-        self._session = state
+
+        # Initialize default manipulators
+        self.attack_manipulator = AttackManipulation(generator=self._npc_generator, logger=logger, session=self.session)
+        self.movement_manipulator = CharacterMovementManipulation(generator=self._npc_generator, logger=logger, session=self.session)
+        self.manipulators = [self.attack_manipulator, self.movement_manipulator]
+
+        # Update manipulators based on inventory/spells
+        self._update_manipulators()
        
     
     def run(self) -> list[Event]:
@@ -59,14 +60,28 @@ class NPC:
 
         events = self.event_queue.get_all()
         self.event_queue.clear()
-        decision = self._handle_events(events, self.session.get_session_context())
-        self.logger.debug(f"NPC {self.character.name} processed {len(events)} events.")
+        description = self._handle_events(events, self.session.get_session_context())
+        self._npc_logger.debug(f"NPC {self.character.name} processed {len(events)} events.")
 
         # Return empty list if no action is decided
-        if decision is None:
+        if description is None:
             return []
 
-        return self.session.manipulator.external_action(decision)
+        # Generate intent events from description using global manipulator as event generator
+        intent_events = self.session.manipulator.external_action(description, actor=self.character.name)
+
+        # Process intent events using entity manipulators
+        results = []
+        for event in intent_events:
+            event_results = self.manage_event(event)
+            if event_results:
+                results.extend(event_results)
+            else:
+                # If entity doesn't have a manipulator for this event, it might be a global event
+                # but intent was generated for this actor. We should probably keep the intent event.
+                results.append(event)
+
+        return results
 
     def _handle_events(self, events: list[Event], context : str) -> str | None:
         """Process a list of events and decide on an action."""
@@ -77,7 +92,7 @@ class NPC:
         # Update NPC's current scene if needed based on context
         self._update_current_scene(context)
 
-        decision = self.generator.generate_one_shot(
+        decision = self._npc_generator.generate_one_shot(
             pydantic_model=NPCActDecision,
             prompt=f"""
             ##  Scene context:
@@ -85,10 +100,10 @@ class NPC:
             ## You are an NPC named {self.character.name} in this scene.
             ## Your current position: ({self.character.position.x}, {self.character.position.y})
             ## Your current scene: {self.character.current_scene or 'Unknown'}
-            
+
             ## Current scene state:
             {self.session.get_session_context()}
-            
+
             ## here are your state:
             {self.character.dict()}
 
@@ -98,16 +113,17 @@ class NPC:
             ## Here are the recent events in the game:
             {', '.join([str(e.dict()) for e in events])}
             Based on these events, decide if you need to act and what to do if you need to react in some way.
-            
+
             If decided to act you must describe you action as specific as possible.
-            """)
+            """
+            )
 
         if decision.will_act:
-            self.logger.info(f"NPC {self.character.name} decided to act: {decision.action_description}")
+            self._npc_logger.info(f"NPC {self.character.name} decided to act: {decision.action_description}")
             # saving and trimming the NPC memory
             self.character.memory += str(decision.action_description)
             self.character.memory = self.character.memory[-MEMORY_LENGTH_LIMIT:]
-            
+
             # add NPC action to global chat histori in order for Game Master to see exact intent of the NPC
             if decision.action_description:
                 new_message = Message(
@@ -116,7 +132,7 @@ class NPC:
                 self.session.new_message(new_message)
             return decision.action_description
         else:
-            self.logger.debug(f"NPC {self.character.name} decided not to act.")
+            self._npc_logger.debug(f"NPC {self.character.name} decided not to act.")
             return None
 
     def _update_current_scene(self, context: str):

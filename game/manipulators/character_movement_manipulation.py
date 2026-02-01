@@ -2,11 +2,12 @@ from game.manipulators.base_manipulation import BaseManipulation
 from skls_generator.generator import Generator
 from schemas.orchestration import Event, EventTypes, SpatialMovementBreakdown
 from thefuzz import process
-from typing import List
+from typing import List, TYPE_CHECKING
 from logging import Logger
-from game.engine import Session
-from schemas.in_game import Coordinate2D
+from schemas.in_game import Coordinate2D, Character
 
+if TYPE_CHECKING:
+    from game.engine import Session
 
 class CharacterMovementManipulation(BaseManipulation):
     """Handles character movement within a single scene in 3D space."""
@@ -25,39 +26,17 @@ class CharacterMovementManipulation(BaseManipulation):
         EventTypes.CHARACTER_PATHFINDING
     ]
 
-    def __init__(self, generator: Generator, state: Session, archive, logger: Logger) -> None:
-        super().__init__(generator, state, archive, logger)
+    def __init__(self, generator: Generator, logger: Logger, session: 'Session') -> None:
+        super().__init__(generator, logger)
+        self.state = session
 
-    def manipulate(self, event: Event) -> List[Event]:
+    def manipulate(self, character: Character, event: Event) -> List[Event]:
         # Get spatial distances if available
         from utils.spatial_utils import calculate_spatial_distances
         spatial_info = calculate_spatial_distances(self.state, event)
 
-        # Determine the character to move
-        names = [c.name for c in self._get_all_caracters()]
-
-        # Find the character based on event information
-        target_name = event.event_subject or event.event_initiator or event.event_target
-        if not target_name:
-            self.logger.warning("No target character specified in event")
-            return []
-
-        best_match = process.extractOne(target_name, names)
-        if not best_match:
-            self.logger.warning(f"No character found matching '{target_name}'")
-            return []
-
-        target_name = best_match[0]
-        target_character = None
-
-        for char in self._get_all_caracters():
-            if char.name == target_name:
-                target_character = char
-                break
-
-        if not target_character:
-            self.logger.warning(f"Character '{target_name}' not found")
-            return []
+        # Determine the character to move (it's the character itself)
+        target_character = character
 
         # Create prompt for spatial movement breakdown
         prompt = f"""
@@ -95,7 +74,7 @@ class CharacterMovementManipulation(BaseManipulation):
         distance = self._calculate_distance_3d(target_character.position, target_pos)
 
         # Update character position if it's within scene bounds
-        if self.state.move_character_to_position(target_character, target_pos, self.state.current_scene):
+        if self.state.move_character_to_position(character, target_pos):
             # Create action result event
             action_result = Event(
                 event_type=EventTypes.ACTION_RESULT,
@@ -112,7 +91,7 @@ class CharacterMovementManipulation(BaseManipulation):
             self.logger.warning(f"Failed to move character {target_character.name} to invalid position")
             return []
 
-    def _calculate_target_position(self, character, breakdown: 'SpatialMovementBreakdown') -> Coordinate2D:
+    def _calculate_target_position(self, character: Character, breakdown: 'SpatialMovementBreakdown') -> Coordinate2D:
         """Calculate the target position based on the movement breakdown."""
         current_pos = character.position
 

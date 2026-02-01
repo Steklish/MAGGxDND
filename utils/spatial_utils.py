@@ -3,11 +3,13 @@ Utility functions for the game system.
 """
 
 from schemas.orchestration import Event
-from game.engine import Session
-from typing import List
+from typing import List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from game.engine import Session
 
 
-def calculate_spatial_distances(state: Session, event: Event) -> str:
+def calculate_spatial_distances(state: 'Session', event: Event) -> str:
     """
     Calculate spatial distances between objects mentioned in the event.
 

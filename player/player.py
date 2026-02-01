@@ -6,29 +6,30 @@ if TYPE_CHECKING:
     from game.engine import Session
 from game.orchestrator import Orchestrator
 from schemas.in_game import Character, GameModes
+from game.game_entity import GameEntity
+from game.manipulators.attack_manipulation import AttackManipulation
+from game.manipulators.character_movement_manipulation import CharacterMovementManipulation
 
 
-class Player:
+class Player(GameEntity):
     def __init__(self, character: Character,
                  logger: Logger,
                  orchestrator: Orchestrator,
+                 session: 'Session',
                  ) -> None:
+        super().__init__(session=session)
         self.character = character
-        self.logger = logger
+        self._player_logger = logger  # Store the logger separately to avoid conflict
         self.orchestrator = orchestrator
-        self._session: 'Session | None' = None
         
-    
-    @property
-    def session(self) -> "Session":
-        if self._session is None:
-            raise ValueError("Session not injected to a Player!")
-        return self._session
-    
-        
-    def inject_state(self, state : 'Session') -> None:
-        self._session = state
-       
+        # Initialize default manipulators
+        self.attack_manipulator = AttackManipulation(generator=None, logger=self._player_logger, session=self.session)
+        self.movement_manipulator = CharacterMovementManipulation(generator=None, logger=self._player_logger, session=self.session)
+        self.manipulators = [self.attack_manipulator, self.movement_manipulator]
+
+        # Update manipulators based on inventory/spells
+        self._update_manipulators()
+
     def request_terminal_input(self) -> str:
         # Prepare the prompt with proper encoding handling
         prompt = (
@@ -37,14 +38,14 @@ class Player:
             f"{self.character.position.y})): \033[0m"
         )
         return input(prompt)
-        
+
     def run(self) -> list[Event]:
         """Player's turn. Returns a list of events based on player action.
         Handles three possible outcomes: legal action, unclear action needing clarification,
         and illegal action requiring a new one."""
 
         while True:
-            self.logger.debug(f"Waiting for player input for {self.character.name}")
+            self._player_logger.debug(f"Waiting for player input for {self.character.name}")
 
             request = self.request_terminal_input()
 
@@ -78,8 +79,23 @@ class Player:
 
                 # Handle the three possible outcomes
                 if verdict.verdict_type == OrchestrationVerdictType.ALLOWED_PLAYER_ACTION:
-                    # Legal action - proceed to generate events
-                    return self.session.manipulator.external_action(verdict.details if verdict.details else request)
+                    # Legal action - proceed to generate events using entity manipulator
+                    description = verdict.details if verdict.details else request
+
+                    # Generate intent events from description using global manipulator as event generator
+                    intent_events = self.session.manipulator.external_action(description, actor=self.character.name)
+
+                    # Process intent events using entity manipulators
+                    results = []
+                    for event in intent_events:
+                        event_results = self.manage_event(event)
+                        if event_results:
+                            results.extend(event_results)
+                        else:
+                            # If entity doesn't have a manipulator for this event, it might be a global event
+                            results.append(event)
+
+                    return results
                 elif verdict.verdict_type == OrchestrationVerdictType.CLAIRIFICATION_NEEDED:
                     # Unclear action - need clarification from user
                     # Send clarification request to game master

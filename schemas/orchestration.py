@@ -4,42 +4,47 @@ from pydantic import BaseModel, Field
 from schemas.in_game import Character
 
 class EventTypes(Enum):
-    LOCATION_CHANGE = "LOCATION_CHANGE"
-    LOCATION_MUTATION = "LOCATION_MUTATION"
-    LOCATION_STATUS_CHANGE = "LOCATION_STATUS_CHANGE"
-    SCENE_UPDATE = "SCENE_UPDATE"
+    LOCATION_CHANGE = ("LOCATION_CHANGE", "A location has changed.")
+    LOCATION_MUTATION = ("LOCATION_MUTATION", "A location has been mutated.")
+    LOCATION_STATUS_CHANGE = ("LOCATION_STATUS_CHANGE", "A location's status has changed.")
+    SCENE_UPDATE = ("SCENE_UPDATE", "The scene has been updated.")
 
-    OBJECT_TRANSFER="OBJECT_TRANSFER"
-    ITEM_TRANSFER = "ITEM_TRANSFER" # for moving from inventory to scene, scene to inventory, scene to scene
-    ITEM_STATUS_CHANGE = "ITEM_STATUS_CHANGE"
-    ITEM_MOVEMENT = "ITEM_MOVEMENT"
-    ITEM_MUTATION = "ITEM_MUTATION"
-    ITEM_INTERACTION = "ITEM_INTERACTION"
-    ITEM_PICKUP = "ITEM_PICKUP"
-    ITEM_DROP = "ITEM_DROP"
-    CONTAINER_ACCESS = "CONTAINER_ACCESS"
-    CONTAINER_TRANSFER = "CONTAINER_TRANSFER"
+    OBJECT_TRANSFER = ("OBJECT_TRANSFER", "An object has been transferred.")
+    ITEM_TRANSFER = ("ITEM_TRANSFER", "for moving from inventory to scene, scene to inventory, scene to scene")
+    ITEM_STATUS_CHANGE = ("ITEM_STATUS_CHANGE", "An item's status has changed.")
+    ITEM_MOVEMENT = ("ITEM_MOVEMENT", "An item has moved.")
+    ITEM_MUTATION = ("ITEM_MUTATION", "An item has been mutated.")
+    ITEM_INTERACTION = ("ITEM_INTERACTION", "An item has been interacted with.")
+    ITEM_PICKUP = ("ITEM_PICKUP", "An item has been picked up.")
+    ITEM_DROP = ("ITEM_DROP", "An item has been dropped.")
+    CONTAINER_ACCESS = ("CONTAINER_ACCESS", "A container has been accessed.")
+    CONTAINER_TRANSFER = ("CONTAINER_TRANSFER", "A container has been transferred.")
 
-    CHARACTER_STATUS_CHANGE = "CHARACTER_STATUS_CHANGE"
-    CHARACTER_DEATH = "CHARACTER_DEATH"
-    CHARACTER_STATS_UPDATE = "CHARACTER_STATS_UPDATE"
-    CHARACTER_MOVEMENT = "CHARACTER_MOVEMENT"
-    CHARACTER_TRANSFER = "CHARACTER_TRANSFER"
+    CHARACTER_STATUS_CHANGE = ("CHARACTER_STATUS_CHANGE", "A character's status has changed.")
+    CHARACTER_DEATH = ("CHARACTER_DEATH", "A character has died.")
+    CHARACTER_STATS_UPDATE = ("CHARACTER_STATS_UPDATE", "A character's stats have been updated.")
+    CHARACTER_MOVEMENT = ("CHARACTER_MOVEMENT", "A character has moved.")
+    CHARACTER_TRANSFER = ("CHARACTER_TRANSFER", "A character has been transferred.")
 
     # NPC Specific Events
-    NPC_TRANSFER = "NPC_TRANSFER"
+    NPC_TRANSFER = ("NPC_TRANSFER", "An NPC has been transferred.")
 
     # Spatial Events
-    CHARACTER_POSITION_UPDATE = "CHARACTER_POSITION_UPDATE"
-    CHARACTER_PATHFINDING = "CHARACTER_PATHFINDING"
-    # DISTANCE_CALCULATION = "DISTANCE_CALCULATION"
+    CHARACTER_POSITION_UPDATE = ("CHARACTER_POSITION_UPDATE", "A character's position has been updated.")
+    CHARACTER_PATHFINDING = ("CHARACTER_PATHFINDING", "A character is pathfinding.")
 
     # Action Result Events
-    ACTION_RESULT = "ACTION_RESULT"
+    ACTION_RESULT = ("ACTION_RESULT", "An action has resulted.")
 
-    # NPC_ACTION = "NPC_ACTION"
-    # LOG="LOG"
-    
+    # Attack Events
+    CHARACTER_ATTACK = ("CHARACTER_ATTACK", "A character has attacked.")
+    CHARACTER_MELEE_ATTACK = ("CHARACTER_MELEE_ATTACK", "A character has performed a melee attack.")
+    CHARACTER_RANGED_ATTACK = ("CHARACTER_RANGED_ATTACK", "A character has performed a ranged attack.")
+
+    def __init__(self, val, description):
+        self._value_ = val
+        self.description = description
+
 
 from schemas.in_game import Coordinate2D
 

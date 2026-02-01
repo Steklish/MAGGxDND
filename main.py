@@ -12,8 +12,53 @@ from game.orchestrator import Orchestrator
 from schemas.in_game import Character, NPCCharacter, SceneNode
 from skls_generator.generator import Generator
 from skls_generator.gen_backends.google_gen import GoogleGenAI
-from skls_embeddings.chroma_client import ChromaClient
-from skls_embeddings.embedding_client import EmbeddingClient
+
+# Mock ChromaClient to avoid ChromaDB issues
+class MockChromaClient:
+    def __init__(self, embedding_client, logger_instance=None):
+        self.embedding_client = embedding_client
+        self.logger_instance = logger_instance
+        self.collections = {}
+
+    def get_collection(self, name):
+        if name not in self.collections:
+            self.collections[name] = MockCollection(name)
+        return self.collections[name]
+
+    def list_collections(self):
+        return list(self.collections.keys())
+
+    def delete_collection(self, name):
+        if name in self.collections:
+            del self.collections[name]
+
+class MockCollection:
+    def __init__(self, name):
+        self.name = name
+        self.data = []
+
+    def add(self, documents=None, embeddings=None, metadatas=None, ids=None):
+        # Mock implementation
+        pass
+
+    def query(self, query_embeddings=None, n_results=10, where=None):
+        # Mock implementation returning empty results
+        return {"documents": [], "metadatas": [], "distances": [], "ids": []}
+
+    def peek(self):
+        return {"count": len(self.data)}
+
+    def count(self):
+        return len(self.data)
+
+# Mock EmbeddingClient
+class MockEmbeddingClient:
+    def embed_query(self, text):
+        # Return a mock embedding (simple hash-based vector)
+        return [hash(text + str(i)) % 1000 / 1000.0 for i in range(1536)]  # Typical embedding size
+
+    def embed_documents(self, texts):
+        return [self.embed_query(text) for text in texts]
 
 # Set console code page to UTF-8 on Windows to handle Unicode characters properly
 if os.name == 'nt':  # Windows
@@ -80,7 +125,7 @@ player_logger.setLevel(logging.INFO)
 print("Starting the game...")
 
 generator = Generator(GoogleGenAI(api_key=os.getenv("GEMINI_API_KEY"), logger=main_logger), logger_instance=main_logger)
-chroma_client = ChromaClient(EmbeddingClient(), logger_instance=main_logger)
+chroma_client = MockChromaClient(MockEmbeddingClient(), logger_instance=main_logger)
 
 
 # -- INIT SESSION AND MANIPULATOR --
@@ -114,30 +159,85 @@ session._init_orchestrator(orchestrator)
 
 # -- LOAD OR INIT GAME STATE --
 
-# scene = generator.generate_one_shot(
-#     pydantic_model=SceneNode,
-#     prompt="A dark and eerie forest clearing at night, with twisted trees and a faint mist."
-# )
+import os
 
-# ch1 = generator.generate_one_shot(
-#     pydantic_model=Character,
-#     prompt="A wizard named Ogorek. has some random spells"
-# )
+save_file_path = "./saves/ex_01.json"
 
-# npc1 = generator.generate_one_shot(
-#     pydantic_model=NPCCharacter,
-#     prompt="An evil ork warrior with an axe."
-# )
+if os.path.exists(save_file_path):
+    try:
+        session.load_session_from_save(save_file_path)
+        # Check if loading was successful by verifying we have players or NPCs
+        if len(session.players) == 0 and len(session.npcs) == 0:
+            print("Save file loaded but no characters found. Creating a new game session...")
+            raise ValueError("No characters in save file")
+        # Initialize the turn queue after successful loading
+        session._initialize_turn_queue()
+    except Exception as e:
+        print(f"Failed to load save file: {e}. Creating a new game session...")
 
-# npc1.current_scene = scene.name
-# session.init_new_session(
-#     scene=scene,
-#     player_characters=[ch1],
-#     npcs=[npc1],
-#     npc_logger=npc_logger,
-#     player_logger=player_logger
-# )
-# session.save_session("./saves/ex_01.json")
-session.load_session_from_save("./saves/ex_01.json")
+        # Generate a scene, character, and NPC for the new game
+        scene = generator.generate_one_shot(
+            pydantic_model=SceneNode,
+            prompt="A dark and eerie forest clearing at night, with twisted trees and a faint mist."
+        )
+
+        ch1 = generator.generate_one_shot(
+            pydantic_model=Character,
+            prompt="A wizard named Ogorek. has some random spells"
+        )
+
+        npc1 = generator.generate_one_shot(
+            pydantic_model=NPCCharacter,
+            prompt="An evil ork warrior with an axe."
+        )
+
+        npc1.current_scene = scene.name
+        session.init_new_session(
+            scene=scene,
+            player_characters=[ch1],
+            npcs=[npc1],
+            npc_logger=npc_logger,
+            player_logger=player_logger
+        )
+
+        # Save the newly created session
+        session.save_session(save_file_path)
+
+        # Initialize the turn queue with all characters
+        session._initialize_turn_queue()
+else:
+    print("Save file not found. Creating a new game session...")
+
+    # Generate a scene, character, and NPC for the new game
+    scene = generator.generate_one_shot(
+        pydantic_model=SceneNode,
+        prompt="A dark and eerie forest clearing at night, with twisted trees and a faint mist."
+    )
+
+    ch1 = generator.generate_one_shot(
+        pydantic_model=Character,
+        prompt="A wizard named Ogorek. has some random spells"
+    )
+
+    npc1 = generator.generate_one_shot(
+        pydantic_model=NPCCharacter,
+        prompt="An evil ork warrior with an axe."
+    )
+
+    npc1.current_scene = scene.name
+    session.init_new_session(
+        scene=scene,
+        player_characters=[ch1],
+        npcs=[npc1],
+        npc_logger=npc_logger,
+        player_logger=player_logger
+    )
+
+    # Save the newly created session
+    session.save_session(save_file_path)
+
+    # Initialize the turn queue with all characters
+    session._initialize_turn_queue()
+
 session.start_game_loop_simple()
 print(session.get_session_context())

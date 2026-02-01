@@ -24,7 +24,9 @@ class SceneManipulation(BaseManipulation):
                           EventTypes.LOCATION_MUTATION]
 
     def __init__(self, generator : Generator, state : Session, archive, logger : Logger) -> None:
-        super().__init__(generator, state, archive, logger)
+        super().__init__(generator, logger)
+        self.state = state
+        self.archive = archive
 
     def manipulate(self, event: Event) -> List[Event]:
         # Get the current scene

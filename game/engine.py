@@ -102,9 +102,10 @@ class Session:
             character=npc_character,
             event_queuee=self.event_pool.subscribe(uuid.uuid4().hex),
             logger=logger_to_use,
-            generator=self.generator
+            generator=self.generator,
+            session=self
         )
-        new_NPC.inject_state(self)
+        # new_NPC.inject_state(self) # Removed as it's now in init
         logger_to_use.debug(f"Initialized NPC: {npc_character.name}")
         return new_NPC
 
@@ -115,9 +116,10 @@ class Session:
         new_player = Player(
             character=character,
             logger=logger_to_use,
-            orchestrator=orchestrator
+            orchestrator=orchestrator,
+            session=self
         )
-        new_player.inject_state(self)
+        # new_player.inject_state(self) # Removed as it's now in init
         logger_to_use.debug(f"Initialized Player: {character.name}")
         return new_player
     
@@ -355,6 +357,10 @@ class Session:
                     queue.append((neighbor, path + [neighbor]))
 
         return []  # No path found
+
+    def get_scene(self, scene_name: str) -> Optional[SceneNode]:
+        """Get a scene by name."""
+        return self.all_locations.get(scene_name)
 
 
     def _sort_npcs_by_initiative(self):
