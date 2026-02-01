@@ -89,10 +89,7 @@ class SceneObjectMutationManipulation(BaseManipulation):
             event_initiator=event.event_initiator,
             event_subject=target.name,
             event_target=task.target,
-            description=f"Applied {task.operation} operation to object '{target.name}' attribute '{task.target}': {original_value} -> {new_value}",
-            start_position=event.start_position,
-            end_position=event.end_position,
-            distance=event.distance
+            description=f"Applied {task.operation} operation to object '{target.name}' attribute '{task.target}': {original_value} -> {new_value}"
         )
 
         return [action_result]

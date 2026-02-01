@@ -41,7 +41,7 @@ class EventTypes(Enum):
     # LOG="LOG"
     
 
-from schemas.in_game import Coordinate3D
+from schemas.in_game import Coordinate2D
 
 class Event(BaseModel):
     """An event that triggers orchestration logic."""
@@ -50,11 +50,6 @@ class Event(BaseModel):
     event_subject: Optional[str] = Field(..., description="The subject involved in the event.")
     event_target: Optional[str] = Field(description="Target object or character involved.")
     description: str = Field(..., description="Detailed description of the event.")
-
-    # Spatial information (for spatial events)
-    start_position: Optional[Coordinate3D] = Field(None, description="Starting position for movement events")
-    end_position: Optional[Coordinate3D] = Field(None, description="Ending position for movement events")
-    distance: Optional[float] = Field(None, description="Distance of movement for movement events")
     
 class EventList(BaseModel):
     event_list : List[Event] = Field(description="list of events from a prompt")
@@ -125,7 +120,7 @@ class NPCTransferDecision(BaseModel):
 class SpatialMovementCommand(BaseModel):
     """Command for character movement in 3D space."""
     character_name: str = Field(..., description="Name of the character to move")
-    target_position: Coordinate3D = Field(..., description="Destination coordinates")
+    target_position: Coordinate2D = Field(..., description="Destination coordinates")
     movement_speed: Optional[float] = Field(None, description="Speed of movement (overrides character's default speed)")
     path_description: Optional[str] = Field(None, description="Description of the path taken")
 
@@ -133,14 +128,25 @@ class SpatialMovementCommand(BaseModel):
 class SpatialTeleportCommand(BaseModel):
     """Command for instant character teleportation."""
     character_name: str = Field(..., description="Name of the character to teleport")
-    destination_position: Coordinate3D = Field(..., description="Destination coordinates")
+    destination_position: Coordinate2D = Field(..., description="Destination coordinates")
     reason: Optional[str] = Field(None, description="Reason for teleportation")
 
 class DistanceCalculationRequest(BaseModel):
     """Request to calculate distance between two points."""
-    point_a: Coordinate3D = Field(..., description="First point")
-    point_b: Coordinate3D = Field(..., description="Second point")
+    point_a: Coordinate2D = Field(..., description="First point")
+    point_b: Coordinate2D = Field(..., description="Second point")
     unit: str = Field("feet", description="Unit of measurement")
+
+class SpatialMovementBreakdown(BaseModel):
+    """Breakdown of a spatial movement action."""
+    character_name: str = Field(..., description="Name of the character to move")
+    movement_type: str = Field(..., description="Type of movement: 'directional', 'relative_to_target', 'specific_coordinates'")
+    direction_vector: Optional[Coordinate2D] = Field(None, description="Direction vector for movement (for directional movement)")
+    distance: Optional[float] = Field(None, description="Distance to move in the specified direction")
+    target_reference: Optional[str] = Field(None, description="Reference to a target character/object for relative movement")
+    target_offset: Optional[Coordinate2D] = Field(None, description="Offset from the target position")
+    specific_coordinates: Optional[Coordinate2D] = Field(None, description="Specific coordinates to move to")
+    movement_description: str = Field(..., description="Description of the movement action")
     
 class Message(BaseModel):
     sender_name : str
@@ -165,7 +171,7 @@ class RulesCheck(BaseModel):
     
 class OrchestrationVerdictType(Enum):
     ALLOWED_PLAYER_ACTION = "ALLOWED_PLAYER_ACTION"
-    CLARIFICATION_NEEDEN = "CLARIFICATION_NEEDEN"
+    CLAIRIFICATION_NEEDED = "CLAIRIFICATION_NEEDED"
     ILLEGAL_PLAYER_ACTION = "ILLEGAL_PLAYER_ACTION"
     META_REQUEST = "META_REQUEST"
     NPC_ACTION = "NPC_ACTION"
@@ -176,5 +182,9 @@ class OrchestrationVerdict(BaseModel):
     verdict_type : OrchestrationVerdictType = Field(default=OrchestrationVerdictType.SKIPPED)
     details : Optional[str] = Field(default=None, description="Additional details about the verdict")
     
+class ClarityCheck(BaseModel):
+    needs_clarification: bool = Field(description="Whether the action needs clarification")
+    clarification_needed: str = Field(description="What clarification is needed")
+
 class RuleViolationObject(BaseModel):
     details : str

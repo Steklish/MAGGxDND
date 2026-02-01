@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 from npcs.npc import NPC
 from player.player import Player
-from schemas.in_game import Character, GameModes, NPCCharacter, SceneNode, Coordinate3D
+from schemas.in_game import Character, GameModes, NPCCharacter, SceneNode, Coordinate2D
 from skls_embeddings import ChromaClient
 from skls_generator import Generator
 from logging import Logger
@@ -153,8 +153,8 @@ class Session:
             scene_info += f"Description: {getattr(self.current_scene, 'description', 'No description available.')}"
             scene_info += f"Game mode: {self.game_mode.value}"
             # Add spatial information
-            scene_info += f"\nScene center: ({self.current_scene.center_position.x}, {self.current_scene.center_position.y}, {self.current_scene.center_position.z})"
-            scene_info += f"\nScene dimensions: {self.current_scene.dimensions.x}x{self.current_scene.dimensions.y}x{self.current_scene.dimensions.z} {self.current_scene.scale_unit}"
+            scene_info += f"\nScene center: ({self.current_scene.center_position.x}, {self.current_scene.center_position.y})"
+            scene_info += f"\nScene dimensions: {self.current_scene.dimensions.x}x{self.current_scene.dimensions.y} {self.current_scene.scale_unit}"
 
             # Add location graph information
             if self.current_location_name:
@@ -171,6 +171,26 @@ class Session:
         if all_locations:
             scene_info += f"\nAll known locations: {', '.join(all_locations)}"
 
+        # Add spatial positions of characters
+        characters_spatial_info = "\n\n#### SPATIAL POSITIONS OF CHARACTERS"
+        for player in self.players:
+            char = player.character
+            characters_spatial_info += f"\n- {char.name}: ({char.position.x}, {char.position.y})"
+
+        for npc in self.npcs:
+            npc_char = npc.character
+            if npc_char.current_scene == self.current_location_name:  # Only show NPCs in current scene
+                characters_spatial_info += f"\n- {npc_char.name}: ({npc_char.position.x}, {npc_char.position.y})"
+
+        # Add spatial positions of objects in the current scene
+        objects_spatial_info = "\n\n#### SPATIAL POSITIONS OF OBJECTS IN CURRENT SCENE"
+        if self.current_scene:
+            for obj in self.current_scene.objects:
+                if obj.position:
+                    objects_spatial_info += f"\n- {obj.name}: ({obj.position.x}, {obj.position.y})"
+                else:
+                    objects_spatial_info += f"\n- {obj.name}: Position not specified"
+
         # 3. Construct the Context String
         context_str = f"""
 ### CURRENT SESSION STATE:
@@ -183,6 +203,9 @@ class Session:
 
 #### 3. NON-PLAYER CHARACTERS (NPCs)
 {[n.character.short_summary if n.character.current_scene == self.current_location_name else None for n in self.npcs]}
+
+{characters_spatial_info}
+{objects_spatial_info}
 """
         return context_str.strip()
     
@@ -225,34 +248,29 @@ class Session:
         
 
 
-    def calculate_distance_3d(self, pos1: Coordinate3D, pos2: Coordinate3D) -> float:
-        """Calculate Euclidean distance between two 3D coordinates."""
+    def calculate_distance_3d(self, pos1: Coordinate2D, pos2: Coordinate2D) -> float:
+        """Calculate Euclidean distance between two 2D coordinates."""
         dx = pos2.x - pos1.x
         dy = pos2.y - pos1.y
-        dz = pos2.z - pos1.z
-        return math.sqrt(dx*dx + dy*dy + dz*dz)
+        return math.sqrt(dx*dx + dy*dy)
 
-    def is_within_scene_bounds(self, position: Coordinate3D, scene: SceneNode) -> bool:
+    def is_within_scene_bounds(self, position: Coordinate2D, scene: SceneNode) -> bool:
         """Check if a position is within the bounds of a scene."""
         if not self.spatial_enabled:
             return True  # If spatial system disabled, always within bounds
 
         half_x = scene.dimensions.x / 2
         half_y = scene.dimensions.y / 2
-        half_z = scene.dimensions.z / 2
 
         min_x = scene.center_position.x - half_x
         max_x = scene.center_position.x + half_x
         min_y = scene.center_position.y - half_y
         max_y = scene.center_position.y + half_y
-        min_z = scene.center_position.z - half_z
-        max_z = scene.center_position.z + half_z
 
         return (min_x <= position.x <= max_x and
-                min_y <= position.y <= max_y and
-                min_z <= position.z <= max_z)
+                min_y <= position.y <= max_y)
 
-    def move_character_to_position(self, character: Character, new_position: Coordinate3D,
+    def move_character_to_position(self, character: Character, new_position: Coordinate2D,
                                   scene: SceneNode) -> bool:
         """Move a character to a new position if it's within scene bounds."""
         if not self.spatial_enabled:
@@ -262,8 +280,8 @@ class Session:
         if self.is_within_scene_bounds(new_position, scene):
             old_position = character.position
             character.position = new_position
-            self.logger.info(f"Moved {character.name} from ({old_position.x}, {old_position.y}, {old_position.z}) "
-                           f"to ({new_position.x}, {new_position.y}, {new_position.z})")
+            self.logger.info(f"Moved {character.name} from ({old_position.x}, {old_position.y}) "
+                           f"to ({new_position.x}, {new_position.y})")
             return True
         else:
             self.logger.warning(f"Attempted to move {character.name} outside scene bounds")
@@ -338,63 +356,6 @@ class Session:
 
         return []  # No path found
 
-    def _external_action(self, prompt: str = "", actor : str | None = None) -> List[Event]:
-        """Perform a privileged external action within the game session. (DM moves)"""
-
-        rules = f"""
-        1. Determine which objects involved into the request.
-        2. Be the most specific (if there is a certain object in the scene you should set event type to item-based not the entire scene)
-        3. Always include spatial commands if the action involves movement or position changes.
-        4. Choose the appropriate event type based on the action being performed:
-        5. There are special types of requests from user when in battle. If an attack requested you Must generate an event that includes damage calculation based on character and item stats.
-        6. Do not generate ACTION_RESULT events.
-
-        EVENT TYPE RESPONSIBILITIES:
-        - LOCATION_CHANGE: Moving characters between locations/scenes
-        - LOCATION_MUTATION: Changing properties of a location itself
-        - LOCATION_STATUS_CHANGE: Updating the status of a location (e.g., peaceful to dangerous)
-        - SCENE_UPDATE: Updating scene description or properties
-        - OBJECT_TRANSFER: Moving objects between containers/scene/inventory
-        - ITEM_TRANSFER: Moving items between inventories, scenes, or containers
-        - ITEM_STATUS_CHANGE: Changing status of an item (e.g., locked/unlocked, open/closed)
-        - ITEM_MUTATION: Changing properties of an item (e.g., durability, condition)
-        - ITEM_INTERACTION: Interacting with an item (e.g., opening a chest, using a key)
-        - ITEM_PICKUP: Picking up an item from the scene
-        - ITEM_DROP: Dropping an item into the scene
-        - CONTAINER_ACCESS: Opening/closing/accessing containers
-        - CONTAINER_TRANSFER: Moving items between containers
-        - CHARACTER_STATUS_CHANGE: Changing character status (e.g., poisoned, stunned)
-        - CHARACTER_DEATH: Character death events
-        - CHARACTER_STATS_UPDATE: Updating character statistics (HP, attributes, etc.)
-        - CHARACTER_MOVEMENT: Character movement within a scene
-        - CHARACTER_TRANSFER: Moving characters between locations (for players)
-        - NPC_TRANSFER: Moving NPCs between locations (for NPCs)
-        - CHARACTER_POSITION_UPDATE: Updating character positions in 3D space
-        - CHARACTER_TELEPORT: Instant character position changes
-        - CHARACTER_PATHFINDING: Pathfinding and navigation events
-        - DISTANCE_CALCULATION: Distance calculation requests
-        """
-
-        prompt_text = f"""
-        You need to generate authoritative events based on the situation and a request e.g. "The dragon gets 1d8+2 damage. (based on items properties)" or "character 1 hits character 2 with a sword and dealing 1d6+3 damage"
-
-        # EVENT TYPE RESPONSIBILITIES:
-        {rules}
-
-        # prompt
-        {f"## actor: {actor}\nrequest: " if actor else ""}
-        {prompt}
-        # scene:
-        {self.get_session_context()}
-        
-        # Last messages history (meta game) - for references:
-        {self.get_messages_formatted()}
-        """
-        events = self.generator.generate_one_shot(
-            pydantic_model=EventList,
-            prompt=prompt_text
-        )
-        return events.event_list
 
     def _sort_npcs_by_initiative(self):
         """Sort NPCs based on their initiative scores."""
@@ -448,9 +409,10 @@ class Session:
             self.logger.error(f"Error loading session: {e}")
 
     def _add_character_to_turn_queue(self, char : NPC | Player):
-        time_added = self.turn_time
-        next_move_time = self.turn_time + time_added / char.character.initiative_bonus
-        self.turn_queue.append((char, time_added, next_move_time))
+        if char.character.is_alive:
+            time_added = self.turn_time 
+            next_move_time = self.turn_time + time_added / char.character.initiative_bonus
+            self.turn_queue.append((char, time_added, next_move_time))
         
     def _add_all_characters_to_turn_queue(self):
         """Add a character to the turn queue with their calculated next turn time."""
@@ -472,53 +434,287 @@ class Session:
         next_char, time_added, next_turn = self.turn_queue[0]
         self.turn_time = float(next_turn)
         self.turn_queue.pop(0)
+        self._add_character_to_turn_queue(next_char)
         return next_char
-    
+
+    def get_all_characters(self):
+        """Get all characters (both players and NPCs) in the session."""
+        all_characters = []
+        for player in self.players:
+            all_characters.append(player.character)
+        for npc in self.npcs:
+            all_characters.append(npc.character)
+        return all_characters
+
+    def draw_ascii_scene(self):
+        """Draw an ASCII representation of the current scene with characters and objects."""
+        if not self.current_scene:
+            print("\n[No current scene loaded]")
+            return
+
+        print("\n" + "="*60)
+        print(f"📍 {self.current_scene.name.upper()}")
+        print("="*60)
+
+        # Get scene dimensions and center
+        center_x, center_y = (self.current_scene.center_position.x,
+                              self.current_scene.center_position.y)
+        width = self.current_scene.dimensions.x
+        height = self.current_scene.dimensions.y
+
+        # Calculate boundaries
+        min_x = center_x - width/2
+        max_x = center_x + width/2
+        min_y = center_y - height/2
+        max_y = center_y + height/2
+
+        print(f"📏 Scene: {width}x{height} {self.current_scene.scale_unit} | Center: ({center_x}, {center_y})")
+        print(f"💬 {self.current_scene.description}")
+
+        # Create a 2D grid representation
+        # We'll use a simple grid where each cell represents a 1-unit area
+        grid_size = 20  # Fixed grid size for visualization
+        grid = [['.' for _ in range(grid_size)] for _ in range(grid_size)]
+
+        # Calculate scaling factors to map scene coordinates to grid positions
+        x_scale = grid_size / width if width > 0 else 1
+        y_scale = grid_size / height if height > 0 else 1
+
+        # Place characters on the grid
+        for player in self.players:
+            char = player.character
+            if hasattr(char, 'position'):
+                # Map position to grid coordinates
+                grid_x = int((char.position.x - min_x) * x_scale)
+                grid_y = int((char.position.y - min_y) * y_scale)
+
+                # Keep within bounds
+                grid_x = max(0, min(grid_size - 1, grid_x))
+                grid_y = max(0, min(grid_size - 1, grid_y))
+
+                # Use first letter of name or 'P' for player
+                symbol = char.name[0].upper() if char.name else 'P'
+                grid[grid_y][grid_x] = f'\033[34m{symbol}\033[0m'  # Blue for players
+
+        # Place NPCs on the grid
+        for npc in self.npcs:
+            npc_char = npc.character
+            if npc_char.current_scene == self.current_location_name:  # Only show NPCs in current scene
+                if hasattr(npc_char, 'position'):
+                    # Map position to grid coordinates
+                    grid_x = int((npc_char.position.x - min_x) * x_scale)
+                    grid_y = int((npc_char.position.y - min_y) * y_scale)
+
+                    # Keep within bounds
+                    grid_x = max(0, min(grid_size - 1, grid_x))
+                    grid_y = max(0, min(grid_size - 1, grid_y))
+
+                    # Use first letter of name or 'N' for NPC
+                    symbol = npc_char.name[0].upper() if npc_char.name else 'N'
+                    grid[grid_y][grid_x] = f'\033[31m{symbol}\033[0m'  # Red for NPCs
+
+        # Place objects on the grid
+        for obj in self.current_scene.objects:
+            if hasattr(obj, 'position') and obj.position:
+                # Map position to grid coordinates
+                grid_x = int((obj.position.x - min_x) * x_scale)
+                grid_y = int((obj.position.y - min_y) * y_scale)
+
+                # Keep within bounds
+                grid_x = max(0, min(grid_size - 1, grid_x))
+                grid_y = max(0, min(grid_size - 1, grid_y))
+
+                # Use first letter of object name or 'O' for object
+                symbol = obj.name[0].upper() if obj.name else 'O'
+                grid[grid_y][grid_x] = f'\033[33m{symbol}\033[0m'  # Yellow for objects
+
+        # Print the grid
+        print("\n🗺️  SCENE MAP:")
+        for row in grid:
+            print(' '.join(row))
+
+        # Print legend
+        print("\n📋 LEGEND:")
+        print(f"  \033[34mP\033[0m - Players ({', '.join([p.character.name for p in self.players])})")
+        print(f"  \033[31mN\033[0m - NPCs ({', '.join([n.character.name for n in self.npcs if n.character.current_scene == self.current_location_name])})")
+        print(f"  \033[33mO\033[0m - Objects ({', '.join([o.name for o in self.current_scene.objects])})")
+        print(f"  \033[32m.\033[0m - Empty space")
+
+        # Print character statuses
+        print("\n👤 CHARACTER STATUS:")
+        for player in self.players:
+            char = player.character
+            status = f"  🧍 {char.name}: HP {char.current_hp}/{char.max_hp}, Pos ({char.position.x}, {char.position.y})"
+            if char.active_conditions:
+                status += f" ⚠️  {', '.join(char.active_conditions)}"
+            print(status)
+
+        for npc in self.npcs:
+            npc_char = npc.character
+            if npc_char.current_scene == self.current_location_name:
+                status = f"  👹 {npc_char.name}: HP {npc_char.current_hp}/{npc_char.max_hp}, Pos ({npc_char.position.x}, {npc_char.position.y})"
+                if npc_char.active_conditions:
+                    status += f" ⚠️  {', '.join(npc_char.active_conditions)}"
+                print(status)
+
+        print("="*60)
+
     def _print_turn_queue(self):
         print(f"Turn queue is {[self.turn_queue]}")
         
 
     def start_game_loop_simple(self):
+        """Starts the game loop based on the current game mode."""
         if not self.game_master:
             raise ValueError("Game master (MAGG) is not initialized.")
+
+        # Initialize the turn queue with all characters
         self._initialize_turn_queue()
+
+        # Initialize the round determinator separately
+        self._initialize_round_determinator()
+
         start_description = self.game_master.get_simple_description()
         print(f"\033[31mDM {self.game_mode.value}: {start_description}\033[0m\n")
+
+        if self.game_mode == GameModes.COMBAT:
+            self._start_combat_loop()
+        else:
+            self._start_story_loop()
+
+    def _start_combat_loop(self):
+        """Combat mode: Strict turn-based with individual character turns."""
+        turn_counter = 0
         while True:
             try:
-                character= self._get_next_character_turn()
-                
-                decision = character.run()
-                self.logger.debug(f"Character {character.character.name} decision {decision.verdict_type.value}")
-                if decision.verdict_type == OrchestrationVerdictType.NPC_ACTION:
-                    assert decision.details is not None
-                    events = self._external_action(prompt=decision.details, actor=character.character.name)
-                    self.logger.debug(f"Generated events after NPC decision: {events}")
+                character = self._get_next_character_turn()
+
+                # Draw the scene before the character's turn
+                self.draw_ascii_scene()
+
+                # The character.run() method now returns a list of events
+                events = character.run()
+
+                # Process the events returned by the character
+                if events:
+                    self.logger.debug(f"Character {character.character.name} generated {len(events)} events")
                     self.execute_events(events)
                     narrative = self.game_master.comment()
-                    
-                elif decision.verdict_type == OrchestrationVerdictType.ILLEGAL_PLAYER_ACTION:
-                    assert decision.details is not None
-                    narrative = self.game_master.illegal_action_comment(
-                        prompt=decision.original_request,
-                        name=character.character.name,
-                        reasoning=decision.details
-                    )
-                    self.logger.info(f"Generated narrative after ILLEGAL PLAYER decision: {decision.details}")
-                        
-                elif decision.verdict_type == OrchestrationVerdictType.ALLOWED_PLAYER_ACTION:
-                    events = self._external_action(prompt=decision.details if decision.details else "Not provided", actor=character.character.name)
-                    self.logger.debug(f"Generated events after PLAYER decision: {events}")
-                    self.execute_events(events)
-                    narrative = self.game_master.comment()
+                    print(f"\033[31mDM {self.game_mode.value} Comment: {narrative}\033[0m")
                 else:
-                    self.logger.info(f"{character.character.name} chose to skip their turn.")
-                    self.logger.debug(decision)
-                
-                print(f"\033[31mDM Comment: {narrative}\033[0m")
+                    self.logger.info(f"{character.character.name} chose to skip their turn or no events were generated.")
+
+                # Add the character back to the turn queue for the next turn
+                self._add_character_to_turn_queue(character)
+
+                # Periodically run the round determinator to analyze game state
+                turn_counter += 1
+                if turn_counter % 5 == 0:  # Run every 5 turns
+                    determinator_events = self.round_determinator.run()
+                    if determinator_events:
+                        self.logger.debug(f"RoundDeterminator generated {len(determinator_events)} events")
+                        self.execute_events(determinator_events)
+                        narrative = self.game_master.comment()
+                        print(f"\033[31mDM {self.game_mode.value} Comment: {narrative}\033[0m")
+
             except KeyboardInterrupt:
                 self.logger.info("Game loop interrupted by user.")
                 break
+
+    def _start_story_loop(self):
+        """Story mode: Continuous NPC processing until no more events, then player input."""
+        turn_counter = 0
+        while True:
+            try:
+                # Process all NPC turns until no more events are generated
+                npc_generated_events = True
+                consecutive_npc_passes = 0
+                max_consecutive_passes = len(self.npcs)  # Stop if all NPCs pass consecutively
+
+                while npc_generated_events or consecutive_npc_passes < max_consecutive_passes:
+                    character = self._get_next_character_turn()
+
+                    # Draw the scene before the character's turn
+                    self.draw_ascii_scene()
+
+                    # Check if it's a player character
+                    is_player = any(
+                        hasattr(character, 'character') and
+                        character.character.name == player.character.name
+                        for player in self.players
+                    )
+
+                    # If it's a player's turn in story mode, break to get player input
+                    if is_player:
+                        # Add the player back to the queue and break to get input
+                        self._add_character_to_turn_queue(character)
+                        break
+
+                    # Process NPC turn
+                    events = character.run()
+
+                    if events:
+                        consecutive_npc_passes = 0  # Reset counter when an NPC generates events
+                        self.logger.debug(f"Character {character.character.name} generated {len(events)} events")
+                        self.execute_events(events)
+                        narrative = self.game_master.comment()
+                        print(f"\033[31mDM {self.game_mode.value} Comment: {narrative}\033[0m")
+                    else:
+                        consecutive_npc_passes += 1
+                        self.logger.debug(f"{character.character.name} passed their turn")
+
+                    # Add the character back to the turn queue for the next turn
+                    self._add_character_to_turn_queue(character)
+
+                    # Check if game mode has changed to combat
+                    if self.game_mode == GameModes.COMBAT:
+                        self.logger.info("Switching to combat mode")
+                        return  # Exit to restart with combat loop
+
+                # After NPCs finish processing, get player input
+                if self.players:
+                    # Draw the scene before player input
+                    self.draw_ascii_scene()
+
+                    # Get input from any player (not necessarily in turn order in story mode)
+                    for player in self.players:
+                        events = player.run()
+
+                        if events:
+                            self.logger.debug(f"Player {player.character.name} generated {len(events)} events")
+                            self.execute_events(events)
+                            narrative = self.game_master.comment()
+                            print(f"\033[31mDM {self.game_mode.value} Comment: {narrative}\033[0m")
+
+                            # Check if game mode has changed to combat
+                            if self.game_mode == GameModes.COMBAT:
+                                self.logger.info("Switching to combat mode")
+                                return  # Exit to restart with combat loop
+                        else:
+                            self.logger.info(f"Player {player.character.name} chose to skip their turn or no events were generated.")
+
+                # Run the round determinator after each cycle of NPC and player turns
+                turn_counter += 1
+                if turn_counter % 3 == 0:  # Run every 3 cycles (NPC turns -> player turns -> determinator)
+                    determinator_events = self.round_determinator.run()
+                    if determinator_events:
+                        self.logger.debug(f"RoundDeterminator generated {len(determinator_events)} events")
+                        self.execute_events(determinator_events)
+                        narrative = self.game_master.comment()
+                        print(f"\033[31mDM {self.game_mode.value} Comment: {narrative}\033[0m")
+
+            except KeyboardInterrupt:
+                self.logger.info("Game loop interrupted by user.")
+                break
+
+    def _initialize_round_determinator(self):
+        """Initialize the round determinator separately."""
+        # Create the round determinator
+        from game.round_determinator import RoundDeterminator
+        self.round_determinator = RoundDeterminator(logger=self.logger)
+        self.round_determinator.inject_state(self)
+
+        self.logger.debug("Initialized round determinator")
     
     def new_message(self, message: Message):
         """Add a new message to the session's message history."""

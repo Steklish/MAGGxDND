@@ -131,10 +131,10 @@ Based on the <current_events> above, generate your in-character comment:
         return comment.comment
     
     def clarify_user_request(self, correction_question : str) -> str:
-        prompt = f"""{self.character_prompt} 
-        You need to ask the last playerfor clarification on their request: "{correction_question}". 
+        prompt = f"""{self.character_prompt}
+        You need to ask the last playerfor clarification on their request: "{correction_question}".
         Politely ask for more details so that you can better understand their intentions in the game.
-        
+
         # there is also past conversation history provided with your answers included  (the last user rquest needs clarification to follow game rules more properly):
         {self.session.get_messages_formatted()}
         """
@@ -147,3 +147,26 @@ Based on the <current_events> above, generate your in-character comment:
             text=clarification.comment)
         self.session.new_message(new_message)
         return clarification.comment
+
+    def comment_on_meta_request(self, request: str) -> str:
+        """Handles meta requests/comments from players that are directed to the game master."""
+        prompt = f"""{self.character_prompt}
+        A player has made a meta request/comment: "{request}".
+        Respond to this meta request in character as the game master. This could be a question about the game,
+        a request for information, or an out-of-character comment.
+
+        # Conversation history for context:
+        {self.session.get_messages_formatted()}
+        
+        # Current game state:
+        {self.session.get_session_context()}
+        """
+        response = self.generator.generate_one_shot(
+            pydantic_model=SimpleComment,
+            prompt=prompt
+        )
+        new_message = Message(
+            sender_name="Mage",
+            text=response.comment)
+        self.session.new_message(new_message)
+        return response.comment

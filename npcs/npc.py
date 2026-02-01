@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from game.event_pool import SubscriberQueue
 from npcs.schemas import NPCActDecision
 from schemas.in_game import NPCCharacter
-from schemas.orchestration import Event, EventTypes, OrchestrationVerdict, OrchestrationVerdictType
+from schemas.orchestration import Event, EventTypes, Message
 from skls_generator.generator import Generator
 if TYPE_CHECKING:
     from game.engine import Session
@@ -54,21 +54,20 @@ class NPC:
         self._session = state
        
     
-    def run(self) -> OrchestrationVerdict:
+    def run(self) -> list[Event]:
         """Process events and decide on an action."""
-        
+
         events = self.event_queue.get_all()
         self.event_queue.clear()
         decision = self._handle_events(events, self.session.get_session_context())
         self.logger.debug(f"NPC {self.character.name} processed {len(events)} events.")
+
+        # Return empty list if no action is decided
         if decision is None:
-            return OrchestrationVerdict()
-        else:
-            return OrchestrationVerdict(
-                verdict_type=OrchestrationVerdictType.NPC_ACTION,
-                details=decision
-            )
-    
+            return []
+
+        return self.session.manipulator.external_action(decision)
+
     def _handle_events(self, events: list[Event], context : str) -> str | None:
         """Process a list of events and decide on an action."""
 
@@ -84,8 +83,12 @@ class NPC:
             ##  Scene context:
             {context}
             ## You are an NPC named {self.character.name} in this scene.
-            ## Your current position: ({self.character.position.x}, {self.character.position.y}, {self.character.position.z})
+            ## Your current position: ({self.character.position.x}, {self.character.position.y})
             ## Your current scene: {self.character.current_scene or 'Unknown'}
+            
+            ## Current scene state:
+            {self.session.get_session_context()}
+            
             ## here are your state:
             {self.character.dict()}
 
@@ -95,6 +98,8 @@ class NPC:
             ## Here are the recent events in the game:
             {', '.join([str(e.dict()) for e in events])}
             Based on these events, decide if you need to act and what to do if you need to react in some way.
+            
+            If decided to act you must describe you action as specific as possible.
             """)
 
         if decision.will_act:
@@ -102,6 +107,13 @@ class NPC:
             # saving and trimming the NPC memory
             self.character.memory += str(decision.action_description)
             self.character.memory = self.character.memory[-MEMORY_LENGTH_LIMIT:]
+            
+            # add NPC action to global chat histori in order for Game Master to see exact intent of the NPC
+            if decision.action_description:
+                new_message = Message(
+                    sender_name=self.character.name + "[NPC action request]",
+                    text=decision.action_description)
+                self.session.new_message(new_message)
             return decision.action_description
         else:
             self.logger.debug(f"NPC {self.character.name} decided not to act.")
@@ -134,12 +146,9 @@ class NPC:
 
         context = "Recent spatial movements:\n"
         for event in spatial_events:
-            if event.start_position and event.end_position:
-                dist = self._calculate_distance_3d(event.start_position, event.end_position)
-                context += f"- {event.event_subject} moved from ({event.start_position.x}, {event.start_position.y}, {event.start_position.z}) " \
-                          f"to ({event.end_position.x}, {event.end_position.y}, {event.end_position.z}), distance: {dist:.2f}\n"
-            elif event.end_position:
-                context += f"- {event.event_subject} appeared at ({event.end_position.x}, {event.end_position.y}, {event.end_position.z})\n"
+            # Since spatial coordinates are no longer in events, we'll just note the movement
+            # The actual positions are maintained by the objects themselves
+            context += f"- {event.event_subject} moved to location '{event.event_target}'\n"
 
         return context
 

@@ -32,6 +32,12 @@ class CharacterMutationManipulation(BaseManipulation):
         super().__init__(generator, state, archive, logger)
 
     def manipulate(self, event) -> List[Event]:
+        if event.event_type == EventTypes.CHARACTER_DEATH:
+            return self._handle_character_death(event)
+        else:
+            return self._handle_character_mutation(event)
+
+    def _handle_character_mutation(self, event) -> List[Event]:
         objects = self.get_related_objects(event)
         objects_text = ""
         for o in objects:
@@ -86,11 +92,80 @@ class CharacterMutationManipulation(BaseManipulation):
             event_initiator=event.event_initiator,
             event_subject=target.name,
             event_target=task.target,
-            description=f"From request {event.description}:\n Applied {task.operation} operation to {target.name}'s {task.target}: {original_value} -> {new_value}",
-            start_position=event.start_position,
-            end_position=event.end_position,
-            distance=event.distance
+            description=f"From request {event.description}:\n Applied {task.operation} operation to {target.name}'s {task.target}: {original_value} -> {new_value}"
         )
+
+        # Check if a death occurred during the operation
+        result_events = [action_result]
+        if hasattr(self, '_pending_death_info'):
+            death_info = self._pending_death_info
+            # Create a death event with full context from the original event
+            death_event = Event(
+                event_type=EventTypes.CHARACTER_DEATH,
+                event_initiator=event.event_initiator,
+                event_subject=death_info['character'].name,
+                event_target=event.event_target,
+                description=f"{death_info['character'].name} has died due to dropping to {death_info['new_hp']} HP from {death_info['old_hp']} HP. Cause: {event.description}"
+            )
+
+            result_events.append(death_event)
+            delattr(self, '_pending_death_info')  # Clean up
+
+        return result_events
+
+    def _handle_character_death(self, event: Event) -> List[Event]:
+        """Handle character death events."""
+        # Find the character who died
+        names = [c.name for c in self._get_all_caracters()]
+        target = None
+        best = process.extractOne(event.event_subject, names)
+        if best:
+            best = best[0]
+        else:
+            raise ValueError(f"No target found for death event: {event.event_subject}")
+
+        for c in self._get_all_caracters():
+            if c.name == best:
+                target = c
+                break
+        if not target:
+            raise ValueError(f"No target found: {best}")
+
+        # Mark the character as dead by setting HP to 0
+        target.current_hp = 0
+
+        # Remove the character from active participants (players or NPCs)
+        # Check if it's a player character
+        player_found = False
+        for i, player in enumerate(self.state.players):
+            if player.character.name == target.name:
+                # Remove player from the turn queue if they're there
+                self.state.turn_queue = [item for item in self.state.turn_queue if item[0] != player]
+                # Note: We're not removing the player from the players list to preserve their data
+                player_found = True
+                break
+
+        # Check if it's an NPC
+        if not player_found:
+            for i, npc in enumerate(self.state.npcs):
+                if npc.character.name == target.name:
+                    # Remove NPC from the turn queue if they're there
+                    self.state.turn_queue = [item for item in self.state.turn_queue if item[0] != npc]
+                    # Remove the NPC from the active NPCs list
+                    del self.state.npcs[i]
+                    self.logger.info(f"Removed dead NPC {target.name} from active NPCs")
+                    break
+
+        # Create action result event
+        action_result = Event(
+            event_type=EventTypes.ACTION_RESULT,
+            event_initiator=event.event_initiator,
+            event_subject=target.name,
+            event_target="death",
+            description=f"{target.name} has died. Current HP: {target.current_hp}"
+        )
+
+        self.logger.info(f"Handled death for character: {target.name}")
 
         return [action_result]
 
@@ -112,7 +187,11 @@ class CharacterMutationManipulation(BaseManipulation):
 
         # --- BRANCH B: List Operations (Active Conditions, Personality) ---
         elif isinstance(current_val, list):
-            self._handle_list_op(parent_obj, field_name, current_val, task)
+            # Special handling for active_conditions to ensure meaningful values
+            if field_name == "active_conditions":
+                self._handle_active_conditions_op(parent_obj, field_name, current_val, task)
+            else:
+                self._handle_list_op(parent_obj, field_name, current_val, task)
 
         # --- BRANCH C: String/Enum Operations (Race, Class Name) ---
         elif isinstance(current_val, str):
@@ -143,13 +222,102 @@ class CharacterMutationManipulation(BaseManipulation):
 
         # Logical clamps (HP cannot go below 0)
         if field == "current_hp":
+            old_hp = current_val
             new_val = max(0, new_val)
             # You might also want to clamp to max_hp here if you have access to it
             if hasattr(obj, "max_hp"):
                 new_val = min(new_val, obj.max_hp)
 
+            # Check if the character has died (HP dropped to 0 or below)
+            if old_hp > 0 and new_val <= 0:
+                # Store death info to be processed later with full event context
+                self._pending_death_info = {
+                    'character': obj,
+                    'old_hp': old_hp,
+                    'new_hp': new_val,
+                    'task': task
+                }
+
+                self.logger.info(f"💀 {obj.name} has died! HP: {old_hp} -> {new_val}")
+
         setattr(obj, field, int(new_val))
         self.logger.info(f"🔢 {field} changed: {current_val} -> {new_val} (Operation: {task.operation} {task.value})")
+
+    def _handle_active_conditions_op(self, obj: Any, field: str, current_list: list, task: CharacterManipulationBrakdown):
+        """Handles active conditions specifically, ensuring meaningful values."""
+
+        # Clean and validate the value for active conditions
+        clean_value = task.value.strip()
+
+        # Map common AI interpretations to meaningful condition names
+        condition_mapping = {
+            "true": "",
+            "false": "",
+            "none": "",
+            "yes": "",
+            "no": "",
+            "reckless attack": "Reckless Attack",
+            "advantage": "Advantage",
+            "disadvantage": "Disadvantage",
+            "prone": "Prone",
+            "stunned": "Stunned",
+            "poisoned": "Poisoned",
+            "blinded": "Blinded",
+            "deafened": "Deafened",
+            "frightened": "Frightened",
+            "grappled": "Grappled",
+            "incapacitated": "Incapacitated",
+            "invisible": "Invisible",
+            "paralyzed": "Paralyzed",
+            "petrified": "Petrified",
+            "poisoned": "Poisoned",
+            "restrained": "Restrained",
+            "unconscious": "Unconscious",
+            "exhaustion": "Exhaustion",
+            "concentration": "Concentration",
+            "rage": "Rage",
+            "bloodied": "Bloodied",
+            "dying": "Dying",
+            "dead": "Dead"
+        }
+
+        # Check if the value needs mapping
+        if clean_value.lower() in condition_mapping:
+            mapped_value = condition_mapping[clean_value.lower()]
+            if not mapped_value:  # Empty string means skip this condition
+                self.logger.info(f"Skipping invalid condition value: '{clean_value}'")
+                return
+            clean_value = mapped_value
+        else:
+            # Capitalize the first letter for consistency
+            clean_value = clean_value.capitalize()
+
+        self.logger.debug(f"Handling active conditions operation on {field}: {task.operation} '{clean_value}', current list: {current_list}")
+
+        if task.operation in ["append", "add"]:
+            if clean_value not in current_list:
+                current_list.append(clean_value)
+                self.logger.info(f"➕ Added status '{clean_value}' to {field}. New list: {current_list}")
+            else:
+                self.logger.debug(f"'{clean_value}' already exists in {field}, skipping add operation.")
+
+        elif task.operation in ["remove", "subtract", "delete"]:
+            if clean_value in current_list:
+                current_list.remove(clean_value)
+                self.logger.info(f"➖ Removed status '{clean_value}' from {field}. New list: {current_list}")
+            else:
+                self.logger.debug(f"'{clean_value}' not found in {field}, skipping remove operation.")
+
+        elif task.operation == "replace":
+            # Replaces the whole list (e.g. clear all conditions)
+            if clean_value.lower() in ["none", "clear", "empty", ""]:
+                old_list = current_list.copy()
+                setattr(obj, field, [])
+                self.logger.info(f"🔄 Cleared all values from {field}. Old list: {old_list}, new list: {getattr(obj, field)}")
+            else:
+                old_list = current_list.copy()
+                setattr(obj, field, [clean_value])
+                self.logger.info(f"🔄 Replaced {field}. Old list: {old_list}, new list: {getattr(obj, field)}")
 
     def _handle_list_op(self, obj: Any, field: str, current_list: list, task: CharacterManipulationBrakdown):
         """Handles States/Conditions (e.g., ['Prone'] -> ['Prone', 'Poisoned'])."""

@@ -71,10 +71,7 @@ class NPCTransferManipulation(BaseManipulation):
                     event_initiator=event.event_initiator,
                     event_subject=breakdown.npc_name,
                     event_target=breakdown.target_location,
-                    description=f"Transferred NPC '{breakdown.npc_name}' to location '{breakdown.target_location}'",
-                    start_position=event.start_position,
-                    end_position=event.end_position,
-                    distance=event.distance
+                    description=f"Transferred NPC '{breakdown.npc_name}' to location '{breakdown.target_location}'"
                 )
                 results.append(action_result)
 

@@ -2,11 +2,10 @@ from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel, Field, computed_field
 
-class Coordinate3D(BaseModel):
-    """3D coordinate system for spatial positioning."""
+class Coordinate2D(BaseModel):
+    """2D coordinate system for spatial positioning (Z-axis removed)."""
     x: float = Field(default=0.0, description="X coordinate (horizontal axis)")
     y: float = Field(default=0.0, description="Y coordinate (vertical axis)")
-    z: float = Field(default=0.0, description="Z coordinate (depth axis)")
 
 # --- Enums for Strict Typing ---
 class GameModes(str, Enum):
@@ -92,7 +91,7 @@ class UnifiedObject(BaseModel):
     contained_objects: Optional[List['UnifiedObject']] = Field(default_factory=list, description="Other objects contained within this object.")
 
     # Spatial information (for objects in scenes)
-    position: Optional[Coordinate3D] = Field(default_factory=Coordinate3D, description="Current position of the object in 3D space when in a scene")
+    position: Optional[Coordinate2D] = Field(default_factory=lambda: Coordinate2D(x=0.0, y=0.0), description="Current position of the object in 2D space when in a scene")
 
     # Metadata
     tags: Optional[List[str]] = Field(default_factory=list, description="Keywords for the GM: ['trapped', 'magical', 'explosive'].")
@@ -287,9 +286,8 @@ class Character(BaseModel):
     resources: dict = Field(default_factory=dict, description="Trackable resources. Example: {'spell_slots_lvl1': 3, 'rages': 2}")
 
     # 6. Spatial Information
-    position: Coordinate3D = Field(default_factory=Coordinate3D, description="Current position of the character in 3D space")
-    facing_direction: Coordinate3D = Field(default_factory=lambda: Coordinate3D(x=1.0, y=0.0, z=0.0),
-                                          description="Direction the character is facing (unit vector)")
+    position: Coordinate2D = Field(default_factory=lambda: Coordinate2D(x=0.0, y=0.0), description="Current position of the character in 2D space")
+    
     abilities: List[SpellAbility] = Field(
         default_factory=list, 
         description="Known spells, class features, and racial traits available for use."
@@ -386,7 +384,7 @@ class SceneNode(BaseModel):
     objects: List['UnifiedObject'] = Field(default_factory=list, description="Interactable items present.")
 
     # Spatial information
-    center_position: Coordinate3D = Field(default_factory=Coordinate3D, description="Center position of the scene")
-    dimensions: Coordinate3D = Field(default_factory=lambda: Coordinate3D(x=10.0, y=10.0, z=10.0),
-                                   description="Dimensions of the scene (width, height, depth)")
+    center_position: Coordinate2D = Field(default_factory=lambda: Coordinate2D(x=0.0, y=0.0), description="Center position of the scene")
+    dimensions: Coordinate2D = Field(default_factory=lambda: Coordinate2D(x=10.0, y=10.0),
+                                   description="Dimensions of the scene (width, height)")
     scale_unit: str = Field("feet", description="Unit of measurement for coordinates (e.g., feet, meters)")

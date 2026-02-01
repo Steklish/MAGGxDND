@@ -71,7 +71,7 @@ player_logger = logging.getLogger("player.core")
 # Set log levels for different components
 main_logger.setLevel(logging.WARNING)
 engine_logger.setLevel(logging.DEBUG)
-manipulator_logger.setLevel(logging.INFO)
+manipulator_logger.setLevel(logging.DEBUG)
 orchestrator_logger.setLevel(logging.DEBUG)
 magg_logger.setLevel(logging.INFO)
 npc_logger.setLevel(logging.INFO)

@@ -63,10 +63,7 @@ class SceneManipulation(BaseManipulation):
             event_initiator=event.event_initiator,
             event_subject=current_scene.name,
             event_target="description",
-            description=f"Updated scene description from '{original_description}' to '{current_scene.description}'",
-            start_position=event.start_position,
-            end_position=event.end_position,
-            distance=event.distance
+            description=f"Updated scene description from '{original_description}' to '{current_scene.description}'"
         )
 
         return [action_result]

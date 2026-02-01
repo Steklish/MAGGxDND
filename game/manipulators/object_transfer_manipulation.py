@@ -57,6 +57,10 @@ class ObjectTransferManipulation(BaseManipulation):
         Scene Context:
         {self.state.get_session_context()}
 
+        SPECIAL CASES TO HANDLE:
+        - If the event describes searching a character's body, the items should come from that character's inventory, not from the scene.
+        - If the event describes looting a corpse, the items should come from that character's inventory.
+        - Pay close attention to the event description to determine the correct source of items.
         """
 
         self.logger.debug(f"Processing transfer event: {event.event_type.value} - {event.description}")
@@ -78,19 +82,56 @@ class ObjectTransferManipulation(BaseManipulation):
         # Determine transfer direction and execute
         if source == "scene" and target == "inventory":
             self.logger.debug(f"Executing scene->inventory transfer: {quantity}x '{object_name}'")
-            self._transfer_from_scene_to_inventory(object_name, quantity)
+            # Check if the object is actually in any location (special case for searching bodies)
+            target_character_name = event.event_initiator or event.event_target
+            if target_character_name and ("search" in event.description.lower() or "loot" in event.description.lower() or "body" in event.description.lower()):
+                # This is likely a case where the LLM misidentified the source
+                # Try to find the object in any possible location
+                found_in_any_location = self._try_transfer_from_any_location(event, object_name, quantity, target_character_name)
+                if not found_in_any_location:
+                    # Fall back to scene if not found in any location
+                    self._transfer_from_scene_to_inventory(object_name, quantity)
+            else:
+                # Even if not a search action, try to find the object in any location to be robust
+                found_in_any_location = self._try_transfer_from_any_location(event, object_name, quantity, target_character_name or "")
+                if not found_in_any_location:
+                    self._transfer_from_scene_to_inventory(object_name, quantity)
         elif source == "inventory" and target == "scene":
             self.logger.debug(f"Executing inventory->scene transfer: {quantity}x '{object_name}'")
-            self._transfer_from_inventory_to_scene(object_name, quantity)
+            # Try to find the object in any location to be robust
+            target_character_name = event.event_initiator or event.event_target
+            found_in_any_location = self._try_transfer_from_any_location(event, object_name, quantity, target_character_name or "")
+            if not found_in_any_location:
+                self._transfer_from_inventory_to_scene(object_name, quantity)
         elif source == "container" and target == "inventory":
             self.logger.debug(f"Executing container->inventory transfer: {quantity}x '{object_name}'")
-            self._transfer_from_container_to_inventory(object_name, quantity)
+            # Try to find the object in any location to be robust
+            target_character_name = event.event_initiator or event.event_target
+            found_in_any_location = self._try_transfer_from_any_location(event, object_name, quantity, target_character_name or "")
+            if not found_in_any_location:
+                self._transfer_from_container_to_inventory(object_name, quantity)
         elif source == "inventory" and target == "container":
             self.logger.debug(f"Executing inventory->container transfer: {quantity}x '{object_name}' to container '{target_container_name}'")
-            self._transfer_from_inventory_to_container(object_name, quantity, target_container_name)
+            # Try to find the object in any location to be robust
+            found_in_any_location = self._try_transfer_from_any_location(event, object_name, quantity, event.event_initiator or "")
+            if not found_in_any_location:
+                self._transfer_from_inventory_to_container(object_name, quantity, target_container_name)
         elif source == "container" and target == "container":
             self.logger.debug(f"Executing container->container transfer: {quantity}x '{object_name}' to container '{target_container_name}'")
-            self._transfer_from_container_to_container(object_name, quantity, target_container_name)
+            # Try to find the object in any location to be robust
+            found_in_any_location = self._try_transfer_from_any_location(event, object_name, quantity, event.event_initiator or "")
+            if not found_in_any_location:
+                self._transfer_from_container_to_container(object_name, quantity, target_container_name)
+        # NEW: Handle inventory-to-inventory transfers (between different characters)
+        elif source == "inventory" and target == "inventory":
+            self.logger.debug(f"Executing inventory->inventory transfer: {quantity}x '{object_name}'")
+            # Try to find the object in any location to be robust
+            target_char_name = event.event_target or ""
+            found_in_any_location = self._try_transfer_from_any_location(event, object_name, quantity, target_char_name)
+            if not found_in_any_location:
+                initiator_name = event.event_initiator or ""
+                target_name = event.event_target or ""
+                self._transfer_between_inventories(initiator_name, object_name, target_name, quantity)
         else:
             self.logger.error(f"Unsupported transfer direction: {source} to {target}")
             raise ValueError(f"Unsupported transfer direction: {source} to {target}")
@@ -101,10 +142,7 @@ class ObjectTransferManipulation(BaseManipulation):
             event_initiator=event.event_initiator,
             event_subject=object_name,
             event_target=f"{source} -> {target}",
-            description=f"Transferred {quantity}x '{object_name}' from {source} to {target}",
-            start_position=event.start_position,
-            end_position=event.end_position,
-            distance=event.distance
+            description=f"Transferred {quantity}x '{object_name}' from {source} to {target}"
         )
 
         return [action_result]
@@ -373,3 +411,228 @@ class ObjectTransferManipulation(BaseManipulation):
                     if nested_obj:
                         return nested_container, nested_obj
         return None, None # type: ignore
+
+    def _transfer_between_inventories(self, initiator_name: str, object_name: str, target_character_name: str, quantity: int):
+        """Transfer an object from one character's inventory to another character's inventory."""
+        # Find the source character (initiator) and target character
+        source_character = None
+        target_character = None
+
+        # Find source character (the one initiating the transfer)
+        for player in self.state.players:
+            if player.character.name.lower() in initiator_name.lower() or initiator_name.lower() in player.character.name.lower():
+                source_character = player.character
+                break
+        if not source_character:
+            for npc in self.state.npcs:
+                if npc.character.name.lower() in initiator_name.lower() or initiator_name.lower() in npc.character.name.lower():
+                    source_character = npc.character
+                    break
+
+        # Find target character (the one receiving the transfer)
+        for player in self.state.players:
+            if player.character.name.lower() in target_character_name.lower() or target_character_name.lower() in player.character.name.lower():
+                target_character = player.character
+                break
+        if not target_character:
+            for npc in self.state.npcs:
+                if npc.character.name.lower() in target_character_name.lower() or target_character_name.lower() in npc.character.name.lower():
+                    target_character = npc.character
+                    break
+
+        if not source_character:
+            raise ValueError(f"Source character '{initiator_name}' not found")
+        if not target_character:
+            raise ValueError(f"Target character '{target_character_name}' not found")
+
+        # Find the object in the source character's inventory
+        obj = self._find_object_in_list(object_name, source_character.inventory)
+        if not obj:
+            raise ValueError(f"Object '{object_name}' not found in {source_character.name}'s inventory")
+
+        # Log the transfer details
+        self.logger.debug(f"Transferring {quantity}x '{obj.name}' from {source_character.name}'s inventory to {target_character.name}'s inventory")
+        self.logger.debug(f"Before transfer - Source inventory count: {len(source_character.inventory)}, Target inventory count: {len(target_character.inventory)}")
+
+        # Handle quantity transfer
+        if obj.quantity > quantity:
+            # Create a new object with the transferred quantity
+            transferred_obj = copy.deepcopy(obj)
+            transferred_obj.quantity = quantity
+            obj.quantity -= quantity
+
+            # Add to target character's inventory
+            target_character.inventory.append(transferred_obj)
+            self.logger.debug(f"Partial transfer: reduced source object quantity to {obj.quantity}, added {transferred_obj.quantity} to target inventory")
+        else:
+            # Transfer the entire object
+            source_character.inventory.remove(obj)
+
+            # Add to target character's inventory
+            target_character.inventory.append(obj)
+            self.logger.debug(f"Full transfer: moved entire object to target inventory")
+
+        self.logger.info(f"Transferred {quantity}x '{obj.name}' from {source_character.name}'s inventory to {target_character.name}'s inventory")
+        self.logger.debug(f"After transfer - Source inventory count: {len(source_character.inventory)}, Target inventory count: {len(target_character.inventory)}")
+
+    def _try_transfer_from_any_location(self, event: Event, object_name: str, quantity: int, target_character_name: str) -> bool:
+        """Try to transfer an object from any possible location (inventories, scene, containers).
+
+        Returns True if the object was found and transferred, False otherwise.
+        """
+        # Look for the object in all possible locations
+        all_characters = self.state.get_all_characters()
+
+        # First, check all character inventories
+        for character in all_characters:
+            # Skip the target character (the one receiving the item)
+            if character.name.lower() in target_character_name.lower() or target_character_name.lower() in character.name.lower():
+                continue
+
+            # Look for the object in this character's inventory
+            obj, container = self._find_object_in_character_inventory(character, object_name)
+            if obj:
+                # Found the object in this character's inventory (possibly in a container)
+                return self._perform_transfer_from_character_to_target(character, obj, container, quantity, target_character_name)
+
+        # Next, check the scene objects
+        scene_obj, container = self._find_object_in_scene(object_name)
+        if scene_obj:
+            # Found the object in the scene (possibly in a container)
+            return self._perform_transfer_from_scene_to_target(scene_obj, container, quantity, target_character_name)
+
+        # Object not found anywhere
+        self.logger.warning(f"Object '{object_name}' not found in any location for transfer")
+        return False
+
+    def _find_object_in_character_inventory(self, character, object_name: str):
+        """Find an object in a character's inventory, including nested containers."""
+        # First, check the main inventory
+        obj = self._find_object_in_list(object_name, character.inventory)
+        if obj:
+            return obj, None  # Found directly in inventory
+
+        # Then, check nested containers in the inventory
+        for item in character.inventory:
+            if hasattr(item, 'contained_objects') and item.contained_objects:
+                nested_obj = self._find_object_in_list(object_name, item.contained_objects)
+                if nested_obj:
+                    return nested_obj, item  # Found in a container within inventory
+
+        return None, None
+
+    def _find_object_in_scene(self, object_name: str):
+        """Find an object in the scene, including nested containers."""
+        # First, check the main scene objects
+        obj = self._find_object_in_list(object_name, self.state.current_scene.objects)
+        if obj:
+            return obj, None  # Found directly in scene
+
+        # Then, check nested containers in the scene
+        for scene_obj in self.state.current_scene.objects:
+            if hasattr(scene_obj, 'contained_objects') and scene_obj.contained_objects:
+                nested_obj = self._find_object_in_list(object_name, scene_obj.contained_objects)
+                if nested_obj:
+                    return nested_obj, scene_obj  # Found in a container in scene
+
+        return None, None
+
+    def _perform_transfer_from_character_to_target(self, source_character, obj, container, quantity: int, target_character_name: str) -> bool:
+        """Perform transfer from a character's inventory (or container within inventory) to target character."""
+        # Find the target character
+        target_character = None
+        for player in self.state.players:
+            if player.character.name.lower() in target_character_name.lower() or target_character_name.lower() in player.character.name.lower():
+                target_character = player.character
+                break
+        if not target_character:
+            for npc in self.state.npcs:
+                if npc.character.name.lower() in target_character_name.lower() or target_character_name.lower() in npc.character.name.lower():
+                    target_character = npc.character
+                    break
+
+        if not target_character:
+            self.logger.error(f"Target character '{target_character_name}' not found")
+            return False
+
+        # Log the transfer details
+        location_desc = f"in {container.name}" if container else "directly"
+        self.logger.debug(f"Transferring {quantity}x '{obj.name}' from {source_character.name}'s inventory ({location_desc}) to {target_character.name}'s inventory")
+        self.logger.debug(f"Before transfer - Source inventory count: {len(source_character.inventory)}, Target inventory count: {len(target_character.inventory)}")
+
+        # Handle quantity transfer
+        if obj.quantity > quantity:
+            # Create a new object with the transferred quantity
+            transferred_obj = copy.deepcopy(obj)
+            transferred_obj.quantity = quantity
+            obj.quantity -= quantity
+
+            # Add to target character's inventory
+            target_character.inventory.append(transferred_obj)
+            self.logger.debug(f"Partial transfer: reduced source object quantity to {obj.quantity}, added {transferred_obj.quantity} to target inventory")
+        else:
+            # Transfer the entire object
+            if container:
+                # Remove from container within inventory
+                container.contained_objects.remove(obj)
+            else:
+                # Remove from main inventory
+                source_character.inventory.remove(obj)
+
+            # Add to target character's inventory
+            target_character.inventory.append(obj)
+            self.logger.debug(f"Full transfer: moved entire object to target inventory")
+
+        self.logger.info(f"Transferred {quantity}x '{obj.name}' from {source_character.name}'s inventory to {target_character.name}'s inventory")
+        self.logger.debug(f"After transfer - Source inventory count: {len(source_character.inventory)}, Target inventory count: {len(target_character.inventory)}")
+        return True
+
+    def _perform_transfer_from_scene_to_target(self, scene_obj, container, quantity: int, target_character_name: str) -> bool:
+        """Perform transfer from scene (or container within scene) to target character."""
+        # Find the target character
+        target_character = None
+        for player in self.state.players:
+            if player.character.name.lower() in target_character_name.lower() or target_character_name.lower() in player.character.name.lower():
+                target_character = player.character
+                break
+        if not target_character:
+            for npc in self.state.npcs:
+                if npc.character.name.lower() in target_character_name.lower() or target_character_name.lower() in npc.character.name.lower():
+                    target_character = npc.character
+                    break
+
+        if not target_character:
+            self.logger.error(f"Target character '{target_character_name}' not found")
+            return False
+
+        # Log the transfer details
+        location_desc = f"in {container.name}" if container else "directly"
+        self.logger.debug(f"Transferring {quantity}x '{scene_obj.name}' from scene ({location_desc}) to {target_character.name}'s inventory")
+        self.logger.debug(f"Before transfer - Scene objects count: {len(self.state.current_scene.objects)}, Target inventory count: {len(target_character.inventory)}")
+
+        # Handle quantity transfer
+        if scene_obj.quantity > quantity:
+            # Create a new object with the transferred quantity
+            transferred_obj = copy.deepcopy(scene_obj)
+            transferred_obj.quantity = quantity
+            scene_obj.quantity -= quantity
+
+            # Add to target character's inventory
+            target_character.inventory.append(transferred_obj)
+            self.logger.debug(f"Partial transfer: reduced scene object quantity to {scene_obj.quantity}, added {transferred_obj.quantity} to target inventory")
+        else:
+            # Transfer the entire object
+            if container:
+                # Remove from container within scene
+                container.contained_objects.remove(scene_obj)
+            else:
+                # Remove from main scene objects
+                self.state.current_scene.objects.remove(scene_obj)
+
+            # Add to target character's inventory
+            target_character.inventory.append(scene_obj)
+            self.logger.debug(f"Full transfer: moved entire object to target inventory")
+
+        self.logger.info(f"Transferred {quantity}x '{scene_obj.name}' from scene to {target_character.name}'s inventory")
+        self.logger.debug(f"After transfer - Scene objects count: {len(self.state.current_scene.objects)}, Target inventory count: {len(target_character.inventory)}")
+        return True
