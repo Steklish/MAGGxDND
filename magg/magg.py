@@ -32,8 +32,8 @@ class Magg:
     
     def _events_to_string(self, events : List[Event]) -> str:
         events_str = ""
-        for e in events:
-            events_str += str(e.dict())
+        for i, e in enumerate(events):
+            events_str += f"Event {i+1}: {str(e.dict())}\n"
         return events_str
 
     def inject_state(self, state : 'Session') -> None:
@@ -101,6 +101,7 @@ You are commenting on the latest game events. Your goal is to be **engaging, imm
 ### YOUR RESPONSE
 Based on the <current_events> above, generate your in-character comment:
 """
+        self.logger.debug(f"event str is [{events_str}]")
         comment = self.generator.generate_one_shot(
             pydantic_model=SimpleComment,
             prompt=prompt
@@ -151,9 +152,9 @@ Based on the <current_events> above, generate your in-character comment:
     def comment_on_meta_request(self, request: str) -> str:
         """Handles meta requests/comments from players that are directed to the game master."""
         prompt = f"""{self.character_prompt}
-        A player has made a meta request/comment: "{request}".
+        A player has made a meta request/comment: "{request}". Which is a request made on behalf of a user not their game character. So handle it respodingly.
         Respond to this meta request in character as the game master. This could be a question about the game,
-        a request for information, or an out-of-character comment.
+        a request for information, or an out-of-character comment. Answer the question based on the game state or provide user the information they ask for. Take previous messages into consideration and use the context.
 
         # Conversation history for context:
         {self.session.get_messages_formatted()}

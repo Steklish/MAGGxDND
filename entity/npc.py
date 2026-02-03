@@ -1,24 +1,23 @@
 from logging import Logger
 from typing import TYPE_CHECKING
 from game.event_pool import SubscriberQueue
-from npcs.schemas import NPCActDecision
+from entity.schemas import NPCActDecision
 from schemas.in_game import NPCCharacter
 from schemas.orchestration import Event, EventTypes, Message
 from skls_generator.generator import Generator
-if TYPE_CHECKING:
-    from game.engine import Session
+from entity.game_entity import GameEntity
 
 MEMORY_LENGTH_LIMIT = 2000  # characters
 
 
-class NPC:
-    """The idea is that the NPC class creature is intependent actor 
-    (independent from game master/ narrator) but the narrator 
-    will describe its actions. 
+class NPC(GameEntity):
+    """The idea is that the NPC class creature is intependent actor
+    (independent from game master/ narrator) but the narrator
+    will describe its actions.
     It listens to the events and decides if to act or not.
-    
+
     If an NPC acts after an event, it will generate a new event.
-    
+
     Multiple events can be processed at a time.
     """
     try:
@@ -29,44 +28,39 @@ class NPC:
         npc_instruction = """
         You are an NPC in a role-playing game. React to events happening around you based on your personality and objectives.
         """
-        
+
     def __init__(self, character : NPCCharacter,
                  event_queuee : SubscriberQueue,
-                 logger : Logger,
-                 generator : Generator
+                 logger : Logger
                  ) -> None:
-        self.character = character
+        super().__init__(character, logger)
+        self.character : NPCCharacter
         self.event_queue = event_queuee
-        self.logger = logger
-        self.generator = generator
         self._running = False
-        self._session: 'Session | None' = None
-        
-        
-    @property
-    def session(self) -> "Session":
-        if self._session is None:
-            raise ValueError("Session not injected to an NPC!")
-        return self._session
-    
-        
-    def inject_state(self, state : 'Session') -> None:
-        self._session = state
        
     
-    def run(self) -> list[Event]:
+    def run(self)  -> list[Event]:
         """Process events and decide on an action."""
 
         events = self.event_queue.get_all()
         self.event_queue.clear()
-        decision = self._handle_events(events, self.session.get_session_context())
+        action_description = self._handle_events(events, self.session.get_session_context())
         self.logger.debug(f"NPC {self.character.name} processed {len(events)} events.")
 
-        # Return empty list if no action is decided
-        if decision is None:
-            return []
+        # If the NPC decided to act, generate events based on the action
+        if action_description:
+            # Generate events from the action description
+            generated_events = self.session.manipulator._external_action_as_an_entity(action_description, self)
 
-        return self.session.manipulator.external_action(decision)
+            # Execute each event through the appropriate manipulator
+            executed_events = []
+            for event in generated_events:
+                executed_events.extend(self.session.manipulator.execute_event(event))
+
+            return executed_events
+        else:
+            # Return empty list if no action is decided
+            return []
 
     def _handle_events(self, events: list[Event], context : str) -> str | None:
         """Process a list of events and decide on an action."""
@@ -74,10 +68,7 @@ class NPC:
         # Enhance context with spatial information
         spatial_context = self._get_spatial_context(events)
 
-        # Update NPC's current scene if needed based on context
-        self._update_current_scene(context)
-
-        decision = self.generator.generate_one_shot(
+        decision = self.session.generator.generate_one_shot(
             pydantic_model=NPCActDecision,
             prompt=f"""
             ##  Scene context:
@@ -119,21 +110,6 @@ class NPC:
             self.logger.debug(f"NPC {self.character.name} decided not to act.")
             return None
 
-    def _update_current_scene(self, context: str):
-        """
-        Update the NPC's current scene based on the game context.
-        # Extract scene information from context if available """
-        
-        # This is a simple implementation - in a real system, you might parse the context more thoroughly
-        if "Location:" in context:
-            # Extract the location name from the context
-            import re
-            location_match = re.search(r"Location:\s*([^\n]+)", context)
-            if location_match:
-                location_name = location_match.group(1).strip()
-                if location_name != "Unknown":
-                    self.character.current_scene = location_name
-
     def _get_spatial_context(self, events: list[Event]) -> str:
         """Generate spatial context from recent events."""
         spatial_events = [e for e in events if e.event_type in [
@@ -151,10 +127,3 @@ class NPC:
             context += f"- {event.event_subject} moved to location '{event.event_target}'\n"
 
         return context
-
-    def _calculate_distance_3d(self, pos1, pos2) -> float:
-        """Calculate Euclidean distance between two 3D coordinates."""
-        dx = pos2.x - pos1.x
-        dy = pos2.y - pos1.y
-        dz = pos2.z - pos1.z
-        return (dx**2 + dy**2 + dz**2)**0.5

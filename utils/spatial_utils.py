@@ -46,7 +46,7 @@ def calculate_spatial_distances(state: Session, event: Event) -> str:
     for i, char1 in enumerate(mentioned_chars):
         for j, char2 in enumerate(mentioned_chars):
             if i < j:  # Avoid duplicate calculations
-                distance = state.calculate_distance_3d(char1.position, char2.position)
+                distance = state.calculate_distance_2d(char1.position, char2.position)
                 distances.append(f"Distance between {char1.name} and {char2.name}: {distance:.2f} {state.current_scene.scale_unit if state.current_scene else 'units'}")
 
     if distances:

@@ -151,6 +151,60 @@ class UnifiedObject(BaseModel):
 # For backward compatibility, Item is now an alias for UnifiedObject
 Item = UnifiedObject
 
+
+class ConditionTrigger(str, Enum):
+    END_OF_ROUND = "End of Round"
+    PASSIVE = "Passive" # Constant effect (e.g. Prone giving disadvantage)
+    ON_ACTION = "On Action" # Triggers when character does something
+
+class Condition(BaseModel):
+    """
+    Represents a status effect, buff, or debuff applied to a character.
+    """
+    name: str = Field(..., description="Name of the condition (e.g., 'Poisoned', 'Haste').")
+    description: str = Field(..., description="General description of the condition's rules and its expiring conditions.")
+    
+    # Duration Logic
+    rounds_remaining: Optional[int] = Field(
+        None, 
+        description="Number of combat rounds remaining. If None, it is permanent until removed (e.g. by a cure)."
+    )
+
+    trigger: ConditionTrigger = Field(
+        ConditionTrigger.PASSIVE, 
+        description="When the periodic effect happens or end of turn."
+    )
+    
+    periodic_effect_description: Optional[str] = Field(
+        None, 
+        description="Logic for the periodic effect (e.g., 'Take 1d4 Poison damage', 'Regain 5 HP')."
+    )
+
+    @computed_field
+    @property
+    def short_summary(self) -> str:
+        """
+        Compressed string for AI context. 
+        Example: "[Poisoned] 3 rds left | End of Round: Take 1d4 dmg"
+        """
+        parts = [f"[{self.name}]"]
+        
+        # Duration
+        if self.rounds_remaining is not None:
+            parts.append(f"{self.rounds_remaining} rds")
+        else:
+            parts.append("Indefinite")
+
+        # Effect Logic
+        if self.periodic_effect_description:
+            parts.append(f"| {self.trigger.value}: {self.periodic_effect_description}")
+        else:
+             short_desc = (self.description[:30] + '..') if len(self.description) > 30 else self.description
+             parts.append(f"| {short_desc}")
+
+        return " ".join(parts)
+    
+    
 class Skill(BaseModel):
     """A specific skill proficiency."""
     name: str = Field(..., description="Name of the skill (e.g., 'Stealth', 'Arcana').")
@@ -166,23 +220,6 @@ class ActionType(str, Enum):
     MINUTE = "Minute(s)"  # For rituals or longer casting
     HOUR = "Hour(s)"
 
-class AbilityType(str, Enum):
-    SPELL = "Spell"
-    CLASS_FEATURE = "Class Feature" # e.g. Second Wind, Sneak Attack
-    RACIAL_TRAIT = "Racial Trait"   # e.g. Breath Weapon
-    FEAT = "Feat"                   # e.g. Lucky
-    LEGENDARY = "Legendary Action"
-
-class MagicSchool(str, Enum):
-    NONE = "None" # For non-magical abilities
-    ABJURATION = "Abjuration"
-    CONJURATION = "Conjuration"
-    DIVINATION = "Divination"
-    ENCHANTMENT = "Enchantment"
-    EVOCATION = "Evocation"
-    ILLUSION = "Illusion"
-    NECROMANCY = "Necromancy"
-    TRANSMUTATION = "Transmutation"
 
 class SpellAbility(BaseModel):
     """
@@ -191,33 +228,13 @@ class SpellAbility(BaseModel):
     """
     # Identity
     name: str = Field(..., description="Name of the spell or ability (e.g., 'Fireball').")
-    type: AbilityType = Field(AbilityType.SPELL, description="Category of the ability.")
     level: int = Field(0, ge=0, le=9, description="Spell level (0 for Cantrips/Features).")
-    school: MagicSchool = Field(MagicSchool.NONE, description="Magic school if applicable.")
-    
+
     # Narrative
     description: str = Field(..., description="Full text description of effects.")
     
     # Action Economy & Cost
-    casting_time: ActionType = Field(ActionType.ACTION, description="Time required to use.")
-    range: str = Field("Self", description="Distance (e.g., '60 feet', 'Touch', 'Self (15-foot cone)').")
     duration: str = Field("Instantaneous", description="How long it lasts (e.g., '1 minute', 'Concentration').")
-    
-    # Resource Logic
-    resource_cost: Optional[str] = Field(None, description="Key in Character.resources to consume (e.g., 'spell_slots_lvl3', 'ki_points').")
-    cost_amount: int = Field(0, description="How much of the resource is consumed.")
-    is_concentration: bool = Field(False, description="Does it require focus?")
-    is_ritual: bool = Field(False, description="Can be cast as a ritual?")
-
-    # Combat Mechanics (The "Crunch")
-    # Attack Roll Logic
-    requires_attack_roll: bool = Field(False, description="True if this needs a d20 roll against AC.")
-    attack_bonus: int = Field(0, description="Pre-calculated bonus to hit (Base + Stat + Prof).")
-
-    # Saving Throw Logic
-    requires_save: bool = Field(False, description="True if the target must roll a save.")
-    save_dc: Optional[int] = Field(None, description="Difficulty Class for the save.")
-    save_ability: Optional[str] = Field(None, description="Ability used for save (e.g., 'DEX', 'WIS').")
 
     # Damage / Healing Logic
     damage_dice: Optional[str] = Field(None, description="Dice notation for damage (e.g., '8d6', '1d10+4').")
@@ -235,7 +252,7 @@ class SpellAbility(BaseModel):
         Returns a compressed string for the AI context window.
         Example: "[Action] Fireball: 8d6 Fire (Dex Save DC 15) - 150ft"
         """
-        summary = f"[{self.casting_time.value}] {self.name}"
+        summary = f"{self.name}"
         
         # Add Damage/Heal info
         if self.damage_dice:
@@ -243,14 +260,8 @@ class SpellAbility(BaseModel):
         elif self.healing_dice:
             summary += f": Heals {self.healing_dice}"
         
-        # Add Hit/Save info
-        if self.requires_attack_roll:
-            summary += f" (+{self.attack_bonus} to hit)"
-        elif self.requires_save:
-            summary += f" ({self.save_ability} Save DC {self.save_dc})"
-            
         return summary
-
+    
 # --- The Main Character Model ---
 
 class Character(BaseModel):
@@ -279,7 +290,11 @@ class Character(BaseModel):
 
     # 4. Inventory & State
     inventory: List[Item] = Field(default_factory=list, description="List of all items carried.")
-    active_conditions: List[str] = Field(default_factory=list, description="List of status effects (e.g., 'Poisoned', 'Prone').")
+    
+    active_conditions_list: List[Condition] = Field(
+        default_factory=list, 
+        description="List of active status effects on the character."
+    )
 
     # 5. Resources (Spell Slots, etc.)
     # Using a flexible dict allows for different systems (Ki points, Spell Slots, Rage charges)
@@ -295,6 +310,12 @@ class Character(BaseModel):
     # --- Computed Helpers (Logic) ---
     # These create derived fields automatically when serialized, giving the AI the math results.
 
+    @computed_field
+    @property
+    def active_conditions(self) -> str:
+        return "\n".join([c.short_summary for c in self.active_conditions_list])
+        
+        
     @computed_field
     @property
     def proficiency_bonus(self) -> int:
@@ -357,10 +378,10 @@ class Character(BaseModel):
 
         # Active conditions
         if self.active_conditions:
-            conditions = ", ".join(self.active_conditions)
+            conditions = self.active_conditions
             summary_parts.append(f"Conditions: {conditions}")
 
-        return " | ".join(summary_parts)
+        return " | ".join(summary_parts)    
 
 class NPCCharacter(Character):
     """An NPC variant that may have additional AI-specific fields in the future."""

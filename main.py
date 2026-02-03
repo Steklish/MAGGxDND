@@ -8,7 +8,7 @@ from logging.handlers import RotatingFileHandler
 from game.engine import Session
 from game.event_pool import EventPool
 from game.manipulator import Manipulator
-from game.orchestrator import Orchestrator
+from entity.orchestrator import Orchestrator
 from schemas.in_game import Character, NPCCharacter, SceneNode
 from skls_generator.generator import Generator
 from skls_generator.gen_backends.google_gen import GoogleGenAI
@@ -69,13 +69,13 @@ npc_logger = logging.getLogger("npc.core")
 player_logger = logging.getLogger("player.core")
 
 # Set log levels for different components
-main_logger.setLevel(logging.WARNING)
+main_logger.setLevel(logging.DEBUG)
 engine_logger.setLevel(logging.DEBUG)
 manipulator_logger.setLevel(logging.DEBUG)
 orchestrator_logger.setLevel(logging.DEBUG)
-magg_logger.setLevel(logging.INFO)
-npc_logger.setLevel(logging.INFO)
-player_logger.setLevel(logging.INFO)
+magg_logger.setLevel(logging.DEBUG)
+npc_logger.setLevel(logging.DEBUG)
+player_logger.setLevel(logging.DEBUG)
 
 print("Starting the game...")
 
@@ -139,5 +139,5 @@ session._init_orchestrator(orchestrator)
 # )
 # session.save_session("./saves/ex_01.json")
 session.load_session_from_save("./saves/ex_01.json")
-session.start_game_loop_simple()
 print(session.get_session_context())
+session.game_loop()
