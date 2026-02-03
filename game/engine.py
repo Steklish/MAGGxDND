@@ -1,27 +1,25 @@
-import heapq
-import time
-import threading
 import math
-from typing import TYPE_CHECKING, List, Optional, Union, Dict, Set
+from typing import TYPE_CHECKING, List, Optional, Dict, Set
 import uuid
+from entity.round_determinator import RoundDeterminator
 from game.event_pool import EventPool
 from magg.magg import Magg
+from utils.naming_utils import find_fuzzy_matches
 if TYPE_CHECKING:
     from game.manipulator import Manipulator
-    from game.orchestrator import Orchestrator
+    from entity.orchestrator import Orchestrator
 
-from npcs.npc import NPC
-from player.player import Player
-from schemas.in_game import Character, GameModes, NPCCharacter, SceneNode, Coordinate2D
+from entity.npc import NPC
+from entity.player import Player
+from schemas.in_game import Character, GameModes, NPCCharacter, SceneNode, Coordinate2D, UnifiedObject
 from skls_embeddings import ChromaClient
 from skls_generator import Generator
 from logging import Logger
-from schemas.orchestration import CharacterToUserBinding, Event, EventList, Message, EventTypes, OrchestrationVerdictType
-from schemas.orchestration import SpatialMovementCommand, SpatialTeleportCommand, DistanceCalculationRequest
+from schemas.orchestration import Message
 import json
-from schemas.save_game import SaveGameData
 
 MAX_MESSAGES_STORED = 20
+ROUND_DURATION = 10 # used for status efects ticks
 
 class Session:
     def __init__(self,
@@ -42,11 +40,10 @@ class Session:
         self.npcs : List[NPC] = []
         self.current_scene : SceneNode = None # type: ignore
         self.game_mode : GameModes = GameModes.STORY
-        self.character_bindings : List[CharacterToUserBinding] = []
         self.messages : List[Message] = []
         self._game_master = None  # Will be initialized later to avoid circular import
         self._init_mage(magg_logger)  # Initialize game master after avoiding circular import
-        self.turn_queue : list[tuple[Player | NPC, float, float]] = []
+        self.turn_queue : list[tuple[Player | NPC | RoundDeterminator, float, float]] = []
         # Turn-based system attributes
         self.turn_time = 0.0  # Global time tracker
         self.turn_distance = 10
@@ -58,6 +55,8 @@ class Session:
         self.all_locations: Dict[str, SceneNode] = {}  # Store all visited/known locations
         self.current_location_name: Optional[str] = None  # Track current location name
         self._orchestrator : 'Orchestrator | None'  # Will be set later
+        
+        self._initialize_round_determinator()
 
 
     @property
@@ -102,7 +101,6 @@ class Session:
             character=npc_character,
             event_queuee=self.event_pool.subscribe(uuid.uuid4().hex),
             logger=logger_to_use,
-            generator=self.generator
         )
         new_NPC.inject_state(self)
         logger_to_use.debug(f"Initialized NPC: {npc_character.name}")
@@ -240,15 +238,42 @@ class Session:
         """Perform an external action within the game session. (players moves)"""
         return []
 
-    def execute_events(self, event_list : list[Event]):
-        """Process an event through the session's manipulator."""
-        for event in event_list:
-            self.manipulator.manage(event)
+
+    def find_object_by_name(self, name : str):
+        def extractor(o : UnifiedObject):
+            return o.name
+        res = find_fuzzy_matches(
+            items=self.get_all_objects_in_session(),
+            extractor=extractor,
+            target=name
+        )
+        if res != []:
+            return res[0]
+        else:
+            return None
+
+    def find_entity_by_name(self, name: str) -> Player | NPC | None:
+        """Find an entity (Player or NPC) by name."""
+        char = self.npcs + self.players
+
+        def extractor(c : Player | NPC):
+            return c.character.name
+        
+        res = find_fuzzy_matches(
+            items=char,
+            extractor=extractor,
+            target=name
+        )
+        
+        if res != []:
+            return res[0]
+        else:
+            return None 
 
         
 
 
-    def calculate_distance_3d(self, pos1: Coordinate2D, pos2: Coordinate2D) -> float:
+    def calculate_distance_2d(self, pos1: Coordinate2D, pos2: Coordinate2D) -> float:
         """Calculate Euclidean distance between two 2D coordinates."""
         dx = pos2.x - pos1.x
         dy = pos2.y - pos1.y
@@ -408,16 +433,39 @@ class Session:
         except Exception as e:
             self.logger.error(f"Error loading session: {e}")
 
-    def _add_character_to_turn_queue(self, char : NPC | Player):
-        if char.character.is_alive:
-            time_added = self.turn_time 
-            next_move_time = self.turn_time + time_added / char.character.initiative_bonus
-            self.turn_queue.append((char, time_added, next_move_time))
+
+    def _add_round_determinator_to_turn_queue(self):
+        time_added = self.turn_time 
+        next_move_time = self.turn_time + time_added / ROUND_DURATION
+        self.turn_queue.append((self.round_determinator, time_added, next_move_time))
+            
+        
+        
+    def _add_character_to_turn_queue(self, char : NPC | Player | RoundDeterminator):
+        if isinstance(char, RoundDeterminator):
+            self._add_round_determinator_to_turn_queue()
+        elif isinstance(char, (NPC, Player)):
+            if char.character.is_alive:
+                time_added = self.turn_time
+                # Prevent division by zero if initiative_bonus is 0
+                if char.character.initiative_bonus == 0:
+                    next_move_time = self.turn_time + time_added  # Default to same turn time
+                else:
+                    next_move_time = self.turn_time + time_added / char.character.initiative_bonus
+                self.turn_queue.append((char, time_added, next_move_time))
         
     def _add_all_characters_to_turn_queue(self):
         """Add a character to the turn queue with their calculated next turn time."""
         for o in self.npcs + self.players:
-            self._add_character_to_turn_queue(o)
+            # Only add characters that are alive and in the current scene (for NPCs)
+            if isinstance(o, Player):
+                # For players, just check if alive
+                if o.character.is_alive:
+                    self._add_character_to_turn_queue(o)
+            elif isinstance(o, NPC):
+                # For NPCs, check if alive and in current scene
+                if o.character.is_alive and o.character.current_scene == self.current_location_name:
+                    self._add_character_to_turn_queue(o)
         
         
     def _initialize_turn_queue(self):
@@ -425,19 +473,49 @@ class Session:
         self.turn_queue = []
         self.turn_time = 0.0
         self._add_all_characters_to_turn_queue()
+        self._add_round_determinator_to_turn_queue()
         self.logger.debug(f"Initialized turn queue with {len(self.players)} PCs and {len(self.npcs)} NPCs")
 
-    def _get_next_character_turn(self) -> Player | NPC:
+    def _get_next_character_turn(self) -> Player | NPC | RoundDeterminator:
         def time_sort(a):
             return a[2]
+
+        # Check if turn queue is empty and initialize if needed
+        if not self.turn_queue:
+            self._initialize_turn_queue()
+            if not self.turn_queue:  # If still empty, there are no valid characters
+                raise RuntimeError("No characters available for turns. All characters may be dead or inactive.")
+
         self.turn_queue.sort(key=time_sort)
         next_char, time_added, next_turn = self.turn_queue[0]
         self.turn_time = float(next_turn)
         self.turn_queue.pop(0)
+
         self._add_character_to_turn_queue(next_char)
         return next_char
 
-    def get_all_characters(self):
+    def get_all_characters_in_current_location(self) -> List[Player | NPC]:
+        """Get all characters (both players and NPCs in current location)."""
+        all_characters = []
+        for player in self.players:
+            all_characters.append(player.character)
+        for npc in self.npcs:
+            if npc.character.current_scene == self.current_scene.name:
+                all_characters.append(npc.character)
+        return all_characters
+
+    def get_all_active_characters(self):
+        all_characters = []
+        for player in self.players:
+            if player.character.current_hp > 0 and player.character.is_alive: # type: ignore
+                all_characters.append(player.character)
+        for npc in self.npcs:
+            if npc.character.current_scene == self.current_scene.name and npc.character.current_hp > 0 and npc.character.is_alive:
+                all_characters.append(npc.character)
+        return all_characters
+        
+
+    def _get_all_characters(self):
         """Get all characters (both players and NPCs) in the session."""
         all_characters = []
         for player in self.players:
@@ -455,6 +533,7 @@ class Session:
         print("\n" + "="*60)
         print(f"📍 {self.current_scene.name.upper()}")
         print("="*60)
+        self._print_turn_queue()
 
         # Get scene dimensions and center
         center_x, center_y = (self.current_scene.center_position.x,
@@ -545,176 +624,283 @@ class Session:
         for player in self.players:
             char = player.character
             status = f"  🧍 {char.name}: HP {char.current_hp}/{char.max_hp}, Pos ({char.position.x}, {char.position.y})"
-            if char.active_conditions:
-                status += f" ⚠️  {', '.join(char.active_conditions)}"
+            if char.active_conditions and char.active_conditions.strip():
+                # active_conditions is a string with newlines, split by newline to get individual conditions
+                conditions = [cond.strip() for cond in char.active_conditions.split('\n') if cond.strip()]
+                if conditions:
+                    status += f" ⚠️  {', '.join(conditions)}"
             print(status)
 
         for npc in self.npcs:
             npc_char = npc.character
             if npc_char.current_scene == self.current_location_name:
                 status = f"  👹 {npc_char.name}: HP {npc_char.current_hp}/{npc_char.max_hp}, Pos ({npc_char.position.x}, {npc_char.position.y})"
-                if npc_char.active_conditions:
-                    status += f" ⚠️  {', '.join(npc_char.active_conditions)}"
+                if npc_char.active_conditions and npc_char.active_conditions.strip():
+                    # active_conditions is a string with newlines, split by newline to get individual conditions
+                    conditions = [cond.strip() for cond in npc_char.active_conditions.split('\n') if cond.strip()]
+                    if conditions:
+                        status += f" ⚠️  {', '.join(conditions)}"
                 print(status)
 
         print("="*60)
 
     def _print_turn_queue(self):
-        print(f"Turn queue is {[self.turn_queue]}")
+        print(f"Turn queue is {[e[0].__class__.__name__ for e in self.turn_queue]}")
         
-
-    def start_game_loop_simple(self):
-        """Starts the game loop based on the current game mode."""
-        if not self.game_master:
-            raise ValueError("Game master (MAGG) is not initialized.")
-
-        # Initialize the turn queue with all characters
-        self._initialize_turn_queue()
-
-        # Initialize the round determinator separately
-        self._initialize_round_determinator()
-
-        start_description = self.game_master.get_simple_description()
-        print(f"\033[31mDM {self.game_mode.value}: {start_description}\033[0m\n")
-
-        if self.game_mode == GameModes.COMBAT:
-            self._start_combat_loop()
-        else:
-            self._start_story_loop()
-
-    def _start_combat_loop(self):
-        """Combat mode: Strict turn-based with individual character turns."""
-        turn_counter = 0
-        while True:
-            try:
-                character = self._get_next_character_turn()
-
-                # Draw the scene before the character's turn
-                self.draw_ascii_scene()
-
-                # The character.run() method now returns a list of events
-                events = character.run()
-
-                # Process the events returned by the character
-                if events:
-                    self.logger.debug(f"Character {character.character.name} generated {len(events)} events")
-                    self.execute_events(events)
-                    narrative = self.game_master.comment()
-                    print(f"\033[31mDM {self.game_mode.value} Comment: {narrative}\033[0m")
-                else:
-                    self.logger.info(f"{character.character.name} chose to skip their turn or no events were generated.")
-
-                # Add the character back to the turn queue for the next turn
-                self._add_character_to_turn_queue(character)
-
-                # Periodically run the round determinator to analyze game state
-                turn_counter += 1
-                if turn_counter % 5 == 0:  # Run every 5 turns
-                    determinator_events = self.round_determinator.run()
-                    if determinator_events:
-                        self.logger.debug(f"RoundDeterminator generated {len(determinator_events)} events")
-                        self.execute_events(determinator_events)
-                        narrative = self.game_master.comment()
-                        print(f"\033[31mDM {self.game_mode.value} Comment: {narrative}\033[0m")
-
-            except KeyboardInterrupt:
-                self.logger.info("Game loop interrupted by user.")
-                break
-
-    def _start_story_loop(self):
-        """Story mode: Continuous NPC processing until no more events, then player input."""
-        turn_counter = 0
-        while True:
-            try:
-                # Process all NPC turns until no more events are generated
-                npc_generated_events = True
-                consecutive_npc_passes = 0
-                max_consecutive_passes = len(self.npcs)  # Stop if all NPCs pass consecutively
-
-                while npc_generated_events or consecutive_npc_passes < max_consecutive_passes:
-                    character = self._get_next_character_turn()
-
-                    # Draw the scene before the character's turn
-                    self.draw_ascii_scene()
-
-                    # Check if it's a player character
-                    is_player = any(
-                        hasattr(character, 'character') and
-                        character.character.name == player.character.name
-                        for player in self.players
-                    )
-
-                    # If it's a player's turn in story mode, break to get player input
-                    if is_player:
-                        # Add the player back to the queue and break to get input
-                        self._add_character_to_turn_queue(character)
-                        break
-
-                    # Process NPC turn
-                    events = character.run()
-
-                    if events:
-                        consecutive_npc_passes = 0  # Reset counter when an NPC generates events
-                        self.logger.debug(f"Character {character.character.name} generated {len(events)} events")
-                        self.execute_events(events)
-                        narrative = self.game_master.comment()
-                        print(f"\033[31mDM {self.game_mode.value} Comment: {narrative}\033[0m")
-                    else:
-                        consecutive_npc_passes += 1
-                        self.logger.debug(f"{character.character.name} passed their turn")
-
-                    # Add the character back to the turn queue for the next turn
-                    self._add_character_to_turn_queue(character)
-
-                    # Check if game mode has changed to combat
-                    if self.game_mode == GameModes.COMBAT:
-                        self.logger.info("Switching to combat mode")
-                        return  # Exit to restart with combat loop
-
-                # After NPCs finish processing, get player input
-                if self.players:
-                    # Draw the scene before player input
-                    self.draw_ascii_scene()
-
-                    # Get input from any player (not necessarily in turn order in story mode)
-                    for player in self.players:
-                        events = player.run()
-
-                        if events:
-                            self.logger.debug(f"Player {player.character.name} generated {len(events)} events")
-                            self.execute_events(events)
-                            narrative = self.game_master.comment()
-                            print(f"\033[31mDM {self.game_mode.value} Comment: {narrative}\033[0m")
-
-                            # Check if game mode has changed to combat
-                            if self.game_mode == GameModes.COMBAT:
-                                self.logger.info("Switching to combat mode")
-                                return  # Exit to restart with combat loop
-                        else:
-                            self.logger.info(f"Player {player.character.name} chose to skip their turn or no events were generated.")
-
-                # Run the round determinator after each cycle of NPC and player turns
-                turn_counter += 1
-                if turn_counter % 3 == 0:  # Run every 3 cycles (NPC turns -> player turns -> determinator)
-                    determinator_events = self.round_determinator.run()
-                    if determinator_events:
-                        self.logger.debug(f"RoundDeterminator generated {len(determinator_events)} events")
-                        self.execute_events(determinator_events)
-                        narrative = self.game_master.comment()
-                        print(f"\033[31mDM {self.game_mode.value} Comment: {narrative}\033[0m")
-
-            except KeyboardInterrupt:
-                self.logger.info("Game loop interrupted by user.")
-                break
-
     def _initialize_round_determinator(self):
         """Initialize the round determinator separately."""
         # Create the round determinator
-        from game.round_determinator import RoundDeterminator
-        self.round_determinator = RoundDeterminator(logger=self.logger)
+        self.round_determinator = RoundDeterminator(ROUND_DURATION)
         self.round_determinator.inject_state(self)
+        self.logger.debug(f"Initialized round determinator with round duration {ROUND_DURATION}")
 
-        self.logger.debug("Initialized round determinator")
+    def get_all_objects_in_session(self):
+        """
+        Returns a list of all objects in the session including:
+        - Objects in the current scene
+        - Objects in containers (any recursion depth)
+        - Objects in character inventories (both players and NPCs)
+        """
+        all_objects = []
+
+        # Add objects from the current scene
+        if self.current_scene:
+            for obj in self.current_scene.objects:
+                all_objects.append(obj)
+                # Recursively add objects from containers
+                all_objects.extend(self._get_all_objects_in_container(obj))
+
+        # Add objects from player inventories
+        for player in self.players:
+            for obj in player.character.inventory:
+                all_objects.append(obj)
+                # Recursively add objects from containers in inventory
+                all_objects.extend(self._get_all_objects_in_container(obj))
+
+        # Add objects from NPC inventories
+        for npc in self.npcs:
+            for obj in npc.character.inventory:
+                all_objects.append(obj)
+                # Recursively add objects from containers in inventory
+                all_objects.extend(self._get_all_objects_in_container(obj))
+
+        return all_objects
+
+    def find_object_and_location(self, object_name: str):
+        """
+        Find an object and return both the object and its location information.
+        Returns a tuple: (object, location_type, owner, container) where:
+        - object: The UnifiedObject instance
+        - location_type: 'scene', 'player_inventory', 'npc_inventory', or 'container'
+        - owner: The player/npc if in inventory, None otherwise
+        - container: The container object if inside a container, None otherwise
+        """
+        # Search in scene objects
+        for obj in self.current_scene.objects if self.current_scene else []:
+            if obj.name.lower() == object_name.lower():
+                return obj, 'scene', None, None
+            # Check if it's in a container in the scene
+            container_obj, container = self._find_in_container(obj, object_name)
+            if container_obj:
+                return container_obj, 'container', None, container
+
+        # Search in player inventories
+        for player in self.players:
+            for obj in player.character.inventory:
+                if obj.name.lower() == object_name.lower():
+                    return obj, 'player_inventory', player, None
+                # Check if it's in a container in the inventory
+                container_obj, container = self._find_in_container(obj, object_name)
+                if container_obj:
+                    return container_obj, 'container', player, container
+
+        # Search in NPC inventories
+        for npc in self.npcs:
+            for obj in npc.character.inventory:
+                if obj.name.lower() == object_name.lower():
+                    return obj, 'npc_inventory', npc, None
+                # Check if it's in a container in the inventory
+                container_obj, container = self._find_in_container(obj, object_name)
+                if container_obj:
+                    return container_obj, 'container', npc, container
+
+        return None, None, None, None
+
+    def _find_in_container(self, container_obj, target_name: str):
+        """
+        Recursively search for an object inside a container.
+        Returns (found_object, parent_container) or (None, None).
+        """
+        if container_obj.contained_objects:
+            for obj in container_obj.contained_objects:
+                if obj.name.lower() == target_name.lower():
+                    return obj, container_obj
+                # Recursively search nested containers
+                nested_obj, nested_container = self._find_in_container(obj, target_name)
+                if nested_obj:
+                    return nested_obj, nested_container
+        return None, None
+
+    def transfer_object(self, obj: 'UnifiedObject', from_location: str, to_location: str,
+                       quantity: int = 1, target_owner = None, target_container = None):
+        """
+        Transfer an object from one location to another.
+        """
+        # Adjust quantity if needed
+        if obj.quantity < quantity:
+            self.logger.warning(f"Not enough quantity of {obj.name} to transfer. Available: {obj.quantity}, Requested: {quantity}")
+            return False
+
+        # Handle partial quantity transfer by creating a new object
+        obj_to_transfer = obj
+        original_quantity = obj.quantity
+
+        if quantity < obj.quantity:
+            # Create a new object with the transferred quantity
+            obj_to_transfer = obj.copy(update={"quantity": quantity})
+            # Reduce the quantity of the original object
+            obj.quantity -= quantity
+        else:
+            # Transfer the entire object - remove it from its current location
+            removal_success = self._remove_object_from_location(obj, from_location, quantity)
+            if not removal_success:
+                return False
+
+        # Add the object to target location
+        addition_success = self._add_object_to_location(obj_to_transfer, to_location, quantity, target_owner, target_container)
+        if not addition_success:
+            # If adding failed, restore the original object's state
+            if quantity < original_quantity:
+                obj.quantity += quantity
+            elif quantity == original_quantity:
+                # If we removed the whole object, try to add it back to its original location
+                self._add_object_to_location(obj, from_location, quantity, target_owner, target_container)
+            return False
+
+        return True
+
+    def _remove_object_from_location(self, obj: 'UnifiedObject', location_type: str, quantity: int):
+        """
+        Remove an object from its current location.
+        """
+        if quantity >= obj.quantity:
+            # Remove the entire object
+            if location_type == 'scene':
+                if self.current_scene and obj in self.current_scene.objects:
+                    self.current_scene.objects.remove(obj)
+                    return True
+            elif location_type == 'player_inventory':
+                for player in self.players:
+                    if obj in player.character.inventory:
+                        player.character.inventory.remove(obj)
+                        return True
+            elif location_type == 'npc_inventory':
+                for npc in self.npcs:
+                    if obj in npc.character.inventory:
+                        npc.character.inventory.remove(obj)
+                        return True
+            elif location_type == 'container':
+                # Find the container that holds this object and remove it
+                for container in self._get_all_containers():
+                    if container.contained_objects and obj in container.contained_objects:
+                        container.contained_objects.remove(obj)
+                        return True
+        else:
+            # Reduce the quantity and create a new object with the transferred quantity
+            obj.quantity -= quantity
+            # We need to return the new object that will be transferred
+            # This is tricky because we're modifying the original object in place
+            # For now, we'll just return True and handle the new object creation elsewhere
+            return True
+
+        return False
+
+    def _add_object_to_location(self, obj: 'UnifiedObject', location_type: str, quantity: int,
+                               target_owner = None, target_container = None):
+        """
+        Add an object to a location.
+        """
+        if location_type == 'scene':
+            if self.current_scene:
+                self.current_scene.objects.append(obj)
+                return True
+        elif location_type in ['player_inventory', 'npc_inventory']:
+            if target_owner:
+                target_owner.character.inventory.append(obj)
+                return True
+            else:
+                # If no specific owner, add to the first player's inventory as default
+                if self.players:
+                    self.players[0].character.inventory.append(obj)
+                    return True
+        elif location_type == 'container':
+            if target_container:
+                if target_container.contained_objects is None:
+                    target_container.contained_objects = []
+                target_container.contained_objects.append(obj)
+                return True
+
+        return False
+
+    def _get_all_containers(self):
+        """
+        Get all containers in the session (in scene, player inventories, and NPC inventories).
+        """
+        containers = []
+
+        # Add containers from scene
+        if self.current_scene:
+            for obj in self.current_scene.objects:
+                if obj.obj_type and obj.obj_type.value == "Container":
+                    containers.append(obj)
+                    # Add nested containers too
+                    containers.extend(self._get_nested_containers(obj))
+
+        # Add containers from player inventories
+        for player in self.players:
+            for obj in player.character.inventory:
+                if obj.obj_type and obj.obj_type.value == "Container":
+                    containers.append(obj)
+                    # Add nested containers too
+                    containers.extend(self._get_nested_containers(obj))
+
+        # Add containers from NPC inventories
+        for npc in self.npcs:
+            for obj in npc.character.inventory:
+                if obj.obj_type and obj.obj_type.value == "Container":
+                    containers.append(obj)
+                    # Add nested containers too
+                    containers.extend(self._get_nested_containers(obj))
+
+        return containers
+
+    def _get_nested_containers(self, container_obj):
+        """
+        Recursively get all nested containers within a container.
+        """
+        nested_containers = []
+        if container_obj.contained_objects:
+            for obj in container_obj.contained_objects:
+                if obj.obj_type and obj.obj_type.value == "Container":
+                    nested_containers.append(obj)
+                    # Recursively get deeper nested containers
+                    nested_containers.extend(self._get_nested_containers(obj))
+        return nested_containers
+
+    def _get_all_objects_in_container(self, obj):
+        """
+        Recursively get all objects in a container and its nested containers.
+        """
+        all_nested_objects = []
+
+        # If the object is a container, get its contents
+        if obj.contained_objects:
+            for nested_obj in obj.contained_objects:
+                all_nested_objects.append(nested_obj)
+                # Recursively get objects in nested containers
+                all_nested_objects.extend(self._get_all_objects_in_container(nested_obj))
+
+        return all_nested_objects
     
     def new_message(self, message: Message):
         """Add a new message to the session's message history."""
@@ -722,7 +908,24 @@ class Session:
         # Keep only the last MAX_MESSAGES_STORED messages
         if len(self.messages) > MAX_MESSAGES_STORED:
             self.messages = self.messages[-MAX_MESSAGES_STORED:]
-            
+    
+    def game_loop(self):
+        self._initialize_turn_queue()
+        while 1:
+            try:
+                self.draw_ascii_scene()
+                char = self._get_next_character_turn()
+                events_produced = char.run()
+                for e in events_produced:
+                    self.event_pool.publish_to_others("system", e)
+                
+                if events_produced != []:
+                    comment = self.game_master.comment()
+                    print(f"\033[31mDM: {comment}\033[0m")
+            except KeyboardInterrupt as e:
+                self.logger.info("Game loop was stopped by user")
+                break
+    
     def get_messages_formatted(self) -> str:
         """Get all messages formatted as a single string."""
         formatted_messages = ""

@@ -1,34 +1,56 @@
 from logging import Logger
 from typing import List
+from entity.npc import NPC
+from entity.player import Player
 from game.engine import Session
-from game.event_pool import SubscriberQueue
 from skls_generator.generator import Generator
 from schemas.orchestration import Event, EventList
 from game.manipulators.base_manipulation import Archive, BaseManipulation
-from game.manipulators.object_transfer_manipulation import ObjectTransferManipulation
-from game.manipulators.scene_manipulation import SceneManipulation
-from game.manipulators.character_mutation_manipulation import CharacterMutationManipulation
-from game.manipulators.character_movement_manipulation import CharacterMovementManipulation
-from game.manipulators.scene_object_movement_manipulation import SceneObjectMovementManipulation
-from game.manipulators.character_transfer_manipulation import CharacterTransferManipulation
-from game.manipulators.npc_transfer_manipulation import NPCTransferManipulation
-from game.manipulators.scene_object_mutation_manipulation import SceneObjectMutationManipulation
-
+from game.manipulators.melee_attack_manipulation import MeleeAttackBreakdown, MeleeAttackManipulator
+from game.manipulators.ranged_attack_manipulation import RangedAttackManipulator
+from game.manipulators.movement_manipulator import MovementManipulator
+from game.manipulators.scene_object_movement_manipulator import SceneObjectMovementManipulator
+from game.manipulators.object_transfer_manipulator import ObjectTransferManipulator
 
 
 class Manipulator:
-    def __init__(self, generator : Generator, state : Session, archive : Archive | None, logger : Logger) -> None:
+    def __init__(self, generator : Generator, state : Session, archive : Archive | None, logger : Logger, entity_specific: bool = False) -> None:
         self.generator = generator
         self.manipulations : List[BaseManipulation] = []
-        self.state = state
+        self.session = state
         self.archive = archive
         self.logger = logger
-        self.init_manipulations()
-        self.logger.info("Manipulator initialized")
+        self.entity_specific = entity_specific
+        self.logger.info(f"Manipulator initialized (entity_specific={entity_specific})")
+
+        # Initialize manipulations
+        self._init_manipulations()
+
+    def _init_manipulations(self):
+        """Initialize all available manipulations."""
+        # Add melee attack manipulator
+        self.manipulations.append(MeleeAttackManipulator(self.session))
+
+        # Add ranged attack manipulator
+        self.manipulations.append(RangedAttackManipulator(self.session))
+
+        # Add movement manipulator
+        self.manipulations.append(MovementManipulator(self.session))
+
+        # Add scene object movement manipulator
+        self.manipulations.append(SceneObjectMovementManipulator(self.session))
+
+        # Add object transfer manipulator
+        self.manipulations.append(ObjectTransferManipulator(self.session))
+
+        self.logger.info(f"Initialized {len(self.manipulations)} manipulations")
         
     
-    def external_action(self, prompt: str = "", actor : str | None = None) -> List[Event]:
+    def _external_action_as_a_supervisor(self, prompt):
         """Perform a privileged external action within the game session. (DM moves)"""
+    
+    def _external_action_as_an_entity(self, prompt: str, actor : NPC | Player) -> List[Event]:
+        """Perform a non-privileged external action within the game session. (Entity moves)"""
 
         rules = f"""
         1. Determine which objects involved into the request.
@@ -36,75 +58,49 @@ class Manipulator:
         3. Choose the appropriate event type based on the action being performed:
         4. There are special types of requests from user when in battle. If an attack requested you Must generate an event that includes damage calculation based on character and item stats.
         5. Do not generate ACTION_RESULT events.
-
-        EVENT TYPE RESPONSIBILITIES:
-        - LOCATION_CHANGE: Moving characters between locations/scenes
-        - LOCATION_MUTATION: Changing properties of a location itself
-        - LOCATION_STATUS_CHANGE: Updating the status of a location (e.g., peaceful to dangerous)
-        - SCENE_UPDATE: Updating scene description or properties
-        - OBJECT_TRANSFER: Moving objects between containers/scene/inventory
-        - ITEM_TRANSFER: Moving items between inventories, scenes, or containers
-        - ITEM_STATUS_CHANGE: Changing status of an item (e.g., locked/unlocked, open/closed)
-        - ITEM_MUTATION: Changing properties of an item (e.g., durability, condition)
-        - ITEM_INTERACTION: Interacting with an item (e.g., opening a chest, using a key)
-        - ITEM_PICKUP: Picking up an item from the scene
-        - ITEM_DROP: Dropping an item into the scene
-        - CONTAINER_ACCESS: Opening/closing/accessing containers
-        - CONTAINER_TRANSFER: Moving items between containers
-        - CHARACTER_STATUS_CHANGE: Changing character status (e.g., poisoned, stunned)
-        - CHARACTER_DEATH: Character death events
-        - CHARACTER_MOVEMENT: Character movement within a scene
-        - CHARACTER_TRANSFER: Moving characters between locations (for players)
-        - NPC_TRANSFER: Moving NPCs between locations (for NPCs)
         """
 
         prompt_text = f"""
         You need to generate authoritative events based on the situation and a request e.g. "The dragon gets 1d8+2 damage. (based on items properties)" or "character 1 hits character 2 with a sword and dealing 1d6+3 damage"
 
-        # EVENT TYPE RESPONSIBILITIES:
-        {rules}
+        # AVAILABLE EVENT TYPES:
+        {"\n".join(self.get_event_types())}
 
         # prompt
         {f"## actor: {actor}\nrequest: " if actor else ""}
         {prompt}
         # scene:
-        {self.state.get_session_context()}
-        
+        {self.session.get_session_context()}
+
         # Last messages history (meta game) - for references:
-        {self.state.get_messages_formatted()}
+        {self.session.get_messages_formatted()}
         """
         events = self.generator.generate_one_shot(
             pydantic_model=EventList,
             prompt=prompt_text
         )
-        self.logger.debug(f"Events generated {events.event_list}")
         return events.event_list
-        
-    def manage(self, event : Event):
-        for manipulator in self.manipulations:
-            if event.event_type in manipulator.event_types_binded:
-                result_events = manipulator.execute(event)
-                # Process any result events returned by the manipulator
-                if result_events:
-                    for result_event in result_events:
-                        # Add result events to the event pool for other systems to process
-                        self.state.event_pool.add_event(result_event)
-                break
-        else:
-            if event.event_type != "ACTION_RESULT":
-                raise ValueError(f"No manipulator for this event type found. Event type is {event.event_type.value}")
-            else:
-                self.logger.warning(f"Ignored ACTION_RESULT event: {event}")
-    
-    def init_manipulations(self):
-        self.manipulations.append(CharacterMutationManipulation(self.generator, self.state, self.archive, self.logger))
-        self.manipulations.append(CharacterMovementManipulation(self.generator, self.state, self.archive, self.logger))
-        self.manipulations.append(SceneObjectMovementManipulation(self.generator, self.state, self.archive, self.logger))
-        self.manipulations.append(SceneManipulation(self.generator, self.state, self.archive, self.logger))
-        self.manipulations.append(SceneObjectMutationManipulation(self.generator, self.state, self.archive, self.logger))
-        self.manipulations.append(ObjectTransferManipulation(self.generator, self.state, self.archive, self.logger))
-        self.manipulations.append(CharacterTransferManipulation(self.generator, self.state, self.archive, self.logger))
-        self.manipulations.append(NPCTransferManipulation(self.generator, self.state, self.archive, self.logger))
 
-        for manipulation in self.manipulations:
-            self.logger.info(f"Initialized manipulation: {manipulation.__class__.__name__}")
+    def execute_event(self, event: Event) -> List[Event]:
+        """
+        Execute an event through the appropriate manipulator based on event type.
+        """
+        # Find the appropriate manipulator for this event type
+        for manipulator in self.manipulations:
+            if manipulator.can_handle_event_type(event.event_type):
+                return manipulator.execute(event, self.manipulations)
+
+        # If no specific manipulator is found, return an empty list
+        self.logger.warning(f"No manipulator found for event type: {event.event_type}")
+        return []
+    
+    def init_manipulators(self):
+        self.manipulations.append(MeleeAttackManipulator(self.session))
+        
+    def get_event_types(self) -> list[str]:
+        res = []
+        for m in self.manipulations:
+            for e in m.event_types_binded:
+                res += [f"Allowed event type {e._value_}. Description [{e.description}]"]
+        return res
+             

@@ -7,3 +7,4 @@ class NPCActDecision(BaseModel):
     will_act: bool = Field(..., description="Whether the NPC decides to act.")
     action_description: Optional[str] = Field(None, description="Description of the action if acting.")
     
+    

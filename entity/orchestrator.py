@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
     from game.engine import Session
-    from npcs.npc import NPC
-    from player.player import Player
+    from entity.npc import NPC
+    from entity.player import Player
 from skls_generator.generator import Generator
 from schemas.orchestration import OrchestrationVerdict, OrchestrationVerdictType, RuleViolationObject, RulesCheck, UserInteractionProcessing, UserInterationType, ClarityCheck
 from game.manipulators.base_manipulation import Archive, BaseManipulation

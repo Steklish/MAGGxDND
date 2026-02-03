@@ -4,30 +4,19 @@ from typing import TYPE_CHECKING
 from schemas.orchestration import Event, Message, OrchestrationVerdictType, UserInterationType
 if TYPE_CHECKING:
     from game.engine import Session
-from game.orchestrator import Orchestrator
+from entity.orchestrator import Orchestrator
 from schemas.in_game import Character, GameModes
+from entity.game_entity import GameEntity
 
 
-class Player:
+class Player(GameEntity):
     def __init__(self, character: Character,
                  logger: Logger,
-                 orchestrator: Orchestrator,
+                 orchestrator: Orchestrator
                  ) -> None:
-        self.character = character
-        self.logger = logger
+        super().__init__(character, logger)  # Pass None for generator initially
         self.orchestrator = orchestrator
-        self._session: 'Session | None' = None
-        
-    
-    @property
-    def session(self) -> "Session":
-        if self._session is None:
-            raise ValueError("Session not injected to a Player!")
-        return self._session
-    
-        
-    def inject_state(self, state : 'Session') -> None:
-        self._session = state
+        self.character : Character
        
     def request_terminal_input(self) -> str:
         # Prepare the prompt with proper encoding handling
@@ -78,8 +67,15 @@ class Player:
 
                 # Handle the three possible outcomes
                 if verdict.verdict_type == OrchestrationVerdictType.ALLOWED_PLAYER_ACTION:
-                    # Legal action - proceed to generate events
-                    return self.session.manipulator.external_action(verdict.details if verdict.details else request)
+                    # Generate events from the action
+                    events = self.session.manipulator._external_action_as_an_entity(verdict.details if verdict.details else request, self)
+
+                    # Execute each event through the appropriate manipulator
+                    executed_events = []
+                    for event in events:
+                        executed_events.extend(self.session.manipulator.execute_event(event))
+
+                    return executed_events
                 elif verdict.verdict_type == OrchestrationVerdictType.CLAIRIFICATION_NEEDED:
                     # Unclear action - need clarification from user
                     # Send clarification request to game master
