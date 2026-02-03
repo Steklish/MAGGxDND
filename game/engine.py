@@ -99,7 +99,7 @@ class Session:
         logger_to_use = npc_logger if npc_logger else self.logger
         new_NPC = NPC(
             character=npc_character,
-            event_queuee=self.event_pool.subscribe(uuid.uuid4().hex),
+            event_queuee=self.event_pool.subscribe(npc_character.name),
             logger=logger_to_use,
         )
         new_NPC.inject_state(self)
@@ -112,6 +112,7 @@ class Session:
         logger_to_use = player_logger if player_logger else self.logger
         new_player = Player(
             character=character,
+            event_queuee=self.event_pool.subscribe(character.name),
             logger=logger_to_use,
             orchestrator=orchestrator
         )
@@ -645,7 +646,40 @@ class Session:
         print("="*60)
 
     def _print_turn_queue(self):
-        print(f"Turn queue is {[e[0].__class__.__name__ for e in self.turn_queue]}")
+        """Print a beautiful and informative representation of the turn queue."""
+        if not self.turn_queue:
+            print("🕐 Turn Queue: Empty")
+            return
+
+        print("🕐 TURN QUEUE:")
+        print("┌─────────────────────────────────────────────────────────┐")
+
+        # Sort the queue by turn time to show the order
+        sorted_queue = sorted(self.turn_queue, key=lambda x: x[2])
+
+        for i, (char, time_added, next_turn) in enumerate(sorted_queue):
+            # Determine character name and type
+            if hasattr(char, 'character'):
+                name = char.character.name # type: ignore
+                char_type = "👤" if hasattr(char, '_init_player') or 'Player' in str(type(char)) else "👹"
+            else:
+                name = "Round Determinator"
+                char_type = "🔄"
+
+            # Format the turn time
+            turn_time_str = f"{next_turn:.2f}"
+
+            # Determine if this is the next to act
+            is_next = i == 0
+
+            # Create the entry with appropriate highlighting
+            if is_next:
+                print(f"│ 🎯 NEXT: {char_type} {name:<20} │ Turn: {turn_time_str:>6} │")
+            else:
+                print(f"│        {char_type} {name:<20} │ Turn: {turn_time_str:>6} │")
+
+        print("└─────────────────────────────────────────────────────────┘")
+        print(f"⏱️  Global Time: {self.turn_time:.2f}")
         
     def _initialize_round_determinator(self):
         """Initialize the round determinator separately."""
@@ -913,7 +947,6 @@ class Session:
         self._initialize_turn_queue()
         while 1:
             try:
-                self.draw_ascii_scene()
                 char = self._get_next_character_turn()
                 events_produced = char.run()
                 for e in events_produced:

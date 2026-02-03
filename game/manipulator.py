@@ -11,6 +11,7 @@ from game.manipulators.ranged_attack_manipulation import RangedAttackManipulator
 from game.manipulators.movement_manipulator import MovementManipulator
 from game.manipulators.scene_object_movement_manipulator import SceneObjectMovementManipulator
 from game.manipulators.object_transfer_manipulator import ObjectTransferManipulator
+from game.manipulators.item_interaction_manipulator import ItemInteractionManipulator
 
 
 class Manipulator:
@@ -42,6 +43,9 @@ class Manipulator:
 
         # Add object transfer manipulator
         self.manipulations.append(ObjectTransferManipulator(self.session))
+
+        # Add item interaction manipulator
+        self.manipulations.append(ItemInteractionManipulator(self.session))
 
         self.logger.info(f"Initialized {len(self.manipulations)} manipulations")
         

@@ -33,9 +33,8 @@ class NPC(GameEntity):
                  event_queuee : SubscriberQueue,
                  logger : Logger
                  ) -> None:
-        super().__init__(character, logger)
+        super().__init__(character, event_queuee, logger)
         self.character : NPCCharacter
-        self.event_queue = event_queuee
         self._running = False
        
     

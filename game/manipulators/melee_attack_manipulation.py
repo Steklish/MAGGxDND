@@ -87,6 +87,13 @@ You are an action classificator and you need to determine exact information of a
             self.logger.info(f"🤢(conditions applied after an attack) {"/".join(c.short_summary for c in task.conditions_applied)}")
         damage = roll_dice(task.damage_dealt)
         target.take_damage(damage)
+        events.append(
+                Event(
+                    event_type=EventTypes.ACTION_RESULT,
+                    description=f"Character {target.character.name} takes {damage} ({task.damage_dealt})"
+                )
+            )
         self.logger.info(f"💕Character {target.character.name} takes {damage} ({task.damage_dealt})")
+        
         return events
             

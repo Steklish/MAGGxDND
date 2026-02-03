@@ -1,6 +1,7 @@
 from logging import Logger
 from typing import TYPE_CHECKING
 
+from game.event_pool import SubscriberQueue
 from schemas.orchestration import Event, Message, OrchestrationVerdictType, UserInterationType
 if TYPE_CHECKING:
     from game.engine import Session
@@ -11,10 +12,11 @@ from entity.game_entity import GameEntity
 
 class Player(GameEntity):
     def __init__(self, character: Character,
+                 event_queuee : SubscriberQueue,
                  logger: Logger,
                  orchestrator: Orchestrator
                  ) -> None:
-        super().__init__(character, logger)  # Pass None for generator initially
+        super().__init__(character, event_queuee, logger)
         self.orchestrator = orchestrator
         self.character : Character
        
@@ -31,7 +33,7 @@ class Player(GameEntity):
         """Player's turn. Returns a list of events based on player action.
         Handles three possible outcomes: legal action, unclear action needing clarification,
         and illegal action requiring a new one."""
-
+        self.session.draw_ascii_scene()
         while True:
             self.logger.debug(f"Waiting for player input for {self.character.name}")
 

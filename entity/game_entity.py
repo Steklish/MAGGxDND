@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from logging import Logger
 from typing import TYPE_CHECKING, List, Dict
 import uuid
+from game.event_pool import SubscriberQueue
 from game.manipulators.base_manipulation import BaseManipulation
 from game.manipulators.melee_attack_manipulation import MeleeAttackManipulator
 from game.manipulators.movement_manipulator import MovementManipulator
@@ -24,8 +25,10 @@ class   GameEntity(ABC):
 
     def __init__(self,
                  character: 'Character | NPCCharacter',
+                 event_queuee : SubscriberQueue,
                  logger: Logger) -> None:
         self.character = character
+        self.event_queue = event_queuee
         self.logger = logger
         # Dictionary to store conditional manipulators based on items/spells
         self._conditional_manipulators: Dict[str, 'BaseManipulation'] = {}
@@ -64,14 +67,16 @@ class   GameEntity(ABC):
     
     def death_handle(self):
         self.logger.info(f"💀Character {self.character.name} dies")
-        self.session.event_pool.publish_to_others("system", 
-                                                  event=Event(event_type=EventTypes.ACTION_RESULT, description=f"Character {self.character.name} dies"))
+        self.event_queue.publish_to_others(Event(
+            event_type=EventTypes.ACTION_RESULT, 
+            description=f"Character {self.character.name} dies"))
     
     def take_damage(self, damage : int):
         ch = self.character.current_hp
         if ch > 0:
             self.character.current_hp = max(0, self.character.current_hp - damage)
-            
+            if ch <= 0:
+                self.death_handle()
             
     
     
