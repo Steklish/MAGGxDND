@@ -2,6 +2,7 @@ from logging import Logger
 from typing import TYPE_CHECKING
 
 from game.event_pool import SubscriberQueue
+from interface.delivery import Delivery
 from schemas.orchestration import Event, Message, OrchestrationVerdictType, UserInterationType
 if TYPE_CHECKING:
     from game.engine import Session
@@ -14,7 +15,7 @@ class Player(GameEntity):
     def __init__(self, character: Character,
                  event_queuee : SubscriberQueue,
                  logger: Logger,
-                 orchestrator: Orchestrator
+                 orchestrator: Orchestrator,
                  ) -> None:
         super().__init__(character, event_queuee, logger)
         self.orchestrator = orchestrator
@@ -37,7 +38,7 @@ class Player(GameEntity):
         while True:
             self.logger.debug(f"Waiting for player input for {self.character.name}")
 
-            request = self.request_terminal_input()
+            request = self.session.delivery.player_request(self.character)
 
             if request.strip() == "":
                 # Skip turn - return empty list of events
@@ -52,7 +53,7 @@ class Player(GameEntity):
                 username=self.character.name,
                 request_text=request
             )
-
+            executed_events = []
             if user_interaction.interaction_type == UserInterationType.CHARACTER_ACTION:
                 if self.session.game_mode == GameModes.COMBAT:
                     verdict = self.orchestrator.character_action_combat(
@@ -66,25 +67,21 @@ class Player(GameEntity):
                         request_text=request,
                         processed_interaction=user_interaction
                     )
-
-                # Handle the three possible outcomes
                 if verdict.verdict_type == OrchestrationVerdictType.ALLOWED_PLAYER_ACTION:
-                    # Generate events from the action
                     events = self.session.manipulator._external_action_as_an_entity(verdict.details if verdict.details else request, self)
-
-                    # Execute each event through the appropriate manipulator
-                    executed_events = []
                     for event in events:
                         executed_events.extend(self.session.manipulator.execute_event(event))
 
-                    return executed_events
                 elif verdict.verdict_type == OrchestrationVerdictType.CLAIRIFICATION_NEEDED:
                     # Unclear action - need clarification from user
                     # Send clarification request to game master
                     clarification_response = self.session.game_master.clarify_user_request(
                         correction_question=verdict.details if verdict.details else "Action needs clarification"
                     )
-                    print(f"\033[31mDM Clarification: {clarification_response}\033[0m")
+                    self.session.delivery.master_message(
+                        text=clarification_response,
+                        tag="Clarfication"
+                    )
                     # Continue the loop to get a new action
                     continue
                 elif verdict.verdict_type == OrchestrationVerdictType.ILLEGAL_PLAYER_ACTION:
@@ -94,16 +91,21 @@ class Player(GameEntity):
                         name=self.character.name,
                         reasoning=verdict.details if verdict.details else "Action is not allowed"
                     )
-                    print(f"\033[31mDM Illegal Action: {illegal_response}\033[0m")
+                    self.session.delivery.master_message(
+                        text=clarification_response,
+                        tag="Illeal"
+                    )
                     # Continue the loop to get a new action
                     continue
             elif user_interaction.interaction_type == UserInterationType.META_COMMENT:
                 # Meta comment - this is a direct question/query to the game master
                 # Process it and continue the loop to get an actual action
                 meta_response = self.session.game_master.comment_on_meta_request(request)
-                print(f"\033[31mDM Meta Response: {meta_response}\033[0m")
+                self.session.delivery.master_message(
+                        text=clarification_response,
+                        tag="Meta"
+                    )
                 # Continue the loop to get a real action from the player
                 continue
-
-            # Default case - return empty list
-            return []
+            for e in executed_events:
+                self.event_queue.publish_to_others(e)

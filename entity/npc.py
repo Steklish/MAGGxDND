@@ -38,7 +38,7 @@ class NPC(GameEntity):
         self._running = False
        
     
-    def run(self)  -> list[Event]:
+    def run(self):
         """Process events and decide on an action."""
 
         events = self.event_queue.get_all()
@@ -54,12 +54,10 @@ class NPC(GameEntity):
             # Execute each event through the appropriate manipulator
             executed_events = []
             for event in generated_events:
-                executed_events.extend(self.session.manipulator.execute_event(event))
+                for e in self.session.manipulator.execute_event(event):
+                    self.event_queue.publish_to_others(e)
 
-            return executed_events
-        else:
-            # Return empty list if no action is decided
-            return []
+            
 
     def _handle_events(self, events: list[Event], context : str) -> str | None:
         """Process a list of events and decide on an action."""

@@ -1,9 +1,6 @@
 from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from schemas.in_game import Character
-
-from schemas.in_game import Coordinate2D
 
 from enum import Enum
 
@@ -63,7 +60,7 @@ class EventTypes(str, Enum):
     
 class Event(BaseModel):
     """An event that triggers orchestration logic."""
-    event_type: EventTypes = Field(..., description="Type of the event.")
+    event_type: "EventTypes" = Field(..., description="Type of the event.")
     event_initiator: Optional[str] = Field(default=None, description="Who or what initiated the event.")
     event_subject: Optional[str] = Field(default=None, description="The subject involved in the event.")
     event_target: Optional[str] = Field(default=None, description="Target object or character involved.")

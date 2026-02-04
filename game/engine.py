@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, List, Optional, Dict, Set
 import uuid
 from entity.round_determinator import RoundDeterminator
 from game.event_pool import EventPool
+from interface.delivery import Delivery
 from magg.magg import Magg
 from utils.naming_utils import find_fuzzy_matches
 if TYPE_CHECKING:
@@ -28,9 +29,11 @@ class Session:
                  logger : Logger,
                  generator : Generator,
                  event_pool : EventPool,
+                 delivery : Delivery,
                  magg_logger : Logger
                  ) -> None:
         self.session_name = session_name
+        self.delivery = delivery
         self.generator = generator
         self.chroma_client = chroma_client
         self.logger = logger
@@ -684,7 +687,7 @@ class Session:
     def _initialize_round_determinator(self):
         """Initialize the round determinator separately."""
         # Create the round determinator
-        self.round_determinator = RoundDeterminator(ROUND_DURATION)
+        self.round_determinator = RoundDeterminator(ROUND_DURATION, self.event_pool.subscribe("round determinator"))
         self.round_determinator.inject_state(self)
         self.logger.debug(f"Initialized round determinator with round duration {ROUND_DURATION}")
 
@@ -948,13 +951,13 @@ class Session:
         while 1:
             try:
                 char = self._get_next_character_turn()
-                events_produced = char.run()
-                for e in events_produced:
-                    self.event_pool.publish_to_others("system", e)
-                
-                if events_produced != []:
+                char.run()
+                if len(self.event_pool.get_events()) > 0:
                     comment = self.game_master.comment()
-                    print(f"\033[31mDM: {comment}\033[0m")
+                    self.delivery.master_message(
+                        text=comment
+                    )
+                else: self.logger.debug("No events provided on the end of turn.")
             except KeyboardInterrupt as e:
                 self.logger.info("Game loop was stopped by user")
                 break
