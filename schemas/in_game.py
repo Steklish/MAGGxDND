@@ -162,7 +162,7 @@ class Condition(BaseModel):
     Represents a status effect, buff, or debuff applied to a character.
     """
     name: str = Field(..., description="Name of the condition (e.g., 'Poisoned', 'Haste').")
-    description: str = Field(..., description="General description of the condition's rules and its expiring conditions.")
+    # description: str = Field(..., description="General description of the condition's rules and its expiring conditions.")
     
     # Duration Logic
     rounds_remaining: Optional[int] = Field(
@@ -175,9 +175,8 @@ class Condition(BaseModel):
         description="When the periodic effect happens or end of turn."
     )
     
-    periodic_effect_description: Optional[str] = Field(
-        None, 
-        description="Logic for the periodic effect (e.g., 'Take 1d4 Poison damage', 'Regain 5 HP')."
+    periodic_effect_description: str = Field(
+        description="Logic for the periodic effect (e.g., 'Take 1d4 Poison damage', 'Regain 5 HP', 'Say a random word', 'Reveal a secret')."
     )
 
     @computed_field
@@ -199,8 +198,8 @@ class Condition(BaseModel):
         if self.periodic_effect_description:
             parts.append(f"| {self.trigger.value}: {self.periodic_effect_description}")
         else:
-             short_desc = (self.description[:30] + '..') if len(self.description) > 30 else self.description
-             parts.append(f"| {short_desc}")
+            short_desc = (self.periodic_effect_description[:30] + '..') if len(self.periodic_effect_description) > 30 else self.periodic_effect_description
+            parts.append(f"| {short_desc}")
 
         return " ".join(parts)
     

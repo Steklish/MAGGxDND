@@ -30,7 +30,7 @@ class Player(GameEntity):
         )
         return input(prompt)
         
-    def run(self) -> list[Event]:
+    def run(self):
         """Player's turn. Returns a list of events based on player action.
         Handles three possible outcomes: legal action, unclear action needing clarification,
         and illegal action requiring a new one."""
@@ -42,7 +42,7 @@ class Player(GameEntity):
 
             if request.strip() == "":
                 # Skip turn - return empty list of events
-                return []
+                return
 
             new_message = Message(
                 sender_name=self.character.name,
@@ -69,8 +69,8 @@ class Player(GameEntity):
                     )
                 if verdict.verdict_type == OrchestrationVerdictType.ALLOWED_PLAYER_ACTION:
                     events = self.session.manipulator._external_action_as_an_entity(verdict.details if verdict.details else request, self)
-                    for event in events:
-                        executed_events.extend(self.session.manipulator.execute_event(event))
+                    executed_events.extend(self.session.manipulator.execute_events(events))
+                    break
 
                 elif verdict.verdict_type == OrchestrationVerdictType.CLAIRIFICATION_NEEDED:
                     # Unclear action - need clarification from user
@@ -102,10 +102,11 @@ class Player(GameEntity):
                 # Process it and continue the loop to get an actual action
                 meta_response = self.session.game_master.comment_on_meta_request(request)
                 self.session.delivery.master_message(
-                        text=clarification_response,
+                        text=meta_response,
                         tag="Meta"
                     )
                 # Continue the loop to get a real action from the player
                 continue
-            for e in executed_events:
-                self.event_queue.publish_to_others(e)
+            
+        for e in executed_events:
+            self.event_queue.publish_to_others(e)

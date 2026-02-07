@@ -4,7 +4,7 @@ from entity.npc import NPC
 from entity.player import Player
 from game.engine import Session
 from skls_generator.generator import Generator
-from schemas.orchestration import Event, EventList
+from schemas.orchestration import Event, EventList, EventTypes
 from game.manipulators.base_manipulation import Archive, BaseManipulation
 from game.manipulators.melee_attack_manipulation import MeleeAttackBreakdown, MeleeAttackManipulator
 from game.manipulators.ranged_attack_manipulation import RangedAttackManipulator
@@ -12,6 +12,7 @@ from game.manipulators.movement_manipulator import MovementManipulator
 from game.manipulators.scene_object_movement_manipulator import SceneObjectMovementManipulator
 from game.manipulators.object_transfer_manipulator import ObjectTransferManipulator
 from game.manipulators.item_interaction_manipulator import ItemInteractionManipulator
+from utils.threads import run_in_parallel_args
 
 
 class Manipulator:
@@ -61,9 +62,12 @@ class Manipulator:
         2. Be the most specific (if there is a certain object in the scene you should set event type to item-based not the entire scene)
         3. Choose the appropriate event type based on the action being performed:
         4. There are special types of requests from user when in battle. If an attack requested you Must generate an event that includes damage calculation based on character and item stats.
-        5. Do not generate ACTION_RESULT events.
+        5. Do not generate ACTION_RESULT and SYSTEM events.
         """
-
+        actor.event_queue.publish_to_others(Event(
+            event_type=EventTypes.SYSTEM,
+            description=f"Character {actor.character.name} reqired action {prompt}"
+        ))
         prompt_text = f"""
         You need to generate authoritative events based on the situation and a request e.g. "The dragon gets 1d8+2 damage. (based on items properties)" or "character 1 hits character 2 with a sword and dealing 1d6+3 damage"
 
@@ -78,6 +82,9 @@ class Manipulator:
 
         # Last messages history (meta game) - for references:
         {self.session.get_messages_formatted()}
+        
+        # Rules:
+        {rules}
         """
         events = self.generator.generate_one_shot(
             pydantic_model=EventList,
@@ -85,10 +92,25 @@ class Manipulator:
         )
         return events.event_list
 
-    def execute_event(self, event: Event) -> List[Event]:
+    def execute_events(self, events: list[Event]) -> List[Event]:
+        """Executes a list of events in parallel"""
+        self.logger.debug(f"Executing [{len(events)}] in parallel")
+        res = run_in_parallel_args(
+            func=self._execute_event,
+            arg_lists=[(e,) for e in events]
+        )
+        events_produced = []
+        for r in res:
+            events_produced += r
+        return events_produced
+            
+        
+
+    def _execute_event(self, event: Event) -> List[Event]:
         """
         Execute an event through the appropriate manipulator based on event type.
         """
+        
         # Find the appropriate manipulator for this event type
         for manipulator in self.manipulations:
             if manipulator.can_handle_event_type(event.event_type):

@@ -83,6 +83,7 @@ You are commenting on the latest game events. Your goal is to be **engaging, imm
 3. **Immersion:** Do NOT mention internal engine data like 3D coordinates (x,y,z) or entity IDs.
 4. **Brevity:** Keep it concise. Do not ramble.
 5. **Flow:** Use the conversation history for context, but do not repeat what has already been said.
+6. Provide necessary details. Make sure the user is aware of whats going on. You need to not only tell about completed events and also about characters intentions and requestes.
 
 ### CONTEXT
 <game_state>
@@ -134,8 +135,8 @@ Based on the <current_events> above, generate your in-character comment:
     def clarify_user_request(self, correction_question : str) -> str:
         prompt = f"""{self.character_prompt}
         You need to ask the last playerfor clarification on their request: "{correction_question}".
-        Politely ask for more details so that you can better understand their intentions in the game.
-
+        Politely ask for necessary details so that you can better understand their intentions in the game. You may also provide meta game details to a player e g their inventory or a list of spells. Suggest options if not clear.
+        
         # there is also past conversation history provided with your answers included  (the last user rquest needs clarification to follow game rules more properly):
         {self.session.get_messages_formatted()}
         """

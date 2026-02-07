@@ -1,8 +1,11 @@
 from typing import TYPE_CHECKING, List
+from entity.npc import NPC
+from entity.player import Player
 from entity.schemas import GameModeActions, RoundDeterminationDecision
 from game.event_pool import SubscriberQueue
 from schemas.orchestration import Event, EventTypes
-from schemas.in_game import Character, GameModes
+from schemas.in_game import Character, Condition, GameModes
+from utils.threads import run_in_parallel_args
 
 if TYPE_CHECKING:
     from logging import Logger
@@ -60,7 +63,13 @@ You are a game classificator. You need to update game mode and active characters
 {self._events_to_string(events)}
 </current_events>
 
+<in game messages>
+{self.session.get_messages_formatted()}
+</in game messages>
 
+the game master is marked as "Mage".
+
+Update game mode if there a clear indicator for it. Dont end battles too early and but start them immediately as any agression was brought up.
         """
         decision = self.session.generator.generate_one_shot(
             pydantic_model=RoundDeterminationDecision,
@@ -93,4 +102,28 @@ You are a game classificator. You need to update game mode and active characters
             else:
                 self.logger.debug(f"Could not find entity {char} to remove expired condition {decision.expired_conditions[char]}")
         
+        self.all_characters_conditions_exec()
+        
         return []
+    
+    def _execute_condition(self, character : Player | NPC, condition : Condition):
+        self.logger.debug(f"Executing condition {condition.name} for {character.character.name}")
+        self.session.manipulator._external_action_as_an_entity(
+            prompt=condition.periodic_effect_description,
+            actor=character
+        )
+
+    def _conditions_for_character(self, character : Player | NPC):
+        args = [(character, c) for c in character.character.active_conditions_list]
+        run_in_parallel_args(
+            func=self._execute_condition,
+            arg_lists=args
+        )
+        
+    def all_characters_conditions_exec(self):
+        """Executing al character conditions in parallel for all characters which are currently active"""
+        self.logger.debug(f"Checking character conditions in parallel for [{len(self.session.get_all_active_entities())}] entities")
+        run_in_parallel_args(
+            func=self._conditions_for_character,
+            arg_lists=[(c,) for c in self.session.get_all_active_entities()]
+        )

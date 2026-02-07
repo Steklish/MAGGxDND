@@ -48,10 +48,11 @@ class EventTypes(str, Enum):
     
     # Action Result Events - Non-entity specific
     ACTION_RESULT = "ACTION_RESULT", "Result of an action taken in the game"
-
+    
     CHARACTER_MELEE_ATTACK = "CHARACTER_MELEE_ATTACK", "Melee attack by a character"
     CHARACTER_RANGED_ATTACK = "CHARACTER_RANGED_ATTACK", "Ranged attack by a character"
 
+    SYSTEM = "SYSTEM", "Messages, provided by the system"
     @classmethod
     def get_event_descriptions(cls):
         """Returns a dictionary of event types and their descriptions."""

@@ -36,7 +36,7 @@ class Session:
         self.delivery = delivery
         self.generator = generator
         self.chroma_client = chroma_client
-        self.logger = logger
+        self.logger = logger.getChild("session")
         self.event_pool = event_pool
         self.collection_name = f"game_session_{session_name}"
         self.players : List[Player] = []
@@ -508,14 +508,19 @@ class Session:
                 all_characters.append(npc.character)
         return all_characters
 
-    def get_all_active_characters(self):
+
+
+    def get_all_active_characters(self) -> list[Character |NPCCharacter]:
+        return [c.character for c in self.get_all_active_entities()]
+    
+    def get_all_active_entities(self) -> list[Player | NPC]:
         all_characters = []
         for player in self.players:
             if player.character.current_hp > 0 and player.character.is_alive: # type: ignore
-                all_characters.append(player.character)
+                all_characters.append(player)
         for npc in self.npcs:
             if npc.character.current_scene == self.current_scene.name and npc.character.current_hp > 0 and npc.character.is_alive:
-                all_characters.append(npc.character)
+                all_characters.append(npc)
         return all_characters
         
 
@@ -949,9 +954,11 @@ class Session:
     def game_loop(self):
         self._initialize_turn_queue()
         while 1:
+            self.logger.debug(f"Turn at turn_time {self.turn_time} starter."    )
             try:
                 char = self._get_next_character_turn()
                 char.run()
+                self.logger.debug(f"Launcing DM comment for {len(self.event_pool.get_events())} events")
                 if len(self.event_pool.get_events()) > 0:
                     comment = self.game_master.comment()
                     self.delivery.master_message(

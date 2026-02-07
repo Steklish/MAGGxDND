@@ -53,9 +53,9 @@ class NPC(GameEntity):
 
             # Execute each event through the appropriate manipulator
             executed_events = []
-            for event in generated_events:
-                for e in self.session.manipulator.execute_event(event):
-                    self.event_queue.publish_to_others(e)
+                
+            for e in self.session.manipulator.execute_events(generated_events):
+                self.event_queue.publish_to_others(e)
 
             
 

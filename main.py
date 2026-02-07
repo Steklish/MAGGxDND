@@ -116,30 +116,35 @@ session._init_orchestrator(orchestrator)
 
 # -- LOAD OR INIT GAME STATE --
 
-# scene = generator.generate_one_shot(
-#     pydantic_model=SceneNode,
-#     prompt="A dark and eerie forest clearing at night, with twisted trees and a faint mist."
-# )
+scene = generator.generate_one_shot(
+    pydantic_model=SceneNode,
+    prompt="A dark and eerie forest clearing at night, with twisted trees and a faint mist."
+)
 
-# ch1 = generator.generate_one_shot(
-#     pydantic_model=Character,
-#     prompt="A wizard named Ogorek. has some random spells"
-# )
+ch1 = generator.generate_one_shot(
+    pydantic_model=Character,
+    prompt="A wizard named Ogorek. has some random spells"
+)
 
-# npc1 = generator.generate_one_shot(
-#     pydantic_model=NPCCharacter,
-#     prompt="An evil ork warrior with an axe."
-# )
+npc1 = generator.generate_one_shot(
+    pydantic_model=NPCCharacter,
+    prompt="An evil ork warrior with an axe."
+)
 
-# npc1.current_scene = scene.name
-# session.init_new_session(
-#     scene=scene,
-#     player_characters=[ch1],
-#     npcs=[npc1],
-#     npc_logger=npc_logger,
-#     player_logger=player_logger
-# )
-# session.save_session("./saves/ex_01.json")
-session.load_session_from_save("./saves/ex_01.json")
+npc1 = generator.generate_one_shot(
+    pydantic_model=NPCCharacter,
+    prompt="An evil wolf."
+)
+
+npc1.current_scene = scene.name
+session.init_new_session(
+    scene=scene,
+    player_characters=[ch1],
+    npcs=[npc1],
+    npc_logger=npc_logger,
+    player_logger=player_logger
+)
+session.save_session("./saves/ex_01.json")
+# session.load_session_from_save("./saves/ex_01.json")
 print(session.get_session_context())
 session.game_loop()
