@@ -5,6 +5,7 @@ from entity.round_determinator import RoundDeterminator
 from game.event_pool import EventPool
 from interface.delivery import Delivery
 from magg.magg import Magg
+from magg.plot_schemas import ChapterStatus, Plot
 from utils.naming_utils import find_fuzzy_matches
 if TYPE_CHECKING:
     from game.manipulator import Manipulator
@@ -20,7 +21,7 @@ from schemas.orchestration import Message
 import json
 
 MAX_MESSAGES_STORED = 20
-ROUND_DURATION = 10 # used for status efects ticks
+ROUND_DURATION = 10 # used for round based actions
 
 class Session:
     def __init__(self,
@@ -60,13 +61,19 @@ class Session:
         self._orchestrator : 'Orchestrator | None'  # Will be set later
         
         self._initialize_round_determinator()
-
+        self._plot : "Plot | None" = None
 
     @property
     def game_master(self) -> 'Magg':
         if self._game_master is None:
-            raise ValueError("Mage not initialized!")
+            raise ValueError("Mage is not initialized!")
         return self._game_master
+
+    @property
+    def plot(self) -> 'Plot':
+        if self._plot is None:
+            raise ValueError("Plot is not initialized!")
+        return self._plot
 
 
     @property
@@ -78,7 +85,30 @@ class Session:
     def _init_orchestrator(self, orchestrator : 'Orchestrator'):
         self._orchestrator = orchestrator
 
+    def _init_plot(self, guide : str) -> None:
+        prompt = None
+        with open("./../prompts/plot_generation.md", "r") as f:
+            prompt = f.read()
+        if not prompt:
+            raise ValueError("Plot generation prompt not found")
+        prompt += f"""
+###Mature content
+The story is adult rated so you dont need to moralize a lot and soften the edges. Vilence i acceptable in this story.
 
+### Guide
+Use those ideas to create a story:
+{guide}        
+        """
+        self._plot = self.generator.generate_one_shot(
+            pydantic_model=Plot,
+            prompt=prompt
+        )
+        
+        for chapter in self._plot.chapters:
+            chapter.status = ChapterStatus.COMING
+        
+         
+        
     def _init_mage(self, magg_logger=None):
         """Initialize the game master (MAGG) after avoiding circular import issues."""
         if self._game_master is None:
@@ -154,10 +184,6 @@ class Session:
             scene_info = f"Location: {getattr(self.current_scene, 'name', 'Unknown')}\n"
             scene_info += f"Description: {getattr(self.current_scene, 'description', 'No description available.')}"
             scene_info += f"Game mode: {self.game_mode.value}"
-            # Add spatial information
-            scene_info += f"\nScene center: ({self.current_scene.center_position.x}, {self.current_scene.center_position.y})"
-            scene_info += f"\nScene dimensions: {self.current_scene.dimensions.x}x{self.current_scene.dimensions.y} {self.current_scene.scale_unit}"
-
             # Add location graph information
             if self.current_location_name:
                 connected_locs = self.get_connected_locations(self.current_location_name)
@@ -193,6 +219,9 @@ class Session:
                 else:
                     objects_spatial_info += f"\n- {obj.name}: Position not specified"
 
+        # Add visibility information (who sees who and what objects)
+        visibility_info = self._get_visibility_info()
+
         # 3. Construct the Context String
         context_str = f"""
 ### CURRENT SESSION STATE:
@@ -208,8 +237,63 @@ class Session:
 
 {characters_spatial_info}
 {objects_spatial_info}
+{visibility_info}
 """
         return context_str.strip()
+
+    def _get_visibility_info(self, max_distance: float = 10.0) -> str:
+        """
+        Generates information about who sees who and what objects based on spatial proximity.
+        
+        Args:
+            max_distance: Maximum distance at which characters can see each other and objects
+            
+        Returns:
+            A formatted string describing visibility relationships
+        """
+        visibility_info = "\n\n#### VISIBILITY INFORMATION (WHO SEES WHO AND WHAT)"
+        
+        # Get all characters in the current scene
+        all_characters = []
+        for player in self.players:
+            all_characters.append(('player', player.character))
+        for npc in self.npcs:
+            if npc.character.current_scene == self.current_location_name:
+                all_characters.append(('npc', npc.character))
+        
+        # For each character, determine what they can see
+        for char_type, character in all_characters:
+            visible_entities = []
+            visible_objects = []
+            
+            # Check which other characters this character can see
+            for other_char_type, other_character in all_characters:
+                if character.name != other_character.name:  # Don't include self
+                    distance = self.calculate_distance_2d(character.position, other_character.position)
+                    if distance <= max_distance:
+                        visible_entities.append(f"{other_character.name} ({other_char_type.upper()}) at distance {distance:.2f}")
+            
+            # Check which objects this character can see
+            if self.current_scene:
+                for obj in self.current_scene.objects:
+                    if obj.position:
+                        distance = self.calculate_distance_2d(character.position, obj.position)
+                        if distance <= max_distance:
+                            visible_objects.append(f"{obj.name} at distance {distance:.2f}")
+            
+            # Format the visibility info for this character
+            visibility_info += f"\n\n{character.name} ({char_type.upper()}) sees:"
+            if visible_entities:
+                visibility_info += f"\n  Characters: {', '.join(visible_entities)}"
+            else:
+                visibility_info += f"\n  Characters: None nearby"
+                
+            if visible_objects:
+                visibility_info += f"\n  Objects: {', '.join(visible_objects)}"
+            else:
+                visibility_info += f"\n  Objects: None nearby"
+        
+        return visibility_info
     
     def init_new_session(self,
                          scene : SceneNode,
@@ -274,7 +358,23 @@ class Session:
         else:
             return None 
 
+    
+    def find_player_by_name(self, name: str) -> Player | NPC | None:
+        """Find an player by name."""
+
+        def extractor(c : Player | NPC):
+            return c.character.name
         
+        res = find_fuzzy_matches(
+            items=self.players,
+            extractor=extractor,
+            target=name
+        )
+        
+        if res != []:
+            return res[0]
+        else:
+            return None 
 
 
     def calculate_distance_2d(self, pos1: Coordinate2D, pos2: Coordinate2D) -> float:
@@ -533,125 +633,6 @@ class Session:
             all_characters.append(npc.character)
         return all_characters
 
-    def draw_ascii_scene(self):
-        """Draw an ASCII representation of the current scene with characters and objects."""
-        if not self.current_scene:
-            print("\n[No current scene loaded]")
-            return
-
-        print("\n" + "="*60)
-        print(f"📍 {self.current_scene.name.upper()}")
-        print("="*60)
-        self._print_turn_queue()
-
-        # Get scene dimensions and center
-        center_x, center_y = (self.current_scene.center_position.x,
-                              self.current_scene.center_position.y)
-        width = self.current_scene.dimensions.x
-        height = self.current_scene.dimensions.y
-
-        # Calculate boundaries
-        min_x = center_x - width/2
-        max_x = center_x + width/2
-        min_y = center_y - height/2
-        max_y = center_y + height/2
-
-        print(f"📏 Scene: {width}x{height} {self.current_scene.scale_unit} | Center: ({center_x}, {center_y})")
-        print(f"💬 {self.current_scene.description}")
-
-        # Create a 2D grid representation
-        # We'll use a simple grid where each cell represents a 1-unit area
-        grid_size = 20  # Fixed grid size for visualization
-        grid = [['.' for _ in range(grid_size)] for _ in range(grid_size)]
-
-        # Calculate scaling factors to map scene coordinates to grid positions
-        x_scale = grid_size / width if width > 0 else 1
-        y_scale = grid_size / height if height > 0 else 1
-
-        # Place characters on the grid
-        for player in self.players:
-            char = player.character
-            if hasattr(char, 'position'):
-                # Map position to grid coordinates
-                grid_x = int((char.position.x - min_x) * x_scale)
-                grid_y = int((char.position.y - min_y) * y_scale)
-
-                # Keep within bounds
-                grid_x = max(0, min(grid_size - 1, grid_x))
-                grid_y = max(0, min(grid_size - 1, grid_y))
-
-                # Use first letter of name or 'P' for player
-                symbol = char.name[0].upper() if char.name else 'P'
-                grid[grid_y][grid_x] = f'\033[34m{symbol}\033[0m'  # Blue for players
-
-        # Place NPCs on the grid
-        for npc in self.npcs:
-            npc_char = npc.character
-            if npc_char.current_scene == self.current_location_name:  # Only show NPCs in current scene
-                if hasattr(npc_char, 'position'):
-                    # Map position to grid coordinates
-                    grid_x = int((npc_char.position.x - min_x) * x_scale)
-                    grid_y = int((npc_char.position.y - min_y) * y_scale)
-
-                    # Keep within bounds
-                    grid_x = max(0, min(grid_size - 1, grid_x))
-                    grid_y = max(0, min(grid_size - 1, grid_y))
-
-                    # Use first letter of name or 'N' for NPC
-                    symbol = npc_char.name[0].upper() if npc_char.name else 'N'
-                    grid[grid_y][grid_x] = f'\033[31m{symbol}\033[0m'  # Red for NPCs
-
-        # Place objects on the grid
-        for obj in self.current_scene.objects:
-            if hasattr(obj, 'position') and obj.position:
-                # Map position to grid coordinates
-                grid_x = int((obj.position.x - min_x) * x_scale)
-                grid_y = int((obj.position.y - min_y) * y_scale)
-
-                # Keep within bounds
-                grid_x = max(0, min(grid_size - 1, grid_x))
-                grid_y = max(0, min(grid_size - 1, grid_y))
-
-                # Use first letter of object name or 'O' for object
-                symbol = obj.name[0].upper() if obj.name else 'O'
-                grid[grid_y][grid_x] = f'\033[33m{symbol}\033[0m'  # Yellow for objects
-
-        # Print the grid
-        print("\n🗺️  SCENE MAP:")
-        for row in grid:
-            print(' '.join(row))
-
-        # Print legend
-        print("\n📋 LEGEND:")
-        print(f"  \033[34mP\033[0m - Players ({', '.join([p.character.name for p in self.players])})")
-        print(f"  \033[31mN\033[0m - NPCs ({', '.join([n.character.name for n in self.npcs if n.character.current_scene == self.current_location_name])})")
-        print(f"  \033[33mO\033[0m - Objects ({', '.join([o.name for o in self.current_scene.objects])})")
-        print(f"  \033[32m.\033[0m - Empty space")
-
-        # Print character statuses
-        print("\n👤 CHARACTER STATUS:")
-        for player in self.players:
-            char = player.character
-            status = f"  🧍 {char.name}: HP {char.current_hp}/{char.max_hp}, Pos ({char.position.x}, {char.position.y})"
-            if char.active_conditions and char.active_conditions.strip():
-                # active_conditions is a string with newlines, split by newline to get individual conditions
-                conditions = [cond.strip() for cond in char.active_conditions.split('\n') if cond.strip()]
-                if conditions:
-                    status += f" ⚠️  {', '.join(conditions)}"
-            print(status)
-
-        for npc in self.npcs:
-            npc_char = npc.character
-            if npc_char.current_scene == self.current_location_name:
-                status = f"  👹 {npc_char.name}: HP {npc_char.current_hp}/{npc_char.max_hp}, Pos ({npc_char.position.x}, {npc_char.position.y})"
-                if npc_char.active_conditions and npc_char.active_conditions.strip():
-                    # active_conditions is a string with newlines, split by newline to get individual conditions
-                    conditions = [cond.strip() for cond in npc_char.active_conditions.split('\n') if cond.strip()]
-                    if conditions:
-                        status += f" ⚠️  {', '.join(conditions)}"
-                print(status)
-
-        print("="*60)
 
     def _print_turn_queue(self):
         """Print a beautiful and informative representation of the turn queue."""
@@ -954,17 +935,59 @@ class Session:
     def game_loop(self):
         self._initialize_turn_queue()
         while 1:
-            self.logger.debug(f"Turn at turn_time {self.turn_time} starter."    )
+            self.logger.debug(f"Turn at turn_time {self.turn_time} starter.")
             try:
                 char = self._get_next_character_turn()
-                char.run()
-                self.logger.debug(f"Launcing DM comment for {len(self.event_pool.get_events())} events")
+                
+                if isinstance(char, NPC):
+                    # In both STORY and COMBAT modes, NPCs act autonomously
+                    char.run()
+                    
+                elif isinstance(char, Player):
+                    if self.game_mode == GameModes.COMBAT:
+                        char.run()
+                    elif self.game_mode == GameModes.STORY:
+                        # In STORY mode, we don't enforce turn-based input
+                        # Players can request to take actions out of turn order
+                        # So we create an in-the-middle object that routes requests from all players
+                        # In story mode it is also has minimum priority so it is processed after all the NPCs
+                        pass
+                
+                elif isinstance(char, RoundDeterminator):
+                    # Process round-based events
+                    char.run()
+                    
+                else:
+                    raise ValueError(f"Unexpected object type {char.__class__.__name__}")
+
+                # Handle any events that occurred during the turn
+                self.logger.debug(f"Launching DM comment for {len(self.event_pool.get_events())} events")
                 if len(self.event_pool.get_events()) > 0:
                     comment = self.game_master.comment()
-                    self.delivery.master_message(
-                        text=comment
-                    )
-                else: self.logger.debug("No events provided on the end of turn.")
+                    self.delivery.master_message(text=comment)
+                else:
+                    self.logger.debug("No events provided on the end of turn.")
+                    
+                # In STORY mode, we need to handle player requests differently
+                # The original approach was to let NPCs act and then process player requests
+                # without duplicating the Player.run() logic, we need to think differently
+                # We'll check if there are player requests and handle them appropriately
+                if self.game_mode == GameModes.STORY:
+                    # In STORY mode, players can request actions outside of turn order
+                    # We'll check if there are any queued requests from any player
+                    # and process them as they come in
+                    # For now, we'll just continue with the turn-based flow
+                    are_npcs_done = True
+                    for c in self.turn_queue:
+                        if isinstance(c, NPC):
+                            if not c.event_queue.empty: are_npcs_done = False
+                            
+                    if are_npcs_done:
+                        char_acting = self.delivery.choose_player(self)
+                        char_acting.run_story()
+                    else:
+                        continue
+                    
             except KeyboardInterrupt as e:
                 self.logger.info("Game loop was stopped by user")
                 break

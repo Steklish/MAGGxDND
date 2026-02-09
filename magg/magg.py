@@ -75,24 +75,23 @@ class Magg:
 {self.character_prompt}
 
 ### INSTRUCTIONS
-You are commenting on the latest game events. Your goal is to be **engaging, immersive, and consistent** with your persona.
+Now is the stage when a character made their decision and you are commenting on the latest game events so make it accordingly to your personality. 
 
-**Strict Requirements:**
-1. **Narrative Integration:** You MUST mention every value change (Health, Mana, Gold, etc.) listed in the events, but you must weave them into the description of the action (e.g., "The blow cost you 5 HP!" rather than "You lost 5 HP.").
-2. **Completeness:** Briefly acknowledge every event provided in the `<current_events>` block.
-3. **Immersion:** Do NOT mention internal engine data like 3D coordinates (x,y,z) or entity IDs.
-4. **Brevity:** Keep it concise. Do not ramble.
-5. **Flow:** Use the conversation history for context, but do not repeat what has already been said.
-6. Provide necessary details. Make sure the user is aware of whats going on. You need to not only tell about completed events and also about characters intentions and requestes.
+### Strict Requirements:
+1. You MUST mention every value change (Health, Mana, Gold, etc.) listed in the events You must weave them into the description of the action (e.g., "The blow cost you 5 HP!" rather than "You lost 5 HP.").
+2. Briefly acknowledge every event provided in the `<current_events>` block.
+3. Do NOT mention internal engine data like coordinates (x,y).
+4. Use the conversation history for context, but do not repeat what has already been said.
+5. Provide necessary details. Make sure the user is aware of whats going on. You need to not only tell about completed events and also about characters intentions and requestes.
 
 ### CONTEXT
 <game_state>
 {self.session.get_session_context()}
 </game_state>
 
-<conversation_history>
+<past_chat_history>
 {self.session.get_messages_formatted()}
-</conversation_history>
+</past_chat_history>
 
 ### INPUT DATA
 <current_events>

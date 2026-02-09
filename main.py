@@ -9,7 +9,7 @@ from game.engine import Session
 from game.event_pool import EventPool
 from game.manipulator import Manipulator
 from entity.orchestrator import Orchestrator
-from interface.terminal_delivery import TerminalDelivery
+from interface.native_terminal_delivery import NativeTerminalDelivery
 from schemas.in_game import Character, NPCCharacter, SceneNode
 from skls_generator.generator import Generator
 from skls_generator.gen_backends.google_gen import GoogleGenAI
@@ -93,7 +93,7 @@ session = Session(
     generator=generator,
     event_pool=EventPool(),
     magg_logger=magg_logger,
-    delivery=TerminalDelivery()
+    delivery=NativeTerminalDelivery()
 )
 
 session.inject_manipulator(

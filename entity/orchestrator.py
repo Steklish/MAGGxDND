@@ -30,7 +30,7 @@ class Orchestrator:
     def add_state(self, state : "Session"):
         self.state = state
         
-    def request(self, username : str, request_text : str) -> UserInteractionProcessing:
+    def request(self, username : str, request_text : str, message_cahce : str | None = None) -> UserInteractionProcessing:
         if not self.state:
             raise ValueError("Orchestrator has no state assigned.")
         m_history = ""
@@ -55,6 +55,7 @@ class Orchestrator:
         - META_COMMENT: When the user is asking for information about their character (spells, abilities, inventory, stats), asking for clarification about the game, or making meta-game observations
 
         Determine if this is a CHARACTER_ACTION or META_COMMENT, and enhance the user's request with all available context.
+        {f'\nThere is precious clarifications and meta comments history provided: {message_cahce}' if message_cahce else ''}
         """
         return self.generator.generate_one_shot(
             pydantic_model=UserInteractionProcessing,
@@ -185,7 +186,7 @@ class Orchestrator:
 
         Determine if this action is clear enough to be processed, or if it needs additional clarification.
         For example, if the player says "I cast a spell" without specifying which spell, or "I move" without specifying direction/distance,
-        these would need clarification. You also should clarify if a player uses something that they dont currently have and propose to change subject.
+        these would need clarification. If it is obvious what player is have in mind you dont need to clarify it. If there is unsignificant detail misiing you shuoldn't request clarification. Request clarification if vital details are missing.
 
         Consider the recent message history to understand the context of the current request.
         For instance, if the player was asking about their spells in previous messages, this might be a continuation of that inquiry.

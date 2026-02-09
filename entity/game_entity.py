@@ -114,3 +114,79 @@ class   GameEntity(ABC):
     def set_additional_manipulators(self):
         """Checks inventory and stats and assings additiona allowed manipulations for the currect entity."""
         pass
+
+
+    
+    def _get_spatial_context(self, events: list[Event]) -> str:
+        """Generate spatial context from recent events."""
+        spatial_events = [e for e in events if e.event_type in [
+            EventTypes.CHARACTER_POSITION_UPDATE,
+            EventTypes.CHARACTER_MOVEMENT
+        ]]
+
+        if not spatial_events:
+            return "No recent spatial movements detected."
+
+        context = "Recent spatial movements:\n"
+        for event in spatial_events:
+            context += f"- {event.event_subject} moved to location '{event.event_target}'\n"
+
+        return context
+
+    def get_seen_entities_context(self, max_distance: float = 10.0) -> str:
+        """
+        Generate context about what this entity can see based on spatial proximity.
+        
+        Args:
+            max_distance: Maximum distance at which this entity can see other entities and objects
+            
+        Returns:
+            A formatted string describing what this entity sees
+        """
+        if not self._session:
+            return "No session context available."
+        
+        my_position = self.character.position
+        current_scene = self._session.current_scene
+        current_location = self._session.current_location_name
+        
+        seen_entities = []
+        seen_objects = []
+        
+        # Check which other characters this entity can see
+        for player in self._session.players:
+            other_char = player.character
+            if other_char.name != self.character.name:  # Don't include self
+                distance = self._session.calculate_distance_2d(my_position, other_char.position)
+                if distance <= max_distance:
+                    seen_entities.append(f"{other_char.name} ({other_char.__class__.__name__[:-9]}) at distance {distance:.2f}")
+        
+        for npc in self._session.npcs:
+            npc_char = npc.character
+            if (npc_char.current_scene == current_location and 
+                npc_char.name != self.character.name):  # Don't include self
+                distance = self._session.calculate_distance_2d(my_position, npc_char.position)
+                if distance <= max_distance:
+                    seen_entities.append(f"{npc_char.name} ({npc_char.__class__.__name__[:-9]}) at distance {distance:.2f}")
+        
+        # Check which objects this entity can see
+        if current_scene:
+            for obj in current_scene.objects:
+                if obj.position:
+                    distance = self._session.calculate_distance_2d(my_position, obj.position)
+                    if distance <= max_distance:
+                        seen_objects.append(f"{obj.name} at distance {distance:.2f}")
+        
+        # Format the visibility info for this entity
+        context = f"\n### WHAT {self.character.name.upper()} SEES:\n"
+        if seen_entities:
+            context += f"Nearby Characters: {', '.join(seen_entities)}\n"
+        else:
+            context += f"Nearby Characters: None\n"
+            
+        if seen_objects:
+            context += f"Nearby Objects: {', '.join(seen_objects)}\n"
+        else:
+            context += f"Nearby Objects: None\n"
+        
+        return context

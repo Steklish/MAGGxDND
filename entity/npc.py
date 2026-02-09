@@ -82,6 +82,8 @@ class NPC(GameEntity):
 
             ## Spatial context:
             {spatial_context}
+            
+            {self.get_seen_entities_context()}
 
             ## Here are the recent events in the game:
             {', '.join([str(e.dict()) for e in events])}
@@ -93,7 +95,7 @@ class NPC(GameEntity):
         if decision.will_act:
             self.logger.info(f"NPC {self.character.name} decided to act: {decision.action_description}")
             # saving and trimming the NPC memory
-            self.character.memory += str(decision.action_description)
+            self.character.memory += str(decision.action_description) + decision.reasoning if decision.reasoning else ""
             self.character.memory = self.character.memory[-MEMORY_LENGTH_LIMIT:]
             
             # add NPC action to global chat histori in order for Game Master to see exact intent of the NPC
@@ -106,21 +108,3 @@ class NPC(GameEntity):
         else:
             self.logger.debug(f"NPC {self.character.name} decided not to act.")
             return None
-
-    def _get_spatial_context(self, events: list[Event]) -> str:
-        """Generate spatial context from recent events."""
-        spatial_events = [e for e in events if e.event_type in [
-            EventTypes.CHARACTER_POSITION_UPDATE,
-            EventTypes.CHARACTER_MOVEMENT
-        ]]
-
-        if not spatial_events:
-            return "No recent spatial movements detected."
-
-        context = "Recent spatial movements:\n"
-        for event in spatial_events:
-            # Since spatial coordinates are no longer in events, we'll just note the movement
-            # The actual positions are maintained by the objects themselves
-            context += f"- {event.event_subject} moved to location '{event.event_target}'\n"
-
-        return context

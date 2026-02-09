@@ -62,12 +62,8 @@ class Manipulator:
         2. Be the most specific (if there is a certain object in the scene you should set event type to item-based not the entire scene)
         3. Choose the appropriate event type based on the action being performed:
         4. There are special types of requests from user when in battle. If an attack requested you Must generate an event that includes damage calculation based on character and item stats.
-        5. Do not generate ACTION_RESULT and SYSTEM events.
+        5. Do not generate ACTION_RESULT events.
         """
-        actor.event_queue.publish_to_others(Event(
-            event_type=EventTypes.SYSTEM,
-            description=f"Character {actor.character.name} reqired action {prompt}"
-        ))
         prompt_text = f"""
         You need to generate authoritative events based on the situation and a request e.g. "The dragon gets 1d8+2 damage. (based on items properties)" or "character 1 hits character 2 with a sword and dealing 1d6+3 damage"
 
@@ -82,7 +78,7 @@ class Manipulator:
 
         # Last messages history (meta game) - for references:
         {self.session.get_messages_formatted()}
-        
+
         # Rules:
         {rules}
         """
@@ -90,7 +86,16 @@ class Manipulator:
             pydantic_model=EventList,
             prompt=prompt_text
         )
-        return events.event_list
+        
+        # Add the system notification event to the list of events to be returned
+        # This allows the calling entity to publish all events properly to other entities
+        system_event = Event(
+            event_type=EventTypes.SYSTEM,
+            description=f"Character {actor.character.name} required action {prompt}"
+        )
+        
+        # Return both the generated events and the system notification
+        return events.event_list + [system_event]
 
     def execute_events(self, events: list[Event]) -> List[Event]:
         """Executes a list of events in parallel"""
