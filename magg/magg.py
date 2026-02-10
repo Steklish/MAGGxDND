@@ -1,9 +1,11 @@
 from logging import Logger
 from typing import TYPE_CHECKING, List, Optional
+
+from utils.threads import run_list_in_parallel, run_list_in_parallel_generator
 if TYPE_CHECKING:
     from game.engine import Session
 from game.event_pool import SubscriberQueue
-from magg.magg_schemas import SimpleComment, SimpleDescription
+from magg.magg_schemas import SimpleComment, SimpleDescription, WorldIntervention
 from skls_generator.generator import Generator
 from schemas.orchestration import Event, Message
 from game.manipulators.base_manipulation import Archive
@@ -64,9 +66,8 @@ class Magg:
 
         return description.description
     
-    def comment(self) -> str:
+    def comment(self, events : list[Event]) -> str:
         """Generates a concise comment about recent events in the game."""
-        events = self.event_queue.get_all()
         self.event_queue.clear()
         
         events_str = self._events_to_string(events)
@@ -171,3 +172,107 @@ Based on the <current_events> above, generate your in-character comment:
             text=response.comment)
         self.session.new_message(new_message)
         return response.comment
+    
+    async def world_intervention(self, events : List[Event]):
+        prompt = f"""
+## Input Data
+You will receive:
+1.  **Current Scene Assets:** A list of NPCs and Objects currently present.
+2.  **Event Log:** The narrative description of what just happened (e.g., "The player killed the Goblin," "The Merchant walked away," "The player picked up the Rusty Key").
+
+---
+
+## Decision Logic
+
+### 1. Identify Changes
+Analyze the Event Log for specific triggers:
+
+*   **Removal Triggers (Items leave the scene):**
+    *   Player picks up an item (Add to Inventory $\rightarrow$ Remove from Scene).
+    *   Item is destroyed/burnt/consumed.
+    *   Item is hidden successfully.
+*   **Addition Triggers (Items enter the scene):**
+    *   Player drops an item.
+    *   Player opens a chest/container (revealing contents).
+    *   A hidden item is found via Perception/Investigation.
+*   **NPC Arrival (NPCs enter the scene):**
+    *   Reinforcements arrive.
+    *   Summoning spells (e.g., "Conjure Animals").
+    *   NPCs come out of hiding.
+
+### 2. Consistency Rules
+*   **Exact Names:** When removing items, you must use the **exact string match** from the "Current Scene Assets" list.
+*   **No Hallucinations:** Do not add items that were not explicitly mentioned in the Event Log.
+*   **Inventory is not the Scene:** If a player *has* a sword in their hand, it is in their Inventory, not the Scene list. Do not add it to the scene unless they drop it.
+
+### 3. The `requires_scene_update` Flag
+*   Set this to `True` **ONLY** if you are adding or removing items/NPCs, changing .
+*   If the players just talked or looked around without changing the physical state, set to `False`.
+
+
+## Session info:
+{self.session.get_session_context()}
+
+
+## Plot info and plans:
+{self.session.plot}
+
+## Recent events in the game:
+{[f"{i}th event: {e.dict()} \n"  for i, e in enumerate(events)]}
+"""
+        res = self.generator.generate_one_shot(
+            pydantic_model=WorldIntervention,
+            prompt=prompt
+        )        
+        actions = []
+        args = []
+        if res.requires_intervention:
+            
+            # delete entities
+            actions.append(self.session.manipulator._external_action_as_a_supervisor)
+            args.append((f"entities (or objects) {res.removed_entity_names} must be removed from the scene",))
+            
+            #general changes
+            actions.append(self.session.manipulator._external_action_as_a_supervisor)
+            args.append((res.visual_description,))
+            
+            #new entites
+            actions.append(self.session.manipulator._external_action_as_a_supervisor)
+            args.append((f"npc characters {[npc.dict() for npc in res.new_npcs]} must be added to the scene",))
+            
+            #new objects
+            actions.append(self.session.manipulator._external_action_as_a_supervisor)
+            args.append((f"objects {res.new_objects} must be added to the scene",))
+            
+        async for event in run_list_in_parallel_generator(
+            funcs=actions,
+            args_list=args
+        ):
+            yield event
+            
+            
+    async def handle_events(self):
+        """Handles events produced after each game turn in any game mode and creates Game Master commnts 
+        on events produced by the game. It also initiates external wold changes triggered by the game master."""
+        events = self.event_queue.get_all()
+        self.event_queue.clear()
+        self.logger.debug("running world_intervention and comment in parallel")
+        comment = None
+        async for event in run_list_in_parallel_generator(
+            funcs=[
+                self.world_intervention,
+                self.comment
+                ],
+            args_list=[
+                (events,),
+                (events,)
+            ]
+        ):
+            if isinstance(event, Event):
+                self.logger.debug(f"Event produced {event.description[:10]}...")
+                self.event_queue.publish_to_others(event)
+            elif isinstance(event, str):
+                self.logger.debug(f"Comment produced {event[:10]}...")
+                comment = event
+                
+            return comment

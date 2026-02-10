@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING, Tuple
+from game.event_pool import SubscriberQueue
 from interface.delivery import Delivery
 from utils.colors import Colors
 if TYPE_CHECKING:
@@ -11,8 +12,8 @@ class NativeTerminalDelivery(Delivery):
     A class that handles delivery using native terminal input/output.
     """
 
-    def __init__(self):
-        super().__init__()  # Initialize parent class (with queue)
+    def __init__(self, event_queuee : SubscriberQueue):
+        super().__init__(event_queuee)  # Initialize parent class (with queue)
 
     def master_message(self, text: str, tag: str | None = None):
         """Display a message from the game master (DM)."""

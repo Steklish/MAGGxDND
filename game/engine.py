@@ -932,7 +932,7 @@ Use those ideas to create a story:
         if len(self.messages) > MAX_MESSAGES_STORED:
             self.messages = self.messages[-MAX_MESSAGES_STORED:]
     
-    def game_loop(self):
+    async def game_loop(self):
         self._initialize_turn_queue()
         while 1:
             self.logger.debug(f"Turn at turn_time {self.turn_time} starter.")
@@ -959,14 +959,6 @@ Use those ideas to create a story:
                     
                 else:
                     raise ValueError(f"Unexpected object type {char.__class__.__name__}")
-
-                # Handle any events that occurred during the turn
-                self.logger.debug(f"Launching DM comment for {len(self.event_pool.get_events())} events")
-                if len(self.event_pool.get_events()) > 0:
-                    comment = self.game_master.comment()
-                    self.delivery.master_message(text=comment)
-                else:
-                    self.logger.debug("No events provided on the end of turn.")
                     
                 # In STORY mode, we need to handle player requests differently
                 # The original approach was to let NPCs act and then process player requests
@@ -987,7 +979,17 @@ Use those ideas to create a story:
                         char_acting.run_story()
                     else:
                         continue
-                    
+                
+                
+                # Handle any events that occurred during the turn
+                self.logger.debug(f"Launching DM processing for {len(self.event_pool.get_events())} events")
+                if len(self.event_pool.get_events()) > 0:
+                    comment = await self.game_master.handle_events()
+                    if comment:
+                        self.delivery.master_message(text=comment)
+                else:
+                    self.logger.debug("No events provided on the end of turn.")
+                
             except KeyboardInterrupt as e:
                 self.logger.info("Game loop was stopped by user")
                 break

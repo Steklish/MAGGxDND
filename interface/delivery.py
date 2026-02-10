@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Optional
 from queue import Queue, Empty
 from pydantic import BaseModel
+from game.event_pool import SubscriberQueue
 from schemas.in_game import Character
 if TYPE_CHECKING:
     from entity.player import Player
@@ -20,7 +21,8 @@ class Request(BaseModel):
 class Delivery(ABC):
     """A class that is responsible for interaction with the system. Now handling the cli."""
 
-    def __init__(self):
+    def __init__(self, event_queuee : SubscriberQueue):
+        self.game_event_queue = event_queuee
         self.request_queue: Queue = Queue()
         self._lock = threading.Lock()
 

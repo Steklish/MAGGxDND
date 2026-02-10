@@ -1,5 +1,5 @@
-from concurrent.futures import ThreadPoolExecutor
-from typing import Callable, Iterable, Any, List, Sequence, Tuple
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import AsyncGenerator, Callable, Generator, Iterable, Any, List, Sequence, Tuple
 
 def run_in_parallel_args(
     func: Callable[..., Any],  # accepts *args
@@ -32,3 +32,25 @@ def run_list_in_parallel(
         ]
         # collect results in the same order
         return [f.result() for f in futures]
+
+
+async def run_list_in_parallel_generator(
+    funcs: Sequence[Callable[..., Any]],
+    args_list: Sequence[Tuple[Any, ...]],
+    n_workers: int = 5,
+) -> AsyncGenerator[Any, None]:
+    """
+    Like run_list_in_parallel, but yields results as they complete
+    (order may differ from input).
+    funcs[i] called as funcs[i](*args_list[i]).
+    """
+    if len(funcs) != len(args_list):
+        raise ValueError("funcs and args_list must have the same length")
+
+    with ThreadPoolExecutor(max_workers=n_workers) as executor:
+        futures = [
+            executor.submit(func, *args)
+            for func, args in zip(funcs, args_list)
+        ]
+        for future in as_completed(futures):
+            yield future.result()

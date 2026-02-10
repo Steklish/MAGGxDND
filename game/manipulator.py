@@ -51,8 +51,9 @@ class Manipulator:
         self.logger.info(f"Initialized {len(self.manipulations)} manipulations")
         
     
-    def _external_action_as_a_supervisor(self, prompt):
+    def _external_action_as_a_supervisor(self, prompt) -> List[Event]:
         """Perform a privileged external action within the game session. (DM moves)"""
+        ...
     
     def _external_action_as_an_entity(self, prompt: str, actor : NPC | Player) -> List[Event]:
         """Perform a non-privileged external action within the game session. (Entity moves)"""

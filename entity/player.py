@@ -11,6 +11,8 @@ from schemas.in_game import Character, GameModes
 from entity.game_entity import GameEntity
 
 
+MAX_LEN = 1000
+
 class Player(GameEntity):
     def __init__(self, character: Character,
                  event_queuee : SubscriberQueue,
@@ -23,7 +25,29 @@ class Player(GameEntity):
         # string used for context if character clarifications or rules checks 
         # were interrupted by another player (used for run_story) 
         # should be cleaned after action is complete
-        self.input_cache : str = "" 
+        self._input_cache : str = "" 
+        
+    @property
+    def input_cache(self) -> str:
+        return self._input_cache
+
+    @input_cache.setter
+    def input_cache(self, value: str) -> None:
+        # assign new value
+        buf = value
+
+        # if too long, drop whole lines from the left at '\n'
+        if len(buf) > MAX_LEN:
+            # keep only last MAX_LEN chars as a starting point
+            buf = buf[-MAX_LEN:]
+
+            # try to drop a partial leading line, if any
+            first_newline = buf.find("\n")
+            if first_newline != -1:
+                # drop everything up to and including that newline
+                buf = buf[first_newline + 1 :]
+
+        self._input_cache = buf
        
     def request_terminal_input(self) -> str:
         # Prepare the prompt with proper encoding handling
@@ -52,7 +76,7 @@ class Player(GameEntity):
         user_interaction = self.orchestrator.request(
             username=self.character.name,
             request_text=request,
-            message_cahce=self.input_cache
+            message_cahce=self._input_cache
         )
         executed_events = []
         if user_interaction.interaction_type == UserInterationType.CHARACTER_ACTION:
@@ -72,7 +96,7 @@ class Player(GameEntity):
             if verdict.verdict_type == OrchestrationVerdictType.ALLOWED_PLAYER_ACTION:
                 events = self.session.manipulator._external_action_as_an_entity(verdict.details if verdict.details else request, self)
                 executed_events.extend(self.session.manipulator.execute_events(events))
-                self.input_cache = ""
+                self._input_cache = ""
                 for e in executed_events:
                     self.event_queue.publish_to_others(e)
                 return
@@ -87,7 +111,7 @@ class Player(GameEntity):
                     tag="Clarification"
                 )
                 
-                self.input_cache += f"""{self.character.name} sent: {request} \n master's clarification request: {clarification_response}\n"""
+                self._input_cache += f"""{self.character.name} sent: {request} \n master's clarification request: {clarification_response}\n"""
                 return 
             
             elif verdict.verdict_type == OrchestrationVerdictType.ILLEGAL_PLAYER_ACTION:
@@ -101,7 +125,7 @@ class Player(GameEntity):
                     text=illegal_response,
                     tag="Illegal"
                 )
-                self.input_cache += f"""{self.character.name} sent: {request} \n master's illegal comment on the previous request: {illegal_response}\n"""
+                self._input_cache += f"""{self.character.name} sent: {request} \n master's illegal comment on the previous request: {illegal_response}\n"""
                 return 
             
         elif user_interaction.interaction_type == UserInterationType.META_COMMENT:
@@ -112,7 +136,7 @@ class Player(GameEntity):
                     text=meta_response,
                     tag="Meta"
                 )
-            self.input_cache += f"""{self.character.name} sent: {request} \n master's meta comment: {meta_response}\n"""
+            self._input_cache += f"""{self.character.name} sent: {request} \n master's meta comment: {meta_response}\n"""
             return 
     
     def run(self):
@@ -121,7 +145,7 @@ class Player(GameEntity):
         and illegal action requiring a new one."""
         self.session.delivery.draw_ascii_scene(self.session)
         # just in case it stores really old cache not usefull after the combat ends
-        self.input_cache = "" 
+        self._input_cache = "" 
         while True:
             self.logger.debug(f"Waiting for player input for {self.character.name}")
 

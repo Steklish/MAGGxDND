@@ -55,7 +55,7 @@ class Orchestrator:
         - META_COMMENT: When the user is asking for information about their character (spells, abilities, inventory, stats), asking for clarification about the game, or making meta-game observations
 
         Determine if this is a CHARACTER_ACTION or META_COMMENT, and enhance the user's request with all available context.
-        {f'\nThere is precious clarifications and meta comments history provided: {message_cahce}' if message_cahce else ''}
+        {f'\nThere is precious clarifwications and meta comments history provided: {message_cahce}' if message_cahce else ''}
         """
         return self.generator.generate_one_shot(
             pydantic_model=UserInteractionProcessing,
