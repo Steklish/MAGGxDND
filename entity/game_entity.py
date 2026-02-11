@@ -31,7 +31,7 @@ class   GameEntity(ABC):
                  logger: Logger) -> None:
         self.character = character
         self.event_queue = event_queuee
-        self.logger = logger
+        self.logger = logger.getChild(self.character.name)
         # Dictionary to store conditional manipulators based on items/spells
         self._conditional_manipulators: Dict[str, 'BaseManipulation'] = {}
         self._session: 'Session | None' = None
@@ -105,12 +105,6 @@ class   GameEntity(ABC):
             ))
     
     
-    def execute_events(self, event_list : list[Event]):
-        """Process an event through the appropriate manipulator based on event type and origin."""
-        for event in event_list:
-            # Validate the event before processing
-            pass
-        
     def set_additional_manipulators(self):
         """Checks inventory and stats and assings additiona allowed manipulations for the currect entity."""
         pass

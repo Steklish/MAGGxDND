@@ -5,7 +5,7 @@ from entity.schemas import GameModeActions, RoundDeterminationDecision
 from game.event_pool import SubscriberQueue
 from schemas.orchestration import Event, EventTypes
 from schemas.in_game import Character, Condition, GameModes
-from utils.threads import run_in_parallel_args
+from utils.threads import run_in_parallel_args, run_list_in_parallel
 
 if TYPE_CHECKING:
     from logging import Logger
@@ -45,12 +45,25 @@ class RoundDeterminator:
         self._session = state
         self._logger = state.logger.getChild("RounDeterminator")
     
-    def run(self)  -> list[Event]:
+    def run(self):
         """Analyze game state and determine if mode changes are needed."""
         events = self.event_queue.get_all() 
         self.event_queue.clear()
+        self.logger.debug(f"Running round determinator at game time {self.session.turn_time} for [{len(events)}] events")
         
+        run_list_in_parallel(
+            funcs=[
+                self.all_characters_conditions_exec,
+                self.get_game_mode_and_expred_conditions_decision
+            ],
+            args_list=[
+                (),
+                (events,)
+            ]
+        )
         
+    
+    def get_game_mode_and_expred_conditions_decision(self, events : list[Event]):
         prompt = f"""
 ## ROLE
 You are a game classificator. You need to update game mode and active characters conditions.
@@ -69,13 +82,13 @@ You are a game classificator. You need to update game mode and active characters
 
 the game master is marked as "Mage".
 
-Update game mode if there a clear indicator for it. Dont end battles too early and but start them immediately as any agression was brought up.
+Update game mode if there is an indicator. Dont end battles too early and but start them immediately as any agression was brought up. It is more likely to start battle when early signs of agression is being shown.
         """
         decision = self.session.generator.generate_one_shot(
             pydantic_model=RoundDeterminationDecision,
             prompt=prompt
         )
-        
+        self.logger.debug("Processing decision")
         if decision.suggested_game_mode_action == GameModeActions.CHANGE_TO_COMBAT:
             self.session.game_mode = GameModes.COMBAT
             self.logger.info("Game mode changed to COMBAT")
@@ -102,9 +115,6 @@ Update game mode if there a clear indicator for it. Dont end battles too early a
             else:
                 self.logger.debug(f"Could not find entity {char} to remove expired condition {decision.expired_conditions[char]}")
         
-        self.all_characters_conditions_exec()
-        
-        return []
     
     def _execute_condition(self, character : Player | NPC, condition : Condition):
         self.logger.debug(f"Executing condition {condition.name} for {character.character.name}")

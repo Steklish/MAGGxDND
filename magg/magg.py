@@ -5,7 +5,8 @@ from utils.threads import run_list_in_parallel, run_list_in_parallel_generator
 if TYPE_CHECKING:
     from game.engine import Session
 from game.event_pool import SubscriberQueue
-from magg.magg_schemas import SimpleComment, SimpleDescription, WorldIntervention
+from magg.magg_schemas import PlotDevelopmentAction, SimpleComment, SimpleDescription, WorldIntervention, PlotFollowingIntervention
+from magg.plot_schemas import ChapterStatus
 from skls_generator.generator import Generator
 from schemas.orchestration import Event, Message
 from game.manipulators.base_manipulation import Archive
@@ -250,29 +251,148 @@ Analyze the Event Log for specific triggers:
         ):
             yield event
             
+    async def check_plot_following(self, events : list[Event]):
+        """
+        Checks if the current game events align with the planned plot.
+        Generates interventions if the players are deviating too much from the intended storyline.
+        """
+        # Only check plot following if a plot exists
+        if not self.session._plot:
+            self.logger.debug("No plot available, skipping plot following check")
+            raise ValueError("No plot available, skipping plot following check")
+
+        prompt = f"""
+### ROLE & PERSONA
+{self.character_prompt}
+
+### OBJECTIVE
+Analyze the recent game events and determine if the players are following the intended plotline.
+Based on the analysis, decide on the appropriate plot development action.
+
+### PLOT INFORMATION
+Current Plot: {self.session.plot}
+
+### RECENT EVENTS
+{self._events_to_string(events)}
+
+### GAME STATE
+{self.session.get_session_context()}
+
+### INSTRUCTIONS
+Based on the plot and recent events, determine:
+1. Should we create a new chapter? (CREATE_NEW_CHAPTER)
+2. Should we update the current chapter's goals? (UPDATE_CURRENT_GOALS)
+3. Should we escalate to the next chapter? (ESCALATE_TO_NEXT_CHAPTER)
+4. Should we maintain the current chapter? (MAINTAIN_CURRENT_CHAPTER)
+5. Should we fail the current chapter? (FAIL_CURRENT_CHAPTER)
+
+Consider if the players have completed enough objectives to advance, if they're stuck and need guidance, 
+or if they're going completely off track and need redirection.
+
+Return a PlotFollowingIntervention response with the appropriate action and details.
+"""
+
+        res = self.generator.generate_one_shot(
+            pydantic_model=PlotFollowingIntervention,
+            prompt=prompt
+        )
+
+        if res.requires_intervention:
+            self.logger.info(f"Plot following intervention required: {res.action.value} - {res.visual_description}")
             
+            # Handle chapter progression based on the action
+            if res.action.value == "CREATE_NEW_CHAPTER" and self.session._plot:
+                from magg.plot_schemas import Chapter
+                if res.new_chapter_name:
+                    new_chapter = Chapter(
+                        name=res.new_chapter_name,
+                        description=res.new_chapter_description or "",
+                        tasks=res.new_chapter_tasks or {},
+                        fail_conditions=res.new_chapter_fail_conditions or [],
+                        status=ChapterStatus.COMING
+                    )
+                    self.session._plot.chapters.append(new_chapter)
+                    self.logger.info(f"Created new chapter: {new_chapter.name}")
+            
+            elif res.action.value == PlotDevelopmentAction.UPDATE_CURRENT_GOALS and self.session._plot and res.updated_tasks:
+                # Update the current chapter's tasks
+                current_chapter = self.session._plot.current_chapter
+                if current_chapter:
+                    current_chapter.tasks.update(res.updated_tasks)
+                    self.logger.info(f"Updated tasks for current chapter: {current_chapter.name}")
+                    
+            elif res.action.value == PlotDevelopmentAction.ESCALATE_TO_NEXT_CHAPTER and self.session._plot:
+                # Mark current chapter as completed and move to next
+                current_chapter = self.session._plot.current_chapter
+                if current_chapter:
+                    current_chapter.status = ChapterStatus.COMPLETED
+                    self.logger.info(f"Escalated from chapter: {current_chapter.name}")
+                    
+            elif res.action.value == PlotDevelopmentAction.FAIL_CURRENT_CHAPTER and self.session._plot:
+                # Mark current chapter as failed
+                current_chapter = self.session._plot.current_chapter
+                if current_chapter:
+                    current_chapter.status = ChapterStatus.FAILED
+                    self.logger.info(f"Failed current chapter: {current_chapter.name}")
+            
+            # Execute the intervention actions
+            actions = []
+            args = []
+            
+            # Remove entities if needed
+            if res.removed_entity_names:
+                actions.append(self.session.manipulator._external_action_as_a_supervisor)
+                args.append((f"entities (or objects) {res.removed_entity_names} must be removed from the scene",))
+
+            # Apply general changes
+            actions.append(self.session.manipulator._external_action_as_a_supervisor)
+            args.append((res.visual_description,))
+
+            # Add new NPCs if needed
+            if res.new_npcs:
+                actions.append(self.session.manipulator._external_action_as_a_supervisor)
+                args.append((f"npc characters {[npc.dict() for npc in res.new_npcs]} must be added to the scene",))
+
+            # Add new objects if needed
+            if res.new_objects:
+                actions.append(self.session.manipulator._external_action_as_a_supervisor)
+                args.append((f"objects {res.new_objects} must be added to the scene",))
+
+            async for event in run_list_in_parallel_generator(
+                funcs=actions,
+                args_list=args
+            ):
+                yield event
+        else:
+            self.logger.debug("No plot following intervention required")
+
+
     async def handle_events(self):
         """Handles events produced after each game turn in any game mode and creates Game Master commnts 
         on events produced by the game. It also initiates external wold changes triggered by the game master."""
         events = self.event_queue.get_all()
         self.event_queue.clear()
-        self.logger.debug("running world_intervention and comment in parallel")
+        self.logger.debug("running world_intervention, comment, and check_plot_following in parallel")
         comment = None
-        async for event in run_list_in_parallel_generator(
+        
+        async for result in run_list_in_parallel_generator(
             funcs=[
                 self.world_intervention,
-                self.comment
+                self.comment,
+                self.check_plot_following
                 ],
             args_list=[
+                (events,),
                 (events,),
                 (events,)
             ]
         ):
-            if isinstance(event, Event):
-                self.logger.debug(f"Event produced {event.description[:10]}...")
-                self.event_queue.publish_to_others(event)
-            elif isinstance(event, str):
-                self.logger.debug(f"Comment produced {event[:10]}...")
-                comment = event
-                
-            return comment
+            if isinstance(result, Event):
+                self.logger.debug(f"Event produced {result.description[:10]}...")
+                self.event_queue.publish_to_others(result)
+            elif isinstance(result, str):
+                self.logger.debug(f"Comment produced {result[:10]}...")
+                comment = result
+            # Note: check_plot_following yields events which are handled as above
+
+        return comment

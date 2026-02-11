@@ -9,6 +9,7 @@ from game.event_pool import EventPool
 from game.manipulator import Manipulator
 from entity.orchestrator import Orchestrator
 from interface.native_terminal_delivery import NativeTerminalDelivery
+from schemas.in_game import Character, NPCCharacter, SceneNode
 from skls_generator.generator import Generator
 from skls_generator.gen_backends.google_gen import GoogleGenAI
 from skls_embeddings.chroma_client import ChromaClient
@@ -63,7 +64,6 @@ main_logger = logging.getLogger("game.main")
 engine_logger = logging.getLogger("game.engine")
 manipulator_logger = logging.getLogger("game.manipulator")
 orchestrator_logger = logging.getLogger("game.orchestrator")
-magg_logger = logging.getLogger("magg.core")
 npc_logger = logging.getLogger("npc.core")
 player_logger = logging.getLogger("player.core")
 
@@ -72,7 +72,6 @@ main_logger.setLevel(logging.DEBUG)
 engine_logger.setLevel(logging.DEBUG)
 manipulator_logger.setLevel(logging.DEBUG)
 orchestrator_logger.setLevel(logging.DEBUG)
-magg_logger.setLevel(logging.DEBUG)
 npc_logger.setLevel(logging.DEBUG)
 player_logger.setLevel(logging.DEBUG)
 
@@ -91,14 +90,13 @@ session = Session(
     logger=engine_logger,
     generator=generator,
     event_pool=event_pool,
-    magg_logger=magg_logger,
-    delivery=NativeTerminalDelivery(event_pool.subscribe("delivery"))
+    delivery=NativeTerminalDelivery(event_pool.subscribe("delivery"), engine_logger)
 )
 
 session.inject_manipulator(
     manipulator = Manipulator(
         generator=generator,
-        state=session,
+        session=session,
         archive=None,
         logger=manipulator_logger
     )
@@ -125,25 +123,28 @@ session._init_orchestrator(orchestrator)
 #     prompt="A wizard named Ogorek. has some random spells"
 # )
 
-# npc1 = generator.generate_one_shot(
-#     pydantic_model=NPCCharacter,
-#     prompt="An evil ork warrior with an axe."
+# ch2 = generator.generate_one_shot(
+#     pydantic_model=Character,
+#     prompt="A warrior named Notman. Has a sword and a shield."
 # )
+
 
 # npc1 = generator.generate_one_shot(
 #     pydantic_model=NPCCharacter,
-#     prompt="An evil wolf."
+#     prompt="An evil worm."
 # )
 
 # npc1.current_scene = scene.name
 # session.init_new_session(
 #     scene=scene,
-#     player_characters=[ch1],
+#     player_characters=[ch1, ch2],
 #     npcs=[npc1],
 #     npc_logger=npc_logger,
 #     player_logger=player_logger
 # )
-# session.save_session("./saves/ex_01.json")
-session.load_session_from_save("./saves/ex_01.json")
-print(session.get_session_context())
+
+# session._init_plot("A deep cave where dark slimey worms live")
+# session.save_session("./saves/ex_02.json")
+session.load_session_from_save("./saves/ex_02.json")
+# print(session.get_session_context())
 asyncio.run(session.game_loop())

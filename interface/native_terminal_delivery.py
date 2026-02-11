@@ -1,3 +1,4 @@
+from logging import Logger
 from typing import TYPE_CHECKING, Tuple
 from game.event_pool import SubscriberQueue
 from interface.delivery import Delivery
@@ -12,16 +13,20 @@ class NativeTerminalDelivery(Delivery):
     A class that handles delivery using native terminal input/output.
     """
 
-    def __init__(self, event_queuee : SubscriberQueue):
-        super().__init__(event_queuee)  # Initialize parent class (with queue)
+    def __init__(self, event_queuee : SubscriberQueue, logger : Logger):
+        super().__init__(event_queuee, logger)  # Initialize parent class (with queue)
 
     def master_message(self, text: str, tag: str | None = None):
         """Display a message from the game master (DM)."""
         formatted_text = Colors.colorize(
             text=f"DM {tag if tag else ''}: {text}",
-            color_code=Colors.BRIGHT_BLACK)
+            color_code=Colors.BRIGHT_YELLOW + Colors.BLACK)
         print(formatted_text)
 
+    def session_updated(self, session : "Session") -> None:
+        """Used as a callback when a session is being updated to sent to the delivey instance."""
+        ...
+    
     def player_request(self, character: 'Character') -> str:
         """Get input from a specific player."""
         # First, check if there's already a request for this player in the queue

@@ -48,15 +48,7 @@ class Player(GameEntity):
                 buf = buf[first_newline + 1 :]
 
         self._input_cache = buf
-       
-    def request_terminal_input(self) -> str:
-        # Prepare the prompt with proper encoding handling
-        prompt = (
-            f"\033[35mPlayer {self.character.name}, enter your action "
-            f"(current position: ({self.character.position.x}, "
-            f"{self.character.position.y})): \033[0m"
-        )
-        return input(prompt)
+
         
     def run_story(self, ):
         """A method that runs character in story mode. If an input doesn't result to an accepable action it releases the game loop instead of blockig it like self.run()"""

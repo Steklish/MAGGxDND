@@ -31,7 +31,6 @@ class Session:
                  generator : Generator,
                  event_pool : EventPool,
                  delivery : Delivery,
-                 magg_logger : Logger
                  ) -> None:
         self.session_name = session_name
         self.delivery = delivery
@@ -46,7 +45,7 @@ class Session:
         self.game_mode : GameModes = GameModes.STORY
         self.messages : List[Message] = []
         self._game_master = None  # Will be initialized later to avoid circular import
-        self._init_mage(magg_logger)  # Initialize game master after avoiding circular import
+        self._init_mage(logger.getChild("magg"))  # Initialize game master after avoiding circular import
         self.turn_queue : list[tuple[Player | NPC | RoundDeterminator, float, float]] = []
         # Turn-based system attributes
         self.turn_time = 0.0  # Global time tracker
@@ -87,7 +86,7 @@ class Session:
 
     def _init_plot(self, guide : str) -> None:
         prompt = None
-        with open("./../prompts/plot_generation.md", "r") as f:
+        with open("prompts/plot_generation.md", "r") as f:
             prompt = f.read()
         if not prompt:
             raise ValueError("Plot generation prompt not found")
@@ -157,6 +156,7 @@ Use those ideas to create a story:
         """Saves session data to a JSON file."""
         # Prepare data for serialization
         save_dict = {
+            "session_name": self.session_name,
             "game_mode": self.game_mode.value,
             "player_characters": [char.character.dict() for char in self.players],
             "npcs": [npc.character.dict() for npc in self.npcs],
@@ -165,12 +165,33 @@ Use those ideas to create a story:
             "location_graph": {k: list(v) for k, v in self.location_graph.items()},
             "all_locations": {name: scene.dict() for name, scene in self.all_locations.items()},
             "current_location_name": self.current_location_name,
-            "messages": [msg.dict() for msg in self.messages]
+            "messages": [msg.dict() for msg in self.messages],
+            # Turn-based system attributes
+            "turn_time": self.turn_time,
+            "turn_distance": self.turn_distance,
+            # Spatial system attributes
+            "spatial_enabled": self.spatial_enabled,
+            # Plot information
+            "plot": self._plot.dict() if self._plot else None,
+            # Turn queue (serialize the character names and timing info)
+            "turn_queue": [
+                (self._serialize_character_identifier(entity), time_added, next_turn)
+                for entity, time_added, next_turn in self.turn_queue
+            ]
         }
 
         with open(filename, 'w') as f:
             json.dump(save_dict, f, indent=4)
         self.logger.info(f"Session saved to {filename}")
+
+    def _serialize_character_identifier(self, entity):
+        """Serialize a character identifier for storage."""
+        if isinstance(entity, (Player, NPC)):
+            return {"type": "character", "name": entity.character.name}
+        elif isinstance(entity, RoundDeterminator):
+            return {"type": "round_determinator"}
+        else:
+            return {"type": "unknown", "repr": str(entity)}
 
     def get_session_context(self) -> str:
         """
@@ -491,19 +512,65 @@ Use those ideas to create a story:
         self.npcs.sort(key=lambda npc: npc.character.initiative_bonus, reverse=True)
         self.logger.debug("Sorted NPCs by initiative.")
 
-    def load_session_from_save(self, filename: str):
-        """Loads session data from a JSON file."""
+    def load_session_from_save(self, filename: str, dependencies=None):
+        """Loads session data from a JSON file.
+        
+        Args:
+            filename: Path to the save file
+            dependencies: Dictionary containing dependencies that need to be injected
+                         (orchestrator, event_pool, generator, chroma_client, logger, delivery)
+        """
         try:
             with open(filename, 'r') as f:
                 save_data = json.load(f)
 
-            player_characters = [Character(**char_data) for char_data in save_data["player_characters"]]
+            # Restore basic properties
+            self.session_name = save_data["session_name"]
+            self.collection_name = f"game_session_{self.session_name}"
+            
+            # Restore game mode
+            self.game_mode = GameModes(save_data["game_mode"])
+            
+            # Restore spatial settings
+            self.spatial_enabled = save_data.get("spatial_enabled", True)
+            
+            # Restore turn-based settings
+            self.turn_time = save_data.get("turn_time", 0.0)
+            self.turn_distance = save_data.get("turn_distance", 10)
+            
+            # Restore plot if available
+            plot_data = save_data.get("plot")
+            if plot_data:
+                from magg.plot_schemas import Plot
+                self._plot = Plot(**plot_data) # type: ignore
+            else:
+                self._plot = None
+
+            # Set up dependencies if provided
+            if dependencies:
+                if 'orchestrator' in dependencies:
+                    self._orchestrator = dependencies['orchestrator']
+                if 'event_pool' in dependencies:
+                    self.event_pool = dependencies['event_pool']
+                if 'generator' in dependencies:
+                    self.generator = dependencies['generator']
+                if 'chroma_client' in dependencies:
+                    self.chroma_client = dependencies['chroma_client']
+                if 'logger' in dependencies:
+                    self.logger = dependencies['logger'].getChild("session")
+                if 'delivery' in dependencies:
+                    self.delivery = dependencies['delivery']
 
             # Initialize Player objects for each character
             self.players = []
+            player_characters = [Character(**char_data) for char_data in save_data["player_characters"]]
             for character in player_characters:
-                player = self._init_player(character, self.orchestrator)
-                self.players.append(player)
+                # Need to ensure orchestrator is available
+                if hasattr(self, '_orchestrator') and self._orchestrator is not None:
+                    player = self._init_player(character, self.orchestrator)
+                    self.players.append(player)
+                else:
+                    raise ValueError("Orchestrator not available for initializing players during load")
 
             # Load NPCs
             self.npcs = []
@@ -514,10 +581,13 @@ Use those ideas to create a story:
                 if not npc.character.current_scene:
                     npc.character.current_scene = self.current_scene.name
                 self.npcs.append(npc)
+                
+            # Load messages
+            self.messages = []
             for message_data in save_data.get("messages", []):
                 message = Message(**message_data)
                 self.messages.append(message)
-            self.game_mode = GameModes(save_data["game_mode"])
+                
             # Restore location graph data
             # Convert lists back to sets
             self.location_graph = {
@@ -530,12 +600,48 @@ Use those ideas to create a story:
 
             # Set the current scene
             self.current_scene = SceneNode(**save_data["current_scene"])
+            
+            # Initialize round determinator after dependencies are set
+            self._initialize_round_determinator()
+            
+            # Restore turn queue
+            self.turn_queue = []
+            for entity_data, time_added, next_turn in save_data.get("turn_queue", []):
+                entity = self._deserialize_character_identifier(entity_data)
+                if entity:
+                    self.turn_queue.append((entity, time_added, next_turn))
+
+            # Re-initialize game master after loading
+            from logging import Logger
+            if hasattr(self, 'logger'):
+                self._init_mage(self.logger)  # Reinitialize game master
 
             self.logger.info(f"Session loaded from {filename}")
         except FileNotFoundError:
             self.logger.error(f"Save file not found: {filename}")
         except Exception as e:
             self.logger.error(f"Error loading session: {e}")
+
+    def _deserialize_character_identifier(self, entity_data):
+        """Deserialize a character identifier from storage."""
+        entity_type = entity_data["type"]
+        
+        if entity_type == "character":
+            # Find the character by name in players or NPCs
+            for player in self.players:
+                if player.character.name == entity_data["name"]:
+                    return player
+            for npc in self.npcs:
+                if npc.character.name == entity_data["name"]:
+                    return npc
+        elif entity_type == "round_determinator":
+            # Return the round determinator instance
+            # Make sure it's initialized
+            if not hasattr(self, 'round_determinator') or self.round_determinator is None:
+                self._initialize_round_determinator()
+            return self.round_determinator
+            
+        return None
 
 
     def _add_round_determinator_to_turn_queue(self):
@@ -947,7 +1053,7 @@ Use those ideas to create a story:
                     if self.game_mode == GameModes.COMBAT:
                         char.run()
                     elif self.game_mode == GameModes.STORY:
-                        # In STORY mode, we don't enforce turn-based input
+                        #! In STORY mode, we don't enforce turn-based input
                         # Players can request to take actions out of turn order
                         # So we create an in-the-middle object that routes requests from all players
                         # In story mode it is also has minimum priority so it is processed after all the NPCs
@@ -959,8 +1065,9 @@ Use those ideas to create a story:
                     
                 else:
                     raise ValueError(f"Unexpected object type {char.__class__.__name__}")
-                    
-                # In STORY mode, we need to handle player requests differently
+                
+                # ! IMPORTANT    
+                #! In STORY mode, we need to handle player requests differently
                 # The original approach was to let NPCs act and then process player requests
                 # without duplicating the Player.run() logic, we need to think differently
                 # We'll check if there are player requests and handle them appropriately
@@ -980,8 +1087,6 @@ Use those ideas to create a story:
                     else:
                         continue
                 
-                
-                # Handle any events that occurred during the turn
                 self.logger.debug(f"Launching DM processing for {len(self.event_pool.get_events())} events")
                 if len(self.event_pool.get_events()) > 0:
                     comment = await self.game_master.handle_events()

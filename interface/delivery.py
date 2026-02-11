@@ -1,3 +1,4 @@
+from logging import Logger
 import threading
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Optional
@@ -19,12 +20,13 @@ class Request(BaseModel):
 
 
 class Delivery(ABC):
-    """A class that is responsible for interaction with the system. Now handling the cli."""
+    """A class that is responsible for interaction with the system and the user interface."""
 
-    def __init__(self, event_queuee : SubscriberQueue):
+    def __init__(self, event_queuee : SubscriberQueue, logger : Logger):
         self.game_event_queue = event_queuee
         self.request_queue: Queue = Queue()
         self._lock = threading.Lock()
+        self.logger = logger.getChild("delivery")
 
     @abstractmethod
     def master_message(self, text : str, tag : str | None = None):
@@ -40,6 +42,10 @@ class Delivery(ABC):
         """Choose which player acts next"""
         pass
     
+    @abstractmethod
+    def session_updated(self, session : "Session") -> None:
+        """Used as a callback when a session is being updated to sent to the delivey instance."""
+        ...
     
     def put_request(self, request: Request):
         """Add a request to the queue."""

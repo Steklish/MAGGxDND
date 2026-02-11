@@ -16,12 +16,12 @@ from utils.threads import run_in_parallel_args
 
 
 class Manipulator:
-    def __init__(self, generator : Generator, state : Session, archive : Archive | None, logger : Logger, entity_specific: bool = False) -> None:
+    def __init__(self, generator : Generator, session : Session, archive : Archive | None, logger : Logger, entity_specific: bool = False) -> None:
         self.generator = generator
         self.manipulations : List[BaseManipulation] = []
-        self.session = state
+        self.session = session
         self.archive = archive
-        self.logger = logger
+        self.logger = logger.getChild()
         self.entity_specific = entity_specific
         self.logger.info(f"Manipulator initialized (entity_specific={entity_specific})")
 
@@ -108,6 +108,7 @@ class Manipulator:
         events_produced = []
         for r in res:
             events_produced += r
+        self.session.delivery.session_updated(self.session)
         return events_produced
             
         

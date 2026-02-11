@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from logging import Logger
 from typing import TYPE_CHECKING, Any, List
 if TYPE_CHECKING:
@@ -27,7 +28,7 @@ class Archive:
         return [obj for obj in archive if obj['type'] == object_type]
 
 
-class BaseManipulation:
+class BaseManipulation(ABC):
     event_types_binded : list[EventTypes] = []
     def __init__(self, state : 'Session') -> None:
         self.session = state
@@ -50,8 +51,10 @@ class BaseManipulation:
         """Executes the manipulation based on the provided prompt. (Wrapper)"""
         self.logger.debug(f"Executing manipulation {self.__class__.__name__}")
         result = self.manipulate(event)
+        self.session.delivery.session_updated(self.session)
         return result if result is not None else []
 
+    @abstractmethod
     def manipulate(self, event: Event) -> List[Event]:
         """Core manipulation logic to be implemented by subclasses."""
         raise NotImplementedError("This method should be overridden by subclasses.")
