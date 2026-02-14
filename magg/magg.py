@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from game.engine import Session
 from game.event_pool import SubscriberQueue
 from magg.magg_schemas import PlotDevelopmentAction, SimpleComment, SimpleDescription, WorldIntervention, PlotFollowingIntervention
-from magg.plot_schemas import ChapterStatus
+from magg.plot_schemas import Chapter, ChapterStatus
 from skls_generator.generator import Generator
 from schemas.orchestration import Event, Message
 from game.manipulators.base_manipulation import Archive
@@ -175,6 +175,7 @@ Based on the <current_events> above, generate your in-character comment:
         return response.comment
     
     async def world_intervention(self, events : List[Event]):
+        self.logger.debug("starting world intervention processing")
         prompt = f"""
 ## Input Data
 You will receive:
@@ -302,7 +303,6 @@ Return a PlotFollowingIntervention response with the appropriate action and deta
             
             # Handle chapter progression based on the action
             if res.action.value == "CREATE_NEW_CHAPTER" and self.session._plot:
-                from magg.plot_schemas import Chapter
                 if res.new_chapter_name:
                     new_chapter = Chapter(
                         name=res.new_chapter_name,

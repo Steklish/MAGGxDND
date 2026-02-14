@@ -77,11 +77,11 @@ player_logger.setLevel(logging.DEBUG)
 
 print("Starting the game...")
 
-generator = Generator(GoogleGenAI(api_key=os.getenv("GEMINI_API_KEY"), logger=main_logger), logger_instance=main_logger)
-chroma_client = ChromaClient(EmbeddingClient(), logger_instance=main_logger)
 
 
 # -- INIT SESSION AND MANIPULATOR --
+chroma_client = ChromaClient(EmbeddingClient(), logger_instance=main_logger)
+generator = Generator(GoogleGenAI(api_key=os.getenv("GEMINI_API_KEY"), logger=main_logger), logger_instance=main_logger)
 event_pool = EventPool()
 
 session = Session(

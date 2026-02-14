@@ -16,12 +16,29 @@ from utils.threads import run_in_parallel_args
 
 
 class Manipulator:
+    
+    _rules = f"""
+        1. Determine which objects involved into the request.
+        2. Be the most specific (if there is a certain object in the scene you should set event type to item-based not the entire scene)
+        3. Choose the appropriate event type based on the action being performed:
+        4. There are special types of requests from user when in battle. If an attack requested you Must generate an event that includes damage calculation based on character and item stats.
+        5. Do not generate ACTION_RESULT events.
+        """
+    
+    @staticmethod
+    def _rules_method():
+        return Manipulator._rules
+
+    @property
+    def rules(self):  # Instance property wrapping static
+        return self._rules_method()
+    
     def __init__(self, generator : Generator, session : Session, archive : Archive | None, logger : Logger, entity_specific: bool = False) -> None:
         self.generator = generator
         self.manipulations : List[BaseManipulation] = []
         self.session = session
         self.archive = archive
-        self.logger = logger.getChild()
+        self.logger = logger
         self.entity_specific = entity_specific
         self.logger.info(f"Manipulator initialized (entity_specific={entity_specific})")
 
@@ -53,18 +70,43 @@ class Manipulator:
     
     def _external_action_as_a_supervisor(self, prompt) -> List[Event]:
         """Perform a privileged external action within the game session. (DM moves)"""
+        prompt_text = f"""
+        You need to generate authoritative events based on the situation and a request e.g. "The dragon gets 1d8+2 damage. (based on items properties)" or "character 1 hits character 2 with a sword and dealing 1d6+3 damage"
+
+        # AVAILABLE EVENT TYPES:
+        {"\n".join(self.get_event_types())}
+
+        # prompt
+        {prompt}
+        # scene:
+        {self.session.get_session_context()}
+
+        # Last messages history (meta game) - for references:
+        {self.session.get_messages_formatted()}
+
+        # Rules:
+        {self.rules}
+        """
+        events = self.generator.generate_one_shot(
+            pydantic_model=EventList,
+            prompt=prompt_text
+        )
+        
+        # Add the system notification event to the list of events to be returned
+        # This allows the calling entity to publish all events properly to other entities
+        system_event = Event(
+            event_type=EventTypes.SYSTEM,
+            description=f"SYSTEM required action {prompt}"
+        )
+        
+        # Return both the generated events and the system notification
+        return events.event_list + [system_event]
         ...
     
     def _external_action_as_an_entity(self, prompt: str, actor : NPC | Player) -> List[Event]:
         """Perform a non-privileged external action within the game session. (Entity moves)"""
 
-        rules = f"""
-        1. Determine which objects involved into the request.
-        2. Be the most specific (if there is a certain object in the scene you should set event type to item-based not the entire scene)
-        3. Choose the appropriate event type based on the action being performed:
-        4. There are special types of requests from user when in battle. If an attack requested you Must generate an event that includes damage calculation based on character and item stats.
-        5. Do not generate ACTION_RESULT events.
-        """
+        
         prompt_text = f"""
         You need to generate authoritative events based on the situation and a request e.g. "The dragon gets 1d8+2 damage. (based on items properties)" or "character 1 hits character 2 with a sword and dealing 1d6+3 damage"
 
@@ -81,7 +123,7 @@ class Manipulator:
         {self.session.get_messages_formatted()}
 
         # Rules:
-        {rules}
+        {self.rules}
         """
         events = self.generator.generate_one_shot(
             pydantic_model=EventList,
