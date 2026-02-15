@@ -13,7 +13,7 @@ from game.manipulators.base_manipulation import Archive
 
 
 class Magg:
-    with open("prompts/DM_personality.md", "r") as f:
+    with open("prompts/DM_personality.md", "r", encoding="utf-8") as f:
         character_prompt = f.read()
     
     def __init__(self, generator : Generator, 

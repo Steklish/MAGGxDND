@@ -14,16 +14,16 @@ class Archive:
 
     def store(self, object):
         """Stores objects that are no longer in the current scene for future use."""
-        with open(f"{self.directory}/archive.json", "r") as file:
+        with open(f"{self.directory}/archive.json", "r", encoding="utf-8") as file:
             archive = json.load(file)
 
         archive.append(object)
-        with open(f"{self.directory}/archive.json", "w") as file:
+        with open(f"{self.directory}/archive.json", "w", encoding="utf-8") as file:
             json.dump(archive, file)
 
     def retrieve(self, object_type: str):
         """Retrieves stored all objects by type for the manipulator to decide what to do with an LLM."""
-        with open(f"{self.directory}/archive.json", "r") as file:
+        with open(f"{self.directory}/archive.json", "r", encoding="utf-8") as file:
             archive = json.load(file)
         return [obj for obj in archive if obj['type'] == object_type]
 

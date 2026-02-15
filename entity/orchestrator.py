@@ -19,12 +19,12 @@ class Orchestrator:
         self.manipulations : List[BaseManipulation] = []
         self.logger = logger
         
-        with open("prompts/character_action_rules.md", "r") as f:
+        with open("prompts/character_action_rules.md", "r", encoding="utf-8") as f:
             self.character_action_rules = f.read()
 
-        with open("prompts/combat.md", "r") as f:
+        with open("prompts/combat.md", "r", encoding="utf-8") as f:
             self.combat_rules = f.read()
-        with open("prompts/story.md", "r") as f:
+        with open("prompts/story.md", "r", encoding="utf-8") as f:
             self.story_rules = f.read()
         
     def add_state(self, state : "Session"):

@@ -1,7 +1,7 @@
 import re
 import random
 
-def roll_dice(dice_notation: str) -> int:
+def roll_single_dice(dice_notation: str) -> int:
     """
     Parses a single dice term (e.g., '2d6', ' d 20 ', '2 D 6') and rolls it.
     Does NOT handle modifiers like '+3' (use roll() for that).
@@ -40,7 +40,7 @@ def roll_dice(dice_notation: str) -> int:
     return total
 
 
-def roll(expression: str) -> int:
+def roll_dice(expression: str) -> int:
     """
     Rolls dice based on a complex expression.
     Robustly handles messy inputs like: '2 d6 + 3', 'd20 - 1', '2D4+d6'.
@@ -73,13 +73,13 @@ def roll(expression: str) -> int:
 
         if sides_str:
             # It is a Die (e.g., 2d6)
-            # Reconstruct a clean string for roll_dice to handle
+            # Reconstruct a clean string for roll_single_dice to handle
             # Use '1' if count is missing (e.g., d6 -> 1d6)
             c = count_str if count_str else "1"
             clean_dice_str = f"{c}d{sides_str}"
             
             # Roll it and add/subtract from total
-            total += (roll_dice(clean_dice_str) * multiplier)
+            total += (roll_single_dice(clean_dice_str) * multiplier)
             
         elif mod_str:
             # It is a Modifier (e.g., 5)

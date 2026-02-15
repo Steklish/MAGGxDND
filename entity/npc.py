@@ -21,7 +21,7 @@ class NPC(GameEntity):
     Multiple events can be processed at a time.
     """
     try:
-        with open("prompts/npc.md", "r") as f:
+        with open("prompts/npc.md", "r", encoding="utf-8") as f:
             npc_instruction = f.read()
     except FileNotFoundError:
         # Default instruction if file not found

@@ -86,7 +86,7 @@ class Session:
 
     def _init_plot(self, guide : str) -> None:
         prompt = None
-        with open("prompts/plot_generation.md", "r") as f:
+        with open("prompts/plot_generation.md", "r", encoding="utf-8") as f:
             prompt = f.read()
         if not prompt:
             raise ValueError("Plot generation prompt not found")
@@ -180,7 +180,7 @@ Use those ideas to create a story:
             ]
         }
 
-        with open(filename, 'w') as f:
+        with open(filename, 'w', encoding="utf-8") as f:
             json.dump(save_dict, f, indent=4)
         self.logger.info(f"Session saved to {filename}")
 
@@ -521,7 +521,7 @@ Use those ideas to create a story:
                          (orchestrator, event_pool, generator, chroma_client, logger, delivery)
         """
         try:
-            with open(filename, 'r') as f:
+            with open(filename, 'r', encoding="utf-8") as f:
                 save_data = json.load(f)
 
             # Restore basic properties
