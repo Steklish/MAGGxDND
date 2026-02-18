@@ -29,7 +29,7 @@ When presented with a [Player Declaration], follow these steps:
 
 ## Output Format
 Return your analysis in this format:
-**Status:** [LEGAL / ILLEGAL / CLARIFICATION NEEDED]
+**Status:** [LEGAL / ILLEGAL / CLARIFICATION NEEDED] (mark that if a player didnt provided details purpously you dont need to ask for clarification)
 **Reasoning:** [Brief explanation focusing on roleplay etiquette and game limitations.]
 **Correction:** [If Illegal, suggest how to rephrase the action to make it legal.]
 

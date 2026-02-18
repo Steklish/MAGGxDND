@@ -80,7 +80,13 @@ print("Starting the game...")
 
 # -- INIT SESSION AND MANIPULATOR --
 chroma_client = ChromaClient(EmbeddingClient(), logger_instance=main_logger)
-generator = Generator(GoogleGenAI(api_key=os.getenv("GEMINI_API_KEY"), logger=main_logger), logger_instance=main_logger)
+generator = Generator(
+    GoogleGenAI(
+        api_key=os.getenv("GEMINI_API_KEY", "NO_KEY"), 
+        logger=main_logger,
+        model_name="gemini-2.0-flash"
+    ), 
+    logger_instance=main_logger)
 event_pool = EventPool()
 
 session = Session(
@@ -112,38 +118,38 @@ session._init_orchestrator(orchestrator)
 
 # -- LOAD OR INIT GAME STATE --
 
-# scene = generator.generate_one_shot(
-#     pydantic_model=SceneNode,
-#     prompt="A dark and eerie forest clearing at night, with twisted trees and a faint mist."
-# )
+scene = generator.generate_one_shot(
+    pydantic_model=SceneNode,
+    prompt="A dark and eerie mention room."
+)
 
-# ch1 = generator.generate_one_shot(
-#     pydantic_model=Character,
-#     prompt="A wizard named Ogorek. has some random spells"
-# )
+ch1 = generator.generate_one_shot(
+    pydantic_model=Character,
+    prompt="A wizard named Ogorek. has some random spells"
+)
 
-# ch2 = generator.generate_one_shot(
-#     pydantic_model=Character,
-#     prompt="A warrior named Notman. Has a sword and a shield."
-# )
+ch2 = generator.generate_one_shot(
+    pydantic_model=Character,
+    prompt="A warrior named Notman. Has a sword and a shield."
+)
 
 
-# npc1 = generator.generate_one_shot(
-#     pydantic_model=NPCCharacter,
-#     prompt="An evil worm."
-# )
+npc1 = generator.generate_one_shot(
+    pydantic_model=NPCCharacter,
+    prompt="An evil worm."
+)
 
-# npc1.current_scene = scene.name
-# session.init_new_session(
-#     scene=scene,
-#     player_characters=[ch1, ch2],
-#     npcs=[npc1],
-#     npc_logger=npc_logger,
-#     player_logger=player_logger
-# )
+npc1.current_scene = scene.name
+session.init_new_session(
+    scene=scene,
+    player_characters=[ch1, ch2],
+    npcs=[npc1],
+    npc_logger=npc_logger,
+    player_logger=player_logger
+)
 
 # session._init_plot("A deep cave where dark slimey worms live")
 # session.save_session("./saves/ex_02.json")
-session.load_session_from_save("./saves/ex_02.json")
+# session.load_session_from_save("./saves/ex_02.json")
 # print(session.get_session_context())
 asyncio.run(session.game_loop())

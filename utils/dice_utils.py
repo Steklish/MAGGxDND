@@ -4,7 +4,7 @@ import random
 def roll_single_dice(dice_notation: str) -> int:
     """
     Parses a single dice term (e.g., '2d6', ' d 20 ', '2 D 6') and rolls it.
-    Does NOT handle modifiers like '+3' (use roll() for that).
+    Does NOT handle modifiers like '+3' (use roll_dice() for that).
     """
     # Normalize: lowercase and remove spaces
     clean_notation = dice_notation.lower().replace(" ", "")

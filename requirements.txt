@@ -1,0 +1,24 @@
+# MAGGxDND - AI-Powered D&D Game Engine Dependencies
+
+# Core Data Validation & Serialization
+pydantic>=2.0.0
+
+# Google Gemini AI Integration
+google-generativeai>=0.3.0
+
+# Vector Database for Embeddings
+chromadb>=0.4.0
+
+# HTTP Client (required by google-generativeai and chromadb)
+httpx>=0.25.0
+
+# Async Support
+aiohttp>=3.9.0
+
+# Logging & Utilities
+python-dotenv>=1.0.0
+
+# Note: This project depends on SKLS_core (custom internal packages)
+# - skls_generator
+# - skls_embeddings
+# These must be installed separately from their respective sources

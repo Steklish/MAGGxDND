@@ -1052,13 +1052,26 @@ Use those ideas to create a story:
                 elif isinstance(char, Player):
                     if self.game_mode == GameModes.COMBAT:
                         char.run()
-                    elif self.game_mode == GameModes.STORY:
                         #! In STORY mode, we don't enforce turn-based input
                         # Players can request to take actions out of turn order
                         # So we create an in-the-middle object that routes requests from all players
                         # In story mode it is also has minimum priority so it is processed after all the NPCs
-                        pass
-                
+                    if self.game_mode == GameModes.STORY:
+                        # In STORY mode, players can request actions outside of turn order
+                        # We'll check if there are any queued requests from any player
+                        # and process them as they come in
+                        # For now, we'll just continue with the turn-based flow
+                        are_npcs_done = True
+                        for c in self.turn_queue:
+                            if isinstance(c, NPC):
+                                if not c.event_queue.empty: are_npcs_done = False
+                                
+                        if are_npcs_done:
+                            char_acting = self.delivery.choose_player(self)
+                            char_acting.run_story()
+                        else:
+                            continue
+                        
                 elif isinstance(char, RoundDeterminator):
                     # Process round-based events
                     char.run()
@@ -1071,21 +1084,7 @@ Use those ideas to create a story:
                 # The original approach was to let NPCs act and then process player requests
                 # without duplicating the Player.run() logic, we need to think differently
                 # We'll check if there are player requests and handle them appropriately
-                if self.game_mode == GameModes.STORY:
-                    # In STORY mode, players can request actions outside of turn order
-                    # We'll check if there are any queued requests from any player
-                    # and process them as they come in
-                    # For now, we'll just continue with the turn-based flow
-                    are_npcs_done = True
-                    for c in self.turn_queue:
-                        if isinstance(c, NPC):
-                            if not c.event_queue.empty: are_npcs_done = False
-                            
-                    if are_npcs_done:
-                        char_acting = self.delivery.choose_player(self)
-                        char_acting.run_story()
-                    else:
-                        continue
+                
                 
                 self.logger.debug(f"Launching DM processing for {len(self.event_pool.get_events())} events")
                 if len(self.event_pool.get_events()) > 0:

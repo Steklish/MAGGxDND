@@ -90,23 +90,31 @@ Update game mode if there is an indicator. Dont end battles too early and but st
         )
         self.logger.debug("Processing decision")
         if decision.suggested_game_mode_action == GameModeActions.CHANGE_TO_COMBAT:
-            self.session.game_mode = GameModes.COMBAT
-            self.logger.info("Game mode changed to COMBAT")
-            self.event_queue.publish_to_others(
-                event=Event(
-                    event_type=EventTypes.ACTION_RESULT,
-                    description="Game mod changed to COMBAT"
+            if self.session.game_mode != GameModes.COMBAT:
+                self.session.game_mode = GameModes.COMBAT
+                self.logger.info("Game mode changed to COMBAT")
+                self.event_queue.publish_to_others(
+                    event=Event(
+                        event_type=EventTypes.ACTION_RESULT,
+                        description="Game mod changed to COMBAT"
+                    )
                 )
-            )
+            else:
+                self.logger.debug("Game mode already COMBAT, no change needed")
         elif decision.suggested_game_mode_action == GameModeActions.CHANGE_TO_STORY:
-            self.session.game_mode = GameModes.STORY
-            self.logger.info("Game mode changed to STORY")
-            self.event_queue.publish_to_others(
-                event=Event(
-                    event_type=EventTypes.ACTION_RESULT,
-                    description="Game mod changed to STORY"
+            if self.session.game_mode != GameModes.STORY:
+                self.session.game_mode = GameModes.STORY
+                self.logger.info("Game mode changed to STORY")
+                self.event_queue.publish_to_others(
+                    event=Event(
+                        event_type=EventTypes.ACTION_RESULT,
+                        description="Game mod changed to STORY"
+                    )
                 )
-            )
+            else:
+                self.logger.debug("Game mode already STORY, no change needed")
+        elif decision.suggested_game_mode_action == GameModeActions.KEEP_GAME_MODE:
+            self.logger.debug("Game mode remains unchanged")
             
         for char in decision.expired_conditions.keys():
             c = self.session.find_entity_by_name(char)

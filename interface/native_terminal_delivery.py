@@ -20,7 +20,7 @@ class NativeTerminalDelivery(Delivery):
         """Display a message from the game master (DM)."""
         formatted_text = Colors.colorize(
             text=f"DM {tag if tag else ''}: {text}",
-            color_code=Colors.BRIGHT_YELLOW + Colors.BLACK)
+            color_code=Colors.BG_YELLOW + Colors.BLACK)
         print(formatted_text)
 
     def session_updated(self, session : "Session") -> None:
