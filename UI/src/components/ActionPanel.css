@@ -1,0 +1,207 @@
+.action-panel {
+    padding: 20px;
+    background-color: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+}
+
+.no-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.no-action p {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+}
+
+.no-action .hint {
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+.action-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.active-character {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.character-icon {
+    font-size: 1.5rem;
+}
+
+.character-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.character-info strong {
+    color: var(--accent-purple);
+    font-size: 1.1rem;
+}
+
+.character-position {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.pending-indicator {
+    color: var(--accent-yellow);
+    font-size: 0.9rem;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.clarification-box {
+    padding: 12px 16px;
+    background-color: rgba(210, 153, 34, 0.1);
+    border: 1px solid var(--accent-yellow);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.clarification-icon {
+    font-size: 1.2rem;
+}
+
+.clarification-text {
+    color: var(--text-primary);
+    line-height: 1.5;
+    flex: 1;
+}
+
+.action-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.form-group textarea {
+    padding: 14px 16px;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+    transition: border-color 0.2s;
+}
+
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+}
+
+.form-group textarea:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.submit-btn,
+.clear-btn {
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.submit-btn {
+    flex: 1;
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+    color: var(--bg-primary);
+    border: none;
+}
+
+.submit-btn:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+.submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.clear-btn {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.clear-btn:hover:not(:disabled) {
+    background-color: var(--bg-primary);
+}
+
+.clear-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.action-hints {
+    padding: 16px;
+    background-color: var(--bg-tertiary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.action-hints h4 {
+    color: var(--accent-blue);
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+.action-hints ul {
+    padding-left: 20px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.8;
+}
+
+.action-hints li {
+    margin-bottom: 4px;
+}
+
+.action-hints strong {
+    color: var(--text-primary);
+}

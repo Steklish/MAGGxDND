@@ -1,0 +1,74 @@
+.turn-queue {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: var(--bg-tertiary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    min-width: 300px;
+}
+
+.turn-queue-header {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.turn-time {
+    color: var(--accent-blue);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.queue-label {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.queue-empty {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.turn-queue-list {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.turn-entry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background-color: var(--bg-secondary);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.turn-entry.next {
+    border-color: var(--accent-purple);
+    background-color: rgba(188, 140, 255, 0.1);
+    box-shadow: 0 0 8px rgba(188, 140, 255, 0.3);
+}
+
+.turn-indicator {
+    font-size: 1rem;
+}
+
+.turn-character {
+    color: var(--text-primary);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.turn-timer {
+    color: var(--text-secondary);
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.8rem;
+}
