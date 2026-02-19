@@ -5,8 +5,9 @@ import { useGameStore } from './store/gameStore';
 import './App.css';
 
 function App() {
-    const { mode, error } = useGameStore();
+    const { mode, error, sessionId } = useGameStore();
 
+    // Show connection screen only if explicitly in connecting mode
     if (mode === 'connecting') {
         return <ConnectionScreen />;
     }
@@ -23,6 +24,7 @@ function App() {
         );
     }
 
+    // Default: show game layout (demo mode)
     return <GameLayout />;
 }
 
