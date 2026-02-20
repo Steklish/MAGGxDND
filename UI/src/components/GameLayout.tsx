@@ -4,17 +4,29 @@ import { ChatPanel } from './ChatPanel';
 import { SceneViewer } from './SceneViewer';
 import { CharacterPanel } from './CharacterPanel';
 import { ActionPanel } from './ActionPanel';
-import { TurnQueue } from './TurnQueue';
 import './GameLayout.css';
+
+interface TurnEntry {
+    character: any;
+    type: 'player' | 'npc' | 'ally' | 'hostile' | 'neutral';
+    initiative: number;
+    isDead: boolean;
+    isDying: boolean;
+    deathSaveSuccesses: number;
+    deathSaveFailures: number;
+}
 
 export const GameLayout: React.FC = () => {
     const { session, currentScene, activeCharacter } = useGameStore();
     const [leftPanelWidth, setLeftPanelWidth] = useState(25);
     const [rightPanelWidth, setRightPanelWidth] = useState(25);
-    const [headerHeight, setHeaderHeight] = useState(80);
+    const [headerHeight, setHeaderHeight] = useState(120);
     const [isResizingLeft, setIsResizingLeft] = useState(false);
     const [isResizingRight, setIsResizingRight] = useState(false);
     const [isResizingHeader, setIsResizingHeader] = useState(false);
+    const [turnQueue, setTurnQueue] = useState<TurnEntry[]>([]);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [dyingCharacters, setDyingCharacters] = useState<string[]>([]);
     const containerRef = useRef<HTMLDivElement>(null);
     const startX = useRef(0);
     const startY = useRef(0);
@@ -22,6 +34,92 @@ export const GameLayout: React.FC = () => {
     const startRightWidth = useRef(0);
     const startHeaderHeight = useRef(0);
     const containerWidth = useRef(0);
+
+    // Initialize turn queue from session
+    useEffect(() => {
+        if (!session) return;
+
+        const queue: TurnEntry[] = [];
+
+        // Add players
+        session.players.forEach(p => {
+            const char = p.character;
+            queue.push({
+                character: char,
+                type: 'player',
+                initiative: char.initiative_bonus || 10,
+                isDead: char.current_hp <= 0 && char.is_alive === false,
+                isDying: char.current_hp <= 0 && char.is_alive !== false,
+                deathSaveSuccesses: 0,
+                deathSaveFailures: 0
+            });
+        });
+
+        // Add NPCs
+        session.npcs.forEach(n => {
+            const char = n.character;
+            // Determine NPC attitude based on context (for now, default to hostile)
+            let type: 'hostile' | 'neutral' | 'ally' = 'hostile';
+            if (char.alignment?.includes('Good')) type = 'ally';
+            else if (char.alignment?.includes('Neutral')) type = 'neutral';
+
+            queue.push({
+                character: char,
+                type,
+                initiative: char.initiative_bonus || 10,
+                isDead: char.current_hp <= 0 && char.is_alive === false,
+                isDying: char.current_hp <= 0 && char.is_alive !== false,
+                deathSaveSuccesses: 0,
+                deathSaveFailures: 0
+            });
+        });
+
+        // Sort by initiative (descending)
+        queue.sort((a, b) => b.initiative - a.initiative);
+        setTurnQueue(queue);
+        setCurrentIndex(0);
+    }, [session]);
+
+    // Get alive queue (filter out dead, keep dying for death saves)
+    const getAliveQueue = useCallback(() => {
+        return turnQueue.filter(entry => !entry.isDead);
+    }, [turnQueue]);
+
+    const aliveQueue = getAliveQueue();
+    const currentTurnChar = aliveQueue[currentIndex % aliveQueue.length];
+
+    // Handle character death animation
+    const handleDeathAnimation = useCallback((characterName: string) => {
+        setDyingCharacters(prev => [...prev, characterName]);
+        setTimeout(() => {
+            setDyingCharacters(prev => prev.filter(name => name !== characterName));
+        }, 1000);
+    }, []);
+
+    // Handle death save for dying characters
+    const performDeathSave = useCallback((characterName: string) => {
+        // In a real implementation, this would roll a d20
+        const roll = Math.floor(Math.random() * 20) + 1;
+        console.log(`${characterName} death save roll: ${roll}`);
+        // Update death save counters based on roll
+        // 10+ = success, <10 = failure
+        // 1 = 2 failures, 20 = automatic success
+    }, []);
+
+    // Advance turn
+    const advanceTurn = useCallback(() => {
+        if (aliveQueue.length === 0) return;
+
+        const currentChar = aliveQueue[currentIndex % aliveQueue.length];
+
+        // Check if current character is dying - perform death save
+        if (currentChar?.isDying) {
+            performDeathSave(currentChar.character.name);
+        }
+
+        // Move to next character
+        setCurrentIndex(prev => (prev + 1) % aliveQueue.length);
+    }, [aliveQueue, currentIndex, performDeathSave]);
 
     const handleMouseMove = useCallback((e: MouseEvent) => {
         if (!isResizingLeft && !isResizingRight && !isResizingHeader) return;
@@ -33,7 +131,7 @@ export const GameLayout: React.FC = () => {
         if (isResizingHeader) {
             const deltaY = e.clientY - startY.current;
             const newHeight = startHeaderHeight.current + deltaY;
-            setHeaderHeight(Math.max(60, Math.min(200, newHeight)));
+            setHeaderHeight(Math.max(80, Math.min(300, newHeight)));
         } else {
             const deltaX = e.clientX - startX.current;
             const deltaPercent = (deltaX / containerWidth.current) * 100;
@@ -98,14 +196,15 @@ export const GameLayout: React.FC = () => {
         return <div className="loading">Loading game...</div>;
     }
 
-    // Get current turn character
-    const getCurrentTurnCharacter = () => {
-        if (!session.turn_queue || session.turn_queue.length === 0) return null;
-        const sortedQueue = [...session.turn_queue].sort((a, b) => a[2] - b[2]);
-        return sortedQueue[0]?.[0];
+    const getAttitudeColor = (type: string) => {
+        switch (type) {
+            case 'player': return 'var(--accent-purple)';
+            case 'ally': return 'var(--accent-green)';
+            case 'neutral': return 'var(--accent-yellow)';
+            case 'hostile': return 'var(--accent-orange)';
+            default: return 'var(--text-muted)';
+        }
     };
-
-    const currentTurnChar = getCurrentTurnCharacter();
 
     return (
         <div className="game-layout" ref={containerRef}>
@@ -118,19 +217,63 @@ export const GameLayout: React.FC = () => {
                         <span className="title-dnd">DND</span>
                     </h1>
                 </div>
-                <div className="header-center">
-                    {currentTurnChar && (
-                        <div className="current-turn-indicator">
-                            <span className="turn-label">Current Turn:</span>
-                            <span className="turn-character">{currentTurnChar.name}</span>
-                        </div>
-                    )}
+
+                {/* Turn Queue with Portraits */}
+                <div className="header-center turn-queue-container">
+                    {aliveQueue.map((entry, idx) => {
+                        const isCurrentTurn = idx === (currentIndex % aliveQueue.length);
+                        const isDying = entry.isDying;
+
+                        return (
+                            <div
+                                key={`${entry.character.name}-${entry.initiative}`}
+                                className={`turn-portrait ${isCurrentTurn ? 'active' : ''} ${isDying ? 'dying' : ''} ${dyingCharacters.includes(entry.character.name) ? 'death-animation' : ''}`}
+                                style={{
+                                    borderColor: getAttitudeColor(entry.type),
+                                    opacity: isCurrentTurn ? 1 : 0.4
+                                }}
+                            >
+                                <div className="portrait-frame">
+                                    {/* Portrait placeholder - will be loaded later */}
+                                    <div className="portrait-placeholder">
+                                        <span className="portrait-initial">
+                                            {entry.character.name?.[0] || '?'}
+                                        </span>
+                                    </div>
+                                    {/* Attitude indicator */}
+                                    <div
+                                        className="attitude-indicator"
+                                        style={{ backgroundColor: getAttitudeColor(entry.type) }}
+                                    />
+                                </div>
+
+                                {/* Death save counters */}
+                                {isDying && (
+                                    <div className="death-saves">
+                                        <div className="death-save-successes">
+                                            {'✓'.repeat(entry.deathSaveSuccesses)}
+                                        </div>
+                                        <div className="death-save-failures">
+                                            {'✗'.repeat(entry.deathSaveFailures)}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Character name */}
+                                <div className="portrait-name">
+                                    {entry.character.name}
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
+
                 <div className="header-right">
                     <button className="profile-btn" title="Profile">
                         <span className="profile-icon">👤</span>
                     </button>
                 </div>
+
                 {/* Header resize handle */}
                 <div
                     className="header-resize-handle"
