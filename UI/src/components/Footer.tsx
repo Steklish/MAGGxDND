@@ -1,28 +1,88 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './Footer.css';
 
 export const Footer: React.FC = () => {
     const [isVisible, setIsVisible] = useState(false);
+    const [dragOffset, setDragOffset] = useState(0);
+    const startY = useRef(0);
+    const isDragging = useRef(false);
 
     useEffect(() => {
-        const handleScroll = () => {
-            const scrollTop = window.scrollY || document.documentElement.scrollTop;
-            const scrollHeight = document.documentElement.scrollHeight;
-            const clientHeight = window.innerHeight || document.documentElement.clientHeight;
-
-            // Show footer when scrolled to bottom (with 100px threshold)
-            const isAtBottom = scrollTop + clientHeight >= scrollHeight - 100;
-            setIsVisible(isAtBottom);
+        const handleTouchStart = (e: TouchEvent) => {
+            startY.current = e.touches[0].clientY;
+            isDragging.current = true;
         };
 
-        window.addEventListener('scroll', handleScroll);
-        handleScroll(); // Check initial state
+        const handleTouchMove = (e: TouchEvent) => {
+            if (!isDragging.current) return;
+            const currentY = e.touches[0].clientY;
+            const delta = currentY - startY.current;
 
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+            // Only trigger on downward drag
+            if (delta > 0) {
+                setDragOffset(Math.min(delta, 300));
+            }
+        };
+
+        const handleTouchEnd = () => {
+            if (!isDragging.current) return;
+            isDragging.current = false;
+
+            // Show footer if dragged enough
+            if (dragOffset > 150) {
+                setIsVisible(true);
+            } else {
+                setIsVisible(false);
+            }
+            setDragOffset(0);
+        };
+
+        const handleMouseDown = (e: MouseEvent) => {
+            startY.current = e.clientY;
+            isDragging.current = true;
+        };
+
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!isDragging.current) return;
+            const delta = e.clientY - startY.current;
+            if (delta > 0) {
+                setDragOffset(Math.min(delta, 300));
+            }
+        };
+
+        const handleMouseUp = () => {
+            if (!isDragging.current) return;
+            isDragging.current = false;
+
+            if (dragOffset > 150) {
+                setIsVisible(true);
+            } else {
+                setIsVisible(false);
+            }
+            setDragOffset(0);
+        };
+
+        document.addEventListener('touchstart', handleTouchStart);
+        document.addEventListener('touchmove', handleTouchMove);
+        document.addEventListener('touchend', handleTouchEnd);
+        document.addEventListener('mousedown', handleMouseDown);
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+
+        return () => {
+            document.removeEventListener('touchstart', handleTouchStart);
+            document.removeEventListener('touchmove', handleTouchMove);
+            document.removeEventListener('touchend', handleTouchEnd);
+            document.removeEventListener('mousedown', handleMouseDown);
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [dragOffset]);
 
     return (
-        <footer className={`footer ${isVisible ? 'visible' : ''}`}>
+        <footer className={`footer ${isVisible ? 'visible' : ''}`} style={{
+            transform: isVisible ? 'translateY(0)' : `translateY(calc(100% - ${Math.max(0, dragOffset - 100)}px))`
+        }}>
             <div className="footer-content">
                 {/* Left Section - Game Rules */}
                 <div className="footer-section">

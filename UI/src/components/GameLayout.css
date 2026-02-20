@@ -14,8 +14,6 @@
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
-    scroll-behavior: smooth;
-    padding-bottom: 300px; /* Space for footer to slide up */
 }
 
 /* Header - Purple theme */

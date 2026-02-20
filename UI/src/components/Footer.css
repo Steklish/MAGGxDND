@@ -3,17 +3,38 @@
     border-top: 1px solid var(--border-color);
     padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
     font-family: 'Rajdhani', sans-serif;
-    position: absolute;
+    position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     transform: translateY(100%);
-    transition: transform 0.3s ease;
-    z-index: 100;
+    transition: transform 0.2s ease-out;
+    z-index: 1000;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .footer.visible {
     transform: translateY(0);
+    transition: transform 0.3s ease;
+}
+
+/* Drag indicator */
+.footer::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 8px;
+    background-color: var(--border-color);
+    border-radius: 4px;
+    cursor: grab;
+    transition: background-color 0.2s;
+}
+
+.footer::before:hover {
+    background-color: var(--accent-orange);
 }
 
 .footer-content {
