@@ -7,6 +7,17 @@
     background: var(--gradient-dark);
 }
 
+/* Game content - scrollable area */
+.game-content {
+    display: flex;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    scroll-behavior: smooth;
+    padding-bottom: 300px; /* Space for footer to slide up */
+}
+
 /* Header - Purple theme */
 .game-header {
     display: flex;

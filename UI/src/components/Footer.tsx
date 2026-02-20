@@ -1,9 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './Footer.css';
 
 export const Footer: React.FC = () => {
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollTop = window.scrollY || document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight;
+            const clientHeight = window.innerHeight || document.documentElement.clientHeight;
+
+            // Show footer when scrolled to bottom (with 100px threshold)
+            const isAtBottom = scrollTop + clientHeight >= scrollHeight - 100;
+            setIsVisible(isAtBottom);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        handleScroll(); // Check initial state
+
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
     return (
-        <footer className="footer">
+        <footer className={`footer ${isVisible ? 'visible' : ''}`}>
             <div className="footer-content">
                 {/* Left Section - Game Rules */}
                 <div className="footer-section">
