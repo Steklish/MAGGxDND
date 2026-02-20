@@ -66,28 +66,6 @@ export const GameLayout: React.FC = () => {
                     />
                 </aside>
             </div>
-            
-            {/* Left collapse overlay button */}
-            <button 
-                className={`panel-overlay-btn left-overlay ${leftPanelCollapsed ? 'collapsed' : ''}`}
-                onClick={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
-                title={leftPanelCollapsed ? 'Expand characters' : 'Collapse characters'}
-            >
-                <span className="overlay-icon">
-                    {leftPanelCollapsed ? '>' : '<'}
-                </span>
-            </button>
-            
-            {/* Right collapse overlay button */}
-            <button 
-                className={`panel-overlay-btn right-overlay ${rightPanelCollapsed ? 'collapsed' : ''}`}
-                onClick={() => setRightPanelCollapsed(!rightPanelCollapsed)}
-                title={rightPanelCollapsed ? 'Expand chat' : 'Collapse chat'}
-            >
-                <span className="overlay-icon">
-                    {rightPanelCollapsed ? '<' : '>'}
-                </span>
-            </button>
         </div>
     );
 };

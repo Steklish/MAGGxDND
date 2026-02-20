@@ -188,6 +188,9 @@ export const CharacterPanel: React.FC<CharacterPanelProps> = ({ collapsed, onTog
         <div className="character-panel">
             <div className="panel-header">
                 <h2>👥 Characters</h2>
+                <button className="collapse-toggle-btn" onClick={onToggle} title="Collapse panel">
+                    <span className="collapse-icon">{collapsed ? '>' : '<'}</span>
+                </button>
             </div>
 
             <div className="characters-list">

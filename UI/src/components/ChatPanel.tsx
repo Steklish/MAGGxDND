@@ -226,6 +226,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ collapsed, onToggle }) => 
         <div className="chat-panel">
             <div className="chat-header">
                 <h2>💬 Game Log</h2>
+                <button className="collapse-toggle-btn" onClick={onToggle} title="Collapse panel">
+                    <span className="collapse-icon">{collapsed ? '<' : '>'}</span>
+                </button>
             </div>
             <div className="filter-buttons">
                 <Tooltip content={<FilterTooltipContent filter="all" />} position="bottom">

@@ -99,6 +99,38 @@
     font-family: 'Nurito', sans-serif;
 }
 
+.collapse-toggle-btn {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    padding: 0;
+}
+
+.collapse-toggle-btn:hover {
+    background: var(--bg-primary);
+    border-color: var(--accent-blue);
+    transform: scale(1.05);
+}
+
+.collapse-toggle-btn .collapse-icon {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    font-weight: 700;
+    transition: transform 0.3s ease, color 0.2s ease;
+    display: inline-block;
+}
+
+.collapse-toggle-btn:hover .collapse-icon {
+    color: var(--accent-blue);
+}
+
 .characters-list {
     padding: 12px;
     display: flex;
