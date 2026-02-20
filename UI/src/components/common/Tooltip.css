@@ -59,7 +59,7 @@
     display: block;
     font-size: 1.3rem;
     font-weight: 700;
-    color: var(--accent-orange);
+    color: var(--accent-yellow);
     margin-bottom: 4px;
     font-family: 'Rajdhani', sans-serif;
     text-transform: uppercase;
@@ -118,7 +118,7 @@
 .character-preview-stat-value {
     font-size: 1.2rem;
     font-weight: 700;
-    color: var(--accent-orange);
+    color: var(--accent-yellow);
     font-family: 'Rajdhani', sans-serif;
 }
 
@@ -193,14 +193,14 @@
     padding: 8px 10px;
     background-color: var(--bg-secondary);
     border-radius: var(--radius-md);
-    border-left: 3px solid var(--accent-orange);
+    border-left: 3px solid var(--accent-yellow);
     margin-bottom: 4px;
     transition: all 0.3s ease;
 }
 
 .character-preview-ability:hover {
     background-color: var(--bg-accent);
-    box-shadow: 0 0 10px rgba(255, 107, 53, 0.1);
+    box-shadow: 0 0 10px rgba(233, 196, 106, 0.1);
 }
 
 .character-preview-ability-name {
@@ -219,11 +219,11 @@
 
 .spell-level-tag {
     font-size: 0.7rem;
-    color: var(--accent-orange);
-    background-color: rgba(255, 107, 53, 0.1);
+    color: var(--accent-yellow);
+    background-color: rgba(233, 196, 106, 0.1);
     padding: 1px 6px;
     border-radius: var(--radius-sm);
-    border: 1px solid rgba(255, 107, 53, 0.2);
+    border: 1px solid rgba(233, 196, 106, 0.2);
     font-family: 'Rajdhani', sans-serif;
     font-weight: 600;
 }
@@ -256,8 +256,8 @@
 }
 
 .character-preview-inventory-item:hover {
-    border-color: var(--accent-orange);
-    background-color: var(--bg-accent);
+    border-color: var(--accent-yellow);
+    background-color: rgba(233, 196, 106, 0.1);
 }
 
 .equipped-badge {

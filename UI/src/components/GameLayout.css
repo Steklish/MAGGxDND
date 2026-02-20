@@ -148,6 +148,15 @@
 }
 
 /* Left panel - Yellow accent */
+.left-panel {
+    background: linear-gradient(180deg, rgba(233, 196, 106, 0.03) 0%, var(--bg-secondary) 100%);
+}
+
+.left-panel .panel-header {
+    background: linear-gradient(180deg, rgba(233, 196, 106, 0.1) 0%, var(--bg-secondary) 100%);
+    border-bottom-color: rgba(233, 196, 106, 0.3);
+}
+
 .left-panel .panel-header h2 {
     background: linear-gradient(135deg, #e9c46a 0%, #f4a261 100%);
     -webkit-background-clip: text;
@@ -155,9 +164,15 @@
     background-clip: text;
 }
 
+.left-panel .character-card {
+    background-color: rgba(233, 196, 106, 0.05);
+    border-color: rgba(233, 196, 106, 0.2);
+}
+
 .left-panel .character-card:hover,
 .left-panel .character-card.active {
     border-color: var(--accent-yellow);
+    background-color: rgba(233, 196, 106, 0.1);
     box-shadow: 0 0 15px rgba(233, 196, 106, 0.2);
 }
 
@@ -167,24 +182,85 @@
     border-color: rgba(233, 196, 106, 0.2);
 }
 
+.left-panel .character-name {
+    color: var(--accent-yellow);
+}
+
 .left-panel .ability-value {
     color: var(--accent-yellow);
 }
 
+.left-panel .ability-score {
+    background-color: rgba(233, 196, 106, 0.05);
+    border-color: rgba(233, 196, 106, 0.2);
+}
+
 .left-panel .ability-score:hover {
     border-color: var(--accent-yellow);
+    box-shadow: 0 0 10px rgba(233, 196, 106, 0.2);
 }
 
 .left-panel .ability-item {
+    background-color: rgba(233, 196, 106, 0.05);
+    border-left-color: var(--accent-yellow);
+}
+
+.left-panel .ability-item:hover {
+    background-color: rgba(233, 196, 106, 0.1);
+}
+
+.left-panel .condition-tag {
+    color: var(--accent-yellow);
+    background-color: rgba(233, 196, 106, 0.1);
+    border-color: rgba(233, 196, 106, 0.2);
+}
+
+.left-panel .hp-bar {
+    border-color: rgba(233, 196, 106, 0.3);
+}
+
+.left-panel .inventory-item {
+    background-color: rgba(233, 196, 106, 0.05);
+    border-color: rgba(233, 196, 106, 0.2);
+}
+
+.left-panel .inventory-item:hover {
+    border-color: var(--accent-yellow);
+    background-color: rgba(233, 196, 106, 0.1);
+}
+
+.left-panel .inventory-item.equipped {
     border-left-color: var(--accent-yellow);
 }
 
 /* Right panel - Orange accent */
+.right-panel {
+    background: linear-gradient(180deg, rgba(255, 107, 53, 0.03) 0%, var(--bg-secondary) 100%);
+}
+
+.right-panel .chat-header {
+    background: linear-gradient(180deg, rgba(255, 107, 53, 0.1) 0%, var(--bg-secondary) 100%);
+    border-bottom-color: rgba(255, 107, 53, 0.3);
+}
+
 .right-panel .chat-header h2 {
     background: linear-gradient(135deg, #ff6b35 0%, #f4a261 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+}
+
+.right-panel .filter-buttons {
+    border-bottom-color: rgba(255, 107, 53, 0.2);
+}
+
+.right-panel .filter-buttons button {
+    background-color: rgba(255, 107, 53, 0.05);
+    border-color: rgba(255, 107, 53, 0.2);
+}
+
+.right-panel .filter-buttons button:hover {
+    border-color: var(--accent-orange);
 }
 
 .right-panel .filter-buttons button.active {
@@ -193,17 +269,39 @@
     box-shadow: 0 0 15px rgba(255, 107, 53, 0.3);
 }
 
+.right-panel .chat-entry {
+    background-color: rgba(255, 107, 53, 0.03);
+}
+
 .right-panel .chat-entry.dm-message {
     border-left-color: var(--accent-orange);
+    background-color: rgba(255, 107, 53, 0.08);
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.1);
 }
 
 .right-panel .sender {
     color: var(--accent-orange);
 }
 
+.right-panel .event-content-with-tooltip:hover .event-content {
+    background-color: rgba(255, 107, 53, 0.15);
+}
+
 /* Center panel - Green accent */
+.center-panel {
+    background: linear-gradient(180deg, rgba(42, 157, 143, 0.08) 0%, var(--bg-secondary) 100%);
+}
+
 .center-panel .scene-header h2 {
     color: var(--accent-green);
+}
+
+.center-panel .scene-info {
+    color: var(--text-secondary);
+}
+
+.center-panel .scene-description {
+    color: var(--text-secondary);
 }
 
 .loading {
