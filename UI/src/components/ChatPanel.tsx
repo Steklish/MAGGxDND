@@ -2,7 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
 import './ChatPanel.css';
 
-export const ChatPanel: React.FC = () => {
+interface ChatPanelProps {
+    collapsed: boolean;
+    onToggle: () => void;
+}
+
+export const ChatPanel: React.FC<ChatPanelProps> = ({ collapsed, onToggle }) => {
     const { messages, events } = useGameStore();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [filter, setFilter] = useState<'all' | 'dm' | 'players' | 'events'>('all');
@@ -23,11 +28,11 @@ export const ChatPanel: React.FC = () => {
 
         switch (filter) {
             case 'dm':
-                return allMessages.filter(m => 
+                return allMessages.filter(m =>
                     m.type === 'message' && m.data.sender_name.startsWith('DM')
                 );
             case 'players':
-                return allMessages.filter(m => 
+                return allMessages.filter(m =>
                     m.type === 'message' && !m.data.sender_name.startsWith('DM')
                 );
             case 'events':
@@ -54,36 +59,102 @@ export const ChatPanel: React.FC = () => {
 
     const filteredMessages = getFilteredMessages();
 
+    if (collapsed) {
+        return (
+            <div className="chat-panel collapsed">
+                <div className="collapse-toggle" onClick={onToggle}>
+                    <span className="toggle-icon" title="Expand panel">💬←</span>
+                </div>
+                <nav className="icon-nav">
+                    <button 
+                        className={`nav-icon ${filter === 'all' ? 'active' : ''}`} 
+                        title="All messages"
+                        onClick={() => {
+                            setFilter('all');
+                            onToggle();
+                        }}
+                    >
+                        📋
+                    </button>
+                    <button 
+                        className={`nav-icon ${filter === 'dm' ? 'active' : ''}`} 
+                        title="DM messages"
+                        onClick={() => {
+                            setFilter('dm');
+                            onToggle();
+                        }}
+                    >
+                        🎙️
+                    </button>
+                    <button 
+                        className={`nav-icon ${filter === 'players' ? 'active' : ''}`} 
+                        title="Player messages"
+                        onClick={() => {
+                            setFilter('players');
+                            onToggle();
+                        }}
+                    >
+                        💬
+                    </button>
+                    <div className="nav-separator" />
+                    <button 
+                        className={`nav-icon ${filter === 'events' ? 'active' : ''}`} 
+                        title="Events only"
+                        onClick={() => {
+                            setFilter('events');
+                            onToggle();
+                        }}
+                    >
+                        ⚡
+                    </button>
+                    {events.slice(-5).reverse().map((event, idx) => (
+                        <button
+                            key={idx}
+                            className="nav-icon event-icon"
+                            title={event.description}
+                            onClick={() => onToggle()}
+                        >
+                            {getEventIcon(event.event_type)}
+                        </button>
+                    ))}
+                </nav>
+            </div>
+        );
+    }
+
     return (
         <div className="chat-panel">
             <div className="chat-header">
                 <h2>💬 Game Log</h2>
-                <div className="filter-buttons">
-                    <button 
-                        className={filter === 'all' ? 'active' : ''}
-                        onClick={() => setFilter('all')}
-                    >
-                        All
-                    </button>
-                    <button 
-                        className={filter === 'dm' ? 'active' : ''}
-                        onClick={() => setFilter('dm')}
-                    >
-                        DM
-                    </button>
-                    <button 
-                        className={filter === 'players' ? 'active' : ''}
-                        onClick={() => setFilter('players')}
-                    >
-                        Players
-                    </button>
-                    <button 
-                        className={filter === 'events' ? 'active' : ''}
-                        onClick={() => setFilter('events')}
-                    >
-                        Events
-                    </button>
-                </div>
+                <button className="collapse-toggle-btn" onClick={onToggle} title="Collapse panel">
+                    💬←
+                </button>
+            </div>
+            <div className="filter-buttons">
+                <button
+                    className={filter === 'all' ? 'active' : ''}
+                    onClick={() => setFilter('all')}
+                >
+                    All
+                </button>
+                <button
+                    className={filter === 'dm' ? 'active' : ''}
+                    onClick={() => setFilter('dm')}
+                >
+                    DM
+                </button>
+                <button
+                    className={filter === 'players' ? 'active' : ''}
+                    onClick={() => setFilter('players')}
+                >
+                    Players
+                </button>
+                <button
+                    className={filter === 'events' ? 'active' : ''}
+                    onClick={() => setFilter('events')}
+                >
+                    Events
+                </button>
             </div>
 
             <div className="chat-messages">
@@ -94,11 +165,11 @@ export const ChatPanel: React.FC = () => {
                     </div>
                 ) : (
                     filteredMessages.map((msg, idx) => (
-                        <div 
-                            key={idx} 
+                        <div
+                            key={idx}
                             className={`chat-entry ${msg.type} ${
-                                msg.type === 'message' && msg.data.sender_name.startsWith('DM') 
-                                    ? 'dm-message' 
+                                msg.type === 'message' && msg.data.sender_name.startsWith('DM')
+                                    ? 'dm-message'
                                     : ''
                             }`}
                         >

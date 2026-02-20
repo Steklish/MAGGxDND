@@ -9,8 +9,8 @@ import './GameLayout.css';
 
 export const GameLayout: React.FC = () => {
     const { session, currentScene, activeCharacter } = useGameStore();
-    const [leftPanelWidth, setLeftPanelWidth] = useState(25);
-    const [rightPanelWidth, setRightPanelWidth] = useState(25);
+    const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
+    const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
 
     if (!session) {
         return <div className="loading">Loading game...</div>;
@@ -41,11 +41,13 @@ export const GameLayout: React.FC = () => {
             {/* Main content */}
             <div className="game-content">
                 {/* Left Panel - Characters */}
-                <aside 
-                    className="left-panel" 
-                    style={{ width: `${leftPanelWidth}%` }}
+                <aside
+                    className={`left-panel ${leftPanelCollapsed ? 'collapsed' : ''}`}
                 >
-                    <CharacterPanel />
+                    <CharacterPanel 
+                        collapsed={leftPanelCollapsed} 
+                        onToggle={() => setLeftPanelCollapsed(!leftPanelCollapsed)} 
+                    />
                 </aside>
 
                 {/* Center - Scene and Action */}
@@ -55,11 +57,13 @@ export const GameLayout: React.FC = () => {
                 </main>
 
                 {/* Right Panel - Chat */}
-                <aside 
-                    className="right-panel"
-                    style={{ width: `${rightPanelWidth}%` }}
+                <aside
+                    className={`right-panel ${rightPanelCollapsed ? 'collapsed' : ''}`}
                 >
-                    <ChatPanel />
+                    <ChatPanel 
+                        collapsed={rightPanelCollapsed} 
+                        onToggle={() => setRightPanelCollapsed(!rightPanelCollapsed)} 
+                    />
                 </aside>
             </div>
         </div>

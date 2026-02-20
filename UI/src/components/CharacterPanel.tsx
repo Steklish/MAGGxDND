@@ -2,11 +2,25 @@ import React from 'react';
 import { useGameStore } from '../store/gameStore';
 import './CharacterPanel.css';
 
-export const CharacterPanel: React.FC = () => {
+interface CharacterPanelProps {
+    collapsed: boolean;
+    onToggle: () => void;
+}
+
+export const CharacterPanel: React.FC<CharacterPanelProps> = ({ collapsed, onToggle }) => {
     const { session, activeCharacter, setActiveCharacter } = useGameStore();
 
     if (!session) {
-        return <div className="character-panel">No session</div>;
+        return (
+            <div className="character-panel">
+                <div className="collapse-toggle" onClick={onToggle}>
+                    <span className="toggle-icon" title={collapsed ? 'Expand' : 'Collapse'}>
+                        {collapsed ? '👥→' : '←👥'}
+                    </span>
+                </div>
+                <div className="no-session">No session</div>
+            </div>
+        );
     }
 
     const players = session.players.map(p => p.character);
@@ -20,18 +34,65 @@ export const CharacterPanel: React.FC = () => {
         }
     };
 
+    if (collapsed) {
+        return (
+            <div className="character-panel collapsed">
+                <div className="collapse-toggle" onClick={onToggle}>
+                    <span className="toggle-icon" title="Expand panel">←👥</span>
+                </div>
+                <nav className="icon-nav">
+                    <button 
+                        className="nav-icon" 
+                        title="Characters"
+                        onClick={() => onToggle()}
+                    >
+                        👥
+                    </button>
+                    {players.map(char => (
+                        <button
+                            key={char.name}
+                            className={`nav-icon ${activeCharacter?.name === char.name ? 'active' : ''}`}
+                            title={`${char.name} (${char.char_class} Lvl ${char.level})`}
+                            onClick={() => handleSelectCharacter(char)}
+                        >
+                            {char.name[0].toUpperCase()}
+                        </button>
+                    ))}
+                    {npcs.length > 0 && (
+                        <>
+                            <div className="nav-separator" />
+                            {npcs.map(char => (
+                                <button
+                                    key={char.name}
+                                    className={`nav-icon npc ${activeCharacter?.name === char.name ? 'active' : ''}`}
+                                    title={`${char.name} (NPC)`}
+                                    onClick={() => handleSelectCharacter(char)}
+                                >
+                                    🐾
+                                </button>
+                            ))}
+                        </>
+                    )}
+                </nav>
+            </div>
+        );
+    }
+
     return (
         <div className="character-panel">
             <div className="panel-header">
                 <h2>👥 Characters</h2>
+                <button className="collapse-toggle-btn" onClick={onToggle} title="Collapse panel">
+                    👥→
+                </button>
             </div>
 
             <div className="characters-list">
                 <div className="character-section">
                     <h3>Players ({players.length})</h3>
                     {players.map(char => (
-                        <div 
-                            key={char.name} 
+                        <div
+                            key={char.name}
                             className={`character-card ${activeCharacter?.name === char.name ? 'active' : ''}`}
                             onClick={() => handleSelectCharacter(char)}
                         >
@@ -45,14 +106,14 @@ export const CharacterPanel: React.FC = () => {
                             </div>
                             <div className="character-stats">
                                 <div className="hp-bar">
-                                    <div 
-                                        className="hp-fill" 
-                                        style={{ 
+                                    <div
+                                        className="hp-fill"
+                                        style={{
                                             width: `${(char.current_hp / char.max_hp) * 100}%`,
-                                            backgroundColor: char.current_hp / char.max_hp > 0.5 
-                                                ? 'var(--accent-green)' 
-                                                : char.current_hp / char.max_hp > 0.25 
-                                                    ? 'var(--accent-yellow)' 
+                                            backgroundColor: char.current_hp / char.max_hp > 0.5
+                                                ? 'var(--accent-green)'
+                                                : char.current_hp / char.max_hp > 0.25
+                                                    ? 'var(--accent-yellow)'
                                                     : 'var(--accent-red)'
                                         }}
                                     />
@@ -77,8 +138,8 @@ export const CharacterPanel: React.FC = () => {
                 <div className="character-section">
                     <h3>NPCs ({npcs.length})</h3>
                     {npcs.map(char => (
-                        <div 
-                            key={char.name} 
+                        <div
+                            key={char.name}
                             className={`character-card npc ${activeCharacter?.name === char.name ? 'active' : ''}`}
                             onClick={() => handleSelectCharacter(char)}
                         >
@@ -92,9 +153,9 @@ export const CharacterPanel: React.FC = () => {
                             </div>
                             <div className="character-stats">
                                 <div className="hp-bar">
-                                    <div 
-                                        className="hp-fill" 
-                                        style={{ 
+                                    <div
+                                        className="hp-fill"
+                                        style={{
                                             width: `${(char.current_hp / char.max_hp) * 100}%`
                                         }}
                                     />
@@ -109,7 +170,7 @@ export const CharacterPanel: React.FC = () => {
             {activeCharacter && (
                 <div className="character-details-panel">
                     <h3>{activeCharacter.name}</h3>
-                    
+
                     <div className="details-section">
                         <h4>Ability Scores</h4>
                         <div className="ability-scores">
