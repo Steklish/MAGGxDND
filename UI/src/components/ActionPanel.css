@@ -1,7 +1,25 @@
 .action-panel {
-    padding: 20px;
+    padding: 16px;
     background-color: var(--bg-secondary);
     border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.resize-handle-top {
+    height: 8px;
+    cursor: ns-resize;
+    background: transparent;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+    border-top: 2px solid transparent;
+}
+
+.resize-handle-top:hover {
+    background-color: rgba(157, 78, 221, 0.2);
+    border-top-color: var(--accent-purple);
 }
 
 .no-action {
@@ -133,17 +151,21 @@
 
 .action-buttons {
     display: flex;
-    gap: 10px;
+    gap: 8px;
 }
 
 .submit-btn,
+.skip-btn,
 .clear-btn {
-    padding: 12px 24px;
+    padding: 10px 16px;
     border-radius: 6px;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .submit-btn {
@@ -163,6 +185,22 @@
     cursor: not-allowed;
 }
 
+.skip-btn {
+    background-color: rgba(230, 57, 70, 0.1);
+    color: var(--accent-red);
+    border: 1px solid var(--accent-red);
+}
+
+.skip-btn:hover:not(:disabled) {
+    background-color: rgba(230, 57, 70, 0.2);
+    transform: translateY(-2px);
+}
+
+.skip-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .clear-btn {
     background-color: var(--bg-tertiary);
     color: var(--text-primary);
@@ -178,30 +216,99 @@
     cursor: not-allowed;
 }
 
-.action-hints {
-    padding: 16px;
-    background-color: var(--bg-tertiary);
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
+/* Game Log Section */
+.game-log-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin-top: 16px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 12px;
 }
 
-.action-hints h4 {
-    color: var(--accent-blue);
+.game-log-title {
+    color: var(--accent-purple);
     font-size: 0.9rem;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-.action-hints ul {
-    padding-left: 20px;
-    color: var(--text-secondary);
+.game-log-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-right: 4px;
+}
+
+.game-log-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.game-log-list::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+    border-radius: 3px;
+}
+
+.game-log-list::-webkit-scrollbar-thumb {
+    background: var(--accent-purple);
+    border-radius: 3px;
+}
+
+.log-entry {
+    padding: 6px 10px;
+    background-color: var(--bg-tertiary);
+    border-radius: 4px;
+    border-left: 2px solid transparent;
     font-size: 0.85rem;
-    line-height: 1.8;
 }
 
-.action-hints li {
-    margin-bottom: 4px;
+.log-entry.event {
+    border-left-color: var(--accent-green);
 }
 
-.action-hints strong {
+.log-entry.message {
+    border-left-color: var(--accent-blue);
+}
+
+.log-entry.dm-message {
+    border-left-color: var(--accent-yellow);
+    background-color: rgba(233, 196, 106, 0.05);
+}
+
+.log-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.log-icon {
+    flex-shrink: 0;
+    font-size: 1rem;
+}
+
+.log-sender {
+    font-weight: 600;
+    color: var(--accent-blue);
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.log-text {
     color: var(--text-primary);
+    line-height: 1.4;
+    flex: 1;
+}
+
+.no-log {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 20px;
 }
