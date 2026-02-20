@@ -22,19 +22,47 @@
 .footer::before {
     content: '';
     position: absolute;
-    top: -8px;
+    top: -12px;
     left: 50%;
     transform: translateX(-50%);
-    width: 60px;
-    height: 8px;
-    background-color: var(--border-color);
-    border-radius: 4px;
+    width: 80px;
+    height: 6px;
+    background: linear-gradient(90deg, var(--border-color) 0%, var(--accent-orange) 50%, var(--border-color) 100%);
+    border-radius: 3px;
     cursor: grab;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
+    opacity: 0.6;
 }
 
 .footer::before:hover {
-    background-color: var(--accent-orange);
+    opacity: 1;
+    width: 100px;
+    height: 8px;
+    background: linear-gradient(90deg, var(--accent-orange) 0%, var(--accent-purple) 50%, var(--accent-orange) 100%);
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+}
+
+.footer:active::before {
+    cursor: grabbing;
+}
+
+/* Drag progress indicator */
+.footer-drag-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.footer-drag-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .footer-content {

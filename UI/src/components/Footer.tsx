@@ -4,17 +4,16 @@ import './Footer.css';
 export const Footer: React.FC = () => {
     const [isVisible, setIsVisible] = useState(false);
     const [dragOffset, setDragOffset] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
     const startY = useRef(0);
-    const isDragging = useRef(false);
 
     useEffect(() => {
         const handleTouchStart = (e: TouchEvent) => {
             startY.current = e.touches[0].clientY;
-            isDragging.current = true;
+            setIsDragging(true);
         };
 
         const handleTouchMove = (e: TouchEvent) => {
-            if (!isDragging.current) return;
             const currentY = e.touches[0].clientY;
             const delta = currentY - startY.current;
 
@@ -25,25 +24,22 @@ export const Footer: React.FC = () => {
         };
 
         const handleTouchEnd = () => {
-            if (!isDragging.current) return;
-            isDragging.current = false;
-
             // Show footer if dragged enough
-            if (dragOffset > 150) {
+            if (dragOffset > 100) {
                 setIsVisible(true);
             } else {
                 setIsVisible(false);
             }
             setDragOffset(0);
+            setIsDragging(false);
         };
 
         const handleMouseDown = (e: MouseEvent) => {
             startY.current = e.clientY;
-            isDragging.current = true;
+            setIsDragging(true);
         };
 
         const handleMouseMove = (e: MouseEvent) => {
-            if (!isDragging.current) return;
             const delta = e.clientY - startY.current;
             if (delta > 0) {
                 setDragOffset(Math.min(delta, 300));
@@ -51,15 +47,24 @@ export const Footer: React.FC = () => {
         };
 
         const handleMouseUp = () => {
-            if (!isDragging.current) return;
-            isDragging.current = false;
-
-            if (dragOffset > 150) {
+            if (dragOffset > 100) {
                 setIsVisible(true);
             } else {
                 setIsVisible(false);
             }
             setDragOffset(0);
+            setIsDragging(false);
+        };
+
+        // Also allow clicking anywhere to toggle when footer is visible
+        const handleClick = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            // Don't close if clicking inside footer
+            if (target.closest('.footer')) return;
+
+            if (isVisible) {
+                setIsVisible(false);
+            }
         };
 
         document.addEventListener('touchstart', handleTouchStart);
@@ -68,6 +73,7 @@ export const Footer: React.FC = () => {
         document.addEventListener('mousedown', handleMouseDown);
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
+        document.addEventListener('click', handleClick);
 
         return () => {
             document.removeEventListener('touchstart', handleTouchStart);
@@ -76,13 +82,18 @@ export const Footer: React.FC = () => {
             document.removeEventListener('mousedown', handleMouseDown);
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
+            document.removeEventListener('click', handleClick);
         };
-    }, [dragOffset]);
+    }, [dragOffset, isVisible]);
 
     return (
-        <footer className={`footer ${isVisible ? 'visible' : ''}`} style={{
-            transform: isVisible ? 'translateY(0)' : `translateY(calc(100% - ${Math.max(0, dragOffset - 100)}px))`
-        }}>
+        <>
+            {/* Drag overlay - shows during drag */}
+            <div className={`footer-drag-overlay ${isDragging ? 'active' : ''}`} />
+
+            <footer className={`footer ${isVisible ? 'visible' : ''}`} style={{
+                transform: isVisible ? 'translateY(0)' : `translateY(calc(100% - ${Math.max(0, dragOffset - 50)}px))`
+            }}>
             <div className="footer-content">
                 {/* Left Section - Game Rules */}
                 <div className="footer-section">
