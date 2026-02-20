@@ -143,8 +143,67 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    background: linear-gradient(180deg, rgba(42, 157, 143, 0.05) 0%, var(--bg-secondary) 100%);
     min-width: 0;
+}
+
+/* Left panel - Yellow accent */
+.left-panel .panel-header h2 {
+    background: linear-gradient(135deg, #e9c46a 0%, #f4a261 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.left-panel .character-card:hover,
+.left-panel .character-card.active {
+    border-color: var(--accent-yellow);
+    box-shadow: 0 0 15px rgba(233, 196, 106, 0.2);
+}
+
+.left-panel .character-class {
+    color: var(--accent-yellow);
+    background-color: rgba(233, 196, 106, 0.1);
+    border-color: rgba(233, 196, 106, 0.2);
+}
+
+.left-panel .ability-value {
+    color: var(--accent-yellow);
+}
+
+.left-panel .ability-score:hover {
+    border-color: var(--accent-yellow);
+}
+
+.left-panel .ability-item {
+    border-left-color: var(--accent-yellow);
+}
+
+/* Right panel - Orange accent */
+.right-panel .chat-header h2 {
+    background: linear-gradient(135deg, #ff6b35 0%, #f4a261 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.right-panel .filter-buttons button.active {
+    background: linear-gradient(135deg, #ff6b35 0%, #f4a261 100%);
+    border-color: var(--accent-orange);
+    box-shadow: 0 0 15px rgba(255, 107, 53, 0.3);
+}
+
+.right-panel .chat-entry.dm-message {
+    border-left-color: var(--accent-orange);
+}
+
+.right-panel .sender {
+    color: var(--accent-orange);
+}
+
+/* Center panel - Green accent */
+.center-panel .scene-header h2 {
+    color: var(--accent-green);
 }
 
 .loading {
