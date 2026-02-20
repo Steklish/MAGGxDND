@@ -8,18 +8,38 @@
     position: relative;
 }
 
-.resize-handle-top {
+.resize-handle-top,
+.resize-handle-bottom {
     height: 8px;
     cursor: ns-resize;
     background: transparent;
     transition: background-color 0.2s;
     flex-shrink: 0;
     border-top: 2px solid transparent;
+    border-bottom: 2px solid transparent;
+}
+
+.resize-handle-top {
+    border-top-color: transparent;
+    margin-bottom: 8px;
+}
+
+.resize-handle-bottom {
+    border-bottom-color: transparent;
+    margin-top: 8px;
+}
+
+.resize-handle-top:hover,
+.resize-handle-bottom:hover {
+    background-color: rgba(157, 78, 221, 0.2);
 }
 
 .resize-handle-top:hover {
-    background-color: rgba(157, 78, 221, 0.2);
     border-top-color: var(--accent-purple);
+}
+
+.resize-handle-bottom:hover {
+    border-bottom-color: var(--accent-purple);
 }
 
 .no-action {
