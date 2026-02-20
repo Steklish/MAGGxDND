@@ -131,9 +131,8 @@ export const GameLayout: React.FC = () => {
         if (isResizingHeader) {
             const deltaY = e.clientY - startY.current;
             const newHeight = startHeaderHeight.current + deltaY;
-            // Max height = portrait (105px) + death saves (20px) + padding (16px) + gap (6px) = ~147px
-            // Scale factor 1.15 for active portrait
-            setHeaderHeight(Math.max(100, Math.min(180, newHeight)));
+            // No max limit - portraits scale with header
+            setHeaderHeight(Math.max(80, newHeight));
         } else {
             const deltaX = e.clientX - startX.current;
             const deltaPercent = (deltaX / containerWidth.current) * 100;
@@ -221,7 +220,7 @@ export const GameLayout: React.FC = () => {
                 </div>
 
                 {/* Turn Queue with Portraits */}
-                <div className={`header-center turn-queue-container ${headerHeight < 120 ? 'mini-mode' : ''}`}>
+                <div className="header-center turn-queue-container">
                     {aliveQueue.map((entry, idx) => {
                         const isCurrentTurn = idx === (currentIndex % aliveQueue.length);
                         const isDying = entry.isDying;
@@ -242,15 +241,16 @@ export const GameLayout: React.FC = () => {
                                             {entry.character.name?.[0] || '?'}
                                         </span>
                                     </div>
-                                    {/* Character name overlay */}
-                                    <div className="portrait-name">
-                                        {entry.character.name}
-                                    </div>
                                     {/* Attitude indicator */}
                                     <div
                                         className="attitude-indicator"
                                         style={{ backgroundColor: getAttitudeColor(entry.type) }}
                                     />
+                                </div>
+
+                                {/* Character name below portrait */}
+                                <div className="portrait-name">
+                                    {entry.character.name}
                                 </div>
 
                                 {/* Death save counters */}

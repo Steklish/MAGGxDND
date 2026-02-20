@@ -95,7 +95,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     padding: 8px;
     background-color: var(--bg-tertiary);
     border: 2px solid;
@@ -104,44 +104,10 @@
     flex: 0 0 auto;
     cursor: pointer;
     position: relative;
-    height: calc(100% - 16px);
-    max-height: 150px;
-    min-height: 60px;
-}
-
-/* Mini portrait mode (small header) */
-.turn-queue-container.mini-mode .turn-portrait {
-    padding: 4px;
-    gap: 2px;
-    border-width: 1px;
-}
-
-.turn-queue-container.mini-mode .portrait-frame {
-    width: 35px !important;
-    height: 35px !important;
-    min-height: 35px !important;
-    max-height: 35px !important;
-}
-
-.turn-queue-container.mini-mode .portrait-initial {
-    font-size: 1.2rem !important;
-}
-
-.turn-queue-container.mini-mode .portrait-name {
-    font-size: 0.55rem !important;
-    padding: 2px 4px !important;
-}
-
-.turn-queue-container.mini-mode .death-saves {
-    display: none;
-}
-
-.turn-queue-container.mini-mode .attitude-indicator {
-    height: 2px !important;
 }
 
 .turn-portrait.active {
-    transform: scale(1.15);
+    transform: scale(1.1);
     opacity: 1 !important;
     box-shadow: 0 0 20px rgba(157, 78, 221, 0.4);
     z-index: 10;
@@ -179,13 +145,13 @@
     }
 }
 
-/* Portrait Frame */
+/* Portrait Frame - scales with header */
 .portrait-frame {
     position: relative;
-    width: 60px;
-    height: calc(100% - 30px);
-    min-height: 85px;
-    max-height: 110px;
+    width: 8vw;
+    max-width: 75px;
+    min-width: 40px;
+    aspect-ratio: 3/4;
     border-radius: var(--radius-md);
     overflow: hidden;
     background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
@@ -196,36 +162,29 @@
 }
 
 .turn-portrait.active .portrait-frame {
-    width: 75px;
-    height: calc(100% - 35px);
-    min-height: 105px;
-    max-height: 130px;
+    width: 9vw;
+    max-width: 90px;
+    min-width: 50px;
 }
 
-/* Portrait Name - overlay on photo */
+/* Portrait Name - below portrait */
 .portrait-name {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    font-size: 0.7rem;
+    font-size: clamp(0.6rem, 1vw, 0.8rem);
     font-family: 'Rajdhani', sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--text-primary);
+    color: var(--text-secondary);
     text-align: center;
-    padding: 4px 6px;
-    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
-    font-weight: 600;
-    z-index: 5;
+    max-width: 100px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-weight: 600;
+    transition: all 0.3s ease;
 }
 
 .turn-portrait.active .portrait-name {
-    color: var(--text-primary);
-    background: linear-gradient(180deg, transparent 0%, rgba(157, 78, 221, 0.8) 100%);
+    color: var(--accent-purple);
 }
 
 /* Portrait Placeholder */
@@ -239,15 +198,16 @@
 }
 
 .portrait-initial {
-    font-size: 2.5rem;
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
     font-weight: 700;
     font-family: 'Rajdhani', sans-serif;
     color: var(--text-primary);
     text-transform: uppercase;
+    transition: all 0.3s ease;
 }
 
 .turn-portrait.active .portrait-initial {
-    font-size: 3rem;
+    font-size: clamp(1.8rem, 3.5vw, 3rem);
 }
 
 /* Attitude Indicator */
@@ -256,7 +216,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 4px;
+    height: clamp(2px, 0.5vw, 4px);
     z-index: 10;
 }
 
@@ -264,7 +224,7 @@
 .death-saves {
     display: flex;
     gap: 8px;
-    font-size: 0.8rem;
+    font-size: clamp(0.6rem, 1vw, 0.8rem);
     opacity: 0.9;
 }
 
