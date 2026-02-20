@@ -104,7 +104,8 @@
     flex: 0 0 auto;
     cursor: pointer;
     position: relative;
-    max-height: 90%;
+    height: calc(100% - 16px);
+    max-height: 150px;
 }
 
 .turn-portrait.active {
@@ -150,7 +151,9 @@
 .portrait-frame {
     position: relative;
     width: 60px;
-    height: 85px;
+    height: calc(100% - 30px);
+    min-height: 85px;
+    max-height: 110px;
     border-radius: var(--radius-md);
     overflow: hidden;
     background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
@@ -161,7 +164,9 @@
 
 .turn-portrait.active .portrait-frame {
     width: 75px;
-    height: 105px;
+    height: calc(100% - 35px);
+    min-height: 105px;
+    max-height: 130px;
 }
 
 /* Portrait Name - overlay on photo */

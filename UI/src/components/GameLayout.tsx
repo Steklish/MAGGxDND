@@ -20,7 +20,7 @@ export const GameLayout: React.FC = () => {
     const { session, currentScene, activeCharacter } = useGameStore();
     const [leftPanelWidth, setLeftPanelWidth] = useState(25);
     const [rightPanelWidth, setRightPanelWidth] = useState(25);
-    const [headerHeight, setHeaderHeight] = useState(120);
+    const [headerHeight, setHeaderHeight] = useState(140);
     const [isResizingLeft, setIsResizingLeft] = useState(false);
     const [isResizingRight, setIsResizingRight] = useState(false);
     const [isResizingHeader, setIsResizingHeader] = useState(false);
@@ -131,7 +131,9 @@ export const GameLayout: React.FC = () => {
         if (isResizingHeader) {
             const deltaY = e.clientY - startY.current;
             const newHeight = startHeaderHeight.current + deltaY;
-            setHeaderHeight(Math.max(80, Math.min(300, newHeight)));
+            // Max height = portrait (105px) + death saves (20px) + padding (16px) + gap (6px) = ~147px
+            // Scale factor 1.15 for active portrait
+            setHeaderHeight(Math.max(100, Math.min(180, newHeight)));
         } else {
             const deltaX = e.clientX - startX.current;
             const deltaPercent = (deltaX / containerWidth.current) * 100;
