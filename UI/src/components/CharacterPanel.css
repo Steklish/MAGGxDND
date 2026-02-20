@@ -6,84 +6,6 @@
     font-family: 'Nurito', sans-serif;
 }
 
-/* Collapsed state */
-.character-panel.collapsed {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 8px;
-    overflow-y: auto;
-}
-
-.collapse-toggle {
-    padding: 8px;
-    cursor: pointer;
-    text-align: center;
-    transition: background-color 0.2s;
-    border-radius: 4px;
-    margin-bottom: 8px;
-}
-
-.collapse-toggle:hover {
-    background-color: var(--bg-tertiary);
-}
-
-.toggle-icon {
-    font-size: 1.2rem;
-    user-select: none;
-}
-
-.icon-nav {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    padding: 0 8px;
-    width: 100%;
-}
-
-.nav-icon {
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.3rem;
-    transition: all 0.2s;
-    padding: 0;
-}
-
-.nav-icon:hover {
-    background-color: var(--bg-primary);
-    border-color: var(--accent-blue);
-    transform: scale(1.05);
-}
-
-.nav-icon.active {
-    background-color: rgba(188, 140, 255, 0.2);
-    border-color: var(--accent-purple);
-    box-shadow: 0 0 8px rgba(188, 140, 255, 0.3);
-}
-
-.nav-icon.npc {
-    font-size: 1rem;
-}
-
-.nav-icon.event-icon {
-    font-size: 1rem;
-}
-
-.nav-separator {
-    width: 30px;
-    height: 2px;
-    background-color: var(--border-color);
-    margin: 4px 0;
-}
-
 .panel-header {
     display: flex;
     justify-content: space-between;
@@ -97,38 +19,6 @@
     color: var(--text-primary);
     margin: 0;
     font-family: 'Nurito', sans-serif;
-}
-
-.collapse-toggle-btn {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    width: 32px;
-    height: 32px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    padding: 0;
-}
-
-.collapse-toggle-btn:hover {
-    background: var(--bg-primary);
-    border-color: var(--accent-blue);
-    transform: scale(1.05);
-}
-
-.collapse-toggle-btn .collapse-icon {
-    font-size: 1.1rem;
-    color: var(--text-secondary);
-    font-weight: 700;
-    transition: transform 0.3s ease, color 0.2s ease;
-    display: inline-block;
-}
-
-.collapse-toggle-btn:hover .collapse-icon {
-    color: var(--accent-blue);
 }
 
 .characters-list {

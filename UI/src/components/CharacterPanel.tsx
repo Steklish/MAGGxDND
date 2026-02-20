@@ -1,12 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useGameStore } from '../store/gameStore';
 import { Tooltip } from './common/Tooltip';
 import './CharacterPanel.css';
-
-interface CharacterPanelProps {
-    collapsed: boolean;
-    onToggle: () => void;
-}
 
 interface CharacterPreviewProps {
     character: any;
@@ -105,18 +100,12 @@ const CharacterPreview: React.FC<CharacterPreviewProps> = ({ character }) => {
     );
 };
 
-export const CharacterPanel: React.FC<CharacterPanelProps> = ({ collapsed, onToggle }) => {
+export const CharacterPanel: React.FC = () => {
     const { session, activeCharacter, setActiveCharacter } = useGameStore();
-    const [hoveredCharacter, setHoveredCharacter] = useState<any>(null);
 
     if (!session) {
         return (
             <div className="character-panel">
-                <div className="collapse-toggle" onClick={onToggle}>
-                    <span className="toggle-icon" title={collapsed ? 'Expand' : 'Collapse'}>
-                        {collapsed ? '👥→' : '←👥'}
-                    </span>
-                </div>
                 <div className="no-session">No session</div>
             </div>
         );
@@ -133,64 +122,10 @@ export const CharacterPanel: React.FC<CharacterPanelProps> = ({ collapsed, onTog
         }
     };
 
-    if (collapsed) {
-        return (
-            <div className="character-panel collapsed">
-                <nav className="icon-nav">
-                    <button
-                        className="nav-icon"
-                        title="Characters"
-                        onClick={() => onToggle()}
-                    >
-                        👥
-                    </button>
-                    {players.map(char => (
-                        <Tooltip 
-                            key={char.name} 
-                            content={<CharacterPreview character={char} />}
-                            position="right"
-                        >
-                            <button
-                                className={`nav-icon ${activeCharacter?.name === char.name ? 'active' : ''}`}
-                                title={`${char.name} (${char.char_class} Lvl ${char.level})`}
-                                onClick={() => handleSelectCharacter(char)}
-                            >
-                                {char.name[0].toUpperCase()}
-                            </button>
-                        </Tooltip>
-                    ))}
-                    {npcs.length > 0 && (
-                        <>
-                            <div className="nav-separator" />
-                            {npcs.map(char => (
-                                <Tooltip 
-                                    key={char.name} 
-                                    content={<CharacterPreview character={char} />}
-                                    position="right"
-                                >
-                                    <button
-                                        className={`nav-icon npc ${activeCharacter?.name === char.name ? 'active' : ''}`}
-                                        title={`${char.name} (NPC)`}
-                                        onClick={() => handleSelectCharacter(char)}
-                                    >
-                                        🐾
-                                    </button>
-                                </Tooltip>
-                            ))}
-                        </>
-                    )}
-                </nav>
-            </div>
-        );
-    }
-
     return (
         <div className="character-panel">
             <div className="panel-header">
                 <h2>👥 Characters</h2>
-                <button className="collapse-toggle-btn" onClick={onToggle} title="Collapse panel">
-                    <span className="collapse-icon">{collapsed ? '>' : '<'}</span>
-                </button>
             </div>
 
             <div className="characters-list">

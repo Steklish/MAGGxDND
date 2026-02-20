@@ -3,11 +3,6 @@ import { useGameStore } from '../store/gameStore';
 import { Tooltip } from './common/Tooltip';
 import './ChatPanel.css';
 
-interface ChatPanelProps {
-    collapsed: boolean;
-    onToggle: () => void;
-}
-
 interface FilterTooltipContentProps {
     filter: 'all' | 'dm' | 'players' | 'events';
 }
@@ -90,7 +85,7 @@ const EventTooltipContent: React.FC<EventTooltipContentProps> = ({ event }) => {
     );
 };
 
-export const ChatPanel: React.FC<ChatPanelProps> = ({ collapsed, onToggle }) => {
+export const ChatPanel: React.FC = () => {
     const { messages, events } = useGameStore();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [filter, setFilter] = useState<'all' | 'dm' | 'players' | 'events'>('all');
@@ -142,93 +137,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ collapsed, onToggle }) => 
 
     const filteredMessages = getFilteredMessages();
 
-    if (collapsed) {
-        return (
-            <div className="chat-panel collapsed">
-                <nav className="icon-nav">
-                    <Tooltip 
-                        content={<FilterTooltipContent filter="all" />}
-                        position="right"
-                    >
-                        <button
-                            className={`nav-icon ${filter === 'all' ? 'active' : ''}`}
-                            onClick={() => {
-                                setFilter('all');
-                                onToggle();
-                            }}
-                        >
-                            📋
-                        </button>
-                    </Tooltip>
-                    <Tooltip 
-                        content={<FilterTooltipContent filter="dm" />}
-                        position="right"
-                    >
-                        <button
-                            className={`nav-icon ${filter === 'dm' ? 'active' : ''}`}
-                            onClick={() => {
-                                setFilter('dm');
-                                onToggle();
-                            }}
-                        >
-                            🎙️
-                        </button>
-                    </Tooltip>
-                    <Tooltip 
-                        content={<FilterTooltipContent filter="players" />}
-                        position="right"
-                    >
-                        <button
-                            className={`nav-icon ${filter === 'players' ? 'active' : ''}`}
-                            onClick={() => {
-                                setFilter('players');
-                                onToggle();
-                            }}
-                        >
-                            💬
-                        </button>
-                    </Tooltip>
-                    <div className="nav-separator" />
-                    <Tooltip 
-                        content={<FilterTooltipContent filter="events" />}
-                        position="right"
-                    >
-                        <button
-                            className={`nav-icon ${filter === 'events' ? 'active' : ''}`}
-                            onClick={() => {
-                                setFilter('events');
-                                onToggle();
-                            }}
-                        >
-                            ⚡
-                        </button>
-                    </Tooltip>
-                    {events.slice(-5).reverse().map((event, idx) => (
-                        <Tooltip 
-                            key={idx}
-                            content={<EventTooltipContent event={event} />}
-                            position="right"
-                        >
-                            <button
-                                className="nav-icon event-icon"
-                                onClick={() => onToggle()}
-                            >
-                                {getEventIcon(event.event_type)}
-                            </button>
-                        </Tooltip>
-                    ))}
-                </nav>
-            </div>
-        );
-    }
-
     return (
         <div className="chat-panel">
             <div className="chat-header">
                 <h2>💬 Game Log</h2>
-                <button className="collapse-toggle-btn" onClick={onToggle} title="Collapse panel">
-                    <span className="collapse-icon">{collapsed ? '<' : '>'}</span>
-                </button>
             </div>
             <div className="filter-buttons">
                 <Tooltip content={<FilterTooltipContent filter="all" />} position="bottom">
