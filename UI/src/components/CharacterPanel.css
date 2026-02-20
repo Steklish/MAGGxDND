@@ -44,8 +44,6 @@
     cursor: pointer;
     transition: all 0.2s;
     margin-bottom: 10px;
-    width: 100%;
-    box-sizing: border-box;
 }
 
 .character-card:hover {

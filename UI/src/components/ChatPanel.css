@@ -81,6 +81,7 @@
     border-radius: 8px;
     border-left: 3px solid transparent;
     animation: slideIn 0.3s ease-out;
+    display: block;
 }
 
 @keyframes slideIn {
@@ -129,6 +130,7 @@
 
 .event-content-with-tooltip {
     cursor: help;
+    display: inline-block;
 }
 
 .event-content-with-tooltip:hover .event-content {

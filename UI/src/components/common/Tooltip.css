@@ -2,13 +2,10 @@
 .tooltip-container {
     position: static;
     display: block;
-    width: 100%;
 }
 
 .tooltip-trigger {
     display: block;
-    width: 100%;
-    position: relative;
 }
 
 /* Tooltip Styles */
