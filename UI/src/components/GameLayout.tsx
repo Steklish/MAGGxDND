@@ -131,7 +131,7 @@ export const GameLayout: React.FC = () => {
         if (isResizingHeader) {
             const deltaY = e.clientY - startY.current;
             const newHeight = startHeaderHeight.current + deltaY;
-            // Max height = portrait max (140px/155px active) + name (25px) + death saves (20px) + padding/gap (20px) ≈ 220px
+            // Min height 70px for mini mode, max = portrait + name + death saves + padding
             setHeaderHeight(Math.max(70, Math.min(240, newHeight)));
         } else {
             const deltaX = e.clientX - startX.current;
@@ -220,7 +220,7 @@ export const GameLayout: React.FC = () => {
                 </div>
 
                 {/* Turn Queue with Portraits */}
-                <div className="header-center turn-queue-container">
+                <div className={`header-center turn-queue-container ${headerHeight < 100 ? 'mini-mode' : ''}`}>
                     {aliveQueue.map((entry, idx) => {
                         const isCurrentTurn = idx === (currentIndex % aliveQueue.length);
                         const isDying = entry.isDying;

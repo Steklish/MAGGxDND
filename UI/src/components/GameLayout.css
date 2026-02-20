@@ -106,6 +106,42 @@
     position: relative;
     height: 100%;
     max-height: 180px;
+    min-height: 50px;
+}
+
+/* Mini mode - colored rectangles only */
+.turn-queue-container.mini-mode .turn-portrait {
+    padding: 2px;
+    gap: 0;
+    border-width: 1px;
+}
+
+.turn-queue-container.mini-mode .portrait-frame {
+    width: 20px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    border-radius: 3px;
+}
+
+.turn-queue-container.mini-mode .portrait-placeholder {
+    background: var(--bg-accent);
+}
+
+.turn-queue-container.mini-mode .portrait-initial {
+    display: none;
+}
+
+.turn-queue-container.mini-mode .portrait-name {
+    display: none;
+}
+
+.turn-queue-container.mini-mode .death-saves {
+    display: none;
+}
+
+.turn-queue-container.mini-mode .attitude-indicator {
+    display: none;
 }
 
 .turn-portrait.active {
