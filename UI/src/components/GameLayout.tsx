@@ -220,7 +220,7 @@ export const GameLayout: React.FC = () => {
                 </div>
 
                 {/* Turn Queue with Portraits */}
-                <div className={`header-center turn-queue-container ${headerHeight < 100 ? 'mini-mode' : ''}`}>
+                <div className="header-center turn-queue-container">
                     {aliveQueue.map((entry, idx) => {
                         const isCurrentTurn = idx === (currentIndex % aliveQueue.length);
                         const isDying = entry.isDying;
