@@ -214,8 +214,18 @@
     gap: 8px;
 }
 
+.event-content-with-tooltip {
+    cursor: help;
+}
+
+.event-content-with-tooltip:hover .event-content {
+    background-color: rgba(88, 166, 255, 0.1);
+    border-radius: 4px;
+}
+
 .event-icon {
     font-size: 1rem;
+    flex-shrink: 0;
 }
 
 .event-text {

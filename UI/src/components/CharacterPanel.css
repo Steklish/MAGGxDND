@@ -140,6 +140,7 @@
 .character-card:hover {
     border-color: var(--accent-blue);
     transform: translateX(4px);
+    background-color: rgba(88, 166, 255, 0.05);
 }
 
 .character-card.active {
