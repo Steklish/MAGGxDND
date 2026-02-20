@@ -147,25 +147,23 @@
     }
 }
 
-/* Portrait Frame - scales with header height */
+/* Portrait Frame - takes available space */
 .portrait-frame {
     position: relative;
     width: auto;
-    height: calc(100% - 18px);
+    flex: 1 1 auto;
     min-height: 45px;
     max-height: 120px;
     aspect-ratio: 4/5;
     border-radius: var(--radius-md);
     overflow: hidden;
     background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
-    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     transition: all 0.3s ease;
 }
 
 .turn-portrait.active .portrait-frame {
-    height: calc(100% - 20px);
     max-height: 135px;
 }
 
@@ -186,6 +184,7 @@
     line-height: 1.2;
     height: 1.2em;
     margin: 0;
+    flex-shrink: 0;
 }
 
 .turn-portrait.active .portrait-name {
@@ -234,6 +233,7 @@
     margin: 0;
     line-height: 1;
     height: 1em;
+    flex-shrink: 0;
 }
 
 .death-save-successes {
