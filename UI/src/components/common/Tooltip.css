@@ -1,13 +1,13 @@
 /* Tooltip Container */
 .tooltip-container {
     position: static;
-    display: inline-block;
-    width: auto;
+    display: block;
+    width: 100%;
 }
 
 .tooltip-trigger {
-    display: inherit;
-    width: inherit;
+    display: block;
+    width: 100%;
     position: relative;
 }
 
