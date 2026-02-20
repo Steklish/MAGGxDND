@@ -8,19 +8,17 @@
     left: 0;
     right: 0;
     transform: translateY(100%);
-    transition: transform 0.2s ease-out;
+    transition: transform 0.3s ease;
     z-index: 1000;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .footer.visible {
     transform: translateY(0);
-    transition: transform 0.3s ease;
 }
 
-/* Drag indicator */
-.footer::before {
-    content: '';
+/* Drag handle - click to toggle */
+.footer-drag-handle {
     position: absolute;
     top: -12px;
     left: 50%;
@@ -29,12 +27,12 @@
     height: 6px;
     background: linear-gradient(90deg, var(--border-color) 0%, var(--accent-orange) 50%, var(--border-color) 100%);
     border-radius: 3px;
-    cursor: grab;
+    cursor: pointer;
     transition: all 0.2s;
     opacity: 0.6;
 }
 
-.footer::before:hover {
+.footer-drag-handle:hover {
     opacity: 1;
     width: 100px;
     height: 8px;
@@ -42,27 +40,8 @@
     box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
 }
 
-.footer:active::before {
-    cursor: grabbing;
-}
-
-/* Drag progress indicator */
-.footer-drag-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.3);
-    z-index: 999;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s;
-}
-
-.footer-drag-overlay.active {
-    opacity: 1;
-    pointer-events: auto;
+.footer-drag-handle:active {
+    width: 90px;
 }
 
 .footer-content {
