@@ -18,11 +18,16 @@ const CharacterPreview: React.FC<CharacterPreviewProps> = ({ character }) => {
     return (
         <div className="character-preview">
             <div className="character-preview-header">
-                <span className="character-preview-name">{character.name}</span>
-                <span className="character-preview-class">{character.char_class} Lvl {character.level}</span>
+                <div>
+                    <span className="character-preview-name">{character.name}</span>
+                    <span className="character-preview-subtitle">
+                        {character.race} {character.char_class}, Level {character.level}
+                    </span>
+                </div>
             </div>
 
             <div className="character-preview-section">
+                <span className="character-preview-section-title">Ability Scores</span>
                 <div className="character-preview-stats">
                     <div className="character-preview-stat">
                         <span className="character-preview-stat-name">STR</span>
@@ -62,9 +67,11 @@ const CharacterPreview: React.FC<CharacterPreviewProps> = ({ character }) => {
                     </div>
                     <span className="character-preview-hp-text">{character.current_hp}/{character.max_hp} HP</span>
                 </div>
-                <div style={{ display: 'flex', gap: '12px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                    <span>AC: {character.armor_class}</span>
-                    <span>SPD: {character.speed}</span>
+                <div className="character-preview-vitals-grid">
+                    <span>AC: <strong>{character.armor_class}</strong></span>
+                    <span>SPD: <strong>{character.speed}</strong></span>
+                    <span>Prof: <strong>+{character.proficiency_bonus}</strong></span>
+                    <span>Init: <strong>+{character.initiative_bonus}</strong></span>
                 </div>
             </div>
 
@@ -79,19 +86,37 @@ const CharacterPreview: React.FC<CharacterPreviewProps> = ({ character }) => {
                 </div>
             )}
 
-            {character.abilities.length > 0 && (
+            {character.abilities && character.abilities.length > 0 && (
                 <div className="character-preview-section">
-                    <span className="character-preview-section-title">Abilities</span>
+                    <span className="character-preview-section-title">Abilities & Spells</span>
                     <div className="character-preview-abilities">
-                        {character.abilities.slice(0, 4).map((ability: any, idx: number) => (
-                            <span key={idx} className="character-preview-ability">
-                                {ability.name}: {ability.short_summary}
-                            </span>
+                        {character.abilities.map((ability: any, idx: number) => (
+                            <div key={idx} className="character-preview-ability">
+                                <div className="character-preview-ability-name">
+                                    {ability.name}
+                                    {ability.level > 0 && <span className="spell-level-tag">Lvl {ability.level}</span>}
+                                </div>
+                                <div className="character-preview-ability-desc">{ability.short_summary}</div>
+                            </div>
                         ))}
-                        {character.abilities.length > 4 && (
-                            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                                +{character.abilities.length - 4} more...
-                            </span>
+                    </div>
+                </div>
+            )}
+
+            {character.inventory && character.inventory.length > 0 && (
+                <div className="character-preview-section">
+                    <span className="character-preview-section-title">Inventory ({character.inventory.length})</span>
+                    <div className="character-preview-inventory">
+                        {character.inventory.slice(0, 5).map((item: any, idx: number) => (
+                            <div key={idx} className="character-preview-inventory-item">
+                                <span>{item.name}</span>
+                                {item.is_equipped && <span className="equipped-badge">⚔️</span>}
+                            </div>
+                        ))}
+                        {character.inventory.length > 5 && (
+                            <div className="character-preview-more">
+                                +{character.inventory.length - 5} more items...
+                            </div>
                         )}
                     </div>
                 </div>
