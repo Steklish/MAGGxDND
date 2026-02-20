@@ -95,8 +95,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    padding: 4px;
+    gap: 6px;
+    padding: 6px;
     background-color: var(--bg-tertiary);
     border: 2px solid;
     border-radius: var(--radius-md);
@@ -111,7 +111,7 @@
 .turn-portrait.active {
     transform: scale(1.1);
     opacity: 1 !important;
-    box-shadow: 0 0 20px rgba(157, 78, 221, 0.4);
+    box-shadow: 0 0 25px rgba(157, 78, 221, 0.5);
     z-index: 10;
 }
 
@@ -151,10 +151,10 @@
 .portrait-frame {
     position: relative;
     width: auto;
-    height: 70%;
-    min-height: 40px;
-    max-height: 140px;
-    aspect-ratio: 3/4;
+    height: 65%;
+    min-height: 45px;
+    max-height: 120px;
+    aspect-ratio: 4/5;
     border-radius: var(--radius-md);
     overflow: hidden;
     background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
@@ -165,13 +165,13 @@
 }
 
 .turn-portrait.active .portrait-frame {
-    height: 75%;
-    max-height: 155px;
+    height: 70%;
+    max-height: 135px;
 }
 
 /* Portrait Name - below portrait */
 .portrait-name {
-    font-size: clamp(0.55rem, 1.2vh, 0.85rem);
+    font-size: clamp(0.6rem, 1.3vh, 0.85rem);
     font-family: 'Rajdhani', sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -200,7 +200,7 @@
 }
 
 .portrait-initial {
-    font-size: clamp(1.2rem, 2.5vh, 2.8rem);
+    font-size: clamp(1.4rem, 2.8vh, 2.6rem);
     font-weight: 700;
     font-family: 'Rajdhani', sans-serif;
     color: var(--text-primary);
@@ -209,7 +209,7 @@
 }
 
 .turn-portrait.active .portrait-initial {
-    font-size: clamp(1.5rem, 3vh, 3.2rem);
+    font-size: clamp(1.7rem, 3.3vh, 3rem);
 }
 
 /* Attitude Indicator */
@@ -218,15 +218,15 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: clamp(2px, 0.5vh, 4px);
+    height: clamp(3px, 0.6vh, 5px);
     z-index: 10;
 }
 
 /* Death Saves */
 .death-saves {
     display: flex;
-    gap: 6px;
-    font-size: clamp(0.55rem, 1.2vh, 0.85rem);
+    gap: 8px;
+    font-size: clamp(0.65rem, 1.4vh, 0.9rem);
     opacity: 0.9;
 }
 
