@@ -155,11 +155,39 @@
     overflow: hidden;
     background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .turn-portrait.active .portrait-frame {
     width: 75px;
     height: 105px;
+}
+
+/* Portrait Name - overlay on photo */
+.portrait-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    font-size: 0.7rem;
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-primary);
+    text-align: center;
+    padding: 4px 6px;
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+    font-weight: 600;
+    z-index: 5;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.turn-portrait.active .portrait-name {
+    color: var(--text-primary);
+    background: linear-gradient(180deg, transparent 0%, rgba(157, 78, 221, 0.8) 100%);
 }
 
 /* Portrait Placeholder */
@@ -191,6 +219,7 @@
     left: 0;
     right: 0;
     height: 4px;
+    z-index: 10;
 }
 
 /* Death Saves */
@@ -207,25 +236,6 @@
 
 .death-save-failures {
     color: var(--accent-red);
-}
-
-/* Portrait Name */
-.portrait-name {
-    font-size: 0.75rem;
-    font-family: 'Rajdhani', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-secondary);
-    text-align: center;
-    max-width: 80px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.turn-portrait.active .portrait-name {
-    color: var(--accent-purple);
-    font-weight: 600;
 }
 
 .header-right {

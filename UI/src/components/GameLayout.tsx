@@ -240,6 +240,10 @@ export const GameLayout: React.FC = () => {
                                             {entry.character.name?.[0] || '?'}
                                         </span>
                                     </div>
+                                    {/* Character name overlay */}
+                                    <div className="portrait-name">
+                                        {entry.character.name}
+                                    </div>
                                     {/* Attitude indicator */}
                                     <div
                                         className="attitude-indicator"
@@ -258,11 +262,6 @@ export const GameLayout: React.FC = () => {
                                         </div>
                                     </div>
                                 )}
-
-                                {/* Character name */}
-                                <div className="portrait-name">
-                                    {entry.character.name}
-                                </div>
                             </div>
                         );
                     })}
