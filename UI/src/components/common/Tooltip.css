@@ -26,8 +26,10 @@
     pointer-events: none;
     white-space: normal;
     word-wrap: break-word;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: visible;
+    width: auto;
+    height: auto;
+    max-height: none;
 }
 
 .tooltip.tooltip-right,
@@ -42,8 +44,8 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    max-height: 400px;
-    overflow-y: auto;
+    max-height: none;
+    overflow: visible;
 }
 
 .character-preview-header {
@@ -162,8 +164,6 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-    max-height: 150px;
-    overflow-y: auto;
 }
 
 .character-preview-ability {
@@ -203,8 +203,6 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    max-height: 120px;
-    overflow-y: auto;
 }
 
 .character-preview-inventory-item {
@@ -220,13 +218,6 @@
 
 .equipped-badge {
     font-size: 0.9rem;
-}
-
-.character-preview-more {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    font-style: italic;
-    padding: 4px 0;
 }
 
 /* Filter Tooltip */

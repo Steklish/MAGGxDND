@@ -17,12 +17,12 @@ export const Tooltip: React.FC<TooltipProps> = ({
     const [isVisible, setIsVisible] = useState(false);
     const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
     const triggerRef = useRef<HTMLDivElement>(null);
+    const contentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (isVisible && triggerRef.current) {
+        if (isVisible && triggerRef.current && contentRef.current) {
             const triggerRect = triggerRef.current.getBoundingClientRect();
-            const tooltipWidth = 320;
-            const tooltipHeight = 280;
+            const contentRect = contentRef.current.getBoundingClientRect();
             const padding = 8;
 
             let left = 0;
@@ -31,56 +31,57 @@ export const Tooltip: React.FC<TooltipProps> = ({
             switch (position) {
                 case 'right':
                     left = triggerRect.right + padding;
-                    top = triggerRect.top + (triggerRect.height / 2) - (tooltipHeight / 2);
+                    top = triggerRect.top + (triggerRect.height / 2) - (contentRect.height / 2);
                     // Adjust if tooltip goes off right edge
-                    if (left + tooltipWidth > window.innerWidth) {
-                        left = triggerRect.left - tooltipWidth - padding;
+                    if (left + contentRect.width > window.innerWidth) {
+                        left = triggerRect.left - contentRect.width - padding;
                     }
                     break;
                 case 'left':
-                    left = triggerRect.left - tooltipWidth - padding;
-                    top = triggerRect.top + (triggerRect.height / 2) - (tooltipHeight / 2);
+                    left = triggerRect.left - contentRect.width - padding;
+                    top = triggerRect.top + (triggerRect.height / 2) - (contentRect.height / 2);
                     // Adjust if tooltip goes off left edge
                     if (left < 0) {
                         left = triggerRect.right + padding;
                     }
                     break;
                 case 'top':
-                    left = triggerRect.left + (triggerRect.width / 2) - (tooltipWidth / 2);
-                    top = triggerRect.top - tooltipHeight - padding;
+                    left = triggerRect.left + (triggerRect.width / 2) - (contentRect.width / 2);
+                    top = triggerRect.top - contentRect.height - padding;
                     // Adjust if tooltip goes off top edge
                     if (top < 0) {
                         top = triggerRect.bottom + padding;
                     }
                     break;
                 case 'bottom':
-                    left = triggerRect.left + (triggerRect.width / 2) - (tooltipWidth / 2);
+                    left = triggerRect.left + (triggerRect.width / 2) - (contentRect.width / 2);
                     top = triggerRect.bottom + padding;
                     // Adjust if tooltip goes off bottom edge
-                    if (top + tooltipHeight > window.innerHeight) {
-                        top = triggerRect.top - tooltipHeight - padding;
+                    if (top + contentRect.height > window.innerHeight) {
+                        top = triggerRect.top - contentRect.height - padding;
                     }
                     break;
             }
 
             // Ensure tooltip stays within viewport vertically
-            if (top < 0) top = padding;
-            if (top + tooltipHeight > window.innerHeight) {
-                top = window.innerHeight - tooltipHeight - padding;
+            if (top < padding) top = padding;
+            if (top + contentRect.height > window.innerHeight - padding) {
+                top = window.innerHeight - contentRect.height - padding;
             }
 
             // Ensure tooltip stays within viewport horizontally
-            if (left < 0) left = padding;
-            if (left + tooltipWidth > window.innerWidth) {
-                left = window.innerWidth - tooltipWidth - padding;
+            if (left < padding) left = padding;
+            if (left + contentRect.width > window.innerWidth - padding) {
+                left = window.innerWidth - contentRect.width - padding;
             }
 
             setTooltipStyle({
                 position: 'fixed',
                 left: `${left}px`,
                 top: `${top}px`,
-                width: `${tooltipWidth}px`,
-                maxHeight: `${tooltipHeight}px`,
+                width: 'auto',
+                maxWidth: `${Math.min(400, window.innerWidth - (padding * 2))}px`,
+                maxHeight: 'none',
                 zIndex: 9999,
                 visibility: 'visible',
                 opacity: 1
@@ -105,6 +106,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
             <div 
                 className={`tooltip tooltip-${position}`}
                 style={tooltipStyle}
+                ref={contentRef}
             >
                 {content}
             </div>

@@ -107,17 +107,12 @@ const CharacterPreview: React.FC<CharacterPreviewProps> = ({ character }) => {
                 <div className="character-preview-section">
                     <span className="character-preview-section-title">Inventory ({character.inventory.length})</span>
                     <div className="character-preview-inventory">
-                        {character.inventory.slice(0, 5).map((item: any, idx: number) => (
+                        {character.inventory.map((item: any, idx: number) => (
                             <div key={idx} className="character-preview-inventory-item">
                                 <span>{item.name}</span>
                                 {item.is_equipped && <span className="equipped-badge">⚔️</span>}
                             </div>
                         ))}
-                        {character.inventory.length > 5 && (
-                            <div className="character-preview-more">
-                                +{character.inventory.length - 5} more items...
-                            </div>
-                        )}
                     </div>
                 </div>
             )}
