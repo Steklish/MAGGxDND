@@ -67,9 +67,29 @@
 }
 
 .character-card.active {
-    border-color: var(--accent-orange);
-    background-color: rgba(255, 107, 53, 0.1);
-    box-shadow: 0 0 15px rgba(255, 107, 53, 0.2);
+    border-color: var(--accent-yellow);
+    background-color: rgba(233, 196, 106, 0.1);
+    box-shadow: 0 0 15px rgba(233, 196, 106, 0.2);
+}
+
+.character-card.current-turn {
+    border-color: var(--accent-purple);
+    background: linear-gradient(135deg, rgba(157, 78, 221, 0.2) 0%, rgba(157, 78, 221, 0.1) 100%);
+    box-shadow: 0 0 15px rgba(157, 78, 221, 0.3), inset 0 0 20px rgba(157, 78, 221, 0.1);
+    position: relative;
+}
+
+.character-card.current-turn .character-name {
+    color: var(--accent-purple);
+    text-shadow: 0 0 8px rgba(157, 78, 221, 0.3);
+}
+
+.character-card.current-turn::before {
+    content: '🎯';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 1.2rem;
 }
 
 .character-card.npc {

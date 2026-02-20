@@ -7,15 +7,16 @@
     background: var(--gradient-dark);
 }
 
-/* Header */
+/* Header - Purple theme */
 .game-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: var(--spacing-md) var(--spacing-lg);
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(180deg, rgba(157, 78, 221, 0.15) 0%, rgba(157, 78, 221, 0.05) 100%);
+    border-bottom: 1px solid rgba(157, 78, 221, 0.3);
     z-index: 10;
+    position: relative;
 }
 
 .header-left {
@@ -25,39 +26,64 @@
 }
 
 .game-title {
-    font-size: 1.8rem;
+    font-size: 2rem;
     font-weight: 700;
     font-family: 'Rajdhani', sans-serif;
     text-transform: uppercase;
     letter-spacing: 3px;
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    display: flex;
+    align-items: center;
+    gap: 2px;
 }
 
-.scene-indicator {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    padding: 6px 12px;
-    background-color: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    font-family: 'Rajdhani', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.3s ease;
+.title-magg {
+    color: var(--accent-yellow);
+    text-shadow: 0 0 10px rgba(233, 196, 106, 0.3);
 }
 
-.scene-indicator:hover {
-    border-color: var(--accent-orange);
+.title-x {
+    color: var(--accent-green);
+    text-shadow: 0 0 10px rgba(42, 157, 143, 0.3);
+}
+
+.title-dnd {
     color: var(--accent-orange);
+    text-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
 }
 
 .header-center {
     flex: 1;
     display: flex;
     justify-content: center;
+    align-items: center;
+}
+
+.current-turn-indicator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background-color: rgba(157, 78, 221, 0.1);
+    border: 1px solid rgba(157, 78, 221, 0.3);
+    border-radius: var(--radius-md);
+}
+
+.turn-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.turn-character {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent-purple);
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(157, 78, 221, 0.3);
 }
 
 .header-right {
@@ -65,29 +91,43 @@
     align-items: center;
 }
 
-.game-mode {
-    padding: 6px 14px;
-    border-radius: var(--radius-sm);
-    font-weight: 600;
-    font-size: 0.85rem;
-    font-family: 'Rajdhani', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border: 1px solid;
+.profile-btn {
+    background: linear-gradient(135deg, rgba(157, 78, 221, 0.2) 0%, rgba(157, 78, 221, 0.1) 100%);
+    border: 1px solid rgba(157, 78, 221, 0.3);
+    border-radius: var(--radius-md);
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.game-mode.combat {
-    background-color: rgba(230, 57, 70, 0.1);
-    color: var(--accent-red);
-    border-color: var(--accent-red);
-    box-shadow: 0 0 10px rgba(230, 57, 70, 0.2);
+.profile-btn:hover {
+    background: linear-gradient(135deg, rgba(157, 78, 221, 0.3) 0%, rgba(157, 78, 221, 0.2) 100%);
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 15px rgba(157, 78, 221, 0.3);
+    transform: translateY(-2px);
 }
 
-.game-mode.story {
-    background-color: rgba(42, 157, 143, 0.1);
-    color: var(--accent-green);
-    border-color: var(--accent-green);
-    box-shadow: 0 0 10px rgba(42, 157, 143, 0.2);
+.profile-icon {
+    font-size: 1.5rem;
+}
+
+/* Header resize handle */
+.header-resize-handle {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    cursor: ns-resize;
+    background: transparent;
+    transition: background-color 0.2s;
+}
+
+.header-resize-handle:hover {
+    background: rgba(157, 78, 221, 0.3);
 }
 
 /* Content */

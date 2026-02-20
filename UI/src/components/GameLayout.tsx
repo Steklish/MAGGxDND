@@ -11,41 +11,53 @@ export const GameLayout: React.FC = () => {
     const { session, currentScene, activeCharacter } = useGameStore();
     const [leftPanelWidth, setLeftPanelWidth] = useState(25);
     const [rightPanelWidth, setRightPanelWidth] = useState(25);
+    const [headerHeight, setHeaderHeight] = useState(80);
     const [isResizingLeft, setIsResizingLeft] = useState(false);
     const [isResizingRight, setIsResizingRight] = useState(false);
+    const [isResizingHeader, setIsResizingHeader] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const startX = useRef(0);
+    const startY = useRef(0);
     const startLeftWidth = useRef(0);
     const startRightWidth = useRef(0);
+    const startHeaderHeight = useRef(0);
     const containerWidth = useRef(0);
 
     const handleMouseMove = useCallback((e: MouseEvent) => {
-        if (!isResizingLeft && !isResizingRight) return;
+        if (!isResizingLeft && !isResizingRight && !isResizingHeader) return;
         if (!containerRef.current) return;
 
         const container = containerRef.current;
         const containerRect = container.getBoundingClientRect();
-        const deltaX = e.clientX - startX.current;
-        const deltaPercent = (deltaX / containerWidth.current) * 100;
 
-        if (isResizingLeft) {
-            const newWidth = startLeftWidth.current + deltaPercent;
-            setLeftPanelWidth(Math.max(15, Math.min(50, newWidth)));
-        }
+        if (isResizingHeader) {
+            const deltaY = e.clientY - startY.current;
+            const newHeight = startHeaderHeight.current + deltaY;
+            setHeaderHeight(Math.max(60, Math.min(200, newHeight)));
+        } else {
+            const deltaX = e.clientX - startX.current;
+            const deltaPercent = (deltaX / containerWidth.current) * 100;
 
-        if (isResizingRight) {
-            const newWidth = startRightWidth.current - deltaPercent;
-            setRightPanelWidth(Math.max(15, Math.min(50, newWidth)));
+            if (isResizingLeft) {
+                const newWidth = startLeftWidth.current + deltaPercent;
+                setLeftPanelWidth(Math.max(15, Math.min(50, newWidth)));
+            }
+
+            if (isResizingRight) {
+                const newWidth = startRightWidth.current - deltaPercent;
+                setRightPanelWidth(Math.max(15, Math.min(50, newWidth)));
+            }
         }
-    }, [isResizingLeft, isResizingRight]);
+    }, [isResizingLeft, isResizingRight, isResizingHeader]);
 
     const handleMouseUp = useCallback(() => {
         setIsResizingLeft(false);
         setIsResizingRight(false);
+        setIsResizingHeader(false);
     }, []);
 
     useEffect(() => {
-        if (isResizingLeft || isResizingRight) {
+        if (isResizingLeft || isResizingRight || isResizingHeader) {
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
             return () => {
@@ -53,7 +65,7 @@ export const GameLayout: React.FC = () => {
                 document.removeEventListener('mouseup', handleMouseUp);
             };
         }
-    }, [isResizingLeft, isResizingRight, handleMouseMove, handleMouseUp]);
+    }, [isResizingLeft, isResizingRight, isResizingHeader, handleMouseMove, handleMouseUp]);
 
     const startLeftResize = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -75,30 +87,55 @@ export const GameLayout: React.FC = () => {
         }
     };
 
+    const startHeaderResize = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setIsResizingHeader(true);
+        startY.current = e.clientY;
+        startHeaderHeight.current = headerHeight;
+    };
+
     if (!session) {
         return <div className="loading">Loading game...</div>;
     }
 
+    // Get current turn character
+    const getCurrentTurnCharacter = () => {
+        if (!session.turn_queue || session.turn_queue.length === 0) return null;
+        const sortedQueue = [...session.turn_queue].sort((a, b) => a[2] - b[2]);
+        return sortedQueue[0]?.[0];
+    };
+
+    const currentTurnChar = getCurrentTurnCharacter();
+
     return (
         <div className="game-layout" ref={containerRef}>
             {/* Header */}
-            <header className="game-header">
+            <header className="game-header" style={{ height: `${headerHeight}px` }}>
                 <div className="header-left">
-                    <h1 className="game-title">MAGGxDND</h1>
-                    {session.current_scene && (
-                        <span className="scene-indicator">
-                            📍 {session.current_scene.name}
-                        </span>
-                    )}
+                    <h1 className="game-title">
+                        <span className="title-magg">MAGG</span>
+                        <span className="title-x">x</span>
+                        <span className="title-dnd">DND</span>
+                    </h1>
                 </div>
                 <div className="header-center">
-                    <TurnQueue />
+                    {currentTurnChar && (
+                        <div className="current-turn-indicator">
+                            <span className="turn-label">Current Turn:</span>
+                            <span className="turn-character">{currentTurnChar.name}</span>
+                        </div>
+                    )}
                 </div>
                 <div className="header-right">
-                    <span className={`game-mode ${session.game_mode.toLowerCase()}`}>
-                        {session.game_mode === 'COMBAT' ? '⚔️ COMBAT' : '📖 STORY'}
-                    </span>
+                    <button className="profile-btn" title="Profile">
+                        <span className="profile-icon">👤</span>
+                    </button>
                 </div>
+                {/* Header resize handle */}
+                <div
+                    className="header-resize-handle"
+                    onMouseDown={startHeaderResize}
+                />
             </header>
 
             {/* Main content */}

@@ -134,6 +134,15 @@ export const CharacterPanel: React.FC = () => {
     const players = session.players.map(p => p.character);
     const npcs = session.npcs.map(n => n.character);
 
+    // Get current turn character
+    const getCurrentTurnCharacter = () => {
+        if (!session.turn_queue || session.turn_queue.length === 0) return null;
+        const sortedQueue = [...session.turn_queue].sort((a, b) => a[2] - b[2]);
+        return sortedQueue[0]?.[0];
+    };
+
+    const currentTurnChar = getCurrentTurnCharacter();
+
     const handleSelectCharacter = (char: typeof players[0]) => {
         if (activeCharacter?.name === char.name) {
             setActiveCharacter(null);
@@ -158,7 +167,7 @@ export const CharacterPanel: React.FC = () => {
                             position="right"
                         >
                             <div
-                                className={`character-card ${activeCharacter?.name === char.name ? 'active' : ''}`}
+                                className={`character-card ${activeCharacter?.name === char.name ? 'active' : ''} ${currentTurnChar?.name === char.name ? 'current-turn' : ''}`}
                                 onClick={() => handleSelectCharacter(char)}
                             >
                                 <div className="character-header">
@@ -210,7 +219,7 @@ export const CharacterPanel: React.FC = () => {
                             position="right"
                         >
                             <div
-                                className={`character-card npc ${activeCharacter?.name === char.name ? 'active' : ''}`}
+                                className={`character-card npc ${activeCharacter?.name === char.name ? 'active' : ''} ${currentTurnChar?.name === char.name ? 'current-turn' : ''}`}
                                 onClick={() => handleSelectCharacter(char)}
                             >
                                 <div className="character-header">
