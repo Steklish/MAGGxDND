@@ -4,6 +4,7 @@ import { ChatPanel } from './ChatPanel';
 import { SceneViewer } from './SceneViewer';
 import { CharacterPanel } from './CharacterPanel';
 import { ActionPanel } from './ActionPanel';
+import { Footer } from './Footer';
 import './GameLayout.css';
 
 interface TurnEntry {
@@ -318,6 +319,9 @@ export const GameLayout: React.FC = () => {
                     <ChatPanel />
                 </aside>
             </div>
+
+            {/* Footer */}
+            <Footer />
         </div>
     );
 };
