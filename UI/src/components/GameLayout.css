@@ -4,6 +4,7 @@
     height: 100vh;
     overflow: hidden;
     position: relative;
+    background: var(--gradient-dark);
 }
 
 /* Header */
@@ -11,8 +12,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 20px;
-    background-color: var(--bg-secondary);
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
     z-index: 10;
 }
@@ -20,13 +21,19 @@
 .header-left {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: var(--spacing-lg);
 }
 
 .game-title {
-    font-size: 1.5rem;
-    color: var(--accent-purple);
+    font-size: 1.8rem;
     font-weight: 700;
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .scene-indicator {
@@ -34,7 +41,17 @@
     font-size: 0.9rem;
     padding: 6px 12px;
     background-color: var(--bg-tertiary);
-    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.scene-indicator:hover {
+    border-color: var(--accent-orange);
+    color: var(--accent-orange);
 }
 
 .header-center {
@@ -50,21 +67,27 @@
 
 .game-mode {
     padding: 6px 14px;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     font-weight: 600;
     font-size: 0.85rem;
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid;
 }
 
 .game-mode.combat {
-    background-color: rgba(248, 81, 73, 0.2);
+    background-color: rgba(230, 57, 70, 0.1);
     color: var(--accent-red);
-    border: 1px solid var(--accent-red);
+    border-color: var(--accent-red);
+    box-shadow: 0 0 10px rgba(230, 57, 70, 0.2);
 }
 
 .game-mode.story {
-    background-color: rgba(63, 185, 80, 0.2);
+    background-color: rgba(42, 157, 143, 0.1);
     color: var(--accent-green);
-    border: 1px solid var(--accent-green);
+    border-color: var(--accent-green);
+    box-shadow: 0 0 10px rgba(42, 157, 143, 0.2);
 }
 
 /* Content */
@@ -120,7 +143,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background-color: var(--bg-primary);
+    background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
     min-width: 0;
 }
 
@@ -131,9 +154,12 @@
     height: 100vh;
     font-size: 1.2rem;
     color: var(--text-secondary);
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
-/* Scrollbar styling */
+/* Scrollbar styling - Assiko style */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -141,13 +167,14 @@
 
 ::-webkit-scrollbar-track {
     background: var(--bg-primary);
+    border-left: 1px solid var(--border-color);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 4px;
+    background: var(--accent-orange);
+    border-radius: var(--radius-sm);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--text-secondary);
+    background: var(--accent-gold);
 }

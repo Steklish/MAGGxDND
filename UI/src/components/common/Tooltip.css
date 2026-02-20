@@ -12,9 +12,9 @@
 .tooltip {
     background-color: var(--bg-tertiary);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     padding: 12px 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--shadow-lg), 0 0 20px rgba(255, 107, 53, 0.15);
     font-size: 0.85rem;
     line-height: 1.5;
     color: var(--text-primary);
@@ -27,6 +27,7 @@
     width: auto;
     height: auto;
     max-height: none;
+    font-family: 'Rajdhani', sans-serif;
 }
 
 .tooltip.tooltip-right,
@@ -43,6 +44,7 @@
     gap: 12px;
     max-height: none;
     overflow: visible;
+    font-family: 'Rajdhani', sans-serif;
 }
 
 .character-preview-header {
@@ -55,15 +57,19 @@
 
 .character-preview-name {
     display: block;
-    font-size: 1.1rem;
+    font-size: 1.3rem;
     font-weight: 700;
-    color: var(--accent-purple);
+    color: var(--accent-orange);
     margin-bottom: 4px;
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
 }
 
 .character-preview-subtitle {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: var(--text-secondary);
+    font-family: 'Rajdhani', sans-serif;
 }
 
 .character-preview-section {
@@ -73,11 +79,16 @@
 }
 
 .character-preview-section-title {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: var(--text-secondary);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     font-weight: 600;
+    font-family: 'Rajdhani', sans-serif;
+    display: block;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .character-preview-stats {
@@ -90,21 +101,25 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 6px;
+    padding: 8px;
     background-color: var(--bg-secondary);
-    border-radius: 4px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
 }
 
 .character-preview-stat-name {
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     color: var(--text-secondary);
     font-weight: 600;
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
 }
 
 .character-preview-stat-value {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 700;
-    color: var(--accent-blue);
+    color: var(--accent-orange);
+    font-family: 'Rajdhani', sans-serif;
 }
 
 .character-preview-hp {
@@ -116,9 +131,10 @@
 .character-preview-hp-bar {
     flex: 1;
     height: 10px;
-    background-color: var(--bg-secondary);
-    border-radius: 4px;
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-sm);
     overflow: hidden;
+    border: 1px solid var(--border-color);
 }
 
 .character-preview-hp-fill {
@@ -127,19 +143,25 @@
 }
 
 .character-preview-hp-text {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: var(--text-primary);
     white-space: nowrap;
     min-width: 70px;
+    font-family: 'Rajdhani', sans-serif;
 }
 
 .character-preview-vitals-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-    font-size: 0.8rem;
+    gap: 8px;
+    font-size: 0.85rem;
     color: var(--text-secondary);
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.character-preview-vitals-grid span {
+    font-weight: 600;
 }
 
 .character-preview-conditions {
@@ -149,12 +171,16 @@
 }
 
 .character-preview-condition {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: var(--accent-yellow);
-    background-color: rgba(210, 153, 34, 0.15);
-    padding: 3px 8px;
-    border-radius: 4px;
-    border: 1px solid rgba(210, 153, 34, 0.2);
+    background-color: rgba(233, 196, 106, 0.1);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(233, 196, 106, 0.2);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .character-preview-abilities {
@@ -164,36 +190,49 @@
 }
 
 .character-preview-ability {
-    padding: 6px 8px;
+    padding: 8px 10px;
     background-color: var(--bg-secondary);
-    border-radius: 4px;
-    border-left: 3px solid var(--accent-blue);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--accent-orange);
+    margin-bottom: 4px;
+    transition: all 0.3s ease;
+}
+
+.character-preview-ability:hover {
+    background-color: var(--bg-accent);
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.1);
 }
 
 .character-preview-ability-name {
     font-weight: 600;
     color: var(--text-primary);
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 6px;
     margin-bottom: 2px;
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .spell-level-tag {
     font-size: 0.7rem;
-    color: var(--accent-purple);
-    background-color: rgba(188, 140, 255, 0.15);
+    color: var(--accent-orange);
+    background-color: rgba(255, 107, 53, 0.1);
     padding: 1px 6px;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 107, 53, 0.2);
+    font-family: 'Rajdhani', sans-serif;
     font-weight: 600;
 }
 
 .character-preview-ability-desc {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     color: var(--text-secondary);
     line-height: 1.4;
+    font-family: 'Rajdhani', sans-serif;
 }
 
 .character-preview-inventory {
@@ -206,11 +245,19 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 4px 8px;
+    padding: 6px 8px;
     background-color: var(--bg-secondary);
-    border-radius: 4px;
-    font-size: 0.8rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    font-size: 0.85rem;
     color: var(--text-primary);
+    font-family: 'Rajdhani', sans-serif;
+    transition: all 0.3s ease;
+}
+
+.character-preview-inventory-item:hover {
+    border-color: var(--accent-orange);
+    background-color: var(--bg-accent);
 }
 
 .equipped-badge {
@@ -222,20 +269,18 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    font-family: 'Rajdhani', sans-serif;
 }
 
 .filter-tooltip-title {
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 700;
-    color: var(--accent-blue);
+    color: var(--accent-orange);
     padding-bottom: 6px;
     border-bottom: 1px solid var(--border-color);
-}
-
-.filter-tooltip-description {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    line-height: 1.4;
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .filter-tooltip-icon {
@@ -246,4 +291,11 @@
 
 .filter-tooltip-icon span:first-child {
     font-size: 1.2rem;
+}
+
+.filter-tooltip-description {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    font-family: 'Rajdhani', sans-serif;
 }
