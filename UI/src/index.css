@@ -1,5 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Playwrite+New+Zealand+Basic:wght@400;700&display=swap');
+
+/* Nurito font - using similar rounded sans-serif as fallback */
+@font-face {
+    font-family: 'Nurito';
+    src: local('Nurito'), local('Nunito'), url('https://fonts.gstatic.com/s/nunito/v26/XRXV3I6Li01BKofINeaBTMn8.woff2') format('woff2');
+    font-display: swap;
+}
+
 :root {
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    font-family: 'Nurito', Nunito, Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;
     font-weight: 400;
 
@@ -28,4 +37,9 @@ body {
 #root {
     width: 100%;
     height: 100vh;
+}
+
+/* Lore and descriptive text font */
+.lore-font, .lore-text, .scene-description, .ability-item-desc, .event-text {
+    font-family: 'Playwrite New Zealand Basic', cursive !important;
 }

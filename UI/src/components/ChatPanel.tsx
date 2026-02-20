@@ -145,9 +145,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ collapsed, onToggle }) => 
     if (collapsed) {
         return (
             <div className="chat-panel collapsed">
-                <div className="collapse-toggle" onClick={onToggle}>
-                    <span className="toggle-icon" title="Expand panel">💬←</span>
-                </div>
                 <nav className="icon-nav">
                     <Tooltip 
                         content={<FilterTooltipContent filter="all" />}
@@ -229,9 +226,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ collapsed, onToggle }) => 
         <div className="chat-panel">
             <div className="chat-header">
                 <h2>💬 Game Log</h2>
-                <button className="collapse-toggle-btn" onClick={onToggle} title="Collapse panel">
-                    💬←
-                </button>
             </div>
             <div className="filter-buttons">
                 <Tooltip content={<FilterTooltipContent filter="all" />} position="bottom">

@@ -106,7 +106,7 @@ export const SceneViewer: React.FC = () => {
         <div className="scene-viewer">
             <div className="scene-header">
                 <h2>📍 {currentScene.name}</h2>
-                <p className="scene-description">{currentScene.description}</p>
+                <p className="scene-description lore-font">{currentScene.description}</p>
                 <div className="scene-info">
                     <span>📏 {width}x{height} {currentScene.scale_unit}</span>
                     <span>Center: ({centerX}, {centerY})</span>

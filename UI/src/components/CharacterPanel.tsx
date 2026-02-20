@@ -136,9 +136,6 @@ export const CharacterPanel: React.FC<CharacterPanelProps> = ({ collapsed, onTog
     if (collapsed) {
         return (
             <div className="character-panel collapsed">
-                <div className="collapse-toggle" onClick={onToggle}>
-                    <span className="toggle-icon" title="Expand panel">←👥</span>
-                </div>
                 <nav className="icon-nav">
                     <button
                         className="nav-icon"
@@ -191,9 +188,6 @@ export const CharacterPanel: React.FC<CharacterPanelProps> = ({ collapsed, onTog
         <div className="character-panel">
             <div className="panel-header">
                 <h2>👥 Characters</h2>
-                <button className="collapse-toggle-btn" onClick={onToggle} title="Collapse panel">
-                    👥→
-                </button>
             </div>
 
             <div className="characters-list">

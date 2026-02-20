@@ -19,7 +19,7 @@ export const ActionPanel: React.FC = () => {
             <div className="action-panel">
                 <div className="no-action">
                     <p>⏳ Waiting for your turn...</p>
-                    <p className="hint">The Game Master will prompt you when it's time to act</p>
+                    <p className="hint lore-font">The Game Master will prompt you when it's time to act</p>
                 </div>
             </div>
         );
@@ -45,7 +45,7 @@ export const ActionPanel: React.FC = () => {
             {clarificationText && (
                 <div className="clarification-box">
                     <span className="clarification-icon">❓</span>
-                    <p className="clarification-text">{clarificationText}</p>
+                    <p className="clarification-text lore-font">{clarificationText}</p>
                 </div>
             )}
 
@@ -63,15 +63,15 @@ export const ActionPanel: React.FC = () => {
                 </div>
 
                 <div className="action-buttons">
-                    <button 
-                        type="submit" 
+                    <button
+                        type="submit"
                         className="submit-btn"
                         disabled={!actionText.trim() || isActionPending}
                     >
                         {isActionPending ? 'Processing...' : 'Submit Action'}
                     </button>
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         className="clear-btn"
                         onClick={() => setActionText('')}
                         disabled={isActionPending}
@@ -82,7 +82,7 @@ export const ActionPanel: React.FC = () => {
 
                 <div className="action-hints">
                     <h4>Action Tips:</h4>
-                    <ul>
+                    <ul className="lore-font">
                         <li>Describe <strong>what</strong> you want to do, not just the mechanic</li>
                         <li>Include <strong>how</strong> your character approaches the action</li>
                         <li>For combat: specify target, weapon/spell, and intent</li>
