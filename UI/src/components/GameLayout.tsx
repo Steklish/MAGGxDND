@@ -131,9 +131,8 @@ export const GameLayout: React.FC = () => {
         if (isResizingHeader) {
             const deltaY = e.clientY - startY.current;
             const newHeight = startHeaderHeight.current + deltaY;
-            // Max height = portrait max (105px) + name (20px) + death saves (20px) + padding/gap (25px) ≈ 170px
-            // Active portrait scale 1.1 = 115px + spacing ≈ 200px total
-            setHeaderHeight(Math.max(80, Math.min(220, newHeight)));
+            // Max height = portrait max (140px/155px active) + name (25px) + death saves (20px) + padding/gap (20px) ≈ 220px
+            setHeaderHeight(Math.max(70, Math.min(240, newHeight)));
         } else {
             const deltaX = e.clientX - startX.current;
             const deltaPercent = (deltaX / containerWidth.current) * 100;

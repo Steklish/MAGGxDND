@@ -95,8 +95,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    padding: 8px;
+    gap: 4px;
+    padding: 4px;
     background-color: var(--bg-tertiary);
     border: 2px solid;
     border-radius: var(--radius-md);
@@ -105,7 +105,7 @@
     cursor: pointer;
     position: relative;
     height: 100%;
-    max-height: 180px;
+    max-height: 200px;
 }
 
 .turn-portrait.active {
@@ -147,12 +147,13 @@
     }
 }
 
-/* Portrait Frame - scales with header */
+/* Portrait Frame - scales with header height */
 .portrait-frame {
     position: relative;
-    width: 8vw;
-    max-width: 90px;
-    min-width: 40px;
+    width: auto;
+    height: 70%;
+    min-height: 40px;
+    max-height: 140px;
     aspect-ratio: 3/4;
     border-radius: var(--radius-md);
     overflow: hidden;
@@ -164,14 +165,13 @@
 }
 
 .turn-portrait.active .portrait-frame {
-    width: 9vw;
-    max-width: 105px;
-    min-width: 50px;
+    height: 75%;
+    max-height: 155px;
 }
 
 /* Portrait Name - below portrait */
 .portrait-name {
-    font-size: clamp(0.6rem, 1vw, 0.8rem);
+    font-size: clamp(0.55rem, 1.2vh, 0.85rem);
     font-family: 'Rajdhani', sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -200,7 +200,7 @@
 }
 
 .portrait-initial {
-    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    font-size: clamp(1.2rem, 2.5vh, 2.8rem);
     font-weight: 700;
     font-family: 'Rajdhani', sans-serif;
     color: var(--text-primary);
@@ -209,7 +209,7 @@
 }
 
 .turn-portrait.active .portrait-initial {
-    font-size: clamp(1.8rem, 3.5vw, 3rem);
+    font-size: clamp(1.5rem, 3vh, 3.2rem);
 }
 
 /* Attitude Indicator */
@@ -218,15 +218,15 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: clamp(2px, 0.5vw, 4px);
+    height: clamp(2px, 0.5vh, 4px);
     z-index: 10;
 }
 
 /* Death Saves */
 .death-saves {
     display: flex;
-    gap: 8px;
-    font-size: clamp(0.6rem, 1vw, 0.8rem);
+    gap: 6px;
+    font-size: clamp(0.55rem, 1.2vh, 0.85rem);
     opacity: 0.9;
 }
 
