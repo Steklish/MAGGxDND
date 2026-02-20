@@ -188,6 +188,7 @@ export const Footer: React.FC = () => {
                     D&D and Wizards of the Coast are trademarks of Wizards of the Coast LLC.
                 </p>
             </div>
-        </footer>
+            </footer>
+        </>
     );
 };
