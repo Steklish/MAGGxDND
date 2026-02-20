@@ -97,7 +97,8 @@
 
 /* Resize handles */
 .resize-handle {
-    width: 6px;
+    width: 0;
+    padding: 0 3px;
     cursor: col-resize;
     display: flex;
     align-items: center;
@@ -105,34 +106,28 @@
     transition: background-color 0.2s;
     z-index: 10;
     flex-shrink: 0;
+    position: relative;
 }
 
 .resize-handle:hover,
 .resize-handle.resizing {
-    background-color: rgba(88, 166, 255, 0.3);
+    background-color: transparent;
 }
 
 .resize-handle::after {
-    content: '⋮';
-    font-size: 1rem;
-    color: var(--text-secondary);
-    letter-spacing: 2px;
-    writing-mode: vertical-rl;
-    opacity: 0.5;
+    content: '';
+    position: absolute;
+    width: 2px;
+    height: 100%;
+    background-color: var(--border-color);
+    opacity: 0;
+    transition: opacity 0.2s;
 }
 
 .resize-handle:hover::after,
 .resize-handle.resizing::after {
-    color: var(--accent-blue);
     opacity: 1;
-}
-
-.left-resize {
-    border-right: 1px solid transparent;
-}
-
-.right-resize {
-    border-left: 1px solid transparent;
+    background-color: var(--accent-blue);
 }
 
 .center-panel {
