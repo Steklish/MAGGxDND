@@ -7,15 +7,13 @@ export const ActionPanel: React.FC = () => {
     const [actionText, setActionText] = useState('');
     const [panelHeight, setPanelHeight] = useState(200);
     const [isResizing, setIsResizing] = useState(false);
-    const [resizeFromTop, setResizeFromTop] = useState(false);
     const [startY, setStartY] = useState(0);
     const [startHeight, setStartHeight] = useState(0);
     const panelRef = useRef<HTMLDivElement>(null);
 
-    const handleResizeStart = (e: React.MouseEvent, fromTop: boolean) => {
+    const handleResizeStart = (e: React.MouseEvent) => {
         e.preventDefault();
         setIsResizing(true);
-        setResizeFromTop(fromTop);
         setStartY(e.clientY);
         setStartHeight(panelHeight);
     };
@@ -23,14 +21,13 @@ export const ActionPanel: React.FC = () => {
     React.useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             if (!isResizing) return;
-            const deltaY = resizeFromTop ? (e.clientY - startY) : (startY - e.clientY);
+            const deltaY = startY - e.clientY;
             const newHeight = Math.max(120, Math.min(400, startHeight + deltaY));
             setPanelHeight(newHeight);
         };
 
         const handleMouseUp = () => {
             setIsResizing(false);
-            setResizeFromTop(false);
         };
 
         if (isResizing) {
@@ -41,7 +38,7 @@ export const ActionPanel: React.FC = () => {
                 document.removeEventListener('mouseup', handleMouseUp);
             };
         }
-    }, [isResizing, resizeFromTop, startY, startHeight]);
+    }, [isResizing, startY, startHeight]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -83,19 +80,13 @@ export const ActionPanel: React.FC = () => {
     if (!activeCharacter) {
         return (
             <div className="action-panel" ref={panelRef} style={{ height: `${panelHeight}px` }}>
-                <div
-                    className="resize-handle-top"
-                    onMouseDown={(e) => handleResizeStart(e, true)}
-                    title="Resize from top"
-                />
                 <div className="no-action">
                     <p>⏳ Waiting for your turn...</p>
                     <p className="hint lore-font">The Game Master will prompt you when it's time to act</p>
                 </div>
                 <div
-                    className="resize-handle-bottom"
-                    onMouseDown={(e) => handleResizeStart(e, false)}
-                    title="Resize from bottom"
+                    className="resize-handle-top"
+                    onMouseDown={handleResizeStart}
                 />
             </div>
         );
@@ -105,11 +96,6 @@ export const ActionPanel: React.FC = () => {
 
     return (
         <div className="action-panel" ref={panelRef} style={{ height: `${panelHeight}px` }}>
-            <div
-                className="resize-handle-top"
-                onMouseDown={(e) => handleResizeStart(e, true)}
-                title="Resize from top"
-            />
             <div className="action-header">
                 <div className="active-character">
                     <span className="character-icon">🎯</span>
@@ -208,9 +194,8 @@ export const ActionPanel: React.FC = () => {
             </div>
 
             <div
-                className="resize-handle-bottom"
-                onMouseDown={(e) => handleResizeStart(e, false)}
-                title="Resize from bottom"
+                className="resize-handle-top"
+                onMouseDown={handleResizeStart}
             />
         </div>
     );
