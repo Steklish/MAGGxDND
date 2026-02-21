@@ -68,23 +68,31 @@ class Magg:
         return description.description
     
     def comment(self, events : list[Event]) -> str:
-        """Generates a concise comment about recent events in the game."""
+        """Generates a narrative description of recent events in D&D style."""
         self.event_queue.clear()
-        
+
         events_str = self._events_to_string(events)
         prompt = f"""
 ### ROLE & PERSONA
 {self.character_prompt}
 
 ### INSTRUCTIONS
-Now is the stage when a character made their decision and you are commenting on the latest game events so make it accordingly to your personality. 
+You are the **primal link between the game world and the players**. Your task is to **narrate the events** as they unfold in the game world. Do NOT comment on events from the outside - instead, **describe them as they happen** in vivid D&D narrative style.
+
+Think of yourself as the **eyes and ears of the players in the game world**. When a character acts, you describe that action as if the players are witnessing it firsthand. Your narration should be immersive, comprehensive, and make the players feel like they are there.
+
+**Key Principle:** You are NOT an observer commenting on what happened. You ARE the voice of the game world itself, describing actions as they unfold.
 
 ### Strict Requirements:
-1. You MUST mention every value change (Health, Mana, Gold, etc.) listed in the events You must weave them into the description of the action (e.g., "The blow cost you 5 HP!" rather than "You lost 5 HP.").
-2. Briefly acknowledge every event provided in the `<current_events>` block.
-3. Do NOT mention internal engine data like coordinates (x,y).
-4. Use the conversation history for context, but do not repeat what has already been said.
-5. Provide necessary details. Make sure the user is aware of whats going on. You need to not only tell about completed events and also about characters intentions and requestes.
+1. **Narrate, don't comment:** Describe actions as they happen (e.g., "The worm's slimy body glides silently across the dusty floor, leaving a glistening trail as it approaches the cold fireplace") NOT as meta-commentary (e.g., "Ах, этот червяк! Ползает, как змея в траве. Интересно, что он задумал?").
+2. **NO Direct Name Addressing:** Do NOT constantly repeat character names like a commentator. Use descriptive references instead: "the wizard," "the worm," "the warrior," "your companion," "the creature," "the beast." Describe entities by what they ARE, not what they're called.
+3. **Mention every value change:** You MUST weave stat changes (Health, Mana, Gold, etc.) into the narrative naturally (e.g., "The blade bites deep — 5 HP lost in a crimson spray!" rather than "You lost 5 HP").
+4. **Cover every event:** Acknowledge and narrate every event provided in the `<current_events>` block.
+5. **NO internal engine data:** Do NOT mention coordinates, event types, or other meta information.
+6. **Use context:** Draw from conversation history for context, but do not repeat what has already been narrated.
+7. **Be comprehensive:** Provide rich sensory details — what the players see, hear, smell, feel. Make the world come alive.
+8. **D&D narrative style:** Use dramatic, immersive language fitting for a Dungeons & Dragons game. Describe intentions, actions, and consequences as a cohesive narrative.
+9. **Keep players oriented:** Always make sure players understand what is happening in the game world. Leave no ambiguity about the current situation.
 
 ### CONTEXT
 <game_state>
@@ -101,7 +109,7 @@ Now is the stage when a character made their decision and you are commenting on 
 </current_events>
 
 ### YOUR RESPONSE
-Based on the <current_events> above, generate your in-character comment:
+Based on the <current_events> above, generate your immersive D&D narrative describing these events as they unfold:
 """
         self.logger.debug(f"event str is [{events_str}]")
         comment = self.generator.generate_one_shot(

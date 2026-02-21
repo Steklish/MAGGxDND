@@ -184,12 +184,30 @@ class Orchestrator:
         ## Current Game State:
         {self.state.get_session_context()}
 
-        Determine if this action is clear enough to be processed, or if it needs additional clarification.
-        For example, if the player says "I cast a spell" without specifying which spell, or "I move" without specifying direction/distance,
-        these would need clarification. If it is obvious what player is have in mind you dont need to clarify it. If there is unsignificant detail misiing you shuoldn't request clarification. Request clarification if vital details are missing.
+        ## CLARIFICATION RULES - READ CAREFULLY
+
+        **DO NOT request clarification** when the intent is CLEAR from context:
+        - "I run to Ogorek" → CLEAR (target is specified, game calculates path automatically)
+        - "I attack the orc" → CLEAR (target specified, combat system handles the rest)
+        - "I search the room" → CLEAR (area specified, no clarification needed)
+        - "I cast a spell" after asking about spells → CLEAR (context makes intent obvious)
+        - "I move toward the door" → CLEAR (direction specified)
+
+        **DO request clarification** ONLY when VITAL information is genuinely missing:
+        - "I cast a spell" (no context, many spells available) → NEEDS: which spell?
+        - "I move" (no direction, no target, no destination) → NEEDS: where?
+        - "I attack" (multiple enemies present, no target specified) → NEEDS: which enemy?
+        - "I use an item" (multiple items in inventory) → NEEDS: which item?
+        - "I go there" (when "there" is ambiguous - multiple possible locations) → NEEDS: where exactly?
+
+        ## KEY PRINCIPLE
+        Be LENIENT. If the player's intent can be reasonably inferred, DO NOT request clarification. 
+        The game system can handle vague directions like "toward X" or "to Y" automatically.
+        Only request clarification when the action is TRULY ambiguous and cannot be executed without more information.
+        Players should not be bombarded with clarification questions for obvious actions.
 
         Consider the recent message history to understand the context of the current request.
-        For instance, if the player was asking about their spells in previous messages, this might be a continuation of that inquiry.
+        For instance, if the player was asking about their spells in previous messages, "I cast fireball" is a clear continuation.
 
         Respond with whether clarification is needed and what specifically needs clarification.
         """

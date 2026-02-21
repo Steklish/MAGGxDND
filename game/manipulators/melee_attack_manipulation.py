@@ -37,9 +37,9 @@ class MeleeAttackManipulator(BaseManipulation):
             actor = self.session.find_entity_by_name(event.event_initiator)
         if actor is None:
             raise ValueError(f"Cannot find the attacker {event.event_initiator}")
-        
+
         event_target = self.session.find_entity_by_name(event.event_target) if event.event_target else None
-        
+
         task = self.generator.generate_one_shot(
             pydantic_model=MeleeAttackBreakdown,
             prompt=f"""
@@ -62,22 +62,28 @@ You are an action classificator and you need to determine exact information of a
 {event_target}
 """
         )
-        
+
         if not task.attack_success:
             return [Event(
                 event_type=EventTypes.ACTION_RESULT,
-                description=task.attack_description + f"(attack failed)"
+                description=f"{actor.character.name} attacks {event_target.character.name if event_target else 'a target'}: {task.attack_description} (attack failed)"
             )]
-            
+
         target = self.session.find_entity_by_name(task.target_name)
         if target is None:
             self.logger.warning(f"Can't find attack target (skipped)")
             return [Event(
                 event_type=EventTypes.ACTION_RESULT,
-                description=f"(attack failed) (cant find attack target)"
+                description=f"{actor.character.name} attacks a target: (attack failed) (cant find attack target)"
             )]
-        
+
         events = []
+        # First event: the attack itself (for combat mode detection)
+        events.append(Event(
+            event_type=EventTypes.ACTION_RESULT,
+            description=f"{actor.character.name} attacks {target.character.name}: {task.attack_description}"
+        ))
+        
         target.character.active_conditions_list += task.conditions_applied
         if task.conditions_applied != []:
             events.append(Event(
@@ -90,10 +96,10 @@ You are an action classificator and you need to determine exact information of a
         events.append(
                 Event(
                     event_type=EventTypes.ACTION_RESULT,
-                    description=f"Character {target.character.name} takes {damage} ({task.damage_dealt})"
+                    description=f"{target.character.name} takes {damage} damage from {actor.character.name}'s attack ({task.damage_dealt})"
                 )
             )
         self.logger.info(f"💕Character {target.character.name} takes {damage} ({task.damage_dealt})")
-        
+
         return events
             

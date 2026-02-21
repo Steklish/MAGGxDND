@@ -79,7 +79,10 @@ print("Starting the game...")
 
 
 # -- INIT SESSION AND MANIPULATOR --
-chroma_client = ChromaClient(EmbeddingClient(), logger_instance=main_logger)
+chroma_client = ChromaClient(
+    EmbeddingClient(os.getenv("LLAMACPP_EMBED_BASE", "localhost:12345")), 
+    path="./chroma_db/data.db",
+    logger_instance=main_logger)
 generator = Generator(
     GoogleGenAI(
         api_key=os.getenv("GEMINI_API_KEY", "NO_KEY"), 
@@ -130,7 +133,7 @@ ch1 = generator.generate_one_shot(
 
 ch2 = generator.generate_one_shot(
     pydantic_model=Character,
-    prompt="A warrior named Notman. Has a sword and a shield."
+    prompt="A warrior named Kiron. Has a sword and a shield."
 )
 
 

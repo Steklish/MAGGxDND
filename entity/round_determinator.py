@@ -66,7 +66,26 @@ class RoundDeterminator:
     def get_game_mode_and_expred_conditions_decision(self, events : list[Event]):
         prompt = f"""
 ## ROLE
-You are a game classificator. You need to update game mode and active characters conditions.
+You are a game mode classifier. Your task is to determine if the game should switch between STORY mode and COMBAT mode based on events and game state.
+
+## CRITICAL COMBAT TRIGGER RULES
+**IMMEDIATELY switch to COMBAT mode when ANY of the following occurs:**
+1. **Any attack is made** - melee attack, ranged attack, bite, claw, weapon strike, etc.
+2. **Any damage is dealt** - HP loss, injury, wound, bleeding, etc.
+3. **Any hostile spell is cast** - fireball, magic missile, curse, or any spell targeting an enemy
+4. **Any character initiates hostile action** - charging, lunging, drawing weapon with intent to harm
+5. **NPC shows clear aggression** - attacking, threatening with immediate violence, initiating combat
+
+**DO NOT end COMBAT mode prematurely:**
+- Keep COMBAT mode active until ALL hostile entities are defeated/fled
+- Do not switch to STORY mode just because there's a pause in action
+- Only end combat when there is clearly no more threat
+
+**Stay in STORY mode when:**
+- Characters are talking, exploring, or interacting peacefully
+- No hostile actions have occurred
+- All characters are cooperating
+
 <game_state>
 {self.session.get_session_context()}
 </game_state>
@@ -80,9 +99,12 @@ You are a game classificator. You need to update game mode and active characters
 {self.session.get_messages_formatted()}
 </in game messages>
 
-the game master is marked as "Mage".
+The game master is marked as "Mage".
 
-Update game mode if there is an indicator. Dont end battles too early and but start them immediately as any agression was brought up. It is more likely to start battle when early signs of agression is being shown.
+## DECISION INSTRUCTIONS
+Analyze the events above. If you see ANY attack, damage, or hostile action - IMMEDIATELY set suggested_game_mode_action to "CHANGE_TO_COMBAT".
+
+Remember: It is better to start combat TOO EARLY than TOO LATE. Any sign of aggression = COMBAT MODE.
         """
         decision = self.session.generator.generate_one_shot(
             pydantic_model=RoundDeterminationDecision,
