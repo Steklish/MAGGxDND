@@ -2,6 +2,17 @@
     padding: var(--spacing-md);
     background-color: var(--bg-secondary);
     border-top: 1px solid var(--border-color);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.action-panel-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    margin-top: auto;
+    padding-bottom: var(--spacing-md);
 }
 
 .no-action {
@@ -22,56 +33,6 @@
 .no-action .hint {
     font-size: 0.85rem;
     opacity: 0.7;
-}
-
-.action-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-md);
-    padding-bottom: var(--spacing-sm);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.active-character {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-}
-
-.character-icon {
-    font-size: 1.3rem;
-}
-
-.character-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.character-info strong {
-    color: var(--accent-orange);
-    font-size: 1rem;
-    font-family: 'Rajdhani', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.character-position {
-    color: var(--text-secondary);
-    font-size: 0.8rem;
-    font-family: 'Rajdhani', sans-serif;
-}
-
-.pending-indicator {
-    color: var(--accent-yellow);
-    font-size: 0.85rem;
-    animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
 }
 
 .clarification-box {
@@ -135,7 +96,8 @@
 }
 
 .submit-btn,
-.clear-btn {
+.clear-btn,
+.skip-btn {
     padding: var(--spacing-sm) var(--spacing-md);
     border-radius: var(--radius-sm);
     font-size: 0.85rem;
@@ -176,6 +138,23 @@
 }
 
 .clear-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.skip-btn {
+    background-color: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.skip-btn:hover:not(:disabled) {
+    background-color: var(--bg-primary);
+    border-color: var(--text-muted);
+    color: var(--text-primary);
+}
+
+.skip-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }

@@ -104,15 +104,6 @@ export const SceneViewer: React.FC = () => {
 
     return (
         <div className="scene-viewer">
-            <div className="scene-header">
-                <h2>📍 {currentScene.name}</h2>
-                <p className="scene-description lore-font">{currentScene.description}</p>
-                <div className="scene-info">
-                    <span>📏 {width}x{height} {currentScene.scale_unit}</span>
-                    <span>Center: ({centerX}, {centerY})</span>
-                </div>
-            </div>
-
             <div className="scene-content">
                 <div className="grid-container">
                     <div className="grid">
@@ -128,66 +119,6 @@ export const SceneViewer: React.FC = () => {
                                         {cell.symbol}
                                     </div>
                                 ))}
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="legend">
-                        <h4>Legend</h4>
-                        <div className="legend-items">
-                            <div className="legend-item">
-                                <span style={{ color: 'var(--accent-blue)' }}>■</span>
-                                <span>Players ({getPlayers().map(p => p.name).join(', ')})</span>
-                            </div>
-                            <div className="legend-item">
-                                <span style={{ color: 'var(--accent-red)' }}>■</span>
-                                <span>NPCs ({getNPCs().map(n => n.name).join(', ')})</span>
-                            </div>
-                            <div className="legend-item">
-                                <span style={{ color: 'var(--accent-yellow)' }}>■</span>
-                                <span>Objects ({getObjects().map(o => o.name).join(', ')})</span>
-                            </div>
-                            <div className="legend-item">
-                                <span style={{ color: 'var(--text-secondary)' }}>■</span>
-                                <span>Empty space</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="character-statuses">
-                    <h4>👤 Character Status</h4>
-                    <div className="status-list">
-                        {getPlayers().map(char => (
-                            <div key={char.name} className="status-entry">
-                                <span className="status-name">🧍 {char.name}</span>
-                                <span className="status-hp">
-                                    HP: {char.current_hp}/{char.max_hp}
-                                </span>
-                                <span className="status-pos">
-                                    Pos: ({char.position.x}, {char.position.y})
-                                </span>
-                                {char.active_conditions && (
-                                    <span className="status-conditions">
-                                        ⚠️ {char.active_conditions.replace(/\n/g, ', ')}
-                                    </span>
-                                )}
-                            </div>
-                        ))}
-                        {getNPCs().map(char => (
-                            <div key={char.name} className="status-entry npc">
-                                <span className="status-name">👹 {char.name}</span>
-                                <span className="status-hp">
-                                    HP: {char.current_hp}/{char.max_hp}
-                                </span>
-                                <span className="status-pos">
-                                    Pos: ({char.position.x}, {char.position.y})
-                                </span>
-                                {char.active_conditions && (
-                                    <span className="status-conditions">
-                                        ⚠️ {char.active_conditions.replace(/\n/g, ', ')}
-                                    </span>
-                                )}
                             </div>
                         ))}
                     </div>

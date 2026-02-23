@@ -22,9 +22,12 @@ export const GameLayout: React.FC = () => {
     const [leftPanelWidth, setLeftPanelWidth] = useState(25);
     const [rightPanelWidth, setRightPanelWidth] = useState(25);
     const [headerHeight, setHeaderHeight] = useState(140);
+    const [actionPanelHeight, setActionPanelHeight] = useState(30);
+    const [isActionPanelCollapsed, setIsActionPanelCollapsed] = useState(false);
     const [isResizingLeft, setIsResizingLeft] = useState(false);
     const [isResizingRight, setIsResizingRight] = useState(false);
     const [isResizingHeader, setIsResizingHeader] = useState(false);
+    const [isResizingActionPanel, setIsResizingActionPanel] = useState(false);
     const [turnQueue, setTurnQueue] = useState<TurnEntry[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [dyingCharacters, setDyingCharacters] = useState<string[]>([]);
@@ -34,7 +37,10 @@ export const GameLayout: React.FC = () => {
     const startLeftWidth = useRef(0);
     const startRightWidth = useRef(0);
     const startHeaderHeight = useRef(0);
+    const startActionPanelHeight = useRef(0);
+    const prevActionPanelHeight = useRef(30);
     const containerWidth = useRef(0);
+    const containerHeight = useRef(0);
 
     // Initialize turn queue from session
     useEffect(() => {
@@ -123,7 +129,7 @@ export const GameLayout: React.FC = () => {
     }, [aliveQueue, currentIndex, performDeathSave]);
 
     const handleMouseMove = useCallback((e: MouseEvent) => {
-        if (!isResizingLeft && !isResizingRight && !isResizingHeader) return;
+        if (!isResizingLeft && !isResizingRight && !isResizingHeader && !isResizingActionPanel) return;
         if (!containerRef.current) return;
 
         const container = containerRef.current;
@@ -134,6 +140,15 @@ export const GameLayout: React.FC = () => {
             const newHeight = startHeaderHeight.current + deltaY;
             // Min height 70px for mini mode, max = portrait + name + death saves + padding
             setHeaderHeight(Math.max(70, Math.min(240, newHeight)));
+        } else if (isResizingActionPanel) {
+            const deltaY = e.clientY - startY.current;
+            const deltaPercent = (deltaY / containerRect.height) * 100;
+            const newHeight = startActionPanelHeight.current + deltaPercent;
+            const clampedHeight = Math.max(15, Math.min(60, newHeight));
+            setActionPanelHeight(clampedHeight);
+            if (clampedHeight > 15) {
+                setIsActionPanelCollapsed(false);
+            }
         } else {
             const deltaX = e.clientX - startX.current;
             const deltaPercent = (deltaX / containerWidth.current) * 100;
@@ -148,16 +163,17 @@ export const GameLayout: React.FC = () => {
                 setRightPanelWidth(Math.max(15, Math.min(50, newWidth)));
             }
         }
-    }, [isResizingLeft, isResizingRight, isResizingHeader]);
+    }, [isResizingLeft, isResizingRight, isResizingHeader, isResizingActionPanel]);
 
     const handleMouseUp = useCallback(() => {
         setIsResizingLeft(false);
         setIsResizingRight(false);
         setIsResizingHeader(false);
+        setIsResizingActionPanel(false);
     }, []);
 
     useEffect(() => {
-        if (isResizingLeft || isResizingRight || isResizingHeader) {
+        if (isResizingLeft || isResizingRight || isResizingHeader || isResizingActionPanel) {
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
             return () => {
@@ -165,7 +181,7 @@ export const GameLayout: React.FC = () => {
                 document.removeEventListener('mouseup', handleMouseUp);
             };
         }
-    }, [isResizingLeft, isResizingRight, isResizingHeader, handleMouseMove, handleMouseUp]);
+    }, [isResizingLeft, isResizingRight, isResizingHeader, isResizingActionPanel, handleMouseMove, handleMouseUp]);
 
     const startLeftResize = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -192,6 +208,27 @@ export const GameLayout: React.FC = () => {
         setIsResizingHeader(true);
         startY.current = e.clientY;
         startHeaderHeight.current = headerHeight;
+    };
+
+    const startActionPanelResize = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setIsResizingActionPanel(true);
+        startY.current = e.clientY;
+        startActionPanelHeight.current = isActionPanelCollapsed ? prevActionPanelHeight.current : actionPanelHeight;
+        if (containerRef.current) {
+            containerHeight.current = containerRef.current.getBoundingClientRect().height;
+        }
+    };
+
+    const toggleActionPanel = () => {
+        if (isActionPanelCollapsed) {
+            setActionPanelHeight(prevActionPanelHeight.current);
+            setIsActionPanelCollapsed(false);
+        } else {
+            prevActionPanelHeight.current = actionPanelHeight;
+            setActionPanelHeight(0);
+            setIsActionPanelCollapsed(true);
+        }
     };
 
     if (!session) {
@@ -299,10 +336,31 @@ export const GameLayout: React.FC = () => {
                     onMouseDown={startLeftResize}
                 />
 
-                {/* Center - Scene and Action */}
+                {/* Center - Action and Scene */}
                 <main className="center-panel">
-                    <SceneViewer />
-                    <ActionPanel />
+                    <div className="action-panel-container" style={{ flex: `1 1 ${100 - actionPanelHeight}%` }}>
+                        <ActionPanel />
+                    </div>
+                    {!isActionPanelCollapsed && (
+                        <>
+                            <div
+                                className={`resize-handle action-panel-resize ${isResizingActionPanel ? 'resizing' : ''}`}
+                                onMouseDown={startActionPanelResize}
+                            >
+                                <button
+                                    className="action-panel-toggle-btn"
+                                    onClick={toggleActionPanel}
+                                    title="Collapse scene view"
+                                />
+                            </div>
+                            <div className="scene-container" style={{ flex: `0 0 ${actionPanelHeight}%` }}>
+                                <SceneViewer />
+                            </div>
+                        </>
+                    )}
+                    {isActionPanelCollapsed && (
+                        <div className="action-panel-collapsed-handle" onClick={toggleActionPanel} />
+                    )}
                 </main>
 
                 {/* Right resize handle */}

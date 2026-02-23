@@ -27,58 +27,53 @@ export const ActionPanel: React.FC = () => {
 
     return (
         <div className="action-panel">
-            <div className="action-header">
-                <div className="active-character">
-                    <span className="character-icon">🎯</span>
-                    <span className="character-info">
-                        <strong>{activeCharacter.name}</strong>
-                        <span className="character-position">
-                            ({activeCharacter.position.x}, {activeCharacter.position.y})
-                        </span>
-                    </span>
-                </div>
-                {isActionPending && (
-                    <span className="pending-indicator">⏳ Processing...</span>
+            <div className="action-panel-content">
+                {clarificationText && (
+                    <div className="clarification-box">
+                        <span className="clarification-icon">❓</span>
+                        <p className="clarification-text">{clarificationText}</p>
+                    </div>
                 )}
+
+                <form onSubmit={handleSubmit} className="action-form">
+                    <div className="form-group">
+                        <textarea
+                            id="action-input"
+                            value={actionText}
+                            onChange={(e) => setActionText(e.target.value)}
+                            placeholder="Describe your action..."
+                            rows={3}
+                            disabled={isActionPending}
+                        />
+                    </div>
+
+                    <div className="action-buttons">
+                        <button
+                            type="submit"
+                            className="submit-btn"
+                            disabled={!actionText.trim() || isActionPending}
+                        >
+                            {isActionPending ? 'Processing...' : 'Submit'}
+                        </button>
+                        <button
+                            type="button"
+                            className="clear-btn"
+                            onClick={() => setActionText('')}
+                            disabled={isActionPending}
+                        >
+                            Clear
+                        </button>
+                        <button
+                            type="button"
+                            className="skip-btn"
+                            onClick={() => setActionText('')}
+                            disabled={isActionPending}
+                        >
+                            Skip Turn
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            {clarificationText && (
-                <div className="clarification-box">
-                    <span className="clarification-icon">❓</span>
-                    <p className="clarification-text">{clarificationText}</p>
-                </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="action-form">
-                <div className="form-group">
-                    <textarea
-                        id="action-input"
-                        value={actionText}
-                        onChange={(e) => setActionText(e.target.value)}
-                        placeholder="Describe your action..."
-                        rows={3}
-                        disabled={isActionPending}
-                    />
-                </div>
-
-                <div className="action-buttons">
-                    <button
-                        type="submit"
-                        className="submit-btn"
-                        disabled={!actionText.trim() || isActionPending}
-                    >
-                        {isActionPending ? 'Processing...' : 'Submit'}
-                    </button>
-                    <button
-                        type="button"
-                        className="clear-btn"
-                        onClick={() => setActionText('')}
-                        disabled={isActionPending}
-                    >
-                        Clear
-                    </button>
-                </div>
-            </form>
         </div>
     );
 };
