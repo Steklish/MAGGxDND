@@ -400,6 +400,11 @@
     background: rgba(42, 157, 143, 0.5);
 }
 
+.action-panel-resize.hidden-handle {
+    visibility: hidden;
+    pointer-events: none;
+}
+
 .action-panel-toggle-btn {
     position: relative;
     top: 8px;
@@ -439,6 +444,10 @@
     transition: all 0.2s;
     z-index: 10;
     flex-shrink: 0;
+}
+
+.action-panel-collapsed-handle.show {
+    display: flex;
 }
 
 .action-panel-collapsed-handle:hover {
@@ -495,6 +504,10 @@
     flex-direction: column;
     overflow: hidden;
     min-height: 0;
+}
+
+.scene-container.hidden-scene {
+    display: none;
 }
 
 .scene-container.collapsing {

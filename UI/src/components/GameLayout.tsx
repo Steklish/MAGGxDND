@@ -222,12 +222,13 @@ export const GameLayout: React.FC = () => {
     };
 
     const toggleActionPanel = () => {
-        setIsCollapsing(true);
         if (isActionPanelCollapsed) {
+            setIsCollapsing(true);
             setActionPanelHeight(prevActionPanelHeight.current);
             setIsActionPanelCollapsed(false);
             setTimeout(() => setIsCollapsing(false), 300);
         } else {
+            setIsCollapsing(true);
             prevActionPanelHeight.current = actionPanelHeight;
             setActionPanelHeight(0);
             setIsActionPanelCollapsed(true);
@@ -345,26 +346,20 @@ export const GameLayout: React.FC = () => {
                     <div className={`action-panel-container ${isCollapsing ? 'collapsing' : ''}`} style={{ flex: `1 1 ${isActionPanelCollapsed ? 100 : 100 - actionPanelHeight}%` }}>
                         <ActionPanel />
                     </div>
-                    {!isActionPanelCollapsed && (
-                        <>
-                            <div
-                                className={`resize-handle action-panel-resize ${isResizingActionPanel ? 'resizing' : ''}`}
-                                onMouseDown={startActionPanelResize}
-                            >
-                                <button
-                                    className="action-panel-toggle-btn"
-                                    onClick={toggleActionPanel}
-                                    title="Collapse scene view"
-                                />
-                            </div>
-                            <div className={`scene-container ${isCollapsing ? 'collapsing' : ''}`} style={{ flex: `0 0 ${actionPanelHeight}%` }}>
-                                <SceneViewer />
-                            </div>
-                        </>
-                    )}
-                    {isActionPanelCollapsed && (
-                        <div className="action-panel-collapsed-handle" style={{ display: 'flex' }} onClick={toggleActionPanel} />
-                    )}
+                    <div
+                        className={`resize-handle action-panel-resize ${isResizingActionPanel ? 'resizing' : ''} ${isActionPanelCollapsed ? 'hidden-handle' : ''}`}
+                        onMouseDown={startActionPanelResize}
+                    >
+                        <button
+                            className="action-panel-toggle-btn"
+                            onClick={toggleActionPanel}
+                            title="Collapse scene view"
+                        />
+                    </div>
+                    <div className={`scene-container ${isCollapsing ? 'collapsing' : ''} ${isActionPanelCollapsed ? 'hidden-scene' : ''}`} style={{ flex: `0 0 ${isActionPanelCollapsed ? 0 : actionPanelHeight}%` }}>
+                        <SceneViewer />
+                    </div>
+                    <div className={`action-panel-collapsed-handle ${isActionPanelCollapsed ? 'show' : ''}`} onClick={toggleActionPanel} />
                 </main>
 
                 {/* Right resize handle */}
