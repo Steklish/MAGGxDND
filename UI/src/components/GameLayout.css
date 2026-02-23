@@ -400,11 +400,6 @@
     background: rgba(42, 157, 143, 0.5);
 }
 
-.action-panel-resize.hidden {
-    visibility: hidden;
-    pointer-events: none;
-}
-
 .action-panel-toggle-btn {
     position: relative;
     top: 8px;
@@ -444,22 +439,6 @@
     transition: all 0.2s;
     z-index: 10;
     flex-shrink: 0;
-}
-
-.action-panel-collapsed-handle.visible {
-    display: flex;
-    animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 .action-panel-collapsed-handle:hover {
@@ -514,10 +493,6 @@
     overflow: hidden;
     min-height: 0;
     transition: flex 0.3s ease, opacity 0.3s ease;
-}
-
-.scene-container.collapsed {
-    opacity: 0;
 }
 
 /* Left panel - Yellow accent */
