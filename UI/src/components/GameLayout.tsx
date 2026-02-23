@@ -24,6 +24,7 @@ export const GameLayout: React.FC = () => {
     const [headerHeight, setHeaderHeight] = useState(140);
     const [actionPanelHeight, setActionPanelHeight] = useState(30);
     const [isActionPanelCollapsed, setIsActionPanelCollapsed] = useState(false);
+    const [isCollapsing, setIsCollapsing] = useState(false);
     const [isResizingLeft, setIsResizingLeft] = useState(false);
     const [isResizingRight, setIsResizingRight] = useState(false);
     const [isResizingHeader, setIsResizingHeader] = useState(false);
@@ -221,13 +222,16 @@ export const GameLayout: React.FC = () => {
     };
 
     const toggleActionPanel = () => {
+        setIsCollapsing(true);
         if (isActionPanelCollapsed) {
             setActionPanelHeight(prevActionPanelHeight.current);
             setIsActionPanelCollapsed(false);
+            setTimeout(() => setIsCollapsing(false), 300);
         } else {
             prevActionPanelHeight.current = actionPanelHeight;
             setActionPanelHeight(0);
             setIsActionPanelCollapsed(true);
+            setTimeout(() => setIsCollapsing(false), 300);
         }
     };
 
@@ -338,7 +342,7 @@ export const GameLayout: React.FC = () => {
 
                 {/* Center - Action and Scene */}
                 <main className="center-panel">
-                    <div className="action-panel-container" style={{ flex: `1 1 ${isActionPanelCollapsed ? 100 : 100 - actionPanelHeight}%` }}>
+                    <div className={`action-panel-container ${isCollapsing ? 'collapsing' : ''}`} style={{ flex: `1 1 ${isActionPanelCollapsed ? 100 : 100 - actionPanelHeight}%` }}>
                         <ActionPanel />
                     </div>
                     {!isActionPanelCollapsed && (
@@ -353,7 +357,7 @@ export const GameLayout: React.FC = () => {
                                     title="Collapse scene view"
                                 />
                             </div>
-                            <div className="scene-container" style={{ flex: `0 0 ${actionPanelHeight}%` }}>
+                            <div className={`scene-container ${isCollapsing ? 'collapsing' : ''}`} style={{ flex: `0 0 ${actionPanelHeight}%` }}>
                                 <SceneViewer />
                             </div>
                         </>
