@@ -478,11 +478,21 @@
     height: 100%;
 }
 
+.action-panel-container {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+    height: 100%;
+    transition: flex 0.3s ease;
+}
+
 .scene-container {
     display: flex;
     flex-direction: column;
     overflow: hidden;
     min-height: 0;
+    transition: flex 0.3s ease;
 }
 
 /* Left panel - Yellow accent */
