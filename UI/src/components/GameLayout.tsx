@@ -338,7 +338,7 @@ export const GameLayout: React.FC = () => {
 
                 {/* Center - Action and Scene */}
                 <main className="center-panel">
-                    <div className="action-panel-container" style={{ flex: `1 1 ${100 - actionPanelHeight}%` }}>
+                    <div className="action-panel-container" style={{ flex: `1 1 ${100 - actionPanelHeight}%`, transition: 'flex 0.3s ease' }}>
                         <ActionPanel />
                     </div>
                     {!isActionPanelCollapsed && (
@@ -353,7 +353,7 @@ export const GameLayout: React.FC = () => {
                                     title="Collapse scene view"
                                 />
                             </div>
-                            <div className="scene-container" style={{ flex: `0 0 ${actionPanelHeight}%` }}>
+                            <div className="scene-container" style={{ flex: `0 0 ${actionPanelHeight}%`, transition: 'flex 0.3s ease' }}>
                                 <SceneViewer />
                             </div>
                         </>
