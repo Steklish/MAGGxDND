@@ -253,13 +253,7 @@ export const GameLayout: React.FC = () => {
     return (
         <div className="game-layout" ref={containerRef}>
             {/* Header */}
-            <header 
-                className="game-header" 
-                style={{ 
-                    height: `${headerHeight}px`,
-                    '--header-height': headerHeight 
-                } as React.CSSProperties}
-            >
+            <header className="game-header" style={{ height: `${headerHeight}px` }}>
                 <div className="header-left">
                     <h1 className="game-title">
                         <span className="title-magg">MAGG</span>
