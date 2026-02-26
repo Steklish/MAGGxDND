@@ -15,6 +15,9 @@ from skls_generator.gen_backends.google_gen import GoogleGenAI
 from skls_embeddings.chroma_client import ChromaClient
 from skls_embeddings.embedding_client import EmbeddingClient
 
+from dotenv import load_dotenv
+load_dotenv(override=True)
+
 # Set console code page to UTF-8 on Windows to handle Unicode characters properly
 if os.name == 'nt':  # Windows
     subprocess.run(['chcp', '65001'], shell=True)
@@ -79,7 +82,7 @@ print("Starting the game...")
 
 
 # -- INIT SESSION AND MANIPULATOR --
-chroma_client = ChromaClient(EmbeddingClient(), logger_instance=main_logger)
+chroma_client = ChromaClient(EmbeddingClient("asd"), "asd",  logger_instance=main_logger)
 generator = Generator(
     GoogleGenAI(
         api_key=os.getenv("GEMINI_API_KEY", "NO_KEY"), 
@@ -87,6 +90,7 @@ generator = Generator(
         model_name="gemini-2.0-flash"
     ), 
     logger_instance=main_logger)
+
 event_pool = EventPool()
 
 session = Session(
@@ -148,8 +152,10 @@ session.init_new_session(
     player_logger=player_logger
 )
 
-# session._init_plot("A deep cave where dark slimey worms live")
-# session.save_session("./saves/ex_02.json")
+session._init_plot("A deep cave where dark slimey worms live")
+
+
+session.save_session("./saves/ex_02.json")
 # session.load_session_from_save("./saves/ex_02.json")
 # print(session.get_session_context())
 asyncio.run(session.game_loop())
