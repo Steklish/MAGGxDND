@@ -125,7 +125,7 @@
 
 .turn-portrait:not(.active) {
     opacity: 0.5;
-    transform: scale(0.75);
+    transform: scale(0.9);
 }
 
 .turn-portrait.dying {
@@ -159,11 +159,11 @@
 /* Portrait Frame - scales with header height */
 .portrait-frame {
     position: relative;
-    width: 75px;
-    height: 120px;
-    min-height: 120px;
-    max-height: 120px;
-    aspect-ratio: 3/4;
+    width: 100px;
+    height: 160px;
+    min-height: 160px;
+    max-height: 160px;
+    aspect-ratio: 10/16;
     border-radius: var(--radius-md);
     overflow: hidden;
     background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
