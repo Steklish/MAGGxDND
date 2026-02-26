@@ -186,13 +186,13 @@
 
 /* Portrait Name - below portrait */
 .portrait-name {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     font-family: 'Rajdhani', sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: var(--text-secondary);
     text-align: center;
-    max-width: 150px;
+    max-width: 140px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -206,8 +206,8 @@
 
 .turn-portrait.active .portrait-name {
     color: var(--accent-purple);
-    font-size: 0.95rem;
-    max-width: 155px;
+    font-size: 0.85rem;
+    max-width: 140px;
 }
 
 /* Portrait Placeholder */
