@@ -21,7 +21,7 @@ export const GameLayout: React.FC = () => {
     const { session, currentScene, activeCharacter } = useGameStore();
     const [leftPanelWidth, setLeftPanelWidth] = useState(25);
     const [rightPanelWidth, setRightPanelWidth] = useState(25);
-    const [headerHeight, setHeaderHeight] = useState(100);
+    const [headerHeight, setHeaderHeight] = useState(140);
     const [actionPanelHeight, setActionPanelHeight] = useState(30);
     const [isActionPanelCollapsed, setIsActionPanelCollapsed] = useState(false);
     const [isCollapsing, setIsCollapsing] = useState(false);
