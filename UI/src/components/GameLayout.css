@@ -102,10 +102,10 @@
 /* Turn Portrait */
 .turn-portrait {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 2px;
-    padding: 4px;
+    gap: 8px;
+    padding: 6px 10px;
     background-color: var(--bg-tertiary);
     border: 2px solid;
     border-radius: var(--radius-md);
@@ -113,8 +113,9 @@
     flex: 0 0 auto;
     cursor: pointer;
     position: relative;
-    height: 100%;
-    max-height: 180px;
+    height: auto;
+    max-height: 60px;
+    min-width: 120px;
 }
 
 .turn-portrait.active {
@@ -159,11 +160,11 @@
 /* Portrait Frame - scales with header height */
 .portrait-frame {
     position: relative;
-    width: auto;
-    height: calc(100% - 26px);
+    width: 45px;
+    height: 45px;
     min-height: 45px;
-    max-height: 120px;
-    aspect-ratio: 4/5;
+    max-height: 45px;
+    aspect-ratio: 1/1;
     border-radius: var(--radius-md);
     overflow: hidden;
     background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
@@ -174,26 +175,28 @@
 }
 
 .turn-portrait.active .portrait-frame {
-    height: calc(100% - 28px);
-    max-height: 135px;
+    width: 50px;
+    height: 50px;
+    min-height: 50px;
+    max-height: 50px;
 }
 
 /* Portrait Name - below portrait */
 .portrait-name {
-    font-size: clamp(0.6rem, 1.3vh, 0.85rem);
+    font-size: clamp(0.6rem, 1.3vh, 0.8rem);
     font-family: 'Rajdhani', sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: var(--text-secondary);
-    text-align: center;
-    max-width: 100px;
+    text-align: left;
+    max-width: 80px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     font-weight: 600;
     transition: all 0.3s ease;
     line-height: 1.2;
-    height: 1.2em;
+    height: auto;
     margin: 0;
     flex-shrink: 0;
 }
@@ -213,7 +216,7 @@
 }
 
 .portrait-initial {
-    font-size: clamp(1.4rem, 2.8vh, 2.6rem);
+    font-size: clamp(1rem, 2vh, 1.4rem);
     font-weight: 700;
     font-family: 'Rajdhani', sans-serif;
     color: var(--text-primary);
@@ -222,7 +225,7 @@
 }
 
 .turn-portrait.active .portrait-initial {
-    font-size: clamp(1.7rem, 3.3vh, 3rem);
+    font-size: clamp(1.1rem, 2.2vh, 1.6rem);
 }
 
 /* Attitude Indicator */
@@ -238,13 +241,15 @@
 /* Death Saves */
 .death-saves {
     display: flex;
-    gap: 4px;
-    font-size: clamp(0.65rem, 1.4vh, 0.9rem);
+    flex-direction: column;
+    gap: 2px;
+    font-size: clamp(0.55rem, 1.2vh, 0.75rem);
     opacity: 0.9;
     margin: 0;
     line-height: 1;
-    height: 1em;
+    height: auto;
     flex-shrink: 0;
+    margin-left: auto;
 }
 
 .death-save-successes {
