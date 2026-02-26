@@ -114,13 +114,13 @@
     flex: 0 0 auto;
     cursor: pointer;
     position: relative;
-    width: 100px;
-    height: 160px;
+    width: 160px;
+    height: 100px;
 }
 
 .turn-portrait.active {
-    width: 100px;
-    height: 160px;
+    width: 160px;
+    height: 100px;
     opacity: 1 !important;
     box-shadow: 0 0 25px rgba(157, 78, 221, 0.5);
     z-index: 10;
@@ -162,10 +162,10 @@
 /* Portrait Frame - scales with turn-portrait size */
 .portrait-frame {
     position: relative;
-    width: 80px;
-    height: 50px;
-    min-height: 50px;
-    max-height: 50px;
+    width: 140px;
+    height: 80px;
+    min-height: 80px;
+    max-height: 80px;
     aspect-ratio: 16/10;
     border-radius: var(--radius-md);
     overflow: hidden;
@@ -178,21 +178,21 @@
 }
 
 .turn-portrait.active .portrait-frame {
-    width: 80px;
-    height: 50px;
-    min-height: 50px;
-    max-height: 50px;
+    width: 140px;
+    height: 80px;
+    min-height: 80px;
+    max-height: 80px;
 }
 
 /* Portrait Name - below portrait */
 .portrait-name {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     font-family: 'Rajdhani', sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: var(--text-secondary);
     text-align: center;
-    max-width: 90px;
+    max-width: 150px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -206,8 +206,8 @@
 
 .turn-portrait.active .portrait-name {
     color: var(--accent-purple);
-    font-size: 0.85rem;
-    max-width: 95px;
+    font-size: 0.95rem;
+    max-width: 155px;
 }
 
 /* Portrait Placeholder */
@@ -221,7 +221,7 @@
 }
 
 .portrait-initial {
-    font-size: 1.5rem;
+    font-size: 2rem;
     font-weight: 700;
     font-family: 'Rajdhani', sans-serif;
     color: var(--text-primary);
@@ -230,7 +230,7 @@
 }
 
 .turn-portrait.active .portrait-initial {
-    font-size: 1.8rem;
+    font-size: 2.4rem;
 }
 
 /* Attitude Indicator */
