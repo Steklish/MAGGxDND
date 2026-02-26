@@ -140,7 +140,7 @@ export const GameLayout: React.FC = () => {
             const deltaY = e.clientY - startY.current;
             const newHeight = startHeaderHeight.current + deltaY;
             // Min height 70px for mini mode, max = portrait + name + death saves + padding
-            setHeaderHeight(Math.max(70, Math.min(100, newHeight)));
+            setHeaderHeight(Math.max(70, Math.min(140, newHeight)));
         } else if (isResizingActionPanel) {
             const deltaY = e.clientY - startY.current;
             const deltaPercent = (deltaY / containerRect.height) * 100;
