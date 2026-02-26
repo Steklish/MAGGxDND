@@ -108,7 +108,7 @@
     padding: 6px 8px;
     background-color: var(--bg-tertiary);
     border: 2px solid;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-xs);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     flex: 0 0 auto;
     cursor: pointer;
@@ -165,7 +165,7 @@
     min-height: 35px;
     max-height: 35px;
     aspect-ratio: 16/10;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-xs);
     overflow: hidden;
     background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
     flex-shrink: 0;
