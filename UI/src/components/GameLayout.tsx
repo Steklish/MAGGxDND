@@ -158,12 +158,12 @@ export const GameLayout: React.FC = () => {
 
             if (isResizingLeft) {
                 const newWidth = startLeftWidth.current + deltaPercent;
-                setLeftPanelWidth(Math.max(15, Math.min(50, newWidth)));
+                setLeftPanelWidth(Math.max(5, Math.min(50, newWidth)));
             }
 
             if (isResizingRight) {
                 const newWidth = startRightWidth.current - deltaPercent;
-                setRightPanelWidth(Math.max(15, Math.min(50, newWidth)));
+                setRightPanelWidth(Math.max(5, Math.min(50, newWidth)));
             }
         }
     }, [isResizingLeft, isResizingRight, isResizingHeader, isResizingActionPanel]);
@@ -341,7 +341,7 @@ export const GameLayout: React.FC = () => {
                     className="left-panel"
                     style={{ width: `${leftPanelWidth}%` }}
                 >
-                    {leftPanelWidth <= 15 ? <MiniCharacterPanel /> : <CharacterPanel />}
+                    {leftPanelWidth <= 5 ? <MiniCharacterPanel /> : <CharacterPanel />}
                 </aside>
 
                 {/* Left resize handle */}
@@ -382,7 +382,7 @@ export const GameLayout: React.FC = () => {
                     className="right-panel"
                     style={{ width: `${rightPanelWidth}%` }}
                 >
-                    {rightPanelWidth <= 15 ? <MiniChatPanel /> : <ChatPanel />}
+                    {rightPanelWidth <= 5 ? <MiniChatPanel /> : <ChatPanel />}
                 </aside>
             </div>
 
