@@ -516,14 +516,18 @@
     flex-direction: column;
     overflow: hidden;
     min-height: 0;
+    transform-origin: bottom;
+    transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .scene-container.hidden-scene {
-    display: none;
+    transform: scaleY(0);
+    opacity: 0;
+    height: 0 !important;
 }
 
 .scene-container.collapsing {
-    transition: flex 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, flex 0.3s ease;
 }
 
 /* Left panel - Yellow accent */
