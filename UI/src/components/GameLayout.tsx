@@ -23,7 +23,7 @@ export const GameLayout: React.FC = () => {
     const { session, currentScene, activeCharacter } = useGameStore();
     const [leftPanelWidth, setLeftPanelWidth] = useState(25);
     const [rightPanelWidth, setRightPanelWidth] = useState(25);
-    const [headerHeight, setHeaderHeight] = useState(140);
+    const [headerHeight, setHeaderHeight] = useState(() => Math.round(window.innerHeight * 0.07));
     const [actionPanelHeight, setActionPanelHeight] = useState(70);
     const [isSceneCollapsed, setIsSceneCollapsed] = useState(false);
     const [isResizingLeft, setIsResizingLeft] = useState(false);
@@ -140,8 +140,10 @@ export const GameLayout: React.FC = () => {
         if (isResizingHeader) {
             const deltaY = e.clientY - startY.current;
             const newHeight = startHeaderHeight.current + deltaY;
-            // Min height 70px, max 140px
-            setHeaderHeight(Math.max(70, Math.min(140, newHeight)));
+            // Min height 5% of viewport, max 10% of viewport
+            const minHeight = window.innerHeight * 0.05;
+            const maxHeight = window.innerHeight * 0.10;
+            setHeaderHeight(Math.max(minHeight, Math.min(maxHeight, newHeight)));
         } else if (isResizingActionPanel) {
             const deltaY = e.clientY - startY.current;
             const deltaPercent = (deltaY / containerRect.height) * 100;

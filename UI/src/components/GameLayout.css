@@ -348,7 +348,7 @@
 }
 
 .right-panel::-webkit-scrollbar-thumb {
-    background: var(--accent-orange);
+    background: var(--accent-yellow);
     border-radius: var(--radius-sm);
 }
 
@@ -541,6 +541,10 @@
 }
 
 /* Left panel scrollbar - Yellow accent */
+.left-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
 .left-panel::-webkit-scrollbar-track {
     background: var(--bg-primary);
     border-left: 1px solid var(--border-color);
