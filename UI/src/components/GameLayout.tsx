@@ -162,12 +162,12 @@ export const GameLayout: React.FC = () => {
 
             if (isResizingLeft) {
                 const newWidth = startLeftWidth.current + deltaPercent;
-                setLeftPanelWidth(Math.max(5, Math.min(50, newWidth)));
+                setLeftPanelWidth(Math.max(5, Math.min(20, newWidth)));
             }
 
             if (isResizingRight) {
                 const newWidth = startRightWidth.current - deltaPercent;
-                setRightPanelWidth(Math.max(5, Math.min(50, newWidth)));
+                setRightPanelWidth(Math.max(5, Math.min(20, newWidth)));
             }
         }
     }, [isResizingLeft, isResizingRight, isResizingHeader, isResizingActionPanel]);

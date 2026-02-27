@@ -325,7 +325,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     min-width: 70px;
-    max-width: 600px;
+    max-width: 20%;
     flex-shrink: 0;
 }
 
@@ -335,7 +335,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     min-width: 70px;
-    max-width: 600px;
+    max-width: 20%;
     flex-shrink: 0;
 }
 
