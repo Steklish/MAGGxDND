@@ -93,6 +93,7 @@
 .action-buttons {
     display: flex;
     gap: var(--spacing-sm);
+    width: 100%;
 }
 
 .submit-btn,
@@ -110,7 +111,7 @@
 }
 
 .submit-btn {
-    flex: 1;
+    flex: 0 0 80%;
     background: var(--gradient-primary);
     color: var(--bg-primary);
     border: none;
@@ -127,9 +128,13 @@
 }
 
 .clear-btn {
+    flex: 0 0 10%;
     background-color: var(--bg-tertiary);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
+    min-width: 0;
+    padding: var(--spacing-sm) 4px;
+    font-size: 0.75rem;
 }
 
 .clear-btn:hover:not(:disabled) {
@@ -143,9 +148,13 @@
 }
 
 .skip-btn {
+    flex: 0 0 10%;
     background-color: var(--bg-tertiary);
     color: var(--text-secondary);
     border: 1px solid var(--border-color);
+    min-width: 0;
+    padding: var(--spacing-sm) 4px;
+    font-size: 0.75rem;
 }
 
 .skip-btn:hover:not(:disabled) {
