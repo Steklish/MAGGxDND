@@ -445,16 +445,13 @@
 /* Collapsed action panel handle - same as footer drag handle */
 .action-panel-collapsed-handle {
     position: fixed;
-    top: 6px;
+    top: calc(var(--header-height, 140px) + 6px);
     left: 50%;
     transform: translateX(-50%);
-    height: 24px;
     display: none;
     justify-content: center;
-    align-items: flex-end;
-    padding-bottom: 8px;
+    align-items: center;
     cursor: pointer;
-    transition: all 0.2s;
     z-index: 1000;
 }
 
@@ -462,8 +459,7 @@
     display: flex;
 }
 
-.action-panel-collapsed-handle::before {
-    content: '';
+.action-panel-collapsed-handle .handle-bar {
     width: 80px;
     height: 6px;
     background: linear-gradient(90deg, var(--border-color) 0%, var(--accent-green) 50%, var(--border-color) 100%);
@@ -473,7 +469,7 @@
     opacity: 0.6;
 }
 
-.action-panel-collapsed-handle:hover::before {
+.action-panel-collapsed-handle.show:hover .handle-bar {
     opacity: 1;
     width: 100px;
     height: 8px;
@@ -481,7 +477,7 @@
     box-shadow: 0 0 10px rgba(42, 157, 143, 0.5);
 }
 
-.action-panel-collapsed-handle:active::before {
+.action-panel-collapsed-handle.show:active .handle-bar {
     width: 90px;
 }
 

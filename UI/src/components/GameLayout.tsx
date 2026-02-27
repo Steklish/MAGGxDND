@@ -364,7 +364,9 @@ export const GameLayout: React.FC = () => {
                     <div className={`scene-container ${isSceneCollapsed ? 'hidden-scene' : ''}`} style={{ flex: `0 0 ${isSceneCollapsed ? 0 : actionPanelHeight}%` }}>
                         <SceneViewer />
                     </div>
-                    <div className={`action-panel-collapsed-handle ${isSceneCollapsed ? 'show' : ''}`} onClick={toggleScene} />
+                    <div className={`action-panel-collapsed-handle ${isSceneCollapsed ? 'show' : ''}`} onClick={toggleScene}>
+                        <div className="handle-bar" />
+                    </div>
                 </main>
 
                 {/* Right resize handle */}
