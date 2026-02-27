@@ -461,10 +461,11 @@
 
 /* Collapsed action panel handle - same as footer drag handle */
 .action-panel-collapsed-handle {
-    position: fixed;
-    top: calc(var(--header-height, 140px) + 6px);
-    left: 50%;
-    transform: translateX(-50%);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 24px;
     display: none;
     justify-content: center;
     align-items: center;
@@ -517,6 +518,7 @@
     height: 100%;
     position: relative;
     z-index: 1;
+    transition: flex 0.3s ease;
 }
 
 .scene-container {
@@ -525,6 +527,7 @@
     overflow: hidden;
     min-height: 0;
     transform-origin: bottom;
+    transition: transform 0.3s ease, opacity 0.3s ease, flex 0.3s ease;
 }
 
 .scene-container.hidden-scene {
