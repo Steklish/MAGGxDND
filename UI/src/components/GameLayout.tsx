@@ -286,46 +286,62 @@ export const GameLayout: React.FC = () => {
                         const isDying = entry.isDying;
 
                         return (
-                            <div
-                                key={`${entry.character.name}-${entry.initiative}`}
-                                className={`turn-portrait ${isCurrentTurn ? 'active' : ''} ${isDying ? 'dying' : ''} ${dyingCharacters.includes(entry.character.name) ? 'death-animation' : ''}`}
-                                style={{
-                                    borderColor: getAttitudeColor(entry.type),
-                                    opacity: isCurrentTurn ? 1 : 0.4,
-                                    '--header-height': `${headerHeight}px`
-                                } as React.CSSProperties}
-                            >
-                                <div className="portrait-frame">
-                                    {/* Portrait placeholder - will be loaded later */}
-                                    <div className="portrait-placeholder">
-                                        <span className="portrait-initial">
-                                            {entry.character.name?.[0] || '?'}
-                                        </span>
+                            <React.Fragment key={`${entry.character.name}-${entry.initiative}`}>
+                                {/* Full Portrait */}
+                                <div
+                                    className={`turn-portrait ${isCurrentTurn ? 'active' : ''} ${isDying ? 'dying' : ''} ${dyingCharacters.includes(entry.character.name) ? 'death-animation' : ''}`}
+                                    style={{
+                                        borderColor: getAttitudeColor(entry.type),
+                                        opacity: isCurrentTurn ? 1 : 0.4
+                                    } as React.CSSProperties}
+                                >
+                                    <div className="portrait-frame">
+                                        {/* Portrait placeholder - will be loaded later */}
+                                        <div className="portrait-placeholder">
+                                            <span className="portrait-initial">
+                                                {entry.character.name?.[0] || '?'}
+                                            </span>
+                                        </div>
+                                        {/* Attitude indicator */}
+                                        <div
+                                            className="attitude-indicator"
+                                            style={{ backgroundColor: getAttitudeColor(entry.type) }}
+                                        />
                                     </div>
-                                    {/* Attitude indicator */}
+
+                                    {/* Character name below portrait */}
+                                    <div className="portrait-name">
+                                        {entry.character.name}
+                                    </div>
+
+                                    {/* Death save counters */}
+                                    {isDying && (
+                                        <div className="death-saves">
+                                            <div className="death-save-successes">
+                                                {'✓'.repeat(entry.deathSaveSuccesses)}
+                                            </div>
+                                            <div className="death-save-failures">
+                                                {'✗'.repeat(entry.deathSaveFailures)}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Mini Portrait - for small headers */}
+                                <div
+                                    className={`mini-portrait ${isCurrentTurn ? 'active' : ''}`}
+                                    style={{
+                                        borderColor: getAttitudeColor(entry.type),
+                                        opacity: isCurrentTurn ? 1 : 0.5
+                                    } as React.CSSProperties}
+                                >
                                     <div
-                                        className="attitude-indicator"
+                                        className="mini-portrait-indicator"
                                         style={{ backgroundColor: getAttitudeColor(entry.type) }}
                                     />
+                                    <span className="mini-portrait-name">{entry.character.name}</span>
                                 </div>
-
-                                {/* Character name below portrait */}
-                                <div className="portrait-name">
-                                    {entry.character.name}
-                                </div>
-
-                                {/* Death save counters */}
-                                {isDying && (
-                                    <div className="death-saves">
-                                        <div className="death-save-successes">
-                                            {'✓'.repeat(entry.deathSaveSuccesses)}
-                                        </div>
-                                        <div className="death-save-failures">
-                                            {'✗'.repeat(entry.deathSaveFailures)}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                            </React.Fragment>
                         );
                     })}
                 </div>
