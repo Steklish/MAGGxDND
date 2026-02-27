@@ -445,7 +445,7 @@
 /* Collapsed action panel handle - same as footer drag handle */
 .action-panel-collapsed-handle {
     position: fixed;
-    top: calc(var(--header-height, 140px) + 8px);
+    bottom: 24px;
     left: 50%;
     transform: translateX(-50%);
     height: 24px;
@@ -516,7 +516,6 @@
     overflow: hidden;
     min-height: 0;
     transform-origin: bottom;
-    transition: transform 0.3s ease, opacity 0.3s ease, flex 0.3s ease;
 }
 
 .scene-container.hidden-scene {
@@ -528,7 +527,7 @@
 }
 
 .scene-container.collapsing {
-    transition: transform 0.3s ease, opacity 0.3s ease, flex 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 /* Left panel - Yellow accent */

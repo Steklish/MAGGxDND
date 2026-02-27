@@ -230,9 +230,9 @@ export const GameLayout: React.FC = () => {
 
     const toggleScene = () => {
         if (isSceneCollapsed) {
-            // Expand scene
+            // Expand scene to full height
             setIsCollapsing(true);
-            setActionPanelHeight(prevActionPanelHeight.current || 50);
+            setActionPanelHeight(70);
             setIsSceneCollapsed(false);
             setTimeout(() => setIsCollapsing(false), 300);
         } else {

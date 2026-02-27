@@ -61,11 +61,9 @@
     font-weight: 700;
     font-size: 14px;
     cursor: default;
-    transition: transform 0.1s;
 }
 
 .grid-cell:hover {
-    transform: scale(1.2);
     background-color: var(--bg-tertiary);
     border-radius: 4px;
 }
