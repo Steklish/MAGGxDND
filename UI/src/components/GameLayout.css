@@ -442,7 +442,7 @@
     width: 90px;
 }
 
-/* Collapsed action panel handle - green drag handle */
+/* Collapsed action panel handle - same as footer drag handle */
 .action-panel-collapsed-handle {
     position: absolute;
     bottom: 0;
@@ -468,19 +468,15 @@
     background-color: rgba(42, 157, 143, 0.05);
 }
 
-.action-panel-collapsed-handle .action-panel-handle-text,
-.action-panel-collapsed-handle .action-panel-handle-arrow {
-    display: none;
-}
-
 .action-panel-collapsed-handle::before {
     content: '';
     width: 80px;
     height: 6px;
     background: linear-gradient(90deg, var(--border-color) 0%, var(--accent-green) 50%, var(--border-color) 100%);
     border-radius: 3px;
-    opacity: 0.6;
+    cursor: pointer;
     transition: all 0.2s;
+    opacity: 0.6;
 }
 
 .action-panel-collapsed-handle:hover::before {
@@ -489,6 +485,10 @@
     height: 8px;
     background: linear-gradient(90deg, var(--accent-green) 0%, var(--accent-purple) 50%, var(--accent-green) 100%);
     box-shadow: 0 0 10px rgba(42, 157, 143, 0.5);
+}
+
+.action-panel-collapsed-handle:active::before {
+    width: 90px;
 }
 
 .center-panel {
