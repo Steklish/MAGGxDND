@@ -280,8 +280,9 @@ export const GameLayout: React.FC = () => {
                                 className={`turn-portrait ${isCurrentTurn ? 'active' : ''} ${isDying ? 'dying' : ''} ${dyingCharacters.includes(entry.character.name) ? 'death-animation' : ''}`}
                                 style={{
                                     borderColor: getAttitudeColor(entry.type),
-                                    opacity: isCurrentTurn ? 1 : 0.4
-                                }}
+                                    opacity: isCurrentTurn ? 1 : 0.4,
+                                    '--header-height': `${headerHeight}px`
+                                } as React.CSSProperties}
                             >
                                 <div className="portrait-frame">
                                     {/* Portrait placeholder - will be loaded later */}
