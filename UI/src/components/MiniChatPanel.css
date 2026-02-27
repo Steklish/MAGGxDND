@@ -3,7 +3,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 12px 8px;
+    padding: 12px 4px;
     gap: 12px;
     height: 100%;
     overflow-y: auto;
@@ -20,11 +20,12 @@
     align-items: center;
     padding-bottom: 12px;
     border-bottom: 1px solid var(--border-color);
+    width: 100%;
 }
 
 .mini-filter-btn {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: var(--radius-md);
     background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
     border: 2px solid var(--border-color);
@@ -35,17 +36,18 @@
     justify-content: center;
     font-size: 1.2rem;
     padding: 0;
+    flex-shrink: 0;
 }
 
 .mini-filter-btn:hover {
     border-color: var(--accent-orange);
-    box-shadow: 0 0 15px rgba(255, 107, 53, 0.3);
+    box-shadow: 0 0 8px rgba(255, 107, 53, 0.3);
 }
 
 .mini-filter-btn.active {
     border-color: var(--accent-orange);
     background: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(255, 107, 53, 0.1) 100%);
-    box-shadow: 0 0 20px rgba(255, 107, 53, 0.5);
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
 }
 
 /* Mini Chat Items */
@@ -56,13 +58,15 @@
     align-items: center;
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 /* Mini Message Icon */
 .mini-message-icon {
     position: relative;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: var(--radius-md);
     background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
     border: 2px solid var(--border-color);
@@ -71,10 +75,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .mini-message-icon:hover {
-    box-shadow: 0 0 15px rgba(255, 107, 53, 0.3);
+    box-shadow: 0 0 8px rgba(255, 107, 53, 0.3);
 }
 
 .mini-message-icon.dm-message {
@@ -82,7 +87,7 @@
 }
 
 .mini-message-icon.dm-message:hover {
-    box-shadow: 0 0 15px rgba(255, 107, 53, 0.3);
+    box-shadow: 0 0 8px rgba(255, 107, 53, 0.3);
 }
 
 .mini-message-icon.player-message {
@@ -90,7 +95,7 @@
 }
 
 .mini-message-icon.player-message:hover {
-    box-shadow: 0 0 15px rgba(88, 166, 255, 0.3);
+    box-shadow: 0 0 8px rgba(88, 166, 255, 0.3);
 }
 
 .mini-message-indicator {
@@ -100,8 +105,8 @@
 /* Mini Event Icon */
 .mini-event-icon {
     position: relative;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: var(--radius-md);
     background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
     border: 2px solid var(--border-color);
@@ -110,11 +115,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .mini-event-icon:hover {
     border-color: var(--accent-purple);
-    box-shadow: 0 0 15px rgba(157, 78, 221, 0.3);
+    box-shadow: 0 0 8px rgba(157, 78, 221, 0.3);
 }
 
 .mini-event-icon-symbol {
