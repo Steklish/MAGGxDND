@@ -45,8 +45,12 @@
 /* Mini Character Icon */
 .mini-character-icon {
     position: relative;
-    width: 40px;
-    height: 40px;
+    width: calc(4vw * (var(--header-height, 140) / 140));
+    height: calc(4vw * (var(--header-height, 140) / 140));
+    min-width: 32px;
+    min-height: 32px;
+    max-width: 48px;
+    max-height: 48px;
     border-radius: var(--radius-md);
     background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
     border: 2px solid var(--border-color);

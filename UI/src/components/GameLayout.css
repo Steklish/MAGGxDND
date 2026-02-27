@@ -326,8 +326,8 @@
     border-right: 1px solid var(--border-color);
     overflow-y: auto;
     overflow-x: hidden;
-    min-width: 70px;
-    max-width: 20%;
+    min-width: 5%;
+    max-width: 25%;
     flex-shrink: 0;
 }
 
@@ -336,8 +336,8 @@
     border-left: 1px solid var(--border-color);
     overflow-y: auto;
     overflow-x: hidden;
-    min-width: 70px;
-    max-width: 20%;
+    min-width: 5%;
+    max-width: 25%;
     flex-shrink: 0;
 }
 
