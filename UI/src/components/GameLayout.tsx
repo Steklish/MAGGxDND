@@ -147,10 +147,15 @@ export const GameLayout: React.FC = () => {
             const deltaY = e.clientY - startY.current;
             const deltaPercent = (deltaY / containerRect.height) * 100;
             const newHeight = startActionPanelHeight.current + deltaPercent;
-            const clampedHeight = Math.max(15, Math.min(60, newHeight));
-            setActionPanelHeight(clampedHeight);
-            if (clampedHeight > 20) {
+            
+            // If dragging below threshold, collapse scene
+            if (newHeight < 10) {
+                setIsSceneCollapsed(true);
+                prevActionPanelHeight.current = actionPanelHeight;
+                setActionPanelHeight(0);
+            } else {
                 setIsSceneCollapsed(false);
+                setActionPanelHeight(Math.max(10, Math.min(60, newHeight)));
             }
         } else {
             const deltaX = e.clientX - startX.current;
@@ -217,7 +222,7 @@ export const GameLayout: React.FC = () => {
         e.preventDefault();
         setIsResizingActionPanel(true);
         startY.current = e.clientY;
-        startActionPanelHeight.current = isSceneCollapsed ? prevActionPanelHeight.current : actionPanelHeight;
+        startActionPanelHeight.current = isSceneCollapsed ? (prevActionPanelHeight.current || 50) : actionPanelHeight;
         if (containerRef.current) {
             containerHeight.current = containerRef.current.getBoundingClientRect().height;
         }
@@ -225,14 +230,16 @@ export const GameLayout: React.FC = () => {
 
     const toggleScene = () => {
         if (isSceneCollapsed) {
+            // Expand scene
             setIsCollapsing(true);
-            setActionPanelHeight(prevActionPanelHeight.current);
+            setActionPanelHeight(prevActionPanelHeight.current || 50);
             setIsSceneCollapsed(false);
             setTimeout(() => setIsCollapsing(false), 300);
         } else {
+            // Collapse scene
             setIsCollapsing(true);
             prevActionPanelHeight.current = actionPanelHeight;
-            setActionPanelHeight(15);
+            setActionPanelHeight(0);
             setIsSceneCollapsed(true);
             setTimeout(() => setIsCollapsing(false), 300);
         }
