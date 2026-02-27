@@ -106,21 +106,21 @@
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    padding: calc(4px * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
+    padding: calc(4px * ((var(--header-height, 140) - 70) / 70));
     background-color: var(--bg-tertiary);
-    border: calc(2px * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70))) solid;
+    border: calc(2px * ((var(--header-height, 140) - 70) / 70)) solid;
     border-radius: var(--radius-md);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     flex: 0 0 auto;
     cursor: pointer;
     position: relative;
-    width: calc(160px * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
-    height: calc(100px * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
+    width: calc(160px * ((var(--header-height, 140) - 70) / 70));
+    height: calc(100px * ((var(--header-height, 140) - 70) / 70));
 }
 
 .turn-portrait.active {
-    width: calc(160px * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
-    height: calc(100px * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
+    width: calc(160px * ((var(--header-height, 140) - 70) / 70));
+    height: calc(100px * ((var(--header-height, 140) - 70) / 70));
     opacity: 1 !important;
     box-shadow: 0 0 25px rgba(157, 78, 221, 0.5);
     z-index: 10;
@@ -162,10 +162,10 @@
 /* Portrait Frame - scales from 140×80px (140px header) to 70×40px (70px header) */
 .portrait-frame {
     position: relative;
-    width: calc(140px * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
-    height: calc(80px * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
-    min-height: calc(57px * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
-    max-height: calc(114px * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
+    width: calc(140px * ((var(--header-height, 140) - 70) / 70));
+    height: calc(80px * ((var(--header-height, 140) - 70) / 70));
+    min-height: calc(57px * ((var(--header-height, 140) - 70) / 70));
+    max-height: calc(114px * ((var(--header-height, 140) - 70) / 70));
     aspect-ratio: 16/10;
     border-radius: var(--radius-md);
     overflow: hidden;
@@ -178,36 +178,36 @@
 }
 
 .turn-portrait.active .portrait-frame {
-    width: calc(140px * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
-    height: calc(80px * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
-    min-height: calc(57px * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
-    max-height: calc(114px * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
+    width: calc(140px * ((var(--header-height, 140) - 70) / 70));
+    height: calc(80px * ((var(--header-height, 140) - 70) / 70));
+    min-height: calc(57px * ((var(--header-height, 140) - 70) / 70));
+    max-height: calc(114px * ((var(--header-height, 140) - 70) / 70));
 }
 
 /* Portrait Name - scales with header (140px to 70px) */
 .portrait-name {
-    font-size: calc(0.75rem * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
+    font-size: calc(0.75rem * ((var(--header-height, 140) - 70) / 70));
     font-family: 'Rajdhani', sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: var(--text-secondary);
     text-align: center;
-    max-width: calc(140px * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
+    max-width: calc(140px * ((var(--header-height, 140) - 70) / 70));
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     font-weight: 600;
     transition: all 0.1s ease;
     line-height: 1.2;
-    height: calc(1.2em * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
+    height: calc(1.2em * ((var(--header-height, 140) - 70) / 70));
     margin: 0;
     flex-shrink: 0;
 }
 
 .turn-portrait.active .portrait-name {
     color: var(--accent-purple);
-    font-size: calc(0.85rem * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
-    max-width: calc(140px * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
+    font-size: calc(0.85rem * ((var(--header-height, 140) - 70) / 70));
+    max-width: calc(140px * ((var(--header-height, 140) - 70) / 70));
 }
 
 /* Portrait Placeholder */
@@ -221,7 +221,7 @@
 }
 
 .portrait-initial {
-    font-size: calc(2rem * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
+    font-size: calc(2rem * ((var(--header-height, 140) - 70) / 70));
     font-weight: 700;
     font-family: 'Rajdhani', sans-serif;
     color: var(--text-primary);
@@ -230,7 +230,7 @@
 }
 
 .turn-portrait.active .portrait-initial {
-    font-size: calc(2.4rem * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
+    font-size: calc(2.4rem * ((var(--header-height, 140) - 70) / 70));
 }
 
 /* Attitude Indicator */
@@ -246,17 +246,17 @@
 /* Death Saves */
 .death-saves {
     display: flex;
-    gap: calc(4px * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
-    font-size: calc(0.65rem * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
+    gap: calc(4px * ((var(--header-height, 140) - 70) / 70));
+    font-size: calc(0.65rem * ((var(--header-height, 140) - 70) / 70));
     opacity: 0.9;
     margin: 0;
     line-height: 1;
-    height: calc(1em * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
+    height: calc(1em * ((var(--header-height, 140) - 70) / 70));
     flex-shrink: 0;
 }
 
 .turn-portrait.active .death-saves {
-    font-size: calc(0.75rem * (0.5 + 0.5 * ((var(--header-height, 140) - 70) / 70)));
+    font-size: calc(0.75rem * ((var(--header-height, 140) - 70) / 70));
 }
 
 .death-save-successes {
