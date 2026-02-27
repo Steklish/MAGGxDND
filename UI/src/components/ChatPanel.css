@@ -48,7 +48,7 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .filter-buttons button:hover {

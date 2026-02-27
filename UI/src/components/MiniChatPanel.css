@@ -8,6 +8,8 @@
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* Mini Chat Filters */
@@ -27,7 +29,7 @@
     background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
     border: 2px solid var(--border-color);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s, box-shadow 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -37,7 +39,6 @@
 
 .mini-filter-btn:hover {
     border-color: var(--accent-orange);
-    transform: scale(1.1);
     box-shadow: 0 0 15px rgba(255, 107, 53, 0.3);
 }
 
@@ -66,14 +67,14 @@
     background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
     border: 2px solid var(--border-color);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s, box-shadow 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .mini-message-icon:hover {
-    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 107, 53, 0.3);
 }
 
 .mini-message-icon.dm-message {
@@ -105,7 +106,7 @@
     background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
     border: 2px solid var(--border-color);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s, box-shadow 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -113,7 +114,6 @@
 
 .mini-event-icon:hover {
     border-color: var(--accent-purple);
-    transform: scale(1.1);
     box-shadow: 0 0 15px rgba(157, 78, 221, 0.3);
 }
 

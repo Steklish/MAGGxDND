@@ -339,6 +339,23 @@
     flex-shrink: 0;
 }
 
+.right-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+.right-panel::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+.right-panel::-webkit-scrollbar-thumb {
+    background: var(--accent-orange);
+    border-radius: var(--radius-sm);
+}
+
+.right-panel::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-gold);
+}
+
 /* Resize handles */
 .resize-handle {
     width: 0;
