@@ -1,4 +1,4 @@
-import React, { ReactNode, useState, useRef, useEffect } from 'react';
+import React, { ReactNode, useState, useRef, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import './Tooltip.css';
 
@@ -26,7 +26,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
         return () => setMounted(false);
     }, []);
 
-    const calculatePosition = () => {
+    const calculatePosition = useCallback(() => {
         if (!triggerRef.current || !contentRef.current) return;
 
         const triggerRect = triggerRef.current.getBoundingClientRect();
@@ -87,31 +87,43 @@ export const Tooltip: React.FC<TooltipProps> = ({
             visibility: 'visible',
             opacity: 1
         });
-    };
+    }, [position]);
 
     useEffect(() => {
-        if (isVisible) {
-            // Calculate position on mount
-            calculatePosition();
-
-            // Recalculate on scroll and resize
-            const handleScroll = () => calculatePosition();
-            const handleResize = () => calculatePosition();
-
-            window.addEventListener('scroll', handleScroll, true);
-            window.addEventListener('resize', handleResize);
-
-            return () => {
-                window.removeEventListener('scroll', handleScroll, true);
-                window.removeEventListener('resize', handleResize);
-            };
-        } else {
+        if (!isVisible) {
             setTooltipStyle({
                 visibility: 'hidden',
                 opacity: 0
             });
+            return;
         }
-    }, [isVisible, position]);
+
+        // Calculate position immediately
+        calculatePosition();
+
+        // Use requestAnimationFrame for smooth updates
+        let animationFrameId: number;
+        const updatePosition = () => {
+            calculatePosition();
+            animationFrameId = requestAnimationFrame(updatePosition);
+        };
+
+        // Start continuous updates while visible
+        animationFrameId = requestAnimationFrame(updatePosition);
+
+        // Also listen to scroll and resize as backup
+        const handleScroll = () => calculatePosition();
+        const handleResize = () => calculatePosition();
+
+        window.addEventListener('scroll', handleScroll, true);
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            cancelAnimationFrame(animationFrameId);
+            window.removeEventListener('scroll', handleScroll, true);
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [isVisible, calculatePosition]);
 
     const tooltipElement = (
         <div
