@@ -444,28 +444,22 @@
 
 /* Collapsed action panel handle - same as footer drag handle */
 .action-panel-collapsed-handle {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    position: fixed;
+    top: calc(var(--header-height, 140px) + 8px);
+    left: 50%;
+    transform: translateX(-50%);
     height: 24px;
-    background-color: var(--bg-secondary);
     display: none;
     justify-content: center;
-    align-items: flex-start;
-    padding-top: 8px;
+    align-items: flex-end;
+    padding-bottom: 8px;
     cursor: pointer;
     transition: all 0.2s;
-    z-index: 10;
-    border-top: 1px solid var(--border-color);
+    z-index: 1000;
 }
 
 .action-panel-collapsed-handle.show {
     display: flex;
-}
-
-.action-panel-collapsed-handle:hover {
-    background-color: rgba(42, 157, 143, 0.05);
 }
 
 .action-panel-collapsed-handle::before {
@@ -508,6 +502,8 @@
     overflow: hidden;
     min-height: 0;
     height: 100%;
+    position: relative;
+    z-index: 1;
 }
 
 .action-panel-container.collapsing {
