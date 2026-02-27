@@ -324,9 +324,14 @@
     border-right: 1px solid var(--border-color);
     overflow-y: auto;
     overflow-x: hidden;
-    min-width: 200px;
+    min-width: 70px;
     max-width: 600px;
     flex-shrink: 0;
+    transition: background-color 0.3s ease;
+}
+
+.left-panel.minimized {
+    background: linear-gradient(180deg, rgba(233, 196, 106, 0.03) 0%, var(--bg-secondary) 100%);
 }
 
 .right-panel {
@@ -334,9 +339,14 @@
     border-left: 1px solid var(--border-color);
     overflow-y: auto;
     overflow-x: hidden;
-    min-width: 200px;
+    min-width: 70px;
     max-width: 600px;
     flex-shrink: 0;
+    transition: background-color 0.3s ease;
+}
+
+.right-panel.minimized {
+    background: linear-gradient(180deg, rgba(255, 107, 53, 0.03) 0%, var(--bg-secondary) 100%);
 }
 
 /* Resize handles */

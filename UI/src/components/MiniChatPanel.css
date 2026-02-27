@@ -1,0 +1,180 @@
+/* Mini Chat Panel - Collapsed state */
+.mini-chat-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    gap: 12px;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Mini Chat Filters */
+.mini-chat-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.mini-filter-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    padding: 0;
+}
+
+.mini-filter-btn:hover {
+    border-color: var(--accent-orange);
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 107, 53, 0.3);
+}
+
+.mini-filter-btn.active {
+    border-color: var(--accent-orange);
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(255, 107, 53, 0.1) 100%);
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.5);
+}
+
+/* Mini Chat Items */
+.mini-chat-items {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Mini Message Icon */
+.mini-message-icon {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mini-message-icon:hover {
+    transform: scale(1.1);
+}
+
+.mini-message-icon.dm-message {
+    border-color: var(--accent-orange);
+}
+
+.mini-message-icon.dm-message:hover {
+    box-shadow: 0 0 15px rgba(255, 107, 53, 0.3);
+}
+
+.mini-message-icon.player-message {
+    border-color: var(--accent-blue);
+}
+
+.mini-message-icon.player-message:hover {
+    box-shadow: 0 0 15px rgba(88, 166, 255, 0.3);
+}
+
+.mini-message-indicator {
+    font-size: 1.2rem;
+}
+
+/* Mini Event Icon */
+.mini-event-icon {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mini-event-icon:hover {
+    border-color: var(--accent-purple);
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(157, 78, 221, 0.3);
+}
+
+.mini-event-icon-symbol {
+    font-size: 1.2rem;
+}
+
+/* Mini Message Tooltip */
+.mini-message-tooltip {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 250px;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.mini-message-sender {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--accent-orange);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mini-message-text {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+/* Mini Event Tooltip */
+.mini-event-tooltip {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 250px;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.mini-event-tooltip-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.mini-event-tooltip-icon {
+    font-size: 1.2rem;
+}
+
+.mini-event-tooltip-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--accent-purple);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mini-event-tooltip-description {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}

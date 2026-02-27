@@ -5,6 +5,8 @@ import { SceneViewer } from './SceneViewer';
 import { CharacterPanel } from './CharacterPanel';
 import { ActionPanel } from './ActionPanel';
 import { Footer } from './Footer';
+import { MiniCharacterPanel } from './MiniCharacterPanel';
+import { MiniChatPanel } from './MiniChatPanel';
 import './GameLayout.css';
 
 interface TurnEntry {
@@ -339,7 +341,7 @@ export const GameLayout: React.FC = () => {
                     className="left-panel"
                     style={{ width: `${leftPanelWidth}%` }}
                 >
-                    <CharacterPanel />
+                    {leftPanelWidth <= 15 ? <MiniCharacterPanel /> : <CharacterPanel />}
                 </aside>
 
                 {/* Left resize handle */}
@@ -380,7 +382,7 @@ export const GameLayout: React.FC = () => {
                     className="right-panel"
                     style={{ width: `${rightPanelWidth}%` }}
                 >
-                    <ChatPanel />
+                    {rightPanelWidth <= 15 ? <MiniChatPanel /> : <ChatPanel />}
                 </aside>
             </div>
 
