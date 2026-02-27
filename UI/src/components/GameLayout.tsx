@@ -358,13 +358,7 @@ export const GameLayout: React.FC = () => {
                     <div
                         className={`resize-handle action-panel-resize ${isResizingActionPanel ? 'resizing' : ''} ${isSceneCollapsed ? 'hidden-handle' : ''}`}
                         onMouseDown={startActionPanelResize}
-                    >
-                        <button
-                            className="action-panel-toggle-btn"
-                            onClick={toggleScene}
-                            title="Collapse scene view"
-                        />
-                    </div>
+                    />
                     <div className={`scene-container ${isCollapsing ? 'collapsing' : ''} ${isSceneCollapsed ? 'hidden-scene' : ''}`} style={{ flex: `0 0 ${isSceneCollapsed ? 0 : actionPanelHeight}%` }}>
                         <SceneViewer />
                     </div>
