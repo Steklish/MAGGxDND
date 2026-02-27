@@ -255,11 +255,11 @@ export const GameLayout: React.FC = () => {
     };
 
     return (
-        <div className="game-layout" ref={containerRef}>
+        <div className="game-layout" ref={containerRef} style={{ '--header-height': `${headerHeight}px` } as React.CSSProperties}>
             {/* Header */}
-            <header 
-                className="game-header" 
-                style={{ 
+            <header
+                className="game-header"
+                style={{
                     height: `${headerHeight}px`,
                     '--header-height': `${headerHeight}px`
                 } as React.CSSProperties}
