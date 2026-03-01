@@ -33,6 +33,11 @@ class CharacterClass(str, Enum):
     PALADIN = "Paladin"
     BARBARIAN = "Barbarian"
     BARD = "Bard"
+    CREATURE = "Creature"
+    ABBERATION = "Abberation"
+    MONSTER = "Monster"
+    ANIMAL = "Animal"
+    
 
 class DamageType(str, Enum):
     SLASHING = "Slashing"
