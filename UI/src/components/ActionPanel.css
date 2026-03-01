@@ -120,6 +120,7 @@
 }
 
 .submit-btn:hover:not(:disabled) {
+    background-color: #2e7d32;
     opacity: 0.9;
     transform: translateY(-1px);
 }
@@ -140,8 +141,9 @@
 }
 
 .clear-btn:hover:not(:disabled) {
-    background-color: var(--bg-primary);
-    border-color: var(--accent-orange);
+    background-color: #c62828;
+    border-color: #c62828;
+    color: #fff;
 }
 
 .clear-btn:disabled {
@@ -160,9 +162,9 @@
 }
 
 .skip-btn:hover:not(:disabled) {
-    background-color: var(--bg-primary);
-    border-color: var(--text-muted);
-    color: var(--text-primary);
+    background-color: #ef6c00;
+    border-color: #ef6c00;
+    color: #fff;
 }
 
 .skip-btn:disabled {
