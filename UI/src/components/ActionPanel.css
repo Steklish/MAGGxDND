@@ -112,7 +112,7 @@
 }
 
 .submit-btn {
-    flex: 1 1 auto;
+    flex: 0 0 60%;
     background: var(--gradient-primary);
     color: var(--bg-primary);
     border: none;
@@ -130,7 +130,7 @@
 }
 
 .clear-btn {
-    flex: 0 0 auto;
+    flex: 0 0 20%;
     background-color: var(--bg-tertiary);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
@@ -150,7 +150,7 @@
 }
 
 .skip-btn {
-    flex: 0 0 auto;
+    flex: 0 0 20%;
     background-color: var(--bg-tertiary);
     color: var(--text-secondary);
     border: 1px solid var(--border-color);
