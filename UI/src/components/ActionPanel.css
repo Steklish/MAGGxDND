@@ -11,8 +11,90 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
-    margin-top: auto;
-    padding-bottom: var(--spacing-md);
+    height: 100%;
+    overflow: hidden;
+}
+
+.dialogue-messages {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) 0;
+    min-height: 0;
+}
+
+.no-dialogue {
+    color: var(--text-secondary);
+    text-align: center;
+    font-size: 0.9rem;
+    padding: var(--spacing-md);
+}
+
+.dialogue-message {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border-left: 3px solid;
+    animation: slideIn 0.3s ease-out;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.dialogue-message.dm-message {
+    background-color: rgba(255, 107, 53, 0.08);
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.1);
+}
+
+.dialogue-message.player-message {
+    background-color: rgba(157, 78, 221, 0.08);
+    box-shadow: 0 0 10px rgba(157, 78, 221, 0.1);
+}
+
+.dialogue-message.ally-npc-message {
+    background-color: rgba(42, 157, 143, 0.08);
+    box-shadow: 0 0 10px rgba(42, 157, 143, 0.1);
+}
+
+.dialogue-message.hostile-npc-message {
+    background-color: rgba(230, 57, 70, 0.08);
+    box-shadow: 0 0 10px rgba(230, 57, 70, 0.1);
+}
+
+.dialogue-message.neutral-npc-message {
+    background-color: rgba(233, 196, 106, 0.08);
+    box-shadow: 0 0 10px rgba(233, 196, 106, 0.1);
+}
+
+.dialogue-message.environment-message {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dialogue-sender {
+    font-weight: 600;
+    font-size: 0.8rem;
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.dialogue-text {
+    color: var(--text-primary);
+    line-height: 1.5;
+    font-size: 0.9rem;
 }
 
 .no-action {

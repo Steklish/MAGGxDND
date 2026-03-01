@@ -152,6 +152,7 @@ export interface Event {
 export interface Message {
     sender_name: string;
     text: string;
+    type?: 'dm' | 'player' | 'ally_npc' | 'hostile_npc' | 'neutral_npc' | 'environment';
 }
 
 // Game mode
