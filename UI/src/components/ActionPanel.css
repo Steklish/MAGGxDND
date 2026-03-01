@@ -25,6 +25,24 @@
     min-height: 0;
 }
 
+.dialogue-messages::-webkit-scrollbar {
+    width: 8px;
+}
+
+.dialogue-messages::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+.dialogue-messages::-webkit-scrollbar-thumb {
+    background: var(--accent-green);
+    border-radius: var(--radius-sm);
+}
+
+.dialogue-messages::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-green);
+    box-shadow: 0 0 10px rgba(42, 157, 143, 0.5);
+}
+
 .no-dialogue {
     color: var(--text-secondary);
     text-align: center;
