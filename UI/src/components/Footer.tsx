@@ -58,7 +58,7 @@ export const Footer: React.FC = () => {
                             </a>
                         </li>
                         <li>
-                            <a href="https://www.dndbeyond.com/sources/mmotm" target="_blank" rel="noopener noreferrer">
+                            <a href="https://www.dndbeyond.com/sources/dnd/mm-2024" target="_blank" rel="noopener noreferrer">
                                 Monster Manual
                             </a>
                         </li>
