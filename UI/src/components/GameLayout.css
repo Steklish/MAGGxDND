@@ -103,9 +103,9 @@
     border-radius: var(--radius-sm);
 }
 
-/* Turn Portrait - 16:9 horizontal rectangle */
+/* Turn Portrait - 16:9 horizontal rectangle - only visible at full header height */
 .turn-portrait {
-    display: flex;
+    display: none;
     flex-direction: column;
     align-items: center;
     gap: 4px;
@@ -122,6 +122,13 @@
     aspect-ratio: 16/9;
 }
 
+/* Show portraits only when header is at full height (>120px) */
+@media (min-height: 121px) {
+    .turn-portrait {
+        display: flex;
+    }
+}
+
 .turn-portrait.active {
     width: 160px;
     height: 90px;
@@ -135,16 +142,9 @@
     transform: scale(0.85);
 }
 
-/* Hide portraits when header < 10% viewport (~108px on 1080p) */
-@media (max-height: 110px) {
-    .turn-portrait {
-        display: none;
-    }
-}
-
-/* Mini Portrait - shown when header < 10% - small horizontal rectangle */
+/* Mini Portrait - shown when header is not at full height */
 .mini-portrait {
-    display: none;
+    display: flex;
     flex-direction: row;
     align-items: center;
     gap: 8px;
@@ -161,10 +161,10 @@
     min-width: 80px;
 }
 
-/* Show mini portraits when header < 10% viewport */
-@media (max-height: 100px) {
+/* Hide mini portraits when header is at full height */
+@media (min-height: 121px) {
     .mini-portrait {
-        display: flex;
+        display: none;
     }
 }
 

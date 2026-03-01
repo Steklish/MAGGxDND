@@ -141,7 +141,7 @@ export const GameLayout: React.FC = () => {
         if (isResizingHeader) {
             const deltaY = e.clientY - startY.current;
             const newHeight = startHeaderHeight.current + deltaY;
-            // Min height 5% of viewport, max 10% of viewport
+            // Allow dragging between min and max, will snap on release
             const minHeight = window.innerHeight * 0.05;
             const maxHeight = window.innerHeight * 0.10;
             setHeaderHeight(Math.max(minHeight, Math.min(maxHeight, newHeight)));
@@ -176,11 +176,38 @@ export const GameLayout: React.FC = () => {
     }, [isResizingLeft, isResizingRight, isResizingHeader, isResizingActionPanel]);
 
     const handleMouseUp = useCallback(() => {
+        // Snap header to min or max height
+        if (isResizingHeader) {
+            const minHeight = window.innerHeight * 0.05;
+            const maxHeight = window.innerHeight * 0.10;
+            const midpoint = (minHeight + maxHeight) / 2;
+            
+            // Snap to max if above midpoint, otherwise snap to min
+            if (headerHeight > midpoint) {
+                setHeaderHeight(maxHeight);
+            } else {
+                setHeaderHeight(minHeight);
+            }
+        }
+        
+        // Snap action panel to collapsed or expanded
+        if (isResizingActionPanel) {
+            const collapseThreshold = 10;
+            if (actionPanelHeight < collapseThreshold) {
+                setIsSceneCollapsed(true);
+                setActionPanelHeight(0);
+            } else {
+                setIsSceneCollapsed(false);
+                // Snap to default expanded height
+                setActionPanelHeight(70);
+            }
+        }
+        
         setIsResizingLeft(false);
         setIsResizingRight(false);
         setIsResizingHeader(false);
         setIsResizingActionPanel(false);
-    }, []);
+    }, [isResizingHeader, isResizingActionPanel, headerHeight, actionPanelHeight]);
 
     useEffect(() => {
         if (isResizingLeft || isResizingRight || isResizingHeader || isResizingActionPanel) {
