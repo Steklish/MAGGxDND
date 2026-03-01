@@ -109,10 +109,11 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     white-space: nowrap;
+    box-sizing: border-box;
 }
 
 .submit-btn {
-    flex: 0 0 60%;
+    flex: 0 0 calc(60% - var(--spacing-sm));
     background-color: var(--accent-green);
     color: var(--bg-primary);
     border: none;
@@ -135,7 +136,7 @@
 }
 
 .clear-btn {
-    flex: 0 0 20%;
+    flex: 0 0 calc(20% - var(--spacing-sm));
     background-color: var(--bg-tertiary);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
@@ -156,7 +157,7 @@
 }
 
 .skip-btn {
-    flex: 0 0 20%;
+    flex: 0 0 calc(20% - var(--spacing-sm));
     background-color: var(--bg-tertiary);
     color: var(--text-secondary);
     border: 1px solid var(--border-color);
