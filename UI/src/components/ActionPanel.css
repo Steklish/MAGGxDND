@@ -195,7 +195,8 @@
 
 .form-group textarea:focus {
     outline: none;
-    border-color: var(--accent-orange);
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 8px rgba(157, 78, 221, 0.3);
 }
 
 .form-group textarea:disabled {
