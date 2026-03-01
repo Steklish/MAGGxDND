@@ -1,0 +1,58 @@
+from datetime import datetime, timedelta, timezone
+from typing import Optional
+import bcrypt
+from jose import JWTError, jwt
+from server.src.config import settings
+
+
+def get_password_hash(password: str) -> str:
+    try:
+        # Truncate password to 72 bytes if needed (bcrypt limitation)
+        # Note: This truncation may reduce security, so consider using a different algorithm for very long passwords
+        truncated_password = password[:72] if len(password) > 72 else password
+        # Use bcrypt directly to avoid passlib's backend issues
+        salt = bcrypt.gensalt(rounds=settings.HASHING_ROUNDS)
+        return bcrypt.hashpw(truncated_password.encode('utf-8'), salt).decode('utf-8')
+    except Exception as e:
+        # If bcrypt fails, raise a more descriptive error
+        raise ValueError(f"Failed to hash password: {str(e)}")
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    try:
+        # Truncate password to 72 bytes if needed (bcrypt limitation)
+        truncated_password = plain_password[:72] if len(plain_password) > 72 else plain_password
+        
+        # Ensure the hashed password is in the right format
+        if isinstance(hashed_password, str):
+            hashed_bytes = hashed_password.encode('utf-8')
+        else:
+            hashed_bytes = hashed_password
+
+        return bcrypt.checkpw(truncated_password.encode('utf-8'), hashed_bytes)
+    except Exception as e:
+        # If bcrypt verification fails, return False
+        return False  # or raise an exception if preferred
+
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    try:
+        to_encode = data.copy()
+        if expires_delta:
+            expire = datetime.now(timezone.utc) + expires_delta
+        else:
+            expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        
+        to_encode.update({"exp": expire})
+        encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+        return encoded_jwt
+    except Exception as e:
+        raise ValueError(f"Failed to create access token: {str(e)}")
+
+
+def verify_token(token: str) -> Optional[dict]:
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        return payload
+    except JWTError:
+        return None
