@@ -11,10 +11,10 @@
 /* Tooltip Styles */
 .tooltip {
     background-color: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--accent-yellow);
     border-radius: var(--radius-md);
     padding: 12px 16px;
-    box-shadow: var(--shadow-lg), 0 0 20px rgba(255, 107, 53, 0.15);
+    box-shadow: var(--shadow-lg), 0 0 20px rgba(233, 196, 106, 0.2);
     font-size: 0.85rem;
     line-height: 1.5;
     color: var(--text-primary);
