@@ -380,24 +380,6 @@
     flex-shrink: 0;
 }
 
-.right-panel::-webkit-scrollbar {
-    width: 8px;
-}
-
-.right-panel::-webkit-scrollbar-track {
-    background: var(--bg-primary);
-}
-
-.right-panel::-webkit-scrollbar-thumb {
-    background: var(--accent-orange);
-    border-radius: var(--radius-sm);
-}
-
-.right-panel::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-gold);
-    box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
-}
-
 /* Resize handles */
 .resize-handle {
     width: 0;
@@ -584,26 +566,6 @@
     background: linear-gradient(180deg, rgba(233, 196, 106, 0.03) 0%, var(--bg-secondary) 100%);
 }
 
-/* Left panel scrollbar - Yellow accent */
-.left-panel::-webkit-scrollbar {
-    width: 8px;
-}
-
-.left-panel::-webkit-scrollbar-track {
-    background: var(--bg-primary);
-    border-left: 1px solid var(--border-color);
-}
-
-.left-panel::-webkit-scrollbar-thumb {
-    background: var(--accent-yellow);
-    border-radius: var(--radius-sm);
-}
-
-.left-panel::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-gold);
-    box-shadow: 0 0 10px rgba(233, 196, 106, 0.3);
-}
-
 .left-panel .panel-header {
     background: linear-gradient(180deg, rgba(233, 196, 106, 0.1) 0%, var(--bg-secondary) 100%);
     border-bottom-color: rgba(233, 196, 106, 0.3);
@@ -774,6 +736,12 @@
     height: 8px;
 }
 
+/* Global Scrollbar styling - default yellow */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
 ::-webkit-scrollbar-track {
     background: var(--bg-primary);
     border-left: 1px solid var(--border-color);
@@ -786,4 +754,43 @@
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--accent-gold);
+}
+
+/* Right panel - Orange accent scrollbar */
+.right-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+.right-panel::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+.right-panel::-webkit-scrollbar-thumb {
+    background: var(--accent-orange) !important;
+    border-radius: var(--radius-sm);
+}
+
+.right-panel::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-gold) !important;
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+}
+
+/* Left panel - Yellow accent scrollbar */
+.left-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+.left-panel::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+    border-left: 1px solid var(--border-color);
+}
+
+.left-panel::-webkit-scrollbar-thumb {
+    background: var(--accent-yellow) !important;
+    border-radius: var(--radius-sm);
+}
+
+.left-panel::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-gold) !important;
+    box-shadow: 0 0 10px rgba(233, 196, 106, 0.3);
 }
