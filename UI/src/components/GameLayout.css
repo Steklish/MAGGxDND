@@ -519,7 +519,7 @@
 }
 
 .action-panel-collapsed-handle .handle-bar {
-    width: 80px;
+    width: 20%;
     height: 6px;
     background: linear-gradient(90deg, var(--border-color) 0%, var(--accent-green) 50%, var(--border-color) 100%);
     border-radius: 3px;
@@ -530,14 +530,13 @@
 
 .action-panel-collapsed-handle.show:hover .handle-bar {
     opacity: 1;
-    width: 100px;
     height: 8px;
     background: linear-gradient(90deg, var(--accent-green) 0%, var(--accent-purple) 50%, var(--accent-green) 100%);
     box-shadow: 0 0 10px rgba(42, 157, 143, 0.5);
 }
 
 .action-panel-collapsed-handle.show:active .handle-bar {
-    width: 90px;
+    height: 8px;
 }
 
 .center-panel {

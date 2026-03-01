@@ -23,7 +23,8 @@
     top: -12px;
     left: 50%;
     transform: translateX(-50%);
-    width: 80px;
+    width: 20vw;
+    max-width: 400px;
     height: 6px;
     background: linear-gradient(90deg, var(--border-color) 0%, var(--accent-orange) 50%, var(--border-color) 100%);
     border-radius: 3px;
@@ -34,14 +35,13 @@
 
 .footer-drag-handle:hover {
     opacity: 1;
-    width: 100px;
     height: 8px;
     background: linear-gradient(90deg, var(--accent-orange) 0%, var(--accent-purple) 50%, var(--accent-orange) 100%);
     box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
 }
 
 .footer-drag-handle:active {
-    width: 90px;
+    height: 8px;
 }
 
 .footer-content {
