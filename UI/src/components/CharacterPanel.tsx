@@ -60,7 +60,7 @@ const CharacterPreview: React.FC<CharacterPreviewProps> = ({ character, type = '
     const typeColor = getTypeColor(type);
 
     return (
-        <div className="character-preview" style={{ background: getTypeBgGradient(type) }}>
+        <div className="character-preview">
             <div className="character-preview-header" style={{ borderBottomColor: typeColor }}>
                 <div>
                     <span className="character-preview-name" style={{ color: typeColor }}>{character.name}</span>
@@ -207,18 +207,21 @@ export const CharacterPanel: React.FC = () => {
                     {players.map(char => {
                         const charType = getCharacterType(char, session);
                         const typeColor = getTypeColor(charType);
+                        const typeBg = getTypeBgGradient(charType);
                         return (
                         <Tooltip
                             key={char.name}
                             content={<CharacterPreview character={char} type={charType} />}
                             position="right"
+                            borderColor={typeColor}
+                            background={typeBg}
                         >
                             <div
                                 className={`character-card ${activeCharacter?.name === char.name ? 'active' : ''} ${currentTurnChar?.name === char.name ? 'current-turn' : ''}`}
                                 onClick={() => handleSelectCharacter(char)}
                                 style={{
                                     borderColor: activeCharacter?.name === char.name ? typeColor : 'var(--border-color)',
-                                    background: getTypeBgGradient(charType)
+                                    background: typeBg
                                 }}
                             >
                                 <div className="character-header">
@@ -267,18 +270,21 @@ export const CharacterPanel: React.FC = () => {
                     {npcs.map(char => {
                         const charType = getCharacterType(char, session);
                         const typeColor = getTypeColor(charType);
+                        const typeBg = getTypeBgGradient(charType);
                         return (
                         <Tooltip
                             key={char.name}
                             content={<CharacterPreview character={char} type={charType} />}
                             position="right"
+                            borderColor={typeColor}
+                            background={typeBg}
                         >
                             <div
                                 className={`character-card ${activeCharacter?.name === char.name ? 'active' : ''} ${currentTurnChar?.name === char.name ? 'current-turn' : ''}`}
                                 onClick={() => handleSelectCharacter(char)}
                                 style={{
                                     borderColor: activeCharacter?.name === char.name ? typeColor : 'var(--border-color)',
-                                    background: getTypeBgGradient(charType)
+                                    background: typeBg
                                 }}
                             >
                                 <div className="character-header">

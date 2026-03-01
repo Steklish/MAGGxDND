@@ -7,13 +7,17 @@ interface TooltipProps {
     children: ReactNode;
     position?: 'top' | 'bottom' | 'left' | 'right';
     className?: string;
+    borderColor?: string;
+    background?: string;
 }
 
 export const Tooltip: React.FC<TooltipProps> = ({
     content,
     children,
     position = 'right',
-    className = ''
+    className = '',
+    borderColor,
+    background
 }) => {
     const [isVisible, setIsVisible] = useState(false);
     const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
@@ -128,7 +132,12 @@ export const Tooltip: React.FC<TooltipProps> = ({
     const tooltipElement = (
         <div
             className={`tooltip tooltip-${position}`}
-            style={tooltipStyle}
+            style={{
+                ...tooltipStyle,
+                borderColor: borderColor || 'var(--accent-yellow)',
+                backgroundColor: background || 'var(--bg-tertiary)',
+                boxShadow: `var(--shadow-lg), 0 0 20px ${borderColor ? borderColor.replace('var(--accent-', 'rgba(').replace(')', ', 0.2)') : 'rgba(233, 196, 106, 0.2)'}`
+            }}
             ref={contentRef}
         >
             {content}

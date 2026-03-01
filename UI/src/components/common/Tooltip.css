@@ -30,6 +30,12 @@
     font-family: 'Rajdhani', sans-serif;
 }
 
+/* Character Preview Tooltip - border and background handled by inline styles */
+.tooltip .character-preview {
+    border: none;
+    background: transparent;
+}
+
 .tooltip.tooltip-right,
 .tooltip.tooltip-left,
 .tooltip.tooltip-top,
