@@ -113,21 +113,25 @@
 
 .submit-btn {
     flex: 0 0 60%;
-    background: var(--gradient-primary);
+    background-color: var(--accent-green);
     color: var(--bg-primary);
     border: none;
     min-width: 0;
+    opacity: 0.5;
+    transition: all 0.2s;
 }
 
 .submit-btn:hover:not(:disabled) {
-    background-color: #2e7d32;
-    opacity: 0.9;
+    opacity: 1;
     transform: translateY(-1px);
+    box-shadow: 0 0 12px rgba(42, 157, 143, 0.4);
 }
 
 .submit-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 .clear-btn {
@@ -141,9 +145,9 @@
 }
 
 .clear-btn:hover:not(:disabled) {
-    background-color: #c62828;
-    border-color: #c62828;
-    color: #fff;
+    background-color: var(--accent-red);
+    border-color: var(--accent-red);
+    color: var(--bg-primary);
 }
 
 .clear-btn:disabled {
@@ -162,9 +166,9 @@
 }
 
 .skip-btn:hover:not(:disabled) {
-    background-color: #ef6c00;
-    border-color: #ef6c00;
-    color: #fff;
+    background-color: var(--accent-orange);
+    border-color: var(--accent-orange);
+    color: var(--bg-primary);
 }
 
 .skip-btn:disabled {
