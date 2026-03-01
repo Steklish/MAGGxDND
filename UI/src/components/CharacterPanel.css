@@ -12,13 +12,13 @@
     justify-content: space-between;
     align-items: center;
     padding: var(--spacing-md) var(--spacing-lg);
-    border-bottom: 1px solid var(--border-color);
-    background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+    border-bottom: 2px solid var(--accent-yellow);
+    background: linear-gradient(180deg, rgba(233, 196, 106, 0.1) 0%, var(--bg-secondary) 100%);
 }
 
 .panel-header h2 {
     font-size: 1.3rem;
-    color: var(--text-primary);
+    color: var(--accent-yellow);
     margin: 0;
     font-family: 'Rajdhani', sans-serif;
     font-weight: 600;
@@ -39,13 +39,13 @@
 
 .character-section h3 {
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    color: var(--accent-yellow);
     margin-bottom: 10px;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     font-family: 'Rajdhani', sans-serif;
     font-weight: 600;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid rgba(233, 196, 106, 0.3);
     padding-bottom: var(--spacing-sm);
 }
 
@@ -60,16 +60,17 @@
 }
 
 .character-card:hover {
-    border-color: var(--accent-orange);
+    border-color: var(--accent-yellow);
     transform: translateX(4px);
-    background-color: var(--bg-accent);
-    box-shadow: var(--shadow-glow);
+    background-color: rgba(233, 196, 106, 0.08);
+    box-shadow: 0 0 12px rgba(233, 196, 106, 0.2);
 }
 
 .character-card.active {
     border-color: var(--accent-yellow);
-    background-color: rgba(233, 196, 106, 0.1);
-    box-shadow: 0 0 15px rgba(233, 196, 106, 0.2);
+    border-width: 2px;
+    background-color: rgba(233, 196, 106, 0.12);
+    box-shadow: 0 0 15px rgba(233, 196, 106, 0.3);
 }
 
 .character-card.current-turn {
@@ -80,7 +81,7 @@
 }
 
 .character-card.current-turn .character-name {
-    color: var(--accent-purple);
+    color: var(--accent-purple) !important;
     text-shadow: 0 0 8px rgba(157, 78, 221, 0.3);
 }
 
@@ -90,10 +91,6 @@
     top: 8px;
     right: 8px;
     font-size: 1.2rem;
-}
-
-.character-card.npc {
-    border-left: 3px solid var(--accent-red);
 }
 
 .character-header {
@@ -114,14 +111,14 @@
 
 .character-class {
     font-size: 0.75rem;
-    color: var(--accent-orange);
-    background-color: rgba(255, 107, 53, 0.1);
+    color: var(--accent-yellow);
+    background-color: rgba(233, 196, 106, 0.1);
     padding: 2px 8px;
     border-radius: var(--radius-sm);
     font-family: 'Rajdhani', sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    border: 1px solid rgba(255, 107, 53, 0.2);
+    border: 1px solid rgba(233, 196, 106, 0.2);
 }
 
 .character-details {
@@ -192,13 +189,13 @@
 
 .character-details-panel {
     padding: var(--spacing-lg);
-    border-top: 1px solid var(--border-color);
-    background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+    border-top: 2px solid var(--accent-yellow);
+    background: linear-gradient(180deg, rgba(233, 196, 106, 0.05) 0%, var(--bg-tertiary) 100%);
 }
 
 .character-details-panel h3 {
     font-size: 1.2rem;
-    color: var(--accent-orange);
+    color: var(--accent-yellow);
     margin-bottom: 16px;
     font-family: 'Rajdhani', sans-serif;
     font-weight: 600;
@@ -212,13 +209,13 @@
 
 .details-section h4 {
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    color: var(--accent-yellow);
     margin-bottom: 10px;
     text-transform: uppercase;
     letter-spacing: 1px;
     font-family: 'Rajdhani', sans-serif;
     font-weight: 600;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid rgba(233, 196, 106, 0.3);
     padding-bottom: var(--spacing-xs);
 }
 
@@ -240,8 +237,8 @@
 }
 
 .ability-score:hover {
-    border-color: var(--accent-orange);
-    box-shadow: var(--shadow-glow);
+    border-color: var(--accent-yellow);
+    box-shadow: 0 0 12px rgba(233, 196, 106, 0.2);
 }
 
 .ability-name {
@@ -256,7 +253,7 @@
 .ability-value {
     font-size: 1.4rem;
     font-weight: 700;
-    color: var(--accent-orange);
+    color: var(--accent-yellow);
     font-family: 'Rajdhani', sans-serif;
 }
 
@@ -270,13 +267,13 @@
     padding: 10px;
     background-color: var(--bg-tertiary);
     border-radius: var(--radius-md);
-    border-left: 3px solid var(--accent-orange);
+    border-left: 3px solid var(--accent-yellow);
     transition: all 0.3s ease;
 }
 
 .ability-item:hover {
-    background-color: var(--bg-accent);
-    box-shadow: var(--shadow-glow);
+    background-color: rgba(233, 196, 106, 0.08);
+    box-shadow: 0 0 12px rgba(233, 196, 106, 0.2);
 }
 
 .ability-item-header {
@@ -296,11 +293,11 @@
 
 .spell-level {
     font-size: 0.75rem;
-    color: var(--accent-orange);
-    background-color: rgba(255, 107, 53, 0.1);
+    color: var(--accent-yellow);
+    background-color: rgba(233, 196, 106, 0.1);
     padding: 1px 6px;
     border-radius: var(--radius-sm);
-    border: 1px solid rgba(255, 107, 53, 0.2);
+    border: 1px solid rgba(233, 196, 106, 0.2);
     font-family: 'Rajdhani', sans-serif;
 }
 
@@ -337,8 +334,8 @@
 }
 
 .inventory-item:hover {
-    border-color: var(--accent-orange);
-    background-color: var(--bg-accent);
+    border-color: var(--accent-yellow);
+    background-color: rgba(233, 196, 106, 0.08);
 }
 
 .inventory-item.equipped {

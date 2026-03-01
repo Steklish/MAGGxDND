@@ -52,7 +52,7 @@
     justify-content: space-between;
     align-items: flex-start;
     padding-bottom: 10px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 2px solid var(--accent-yellow);
 }
 
 .character-preview-name {
@@ -80,7 +80,7 @@
 
 .character-preview-section-title {
     font-size: 0.8rem;
-    color: var(--text-secondary);
+    color: var(--accent-yellow);
     text-transform: uppercase;
     letter-spacing: 1px;
     font-weight: 600;
@@ -88,7 +88,7 @@
     display: block;
     margin-bottom: 6px;
     padding-bottom: 4px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid rgba(233, 196, 106, 0.3);
 }
 
 .character-preview-stats {
@@ -199,8 +199,8 @@
 }
 
 .character-preview-ability:hover {
-    background-color: var(--bg-accent);
-    box-shadow: 0 0 10px rgba(233, 196, 106, 0.1);
+    background-color: rgba(233, 196, 106, 0.08);
+    box-shadow: 0 0 10px rgba(233, 196, 106, 0.2);
 }
 
 .character-preview-ability-name {
@@ -257,7 +257,8 @@
 
 .character-preview-inventory-item:hover {
     border-color: var(--accent-yellow);
-    background-color: rgba(233, 196, 106, 0.1);
+    background-color: rgba(233, 196, 106, 0.08);
+}
 }
 
 .equipped-badge {

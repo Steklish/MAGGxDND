@@ -5,21 +5,65 @@ import './CharacterPanel.css';
 
 interface CharacterPreviewProps {
     character: any;
+    type?: 'player' | 'ally_npc' | 'hostile_npc' | 'neutral_npc';
 }
 
-const CharacterPreview: React.FC<CharacterPreviewProps> = ({ character }) => {
+const getCharacterType = (char: any, session: any): 'player' | 'ally_npc' | 'hostile_npc' | 'neutral_npc' => {
+    // Check if character is a player
+    const players = session?.players || [];
+    for (const p of players) {
+        if (p.character.name === char.name) return 'player';
+    }
+    
+    // Check if character is an NPC
+    const npcs = session?.npcs || [];
+    for (const n of npcs) {
+        if (n.character.name === char.name) {
+            const alignment = n.character.alignment || '';
+            if (alignment.includes('Good')) return 'ally_npc';
+            if (alignment.includes('Evil') || alignment.includes('Chaotic')) return 'hostile_npc';
+            return 'neutral_npc';
+        }
+    }
+    
+    return 'player';
+};
+
+const getTypeColor = (type: string) => {
+    switch (type) {
+        case 'player': return 'var(--accent-purple)';
+        case 'ally_npc': return 'var(--accent-green)';
+        case 'hostile_npc': return 'var(--accent-red)';
+        case 'neutral_npc': return 'var(--accent-yellow)';
+        default: return 'var(--accent-yellow)';
+    }
+};
+
+const getTypeBgGradient = (type: string) => {
+    switch (type) {
+        case 'player': return 'linear-gradient(135deg, rgba(157, 78, 221, 0.15) 0%, rgba(157, 78, 221, 0.05) 100%)';
+        case 'ally_npc': return 'linear-gradient(135deg, rgba(42, 157, 143, 0.15) 0%, rgba(42, 157, 143, 0.05) 100%)';
+        case 'hostile_npc': return 'linear-gradient(135deg, rgba(230, 57, 70, 0.15) 0%, rgba(230, 57, 70, 0.05) 100%)';
+        case 'neutral_npc': return 'linear-gradient(135deg, rgba(233, 196, 106, 0.15) 0%, rgba(233, 196, 106, 0.05) 100%)';
+        default: return 'linear-gradient(135deg, rgba(233, 196, 106, 0.15) 0%, rgba(233, 196, 106, 0.05) 100%)';
+    }
+};
+
+const CharacterPreview: React.FC<CharacterPreviewProps> = ({ character, type = 'player' }) => {
     const hpPercent = (character.current_hp / character.max_hp) * 100;
-    const hpColor = hpPercent > 50 
-        ? 'var(--accent-green)' 
-        : hpPercent > 25 
-            ? 'var(--accent-yellow)' 
+    const hpColor = hpPercent > 50
+        ? 'var(--accent-green)'
+        : hpPercent > 25
+            ? 'var(--accent-yellow)'
             : 'var(--accent-red)';
+    
+    const typeColor = getTypeColor(type);
 
     return (
-        <div className="character-preview">
-            <div className="character-preview-header">
+        <div className="character-preview" style={{ background: getTypeBgGradient(type) }}>
+            <div className="character-preview-header" style={{ borderBottomColor: typeColor }}>
                 <div>
-                    <span className="character-preview-name">{character.name}</span>
+                    <span className="character-preview-name" style={{ color: typeColor }}>{character.name}</span>
                     <span className="character-preview-subtitle">
                         {character.race} {character.char_class}, Level {character.level}
                     </span>
@@ -159,19 +203,26 @@ export const CharacterPanel: React.FC = () => {
 
             <div className="characters-list">
                 <div className="character-section">
-                    <h3>Players ({players.length})</h3>
-                    {players.map(char => (
-                        <Tooltip 
-                            key={char.name} 
-                            content={<CharacterPreview character={char} />}
+                    <h3 style={{ color: 'var(--accent-yellow)' }}>Players ({players.length})</h3>
+                    {players.map(char => {
+                        const charType = getCharacterType(char, session);
+                        const typeColor = getTypeColor(charType);
+                        return (
+                        <Tooltip
+                            key={char.name}
+                            content={<CharacterPreview character={char} type={charType} />}
                             position="right"
                         >
                             <div
                                 className={`character-card ${activeCharacter?.name === char.name ? 'active' : ''} ${currentTurnChar?.name === char.name ? 'current-turn' : ''}`}
                                 onClick={() => handleSelectCharacter(char)}
+                                style={{
+                                    borderColor: activeCharacter?.name === char.name ? typeColor : 'var(--border-color)',
+                                    background: getTypeBgGradient(charType)
+                                }}
                             >
                                 <div className="character-header">
-                                    <span className="character-name">{char.name}</span>
+                                    <span className="character-name" style={{ color: typeColor }}>{char.name}</span>
                                     <span className="character-class">{char.char_class}</span>
                                 </div>
                                 <div className="character-details">
@@ -201,29 +252,37 @@ export const CharacterPanel: React.FC = () => {
                                 {char.active_conditions && char.active_conditions.trim() && (
                                     <div className="character-conditions">
                                         {char.active_conditions.split('\n').map((cond, idx) => (
-                                            <span key={idx} className="condition-tag">{cond}</span>
+                                            <span key={idx} className="condition-tag" style={{ borderColor: typeColor, color: typeColor }}>{cond}</span>
                                         ))}
                                     </div>
                                 )}
                             </div>
                         </Tooltip>
-                    ))}
+                    );
+                    })}
                 </div>
 
                 <div className="character-section">
-                    <h3>NPCs ({npcs.length})</h3>
-                    {npcs.map(char => (
-                        <Tooltip 
-                            key={char.name} 
-                            content={<CharacterPreview character={char} />}
+                    <h3 style={{ color: 'var(--accent-yellow)' }}>NPCs ({npcs.length})</h3>
+                    {npcs.map(char => {
+                        const charType = getCharacterType(char, session);
+                        const typeColor = getTypeColor(charType);
+                        return (
+                        <Tooltip
+                            key={char.name}
+                            content={<CharacterPreview character={char} type={charType} />}
                             position="right"
                         >
                             <div
-                                className={`character-card npc ${activeCharacter?.name === char.name ? 'active' : ''} ${currentTurnChar?.name === char.name ? 'current-turn' : ''}`}
+                                className={`character-card ${activeCharacter?.name === char.name ? 'active' : ''} ${currentTurnChar?.name === char.name ? 'current-turn' : ''}`}
                                 onClick={() => handleSelectCharacter(char)}
+                                style={{
+                                    borderColor: activeCharacter?.name === char.name ? typeColor : 'var(--border-color)',
+                                    background: getTypeBgGradient(charType)
+                                }}
                             >
                                 <div className="character-header">
-                                    <span className="character-name">{char.name}</span>
+                                    <span className="character-name" style={{ color: typeColor }}>{char.name}</span>
                                     <span className="character-class">{char.char_class}</span>
                                 </div>
                                 <div className="character-details">
@@ -243,7 +302,8 @@ export const CharacterPanel: React.FC = () => {
                                 </div>
                             </div>
                         </Tooltip>
-                    ))}
+                    );
+                    })}
                 </div>
             </div>
 
