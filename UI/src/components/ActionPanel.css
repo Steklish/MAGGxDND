@@ -19,7 +19,7 @@
     flex: 1;
     overflow-y: auto;
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;
     gap: var(--spacing-sm);
     padding: var(--spacing-sm) 0;
     min-height: 0;
@@ -37,20 +37,33 @@
     background-color: var(--bg-tertiary);
     border-radius: var(--radius-md);
     border-left: 3px solid;
+    border-right: 3px solid;
     animation: slideIn 0.3s ease-out;
     display: flex;
     flex-direction: column;
     gap: 4px;
+    max-width: 70%;
+    word-wrap: break-word;
+}
+
+.dialogue-message.npc-align {
+    align-self: flex-start;
+    border-right-color: transparent;
+}
+
+.dialogue-message.player-align {
+    align-self: flex-end;
+    border-left-color: transparent;
 }
 
 @keyframes slideIn {
     from {
         opacity: 0;
-        transform: translateX(-10px);
+        transform: translateY(10px);
     }
     to {
         opacity: 1;
-        transform: translateX(0);
+        transform: translateY(0);
     }
 }
 

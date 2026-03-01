@@ -6,6 +6,7 @@ export const ActionPanel: React.FC = () => {
     const { activeCharacter, sendAction, isActionPending, clarificationText, messages, getMessageType } = useGameStore();
     const [actionText, setActionText] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const dialogueContainerRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -23,15 +24,18 @@ export const ActionPanel: React.FC = () => {
         }
     };
 
-    const getMessageClassName = (type: string) => {
+    const getMessageClassName = (type: string, isPlayer: boolean) => {
+        const baseClass = 'dialogue-message';
+        const alignClass = isPlayer ? 'player-align' : 'npc-align';
+        
         switch (type) {
-            case 'dm': return 'dialogue-message dm-message';
-            case 'player': return 'dialogue-message player-message';
-            case 'ally_npc': return 'dialogue-message ally-npc-message';
-            case 'hostile_npc': return 'dialogue-message hostile-npc-message';
-            case 'neutral_npc': return 'dialogue-message neutral-npc-message';
-            case 'environment': return 'dialogue-message environment-message';
-            default: return 'dialogue-message';
+            case 'dm': return `${baseClass} ${alignClass} dm-message`;
+            case 'player': return `${baseClass} ${alignClass} player-message`;
+            case 'ally_npc': return `${baseClass} ${alignClass} ally-npc-message`;
+            case 'hostile_npc': return `${baseClass} ${alignClass} hostile-npc-message`;
+            case 'neutral_npc': return `${baseClass} ${alignClass} neutral-npc-message`;
+            case 'environment': return `${baseClass} ${alignClass} environment-message`;
+            default: return `${baseClass} ${alignClass}`;
         }
     };
 
@@ -45,6 +49,10 @@ export const ActionPanel: React.FC = () => {
             case 'environment': return 'var(--text-primary)';
             default: return 'var(--text-secondary)';
         }
+    };
+
+    const isPlayerMessage = (type: string) => {
+        return type === 'player';
     };
 
     if (!activeCharacter) {
@@ -61,30 +69,6 @@ export const ActionPanel: React.FC = () => {
     return (
         <div className="action-panel">
             <div className="action-panel-content">
-                {/* Dialogue messages area */}
-                <div className="dialogue-messages">
-                    {messages.length === 0 ? (
-                        <p className="no-dialogue">No dialogue yet</p>
-                    ) : (
-                        messages.map((msg, idx) => {
-                            const msgType = msg.type || getMessageType(msg.sender_name);
-                            return (
-                                <div
-                                    key={idx}
-                                    className={getMessageClassName(msgType)}
-                                    style={{ borderLeftColor: getMessageColor(msgType) }}
-                                >
-                                    <span className="dialogue-sender" style={{ color: getMessageColor(msgType) }}>
-                                        {msg.sender_name}
-                                    </span>
-                                    <span className="dialogue-text">{msg.text}</span>
-                                </div>
-                            );
-                        })
-                    )}
-                    <div ref={messagesEndRef} />
-                </div>
-
                 {clarificationText && (
                     <div className="clarification-box">
                         <span className="clarification-icon">❓</span>
@@ -130,6 +114,31 @@ export const ActionPanel: React.FC = () => {
                         </button>
                     </div>
                 </form>
+
+                {/* Dialogue messages area - after form so it grows upward */}
+                <div className="dialogue-messages" ref={dialogueContainerRef}>
+                    {messages.length === 0 ? (
+                        <p className="no-dialogue">No dialogue yet</p>
+                    ) : (
+                        messages.map((msg, idx) => {
+                            const msgType = msg.type || getMessageType(msg.sender_name);
+                            const isPlayer = isPlayerMessage(msgType);
+                            return (
+                                <div
+                                    key={idx}
+                                    className={getMessageClassName(msgType, isPlayer)}
+                                    style={{ borderLeftColor: isPlayer ? 'transparent' : getMessageColor(msgType), borderRightColor: isPlayer ? getMessageColor(msgType) : 'transparent' }}
+                                >
+                                    <span className="dialogue-sender" style={{ color: getMessageColor(msgType) }}>
+                                        {msg.sender_name}
+                                    </span>
+                                    <span className="dialogue-text">{msg.text}</span>
+                                </div>
+                            );
+                        })
+                    )}
+                    <div ref={messagesEndRef} />
+                </div>
             </div>
         </div>
     );
