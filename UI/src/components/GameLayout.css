@@ -778,7 +778,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--accent-orange);
+    background: var(--accent-yellow);
     border-radius: var(--radius-sm);
 }
 
