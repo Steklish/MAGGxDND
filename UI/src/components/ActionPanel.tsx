@@ -69,12 +69,12 @@ export const ActionPanel: React.FC = () => {
     return (
         <div className="action-panel">
             <div className="action-panel-content">
-                {/* Dialogue messages area - grows from bottom */}
+                {/* Dialogue messages area - oldest at top, newest at bottom */}
                 <div className="dialogue-messages" ref={dialogueContainerRef}>
                     {messages.length === 0 ? (
                         <p className="no-dialogue">No dialogue yet</p>
                     ) : (
-                        [...messages].reverse().map((msg, idx) => {
+                        messages.map((msg, idx) => {
                             const msgType = msg.type || getMessageType(msg.sender_name);
                             const isPlayer = isPlayerMessage(msgType);
                             return (
