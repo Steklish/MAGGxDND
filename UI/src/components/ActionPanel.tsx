@@ -69,6 +69,31 @@ export const ActionPanel: React.FC = () => {
     return (
         <div className="action-panel">
             <div className="action-panel-content">
+                {/* Dialogue messages area - grows from bottom */}
+                <div className="dialogue-messages" ref={dialogueContainerRef}>
+                    {messages.length === 0 ? (
+                        <p className="no-dialogue">No dialogue yet</p>
+                    ) : (
+                        [...messages].reverse().map((msg, idx) => {
+                            const msgType = msg.type || getMessageType(msg.sender_name);
+                            const isPlayer = isPlayerMessage(msgType);
+                            return (
+                                <div
+                                    key={idx}
+                                    className={getMessageClassName(msgType, isPlayer)}
+                                    style={{ borderLeftColor: isPlayer ? 'transparent' : getMessageColor(msgType), borderRightColor: isPlayer ? getMessageColor(msgType) : 'transparent' }}
+                                >
+                                    <span className="dialogue-sender" style={{ color: getMessageColor(msgType) }}>
+                                        {msg.sender_name}
+                                    </span>
+                                    <span className="dialogue-text">{msg.text}</span>
+                                </div>
+                            );
+                        })
+                    )}
+                    <div ref={messagesEndRef} />
+                </div>
+
                 {clarificationText && (
                     <div className="clarification-box">
                         <span className="clarification-icon">❓</span>
@@ -76,6 +101,7 @@ export const ActionPanel: React.FC = () => {
                     </div>
                 )}
 
+                {/* Action form at the bottom */}
                 <form onSubmit={handleSubmit} className="action-form">
                     <div className="form-group">
                         <textarea
@@ -114,31 +140,6 @@ export const ActionPanel: React.FC = () => {
                         </button>
                     </div>
                 </form>
-
-                {/* Dialogue messages area - after form so it grows upward */}
-                <div className="dialogue-messages" ref={dialogueContainerRef}>
-                    {messages.length === 0 ? (
-                        <p className="no-dialogue">No dialogue yet</p>
-                    ) : (
-                        messages.map((msg, idx) => {
-                            const msgType = msg.type || getMessageType(msg.sender_name);
-                            const isPlayer = isPlayerMessage(msgType);
-                            return (
-                                <div
-                                    key={idx}
-                                    className={getMessageClassName(msgType, isPlayer)}
-                                    style={{ borderLeftColor: isPlayer ? 'transparent' : getMessageColor(msgType), borderRightColor: isPlayer ? getMessageColor(msgType) : 'transparent' }}
-                                >
-                                    <span className="dialogue-sender" style={{ color: getMessageColor(msgType) }}>
-                                        {msg.sender_name}
-                                    </span>
-                                    <span className="dialogue-text">{msg.text}</span>
-                                </div>
-                            );
-                        })
-                    )}
-                    <div ref={messagesEndRef} />
-                </div>
             </div>
         </div>
     );
