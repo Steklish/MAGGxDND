@@ -256,8 +256,18 @@ export const GameLayout: React.FC = () => {
             case 'player': return 'var(--accent-purple)';
             case 'ally': return 'var(--accent-green)';
             case 'neutral': return 'var(--accent-yellow)';
-            case 'hostile': return 'var(--accent-orange)';
+            case 'hostile': return 'var(--accent-red)';
             default: return 'var(--text-muted)';
+        }
+    };
+
+    const getAttitudeBgGradient = (type: string) => {
+        switch (type) {
+            case 'player': return 'linear-gradient(135deg, rgba(157, 78, 221, 0.3) 0%, rgba(157, 78, 221, 0.1) 100%)';
+            case 'ally': return 'linear-gradient(135deg, rgba(42, 157, 143, 0.3) 0%, rgba(42, 157, 143, 0.1) 100%)';
+            case 'neutral': return 'linear-gradient(135deg, rgba(233, 196, 106, 0.3) 0%, rgba(233, 196, 106, 0.1) 100%)';
+            case 'hostile': return 'linear-gradient(135deg, rgba(230, 57, 70, 0.3) 0%, rgba(230, 57, 70, 0.1) 100%)';
+            default: return 'linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%)';
         }
     };
 
@@ -284,34 +294,30 @@ export const GameLayout: React.FC = () => {
                     {aliveQueue.map((entry, idx) => {
                         const isCurrentTurn = idx === (currentIndex % aliveQueue.length);
                         const isDying = entry.isDying;
+                        const color = getAttitudeColor(entry.type);
+                        const bgGradient = getAttitudeBgGradient(entry.type);
 
                         return (
                             <React.Fragment key={`${entry.character.name}-${entry.initiative}`}>
-                                {/* Full Portrait */}
+                                {/* Full Portrait - 16:9 horizontal rectangle */}
                                 <div
                                     className={`turn-portrait ${isCurrentTurn ? 'active' : ''} ${isDying ? 'dying' : ''} ${dyingCharacters.includes(entry.character.name) ? 'death-animation' : ''}`}
                                     style={{
-                                        borderColor: getAttitudeColor(entry.type),
-                                        opacity: isCurrentTurn ? 1 : 0.4
+                                        borderColor: color,
+                                        opacity: isCurrentTurn ? 1 : 0.4,
+                                        background: bgGradient
                                     } as React.CSSProperties}
                                 >
                                     <div className="portrait-frame">
-                                        {/* Portrait placeholder - will be loaded later */}
-                                        <div className="portrait-placeholder">
-                                            <span className="portrait-initial">
-                                                {entry.character.name?.[0] || '?'}
-                                            </span>
+                                        {/* Character name overlay */}
+                                        <div className="portrait-name-overlay">
+                                            {entry.character.name}
                                         </div>
-                                        {/* Attitude indicator */}
+                                        {/* Attitude indicator bar */}
                                         <div
                                             className="attitude-indicator"
-                                            style={{ backgroundColor: getAttitudeColor(entry.type) }}
+                                            style={{ backgroundColor: color }}
                                         />
-                                    </div>
-
-                                    {/* Character name below portrait */}
-                                    <div className="portrait-name">
-                                        {entry.character.name}
                                     </div>
 
                                     {/* Death save counters */}
@@ -331,13 +337,13 @@ export const GameLayout: React.FC = () => {
                                 <div
                                     className={`mini-portrait ${isCurrentTurn ? 'active' : ''}`}
                                     style={{
-                                        borderColor: getAttitudeColor(entry.type),
+                                        borderColor: color,
                                         opacity: isCurrentTurn ? 1 : 0.5
                                     } as React.CSSProperties}
                                 >
                                     <div
                                         className="mini-portrait-indicator"
-                                        style={{ backgroundColor: getAttitudeColor(entry.type) }}
+                                        style={{ backgroundColor: color }}
                                     />
                                     <span className="mini-portrait-name">{entry.character.name}</span>
                                 </div>
