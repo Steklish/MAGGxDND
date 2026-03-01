@@ -10,38 +10,98 @@ React-based web interface for the MAGGxDND AI-powered D&D game engine.
 - **Vite** - Build tool and dev server
 - **WebSocket** - Real-time communication with game server
 
+## Features
+
+### 🎨 Design System
+- **Dark theme** with Assiko-inspired color palette
+- **Custom fonts**: Rajdhani (UI), Playwrite New Zealand Basic (lore)
+- **CSS custom properties** for consistent theming
+- **Responsive** layout with adaptive panels
+
+### 📐 Layout
+- **Resizable side panels** (15-50% width)
+- **Collapsible panels** with icon navigation
+- **Resizable header** (80-240px height)
+- **Zero-width resize handles** (invisible until hovered)
+
+### 👥 Character Panel (Left)
+- List of all players and NPCs
+- HP bars with color coding
+- Click to view/select character
+- Hover tooltips with full stats
+- Yellow accent color scheme
+
+### 💬 Chat Panel (Right)
+- Game log with filtering (All/DM/Players/Events)
+- Event icons with tooltips
+- Color-coded messages
+- Auto-scroll to latest
+- Orange accent color scheme
+
+### ⚔️ Turn Queue (Header)
+- Vertical portrait rectangles
+- Sorted by initiative
+- Attitude-based colors:
+  - Player: Purple
+  - Ally: Green
+  - Neutral: Yellow
+  - Hostile: Orange
+- Active turn highlighted (scale + glow)
+- Death save counters for dying characters
+
+### 🎯 Action Panel (Center Bottom)
+- Action input textarea
+- Submit/Clear/Skip Turn buttons
+- Clarification messages from GM
+
+### 📜 Footer
+- Click gradient handle to reveal
+- 3 sections: D&D Rules, Resources, About
+- Links to official D&D resources
+- Click outside to close
+- Responsive grid (3→2→1 columns)
+
+### 💡 Tooltips
+- React Portal-based (no layout impact)
+- Dynamic size based on content
+- Character previews with full stats
+- Filter descriptions
+- Event type explanations
+
 ## Project Structure
 
 ```
 UI/
 ├── src/
-│   ├── components/       # React components
+│   ├── components/
 │   │   ├── ActionPanel.tsx       # Player action input
 │   │   ├── CharacterPanel.tsx    # Character list and details
 │   │   ├── ChatPanel.tsx         # Game log and messages
-│   │   ├── ConnectionScreen.tsx  # Login/connection screen
+│   │   ├── Footer.tsx            # D&D resources footer
 │   │   ├── GameLayout.tsx        # Main game layout
-│   │   ├── SceneViewer.tsx       # Scene visualization (grid map)
+│   │   ├── SceneViewer.tsx       # Scene visualization
+│   │   ├── Tooltip.tsx           # Reusable tooltip component
 │   │   └── TurnQueue.tsx         # Turn order display
 │   ├── store/
-│   │   └── gameStore.ts  # Zustand state management
+│   │   └── gameStore.ts          # Zustand state management
 │   ├── types/
-│   │   └── game.ts       # TypeScript type definitions
-│   ├── App.tsx           # Root component
-│   ├── App.css           # Global styles
-│   ├── main.tsx          # Entry point
-│   └── index.css         # Base styles
+│   │   └── game.ts               # TypeScript type definitions
+│   ├── App.tsx                   # Root component
+│   ├── index.css                 # Global styles + fonts
+│   └── main.tsx                  # Entry point
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts
-└── server_requirements.md  # Server API specification
+├── README.md
+├── dev_diary.md                  # Development diary
+└── server_requirements.md        # Server API specification
 ```
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 
 ### Installation
@@ -57,11 +117,7 @@ npm install
 npm run dev
 ```
 
-This starts the Vite dev server on `http://localhost:3000`.
-
-The dev server is configured to proxy:
-- WebSocket connections (`/ws`) to `ws://localhost:8000`
-- API requests (`/api`) to `http://localhost:8000`
+This starts the Vite dev server on `http://localhost:5173`.
 
 ### Build
 
@@ -75,133 +131,44 @@ npm run build
 npm run preview
 ```
 
-## Features
+## Color Scheme
 
-### Connection Screen
-- Enter session ID and player ID
-- Quick start option for development
-- Connection status display
+| Color | Hex | Usage |
+|-------|-----|-------|
+| Background Primary | `#0a0a0a` | Main background |
+| Background Secondary | `#141414` | Panels |
+| Background Tertiary | `#1f1f1f` | Cards |
+| Accent Orange | `#ff6b35` | Primary accent, Chat panel |
+| Accent Gold | `#f4a261` | Gradient, Character panel |
+| Accent Green | `#2a9d8f` | Ally NPCs, Story mode |
+| Accent Yellow | `#e9c46a` | Neutral NPCs |
+| Accent Purple | `#9d4edd` | Player characters, Header |
+| Accent Red | `#e63946` | Hostile NPCs, Combat mode |
 
-### Game Layout
-- **Header**: Game title, current scene, game mode (Story/Combat), turn queue
-- **Left Panel**: Character list with HP bars, stats, and conditions
-- **Center**: Scene viewer with grid map and action input panel
-- **Right Panel**: Chat/game log with filtering options
+## Controls
 
-### Character Panel
-- List of all players and NPCs
-- HP bars with color coding (green > 50%, yellow > 25%, red < 25%)
-- Click to view detailed stats, abilities, and inventory
-- Shows active conditions
+### Panel Resizing
+- **Drag** the border between panels to resize
+- **Collapse** via buttons in panel headers
+- **Expand** via icon strip when collapsed
 
-### Scene Viewer
-- 20x20 grid visualization
-- Characters positioned based on coordinates
-- Color-coded: Blue (players), Red (NPCs), Yellow (objects)
-- Character status panel with HP, position, and conditions
-- Legend for easy reference
+### Turn Queue
+- **Portraits** show current turn order
+- **Active character** is highlighted (larger, full opacity)
+- **Others** are dimmed (50% opacity)
 
-### Action Panel
-- Context-aware action input
-- Shows whose turn it is
-- Clarification messages from GM
-- Action tips and guidelines
-- Pending state indicator
+### Footer
+- **Click** the gradient handle at bottom to reveal
+- **Click** outside footer to close
+- **Links** open in new tabs
 
-### Chat Panel
-- Filter by: All, DM, Players, Events
-- Color-coded messages
-- Event icons for different game events
-- Auto-scroll to latest message
+## Development Diary
 
-## Game State Management
+See [dev_diary.md](./dev_diary.md) for detailed development logs.
 
-The app uses Zustand for state management with the following key states:
+## Server Requirements
 
-- `mode`: UI mode (connecting, lobby, playing, error)
-- `websocket`: WebSocket connection
-- `session`: Current game session data
-- `activeCharacter`: Currently selected/active character
-- `messages`: Chat message history
-- `events`: Game event history
-- `turnQueue`: Turn order queue
-- `isActionPending`: Waiting for GM response
-
-## WebSocket Communication
-
-### Client → Server Messages
-
-```typescript
-// Player action
-{ type: "PLAYER_ACTION", payload: { player_id, request_text, character, timestamp } }
-
-// Choose player
-{ type: "CHOOSE_PLAYER", payload: { selected_player_id } }
-
-// Subscribe to events
-{ type: "SUBSCRIBE_EVENTS", payload: { subscriber_id } }
-```
-
-### Server → Client Messages
-
-```typescript
-// DM narration
-{ type: "MASTER_MESSAGE", payload: { text, tag? } }
-
-// Session update
-{ type: "SESSION_UPDATE", payload: { session } }
-
-// Game event
-{ type: "GAME_EVENT", payload: { event } }
-
-// Action request (prompt for input)
-{ type: "ACTION_REQUEST", payload: { character } }
-
-// Turn queue update
-{ type: "TURN_QUEUE_UPDATE", payload: { turn_queue, turn_time } }
-
-// Scene update
-{ type: "SCENE_UPDATE", payload: { scene, characters, npcs, objects } }
-
-// Error
-{ type: "ERROR", payload: { message, details? } }
-```
-
-## Type Definitions
-
-All TypeScript types are defined in `src/types/game.ts` and mirror the Python Pydantic models from:
-- `schemas/in_game.py` - Character, Scene, Item, etc.
-- `schemas/orchestration.py` - Event, Message, etc.
-
-## Styling
-
-The app uses CSS custom properties (variables) for theming:
-
-```css
-:root {
-    --bg-primary: #0d1117;
-    --bg-secondary: #161b22;
-    --bg-tertiary: #21262d;
-    --border-color: #30363d;
-    --text-primary: #f0f6fc;
-    --text-secondary: #8b949e;
-    --accent-blue: #58a6ff;
-    --accent-green: #3fb950;
-    --accent-red: #f85149;
-    --accent-yellow: #d29922;
-    --accent-purple: #bc8cff;
-}
-```
-
-## Next Steps
-
-1. **Server Implementation**: Build the FastAPI WebSocket server per `server_requirements.md`
-2. **Authentication**: Add player authentication
-3. **Character Creation**: Add character creation flow
-4. **Dice Rolling**: Add visual dice rolling
-5. **Rich Text**: Support formatted text for descriptions
-6. **Sound Effects**: Add ambient sounds and SFX
-7. **Responsive Design**: Optimize for mobile/tablet
+See [server_requirements.md](./server_requirements.md) for WebSocket/REST API specification.
 
 ## License
 

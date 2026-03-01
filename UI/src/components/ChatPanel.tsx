@@ -1,6 +1,89 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { Tooltip } from './common/Tooltip';
 import './ChatPanel.css';
+
+interface FilterTooltipContentProps {
+    filter: 'all' | 'dm' | 'players' | 'events';
+}
+
+const FilterTooltipContent: React.FC<FilterTooltipContentProps> = ({ filter }) => {
+    const filterInfo: Record<string, { title: string; description: string; icon: string }> = {
+        'all': {
+            title: 'All Messages',
+            description: 'Show all messages including DM narration, player actions, and game events.',
+            icon: '📋'
+        },
+        'dm': {
+            title: 'DM Messages',
+            description: 'Show only messages from the Dungeon Master (narration, rulings, clarifications).',
+            icon: '🎙️'
+        },
+        'players': {
+            title: 'Player Messages',
+            description: 'Show only messages from players (character dialogue, actions, meta comments).',
+            icon: '💬'
+        },
+        'events': {
+            title: 'Game Events',
+            description: 'Show only game events (movement, attacks, item pickups, status changes).',
+            icon: '⚡'
+        }
+    };
+
+    const info = filterInfo[filter];
+
+    return (
+        <div className="filter-tooltip">
+            <div className="filter-tooltip-title">
+                <div className="filter-tooltip-icon">
+                    <span>{info.icon}</span>
+                    <span>{info.title}</span>
+                </div>
+            </div>
+            <p className="filter-tooltip-description">{info.description}</p>
+        </div>
+    );
+};
+
+interface EventTooltipContentProps {
+    event: any;
+}
+
+const EventTooltipContent: React.FC<EventTooltipContentProps> = ({ event }) => {
+    const eventInfo: Record<string, { title: string; description: string; icon: string }> = {
+        'CHARACTER_MOVEMENT': { title: 'Movement', description: 'A character moved to a new location', icon: '👣' },
+        'CHARACTER_MELEE_ATTACK': { title: 'Melee Attack', description: 'A character made a melee attack', icon: '⚔️' },
+        'CHARACTER_RANGED_ATTACK': { title: 'Ranged Attack', description: 'A character made a ranged attack', icon: '🏹' },
+        'CHARACTER_DEATH': { title: 'Death', description: 'A character has died', icon: '💀' },
+        'CHARACTER_STATUS_CHANGE': { title: 'Status Change', description: 'A character\'s status has changed', icon: '✨' },
+        'ITEM_PICKUP': { title: 'Item Pickup', description: 'An item was picked up', icon: '🎒' },
+        'ITEM_DROP': { title: 'Item Drop', description: 'An item was dropped', icon: '📦' },
+        'ACTION_RESULT': { title: 'Action Result', description: 'Result of a character action', icon: '✓' },
+        'SYSTEM': { title: 'System', description: 'System message', icon: '⚙️' },
+    };
+
+    const info = eventInfo[event.event_type] || { title: 'Event', description: 'A game event occurred', icon: '📋' };
+
+    return (
+        <div className="filter-tooltip">
+            <div className="filter-tooltip-title">
+                <div className="filter-tooltip-icon">
+                    <span>{info.icon}</span>
+                    <span>{info.title}</span>
+                </div>
+            </div>
+            <p className="filter-tooltip-description" style={{ marginTop: '8px', fontWeight: '600' }}>
+                {event.description}
+            </p>
+            {event.event_initiator && (
+                <p className="filter-tooltip-description" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                    Initiator: {event.event_initiator}
+                </p>
+            )}
+        </div>
+    );
+};
 
 export const ChatPanel: React.FC = () => {
     const { messages, events } = useGameStore();
@@ -23,11 +106,11 @@ export const ChatPanel: React.FC = () => {
 
         switch (filter) {
             case 'dm':
-                return allMessages.filter(m => 
+                return allMessages.filter(m =>
                     m.type === 'message' && m.data.sender_name.startsWith('DM')
                 );
             case 'players':
-                return allMessages.filter(m => 
+                return allMessages.filter(m =>
                     m.type === 'message' && !m.data.sender_name.startsWith('DM')
                 );
             case 'events':
@@ -58,32 +141,40 @@ export const ChatPanel: React.FC = () => {
         <div className="chat-panel">
             <div className="chat-header">
                 <h2>💬 Game Log</h2>
-                <div className="filter-buttons">
-                    <button 
+            </div>
+            <div className="filter-buttons">
+                <Tooltip content={<FilterTooltipContent filter="all" />} position="bottom">
+                    <button
                         className={filter === 'all' ? 'active' : ''}
                         onClick={() => setFilter('all')}
                     >
-                        All
+                        📋 All
                     </button>
-                    <button 
+                </Tooltip>
+                <Tooltip content={<FilterTooltipContent filter="dm" />} position="bottom">
+                    <button
                         className={filter === 'dm' ? 'active' : ''}
                         onClick={() => setFilter('dm')}
                     >
-                        DM
+                        🎙️ DM
                     </button>
-                    <button 
+                </Tooltip>
+                <Tooltip content={<FilterTooltipContent filter="players" />} position="bottom">
+                    <button
                         className={filter === 'players' ? 'active' : ''}
                         onClick={() => setFilter('players')}
                     >
-                        Players
+                        💬 Players
                     </button>
-                    <button 
+                </Tooltip>
+                <Tooltip content={<FilterTooltipContent filter="events" />} position="bottom">
+                    <button
                         className={filter === 'events' ? 'active' : ''}
                         onClick={() => setFilter('events')}
                     >
-                        Events
+                        ⚡ Events
                     </button>
-                </div>
+                </Tooltip>
             </div>
 
             <div className="chat-messages">
@@ -94,11 +185,11 @@ export const ChatPanel: React.FC = () => {
                     </div>
                 ) : (
                     filteredMessages.map((msg, idx) => (
-                        <div 
-                            key={idx} 
+                        <div
+                            key={idx}
                             className={`chat-entry ${msg.type} ${
-                                msg.type === 'message' && msg.data.sender_name.startsWith('DM') 
-                                    ? 'dm-message' 
+                                msg.type === 'message' && msg.data.sender_name.startsWith('DM')
+                                    ? 'dm-message'
                                     : ''
                             }`}
                         >
@@ -108,12 +199,19 @@ export const ChatPanel: React.FC = () => {
                                     <span className="text">{msg.data.text}</span>
                                 </div>
                             ) : (
-                                <div className="event-content">
-                                    <span className="event-icon">
-                                        {getEventIcon(msg.data.event_type)}
-                                    </span>
-                                    <span className="event-text">{msg.data.description}</span>
-                                </div>
+                                <Tooltip 
+                                    content={<EventTooltipContent event={msg.data} />}
+                                    position="right"
+                                >
+                                    <div className="event-content-with-tooltip">
+                                        <div className="event-content">
+                                            <span className="event-icon">
+                                                {getEventIcon(msg.data.event_type)}
+                                            </span>
+                                            <span className="event-text">{msg.data.description}</span>
+                                        </div>
+                                    </div>
+                                </Tooltip>
                             )}
                         </div>
                     ))

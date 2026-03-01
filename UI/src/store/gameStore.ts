@@ -144,10 +144,11 @@ const mockScene: SceneNode = {
 };
 
 const mockMessages: Message[] = [
-    { sender_name: "DM", text: "Welcome to the Slime Cave! The air is thick and you can hear strange sounds echoing from the depths." },
-    { sender_name: "Ogorek", text: "I cast Detect Magic to sense any magical auras in this cave." },
-    { sender_name: "DM", text: "You sense a faint magical aura emanating from the stone altar in the center of the cave." },
-    { sender_name: "Notman", text: "I approach the altar cautiously, shield raised." },
+    { sender_name: "DM", text: "Welcome to the Slime Cave! The air is thick and you can hear strange sounds echoing from the depths.", type: 'dm' },
+    { sender_name: "Ogorek", text: "I cast Detect Magic to sense any magical auras in this cave.", type: 'player' },
+    { sender_name: "DM", text: "You sense a faint magical aura emanating from the stone altar in the center of the cave.", type: 'dm' },
+    { sender_name: "Notman", text: "I approach the altar cautiously, shield raised.", type: 'player' },
+    { sender_name: "Worm", text: "*hisses menacingly from the darkness*", type: 'hostile_npc' },
 ];
 
 const mockEvents: Event[] = [
@@ -175,7 +176,7 @@ interface GameState {
     websocket: WebSocket | null;
     sessionId: string | null;
     playerId: string | null;
-    
+
     // Game state
     session: Session | null;
     currentScene: SceneNode | null;
@@ -184,12 +185,12 @@ interface GameState {
     turnQueue: Array<{character: string; next_turn: number}>;
     turnTime: number;
     activeCharacter: Character | null;
-    
+
     // UI state
     isActionPending: boolean;
     clarificationText: string | null;
     error: string | null;
-    
+
     // Actions
     connect: (sessionId: string, playerId: string) => void;
     disconnect: () => void;
@@ -197,6 +198,35 @@ interface GameState {
     choosePlayer: (playerId: string) => void;
     setActiveCharacter: (character: Character | null) => void;
     clearError: () => void;
+    getMessageType: (senderName: string) => Message['type'];
+}
+
+// Helper function to determine message type based on sender
+function getMessageType(senderName: string, state: any): Message['type'] {
+    if (!senderName) return 'environment';
+    
+    // DM messages
+    if (senderName.startsWith('DM') || senderName === 'Game Master') return 'dm';
+    
+    // Check if sender is a player character
+    const players = state.session?.players || [];
+    for (const p of players) {
+        if (p.character.name === senderName) return 'player';
+    }
+    
+    // Check if sender is an NPC
+    const npcs = state.session?.npcs || [];
+    for (const n of npcs) {
+        if (n.character.name === senderName) {
+            const alignment = n.character.alignment || '';
+            if (alignment.includes('Good')) return 'ally_npc';
+            if (alignment.includes('Evil') || alignment.includes('Chaotic')) return 'hostile_npc';
+            return 'neutral_npc';
+        }
+    }
+    
+    // Default to environment for unknown senders
+    return 'environment';
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -351,6 +381,10 @@ export const useGameStore = create<GameState>((set, get) => ({
         set({ error: null });
     },
 
+    getMessageType: (senderName: string) => {
+        return getMessageType(senderName, get());
+    },
+
     // Internal method to handle server messages
     handleServerMessage: (message: ServerMessage) => {
         const state = get();
@@ -373,7 +407,8 @@ export const useGameStore = create<GameState>((set, get) => ({
                 set({
                     messages: [...state.messages, {
                         sender_name: `DM ${message.payload.tag || ''}`,
-                        text: message.payload.text
+                        text: message.payload.text,
+                        type: 'dm'
                     }],
                     isActionPending: message.payload.tag === 'Clarification' || message.payload.tag === 'Illegal' ? false : state.isActionPending,
                     clarificationText: message.payload.tag === 'Clarification' ? message.payload.text : state.clarificationText,
