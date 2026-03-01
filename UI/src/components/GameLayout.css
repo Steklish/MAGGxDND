@@ -389,12 +389,13 @@
 }
 
 .right-panel::-webkit-scrollbar-thumb {
-    background: var(--accent-yellow);
+    background: var(--accent-orange);
     border-radius: var(--radius-sm);
 }
 
 .right-panel::-webkit-scrollbar-thumb:hover {
     background: var(--accent-gold);
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
 }
 
 /* Resize handles */
@@ -600,6 +601,7 @@
 
 .left-panel::-webkit-scrollbar-thumb:hover {
     background: var(--accent-gold);
+    box-shadow: 0 0 10px rgba(233, 196, 106, 0.3);
 }
 
 .left-panel .panel-header {
