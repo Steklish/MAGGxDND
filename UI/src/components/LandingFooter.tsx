@@ -7,89 +7,98 @@ export const LandingFooter: React.FC = () => {
     return (
         <footer className="landing-footer">
             <div className="footer-content">
-                <div className="footer-main">
-                    <div className="footer-brand">
-                        <div className="footer-logo">
-                            <span className="logo-icon">🐉</span>
-                            <span className="logo-text">MAGG<span className="logo-accent">xDND</span></span>
-                        </div>
-                        <p className="footer-brand-description">
-                            AI-powered Dungeons & Dragons experience. 
-                            Your adventure, reimagined.
-                        </p>
-                        <div className="footer-social">
-                            <a href="#" className="social-link" aria-label="Discord">
-                                <span>🎮</span>
+                {/* Left Section - Game Rules */}
+                <div className="footer-section">
+                    <h4 className="footer-title">📚 D&D Rules</h4>
+                    <ul className="footer-links">
+                        <li>
+                            <a href="https://dnd.wizards.com/resources/rules" target="_blank" rel="noopener noreferrer">
+                                Latest D&D Rules
                             </a>
-                            <a href="#" className="social-link" aria-label="Twitter">
-                                <span>🐦</span>
+                        </li>
+                        <li>
+                            <a href="https://dnd.wizards.com/articles/features/basicrules" target="_blank" rel="noopener noreferrer">
+                                Basic Rules
                             </a>
-                            <a href="#" className="social-link" aria-label="GitHub">
-                                <span>💻</span>
+                        </li>
+                        <li>
+                            <a href="https://www.dndbeyond.com/sources/phb" target="_blank" rel="noopener noreferrer">
+                                Player's Handbook
                             </a>
-                            <a href="#" className="social-link" aria-label="Reddit">
-                                <span>📱</span>
+                        </li>
+                        <li>
+                            <a href="https://www.dndbeyond.com/sources/dmg" target="_blank" rel="noopener noreferrer">
+                                Dungeon Master's Guide
                             </a>
-                        </div>
-                    </div>
-
-                    <div className="footer-links">
-                        <div className="footer-column">
-                            <h4>Game</h4>
-                            <ul>
-                                <li><a href="#">Features</a></li>
-                                <li><a href="#">How It Works</a></li>
-                                <li><a href="#">Pricing</a></li>
-                                <li><a href="#">FAQ</a></li>
-                            </ul>
-                        </div>
-                        <div className="footer-column">
-                            <h4>Community</h4>
-                            <ul>
-                                <li><a href="#">Discord</a></li>
-                                <li><a href="#">Forum</a></li>
-                                <li><a href="#">Events</a></li>
-                                <li><a href="#">Blog</a></li>
-                            </ul>
-                        </div>
-                        <div className="footer-column">
-                            <h4>Resources</h4>
-                            <ul>
-                                <li><a href="#">D&D Rules</a></li>
-                                <li><a href="#">Character Builder</a></li>
-                                <li><a href="#">Tutorials</a></li>
-                                <li><a href="#">API Docs</a></li>
-                            </ul>
-                        </div>
-                        <div className="footer-column">
-                            <h4>Company</h4>
-                            <ul>
-                                <li><a href="#">About Us</a></li>
-                                <li><a href="#">Careers</a></li>
-                                <li><a href="#">Press Kit</a></li>
-                                <li><a href="#">Contact</a></li>
-                            </ul>
-                        </div>
-                    </div>
+                        </li>
+                        <li>
+                            <a href="https://www.dndbeyond.com/sources/dnd/mm-2024" target="_blank" rel="noopener noreferrer">
+                                Monster Manual
+                            </a>
+                        </li>
+                    </ul>
                 </div>
 
-                <div className="footer-bottom">
-                    <div className="footer-legal">
-                        <p>© {currentYear} MAGGxDND. All rights reserved.</p>
-                        <div className="footer-legal-links">
-                            <a href="#">Privacy Policy</a>
-                            <a href="#">Terms of Service</a>
-                            <a href="#">Cookie Policy</a>
-                        </div>
-                    </div>
-                    <div className="footer-dnd-notice">
-                        <p>
-                            MAGGxDND is a fan-created tool and is not affiliated with or endorsed by 
-                            Wizards of the Coast. Dungeons & Dragons and D&D are trademarks of 
-                            Wizards of the Coast LLC.
-                        </p>
-                    </div>
+                {/* Center Section - Resources */}
+                <div className="footer-section">
+                    <h4 className="footer-title">🎲 Resources</h4>
+                    <ul className="footer-links">
+                        <li>
+                            <a href="https://www.dndbeyond.com/characters" target="_blank" rel="noopener noreferrer">
+                                Character Sheet
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.dndbeyond.com/spells" target="_blank" rel="noopener noreferrer">
+                                Spells
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.dndbeyond.com/items" target="_blank" rel="noopener noreferrer">
+                                Items
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.dndbeyond.com/feats" target="_blank" rel="noopener noreferrer">
+                                Feats
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.dndbeyond.com/backgrounds" target="_blank" rel="noopener noreferrer">
+                                Backgrounds
+                            </a>
+                        </li>
+                    </ul>
                 </div>
+
+                {/* Right Section - Project */}
+                <div className="footer-section">
+                    <h4 className="footer-title">🐉 About</h4>
+                    <ul className="footer-links">
+                        <li>
+                            <a href="#what-is-dnd">What is D&D?</a>
+                        </li>
+                        <li>
+                            <a href="#about-project">About Project</a>
+                        </li>
+                        <li>
+                            <a href="#how-to-play">How to Play</a>
+                        </li>
+                        <li>
+                            <a href="#faq">FAQ</a>
+                        </li>
+                        <li>
+                            <a href="#contact">Contact</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div className="footer-bottom">
+                <p>MAGGxDND © {currentYear} — AI-powered D&D Game Master</p>
+                <p className="footer-disclaimer">
+                    D&D and Wizards of the Coast are trademarks of Wizards of the Coast LLC.
+                </p>
             </div>
         </footer>
     );
