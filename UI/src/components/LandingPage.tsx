@@ -6,7 +6,11 @@ import { ProfilePage } from './ProfilePage';
 import { useGameStore } from '../store/gameStore';
 import './LandingPage.css';
 
-export const LandingPage: React.FC = () => {
+interface LandingPageProps {
+    onShowProfile?: (userId: string) => void;
+}
+
+export const LandingPage: React.FC<LandingPageProps> = ({ onShowProfile }) => {
     const { setAuthenticated } = useGameStore();
     const [authModalOpen, setAuthModalOpen] = useState<'login' | 'register' | null>(null);
     const [showCharacterCreation, setShowCharacterCreation] = useState(false);
@@ -28,7 +32,11 @@ export const LandingPage: React.FC = () => {
     // Handle login success
     const handleLoginSuccess = (newUserId: number, username: string) => {
         setUserId(newUserId);
-        setShowProfile(true);
+        if (onShowProfile) {
+            onShowProfile(newUserId.toString());
+        } else {
+            setShowProfile(true);
+        }
     };
 
     // Handle character creation complete
@@ -491,14 +499,6 @@ export const LandingPage: React.FC = () => {
                 <CharacterCreation
                     userId={userId}
                     onComplete={handleCharacterComplete}
-                />
-            )}
-
-            {/* Profile Page */}
-            {showProfile && userId && (
-                <ProfilePage
-                    userId={userId}
-                    onBack={handleProfileBack}
                 />
             )}
         </div>

@@ -69,15 +69,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
                 if (response.data.access_token) {
                     localStorage.setItem('access_token', response.data.access_token);
                     localStorage.setItem('username', formData.username);
-                    
+
                     // Get user ID
                     try {
                         const userResponse = await axios.get(`/api/v1/users/username/${formData.username}`);
-                        localStorage.setItem('userId', userResponse.data.id.toString());
-                        setAuthenticated(true);
+                        const userId = userResponse.data.id.toString();
+                        localStorage.setItem('userId', userId);
+                        
+                        // Call onLoginSuccess FIRST before setting authenticated
                         onLoginSuccess?.(userResponse.data.id, formData.username);
+                        
+                        setAuthenticated(true);
                         onClose();
-                    } catch {
+                    } catch (error) {
+                        console.error('Failed to get user ID:', error);
                         setAuthenticated(true);
                         onClose();
                     }

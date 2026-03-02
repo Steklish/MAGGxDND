@@ -23,6 +23,7 @@ interface TurnEntry {
 export const GameLayout: React.FC = () => {
     const { session, currentScene, activeCharacter } = useGameStore();
     const [showProfile, setShowProfile] = useState(false);
+    const userId = localStorage.getItem('userId');
     const [leftPanelWidth, setLeftPanelWidth] = useState(25);
     const [rightPanelWidth, setRightPanelWidth] = useState(25);
     const [headerHeight, setHeaderHeight] = useState(() => Math.round(window.innerHeight * 0.07));
@@ -446,9 +447,9 @@ export const GameLayout: React.FC = () => {
             <Footer />
 
             {/* Profile Page Modal */}
-            {showProfile && localStorage.getItem('userId') && (
+            {showProfile && userId && (
                 <ProfilePage
-                    userId={parseInt(localStorage.getItem('userId') || '0')}
+                    userId={parseInt(userId)}
                     onBack={() => setShowProfile(false)}
                 />
             )}
