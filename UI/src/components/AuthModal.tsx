@@ -76,8 +76,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
                         const userId = userResponse.data.id.toString();
                         localStorage.setItem('userId', userId);
                         
+                        console.log('Login successful, userId:', userId);
+                        
                         // Call onLoginSuccess FIRST before setting authenticated
-                        onLoginSuccess?.(userResponse.data.id, formData.username);
+                        if (onLoginSuccess) {
+                            console.log('Calling onLoginSuccess with userId:', userId);
+                            onLoginSuccess(userResponse.data.id, formData.username);
+                        }
                         
                         setAuthenticated(true);
                         onClose();

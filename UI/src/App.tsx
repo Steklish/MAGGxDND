@@ -12,13 +12,24 @@ function App() {
     const [showProfile, setShowProfile] = useState(false);
     const [userId, setUserId] = useState<string | null>(null);
 
+    // Check for userId on mount
+    React.useEffect(() => {
+        const storedUserId = localStorage.getItem('userId');
+        if (storedUserId && isAuthenticated) {
+            setUserId(storedUserId);
+            setShowProfile(true);
+        }
+    }, [isAuthenticated]);
+
     // Handle showing profile
     const handleShowProfile = (id: string) => {
+        console.log('handleShowProfile called with id:', id);
         setUserId(id);
         setShowProfile(true);
     };
 
     const handleBackFromProfile = () => {
+        console.log('handleBackFromProfile called');
         setShowProfile(false);
     };
 
@@ -26,6 +37,7 @@ function App() {
     if (!showLanding || isAuthenticated) {
         // Show profile page if requested
         if (showProfile && userId) {
+            console.log('Rendering ProfilePage with userId:', userId);
             return <ProfilePage userId={parseInt(userId)} onBack={handleBackFromProfile} />;
         }
 
@@ -47,10 +59,12 @@ function App() {
         }
 
         // Default: show game layout (demo mode)
+        console.log('Rendering GameLayout');
         return <GameLayout />;
     }
 
     // Show landing page for first-time visitors
+    console.log('Rendering LandingPage');
     return <LandingPage onShowProfile={handleShowProfile} />;
 }
 
