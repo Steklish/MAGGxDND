@@ -124,7 +124,14 @@ export const LandingPage: React.FC = () => {
                             <>
                                 <button
                                     className="btn-profile"
-                                    onClick={() => scrollToSection('profile')}
+                                    onClick={() => {
+                                        // Show characters or redirect to game
+                                        const userId = localStorage.getItem('userId');
+                                        if (userId) {
+                                            // For now, just enter the game with user's first character
+                                            setAuthenticated(true);
+                                        }
+                                    }}
                                 >
                                     <span className="profile-icon">👤</span>
                                     <span className="profile-name">{localStorage.getItem('username') || 'Profile'}</span>
