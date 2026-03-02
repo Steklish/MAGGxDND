@@ -12,6 +12,10 @@ npm install
 
 **Сервер:**
 ```bash
+# Установить SKLS_core
+pip install -e C:\VS_Code\SKLS_core
+
+# Установить остальные зависимости
 pip install -r requirements.txt
 ```
 
@@ -19,13 +23,15 @@ pip install -r requirements.txt
 
 ```bash
 # Из корневой директории проекта
-python -m uvicorn server.main:app --host 0.0.0.0 --port 8000 --reload
+set PYTHONPATH=C:\VS_Code\MAGGxDND
+python -m uvicorn server.main:app --host 0.0.0.0 --port 8000
 ```
 
 Или через Python:
 ```bash
 cd server
-python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+set PYTHONPATH=..
+python -m uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 ### 3. Открыть в браузере
@@ -34,21 +40,25 @@ python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 ## Режимы разработки
 
-### Вариант 1: Сервер с UI (рекомендуется)
-Сервер раздает UI файлы и API на одном порту:
-```bash
-python -m uvicorn server.main:app --host 0.0.0.0 --port 8000 --reload
-```
-- UI: http://localhost:8000
-- API: http://localhost:8000/api/v1
-- WebSocket: ws://localhost:8000/ws/{session_id}/{player_id}
-- Docs: http://localhost:8000/docs
+### Production режим (рекомендуется)
+Сервер раздает UI файлы и API на одном порту (8000):
 
-### Вариант 2: Раздельный запуск (для разработки UI)
+```bash
+set PYTHONPATH=C:\VS_Code\MAGGxDND
+python -m uvicorn server.main:app --host 0.0.0.0 --port 8000
+```
+
+- **UI:** http://localhost:8000
+- **API:** http://localhost:8000/api/v1
+- **WebSocket:** ws://localhost:8000/ws/{session_id}/{player_id}
+- **Docs:** http://localhost:8000/docs
+
+### Dev режим (разработка UI)
 
 **Терминал 1 - Сервер:**
 ```bash
-python -m uvicorn server.main:app --host 0.0.0.0 --port 8000 --reload
+set PYTHONPATH=C:\VS_Code\MAGGxDND
+python -m uvicorn server.main:app --host 0.0.0.0 --port 8000
 ```
 
 **Терминал 2 - UI Dev Server:**
@@ -56,8 +66,8 @@ python -m uvicorn server.main:app --host 0.0.0.0 --port 8000 --reload
 cd UI
 npm run dev
 ```
-- UI: http://localhost:8000 (Vite dev server)
-- API проксируется на http://localhost:8000
+
+Vite dev server будет работать на порту 8000 с проксированием API/WebSocket на сервер.
 
 ## Структура
 
@@ -70,7 +80,8 @@ MAGGxDND/
 │   ├── src/            # Исходный код UI
 │   ├── dist/           # Production сборка (раздается сервером)
 │   └── vite.config.ts  # Конфиг Vite (порт 8000)
-└── requirements.txt     # Python зависимости
+├── requirements.txt     # Python зависимости
+└── RUN_ON_8000.md       # Этот файл
 ```
 
 ## Как это работает
@@ -82,7 +93,7 @@ MAGGxDND/
 
 ## API Endpoints
 
-- `GET /` - Информация об API
+- `GET /` - UI (React приложение)
 - `GET /api/v1/sessions` - Список сессий
 - `POST /api/v1/sessions` - Создать сессию
 - `GET /api/v1/sessions/{id}` - Информация о сессии
@@ -91,7 +102,35 @@ MAGGxDND/
 - `POST /api/v1/sessions/{id}/players` - Присоединиться к сессии
 - `WS /ws/{session_id}/{player_id}` - WebSocket для real-time событий
 
-## Документация
+## Документация API
 
 - Swagger UI: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
+
+## Требования
+
+- Python 3.12+
+- Node.js 18+
+- SKLS_core (устанавливается отдельно)
+
+## Troubleshooting
+
+### Ошибка "ModuleNotFoundError: No module named 'skls_generator'"
+```bash
+pip install -e C:\VS_Code\SKLS_core
+```
+
+### Ошибка "UI not built"
+```bash
+cd UI
+npm run build
+```
+
+### Порт 8000 занят
+```bash
+# Найти процесс
+netstat -ano | findstr :8000
+
+# Убить процесс (замените PID на нужный)
+taskkill /F /PID <PID>
+```
