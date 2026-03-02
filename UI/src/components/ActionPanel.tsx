@@ -75,8 +75,10 @@ export const ActionPanel: React.FC = () => {
                         <p className="no-dialogue">No dialogue yet</p>
                     ) : (
                         messages.map((msg, idx) => {
-                            const msgType = msg.type || getMessageType(msg.sender_name);
+                            const msgType = (msg.type || getMessageType(msg.sender_name || '')) as string;
                             const isPlayer = isPlayerMessage(msgType);
+                            const senderName = msg.sender_name || 'Unknown';
+                            const messageText = msg.text || '';
                             return (
                                 <div
                                     key={idx}
@@ -84,9 +86,9 @@ export const ActionPanel: React.FC = () => {
                                     style={{ borderLeftColor: isPlayer ? 'transparent' : getMessageColor(msgType), borderRightColor: isPlayer ? getMessageColor(msgType) : 'transparent' }}
                                 >
                                     <span className="dialogue-sender" style={{ color: getMessageColor(msgType) }}>
-                                        {msg.sender_name}
+                                        {senderName}
                                     </span>
-                                    <span className="dialogue-text">{msg.text}</span>
+                                    <span className="dialogue-text">{messageText}</span>
                                 </div>
                             );
                         })

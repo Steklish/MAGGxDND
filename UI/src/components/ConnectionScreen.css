@@ -142,3 +142,69 @@
 .info-panel li {
     margin-bottom: 6px;
 }
+
+.error-message {
+    background-color: var(--bg-accent);
+    border: 1px solid var(--accent-red);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.error-message p {
+    color: var(--accent-red);
+    margin: 0;
+    flex: 1;
+}
+
+.close-error {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.close-error:hover {
+    color: var(--text-primary);
+}
+
+.create-session-btn {
+    padding: 12px 20px;
+    background: linear-gradient(135deg, var(--accent-orange), var(--accent-gold));
+    border: none;
+    border-radius: 6px;
+    color: var(--bg-primary);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+    margin-bottom: 10px;
+}
+
+.create-session-btn:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+.create-session-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.quick-start-btn:disabled,
+.connect-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

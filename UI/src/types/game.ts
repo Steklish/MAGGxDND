@@ -22,9 +22,9 @@ export type CharacterClass =
     | "Cleric" | "Ranger" | "Paladin" | "Barbarian" | "Bard";
 
 // Damage type
-export type DamageType = 
-    | "Slashing" | "Piercing" | "Bludgeoning" 
-    | "Fire" | "Cold" | "Lightning";
+export type DamageType =
+    | "Slashing" | "Piercing" | "Bludgeoning"
+    | "Fire" | "Cold" | "Lightning" | "Force";
 
 // Condition trigger
 export type ConditionTrigger = "End of Round" | "Passive" | "On Action";

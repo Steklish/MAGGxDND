@@ -1,10 +1,12 @@
 // Zustand store for game state management
 import { create } from 'zustand';
-import { 
-    Session, Character, Message, Event, 
-    SceneNode, NPCCharacter, UnifiedObject,
-    ServerMessage, ClientMessage, PlayerActionMessage 
+import {
+    Session, Character, Message, Event,
+    SceneNode, NPCCharacter,
+    ServerMessage, ClientMessage,
 } from '../types/game';
+import { webSocketService } from '../services/websocket';
+import { sessionAPI, SessionCreateRequest, SessionStartRequest, PlayerJoinRequest, SessionResponse } from '../services/api';
 
 // Game mode for UI
 export type UIMode = 'connecting' | 'lobby' | 'playing' | 'error';
@@ -154,7 +156,7 @@ const mockMessages: Message[] = [
 const mockEvents: Event[] = [
     { event_type: "CHARACTER_MOVEMENT", event_initiator: "Ogorek", event_subject: "Ogorek", event_target: "Slime Cave", description: "Ogorek enters the Slime Cave" },
     { event_type: "CHARACTER_MOVEMENT", event_initiator: "Notman", event_subject: "Notman", event_target: "Slime Cave", description: "Notman enters the Slime Cave" },
-    { event_type: "ACTION_RESULT", event_initiator: "Ogorek", event_subject: "Ogorek", description: "Ogorek casts Detect Magic" },
+    { event_type: "ACTION_RESULT", event_initiator: "Ogorek", event_subject: "Ogorek", event_target: null, description: "Ogorek casts Detect Magic" },
 ];
 
 const mockSession: Session = {
@@ -195,7 +197,7 @@ interface GameState {
     error: string | null;
 
     // Actions
-    connect: (sessionId: string, playerId: string) => void;
+    connect: (sessionId: string, playerId: string) => Promise<void>;
     disconnect: () => void;
     sendAction: (requestText: string, character: Character) => void;
     choosePlayer: (playerId: string) => void;
@@ -203,6 +205,12 @@ interface GameState {
     clearError: () => void;
     getMessageType: (senderName: string) => Message['type'];
     setAuthenticated: (authenticated: boolean) => void;
+    
+    // Session management
+    createSession: (request: SessionCreateRequest) => Promise<string>;
+    joinSession: (sessionId: string, request: PlayerJoinRequest) => Promise<string>;
+    startSession: (sessionId: string, request: SessionStartRequest) => Promise<void>;
+    listSessions: () => Promise<SessionResponse[]>;
 }
 
 // Helper function to determine message type based on sender
@@ -254,47 +262,56 @@ export const useGameStore = create<GameState>((set, get) => ({
     clarificationText: null,
     error: null,
 
-    connect: (sessionId: string, playerId: string) => {
-        // Demo mode - just load mock data
-        console.log('Demo mode: connecting with mock data');
-        set({ 
-            mode: 'playing', 
-            sessionId, 
-            playerId,
-            session: mockSession,
-            currentScene: mockScene,
-            messages: mockMessages,
-            events: mockEvents,
-            turnQueue: mockSession.turn_queue.map(([char, _, nt]) => ({
-                character: (char as any).name,
-                next_turn: nt
-            })),
-            activeCharacter: mockCharacters.find(c => c.name === playerId) || mockCharacters[0],
-            error: null 
-        });
+    connect: async (sessionId: string, playerId: string) => {
+        console.log('Connecting to server:', { sessionId, playerId });
+        set({ mode: 'connecting', error: null });
 
-        /* WebSocket code commented out for demo
-        const wsUrl = `ws://localhost:8000/ws/${sessionId}/${playerId}`;
-        const websocket = new WebSocket(wsUrl);
+        try {
+            // Connect to WebSocket
+            await webSocketService.connect(
+                sessionId,
+                playerId,
+                // Message handler
+                (message) => {
+                    console.log('[Store] Received message:', message);
+                    // Call handleServerMessage from store
+                    const state = useGameStore.getState();
+                    (state as any).handleServerMessage(message);
+                },
+                // State handler
+                (state) => {
+                    if (!state.connected) {
+                        set({
+                            mode: 'error',
+                            error: state.error || 'Disconnected from server',
+                        });
+                    }
+                }
+            );
 
-        websocket.onopen = () => {
-            console.log('WebSocket connected');
-            set({ 
-                mode: 'playing', 
-                sessionId, 
-                playerId, 
-                websocket,
-                error: null 
+            // Update state on successful connection
+            set({
+                mode: 'playing',
+                sessionId,
+                playerId,
+                session: mockSession, // Start with mock data until real data arrives
+                currentScene: mockScene,
+                messages: mockMessages,
+                events: mockEvents,
+                turnQueue: mockSession.turn_queue.map(([char, _, nt]) => ({
+                    character: (char as any).name,
+                    next_turn: nt,
+                })),
+                activeCharacter: mockCharacters.find((c) => c.name === playerId) || mockCharacters[0],
+                error: null,
             });
-
-            // Subscribe to events
-            const subscribeMsg: ClientMessage = {
-                type: 'SUBSCRIBE_EVENTS',
-                payload: { subscriber_id: playerId }
-            };
-            websocket.send(JSON.stringify(subscribeMsg));
-        };
-        */
+        } catch (error) {
+            console.error('Connection failed:', error);
+            set({
+                mode: 'error',
+                error: error instanceof Error ? error.message : 'Connection failed',
+            });
+        }
     },
 
     disconnect: () => {
@@ -318,49 +335,37 @@ export const useGameStore = create<GameState>((set, get) => ({
     },
 
     sendAction: (requestText: string, character: Character) => {
-        // Demo mode - simulate action
-        console.log('Demo action:', requestText);
-        set({ isActionPending: true });
+        if (!webSocketService.isConnected()) {
+            // Demo mode - simulate action
+            console.log('Demo mode: simulating action:', requestText);
+            set({ isActionPending: true });
 
-        // Simulate GM response after delay
-        setTimeout(() => {
-            const newMessage: Message = {
-                sender_name: `DM`,
-                text: `You attempt to ${requestText.toLowerCase()}... (demo response)`
-            };
-            const newEvent: Event = {
-                event_type: "ACTION_RESULT",
-                event_initiator: character.name,
-                event_subject: character.name,
-                description: `${character.name} attempts to ${requestText.toLowerCase()}`
-            };
-            set(state => ({
-                messages: [...state.messages, newMessage],
-                events: [...state.events, newEvent],
-                isActionPending: false
-            }));
-        }, 1000);
-
-        /* WebSocket code for later
-        const { websocket, playerId } = get();
-        if (!websocket || !playerId) {
-            set({ error: 'Not connected to server' });
+            setTimeout(() => {
+                const newMessage: Message = {
+                    sender_name: `DM`,
+                    text: `You attempt to ${requestText.toLowerCase()}... (demo response)`,
+                    type: 'dm',
+                };
+                const newEvent: Event = {
+                    event_type: 'ACTION_RESULT',
+                    event_initiator: character.name,
+                    event_subject: character.name,
+                    event_target: null,
+                    description: `${character.name} attempts to ${requestText.toLowerCase()}`,
+                };
+                set((state) => ({
+                    messages: [...state.messages, newMessage],
+                    events: [...state.events, newEvent],
+                    isActionPending: false,
+                }));
+            }, 1000);
             return;
         }
 
-        const actionMsg: PlayerActionMessage = {
-            type: 'PLAYER_ACTION',
-            payload: {
-                player_id: playerId,
-                request_text: requestText,
-                character: character,
-                timestamp: Date.now() / 1000
-            }
-        };
-
-        websocket.send(JSON.stringify(actionMsg));
+        // Real server mode - send via WebSocket
+        console.log('Sending action:', requestText);
         set({ isActionPending: true, clarificationText: null });
-        */
+        webSocketService.sendAction(requestText, character);
     },
 
     choosePlayer: (playerId: string) => {
@@ -457,6 +462,50 @@ export const useGameStore = create<GameState>((set, get) => ({
                     mode: 'error'
                 });
                 break;
+        }
+    },
+
+    // Session management functions
+    createSession: async (request: SessionCreateRequest): Promise<string> => {
+        try {
+            const response = await sessionAPI.createSession(request);
+            console.log('Session created:', response);
+            return response.session_id;
+        } catch (error) {
+            console.error('Failed to create session:', error);
+            throw error;
+        }
+    },
+
+    joinSession: async (sessionId: string, request: PlayerJoinRequest): Promise<string> => {
+        try {
+            const response = await sessionAPI.joinSession(sessionId, request);
+            console.log('Joined session:', response);
+            return response.player_id;
+        } catch (error) {
+            console.error('Failed to join session:', error);
+            throw error;
+        }
+    },
+
+    startSession: async (sessionId: string, request: SessionStartRequest): Promise<void> => {
+        try {
+            await sessionAPI.startSession(sessionId, request);
+            console.log('Session started');
+        } catch (error) {
+            console.error('Failed to start session:', error);
+            throw error;
+        }
+    },
+
+    listSessions: async (): Promise<SessionResponse[]> => {
+        try {
+            const response = await sessionAPI.listSessions();
+            console.log('Sessions:', response);
+            return response.sessions;
+        } catch (error) {
+            console.error('Failed to list sessions:', error);
+            return [];
         }
     },
 }));
