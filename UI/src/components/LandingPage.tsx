@@ -8,6 +8,7 @@ export const LandingPage: React.FC = () => {
     const { setAuthenticated } = useGameStore();
     const [authModalOpen, setAuthModalOpen] = useState<'login' | 'register' | null>(null);
     const [scrolled, setScrolled] = useState(false);
+    const [scrollProgress, setScrollProgress] = useState(0);
 
     // Handle quick start (demo mode)
     const handleQuickStart = () => {
@@ -16,18 +17,40 @@ export const LandingPage: React.FC = () => {
 
     useEffect(() => {
         const handleScroll = () => {
-            setScrolled(window.scrollY > 50);
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = docHeight > 0 ? scrollTop / docHeight : 0;
+            
+            setScrolled(scrollTop > 50);
+            setScrollProgress(progress);
 
-            // Animate sections on scroll
-            const sections = document.querySelectorAll('.feature-card, .step-card');
-
-            sections.forEach((section) => {
-                const rect = section.getBoundingClientRect();
-                const isInView = rect.top < window.innerHeight * 0.85;
-                if (isInView) {
-                    section.classList.add('visible');
-                }
-            });
+            // Update scrollbar color based on scroll position
+            const scrollbar = document.documentElement;
+            let color1, color2;
+            
+            if (progress < 0.25) {
+                // Green to Yellow
+                const t = progress / 0.25;
+                color1 = `rgb(${42 + t * (233 - 42)}, ${157 + t * (196 - 157)}, ${143 + t * (106 - 143)})`;
+                color2 = `rgb(${42 + t * (233 - 42)}, ${157 + t * (196 - 157)}, ${143 + t * (106 - 143)})`;
+            } else if (progress < 0.5) {
+                // Yellow to Orange
+                const t = (progress - 0.25) / 0.25;
+                color1 = `rgb(${233 + t * (255 - 233)}, ${196 + t * (107 - 196)}, ${106 + t * (53 - 106)})`;
+                color2 = `rgb(${233 + t * (255 - 233)}, ${196 + t * (107 - 196)}, ${106 + t * (53 - 106)})`;
+            } else if (progress < 0.75) {
+                // Orange to Red
+                const t = (progress - 0.5) / 0.25;
+                color1 = `rgb(${255 + t * (230 - 255)}, ${107 + t * (57 - 107)}, ${53 + t * (70 - 53)})`;
+                color2 = `rgb(${255 + t * (230 - 255)}, ${107 + t * (57 - 107)}, ${53 + t * (70 - 53)})`;
+            } else {
+                // Red to Purple
+                const t = (progress - 0.75) / 0.25;
+                color1 = `rgb(${230 + t * (157 - 230)}, ${57 + t * (78 - 57)}, ${70 + t * (221 - 70)})`;
+                color2 = `rgb(${230 + t * (157 - 230)}, ${57 + t * (78 - 57)}, ${70 + t * (221 - 70)})`;
+            }
+            
+            scrollbar.style.setProperty('--scrollbar-color', color1);
         };
 
         window.addEventListener('scroll', handleScroll);

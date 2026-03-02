@@ -2,6 +2,7 @@
 
 :root {
     --font-family: 'Rajdhani', 'Nurito', Nunito, Inter, system-ui, sans-serif;
+    --scrollbar-color: var(--accent-green);
 }
 
 .landing-page {
@@ -9,6 +10,32 @@
     min-height: 100vh;
     background: var(--bg-primary);
     overflow-x: hidden;
+}
+
+/* Dynamic scrollbar */
+html {
+    scrollbar-width: 10px;
+    scrollbar-color: var(--scrollbar-color) transparent;
+    transition: scrollbar-color 0.3s ease;
+}
+
+html::-webkit-scrollbar {
+    width: 10px;
+}
+
+html::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+html::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-color);
+    border-radius: 5px;
+    transition: background 0.3s ease;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-color);
+    filter: brightness(1.2);
 }
 
 /* Animated Background */
