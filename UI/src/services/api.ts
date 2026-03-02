@@ -1,6 +1,7 @@
 // API service for REST calls to the MAGGxDND server
 import axios from 'axios';
 
+// Use relative path - API will be served from the same origin
 const API_BASE_URL = '/api/v1';
 
 // Create axios instance with default config

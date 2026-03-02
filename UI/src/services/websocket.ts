@@ -45,7 +45,9 @@ export class WebSocketService {
         }
 
         return new Promise((resolve, reject) => {
-            const wsUrl = `ws://localhost:8000/ws/${sessionId}/${playerId}`;
+            // Determine WebSocket URL based on current location
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/${sessionId}/${playerId}`;
             console.log('[WebSocket] Connecting to:', wsUrl);
 
             try {
