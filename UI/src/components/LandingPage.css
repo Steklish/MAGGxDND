@@ -150,10 +150,12 @@
     font-size: 24px;
     font-weight: 700;
     letter-spacing: 2px;
+    color: var(--accent-purple);
+    text-shadow: 0 0 20px rgba(157, 77, 221, 0.3);
 }
 
 .logo-accent {
-    color: var(--accent-orange);
+    color: var(--accent-purple);
 }
 
 .header-nav {
