@@ -54,3 +54,4 @@ class CharacterModel(Base):
     
     # Relationships
     user = relationship("User", back_populates="characters")
+    profile = relationship("CharacterProfile", back_populates="character", uselist=False, cascade="all, delete-orphan")

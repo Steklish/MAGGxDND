@@ -4,7 +4,7 @@ from fastapi.responses import FileResponse
 from server.src.api.routers import dev, login, user, access_group
 from server.src.api.routers.session_router import router as session_router
 from server.src.api.routers.websocket_game import router as websocket_router
-from server.src.api.routers import character
+from server.src.api.routers import character, profile
 
 from server.src.database import init_db, engine
 import os
@@ -19,6 +19,7 @@ sub_app.include_router(login.router)
 sub_app.include_router(dev.router)
 sub_app.include_router(session_router)
 sub_app.include_router(character.router)
+sub_app.include_router(profile.router)
 
 
 app.mount("/api/v1", sub_app)

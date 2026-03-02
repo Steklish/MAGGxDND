@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LandingFooter } from './LandingFooter';
 import { AuthModal } from './AuthModal';
 import { CharacterCreation } from './CharacterCreation';
+import { ProfilePage } from './ProfilePage';
 import { useGameStore } from '../store/gameStore';
 import './LandingPage.css';
 
@@ -9,6 +10,7 @@ export const LandingPage: React.FC = () => {
     const { setAuthenticated } = useGameStore();
     const [authModalOpen, setAuthModalOpen] = useState<'login' | 'register' | null>(null);
     const [showCharacterCreation, setShowCharacterCreation] = useState(false);
+    const [showProfile, setShowProfile] = useState(false);
     const [userId, setUserId] = useState<number | null>(null);
     const [scrolled, setScrolled] = useState(false);
 
@@ -27,6 +29,12 @@ export const LandingPage: React.FC = () => {
     const handleCharacterComplete = () => {
         setShowCharacterCreation(false);
         setAuthModalOpen(null);
+        setShowProfile(true);
+    };
+
+    // Handle profile back
+    const handleProfileBack = () => {
+        setShowProfile(false);
     };
 
     useEffect(() => {
@@ -124,14 +132,7 @@ export const LandingPage: React.FC = () => {
                             <>
                                 <button
                                     className="btn-profile"
-                                    onClick={() => {
-                                        // Show characters or redirect to game
-                                        const userId = localStorage.getItem('userId');
-                                        if (userId) {
-                                            // For now, just enter the game with user's first character
-                                            setAuthenticated(true);
-                                        }
-                                    }}
+                                    onClick={() => setShowProfile(true)}
                                 >
                                     <span className="profile-icon">👤</span>
                                     <span className="profile-name">{localStorage.getItem('username') || 'Profile'}</span>
@@ -483,6 +484,14 @@ export const LandingPage: React.FC = () => {
                 <CharacterCreation
                     userId={userId}
                     onComplete={handleCharacterComplete}
+                />
+            )}
+
+            {/* Profile Page */}
+            {showProfile && userId && (
+                <ProfilePage
+                    userId={userId}
+                    onBack={handleProfileBack}
                 />
             )}
         </div>
