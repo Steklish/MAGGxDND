@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { useGameStore } from '../store/gameStore';
 import './AuthModal.css';
 
 interface AuthModalProps {
     mode: 'login' | 'register';
     onClose: () => void;
+    onRegisterSuccess?: (userId: number, username: string) => void;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterSuccess }) => {
     const [isLogin, setIsLogin] = useState(mode === 'login');
     const [isLoading, setIsLoading] = useState(false);
     const setAuthenticated = useGameStore(state => state.setAuthenticated);
     const [formData, setFormData] = useState({
-        email: '',
-        password: '',
         username: '',
+        password: '',
         confirmPassword: '',
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -27,10 +28,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose }) => {
         // Validate form
         const newErrors: Record<string, string> = {};
 
-        if (!formData.email) {
-            newErrors.email = 'Email is required';
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = 'Please enter a valid email';
+        if (!formData.username) {
+            newErrors.username = 'Username is required';
+        } else if (formData.username.length < 3) {
+            newErrors.username = 'Username must be at least 3 characters';
         }
 
         if (!formData.password) {
@@ -40,9 +41,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose }) => {
         }
 
         if (!isLogin) {
-            if (!formData.username) {
-                newErrors.username = 'Username is required';
-            }
             if (formData.password !== formData.confirmPassword) {
                 newErrors.confirmPassword = 'Passwords do not match';
             }
@@ -54,13 +52,62 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose }) => {
             return;
         }
 
-        // Simulate API call
-        setTimeout(() => {
+        try {
+            if (isLogin) {
+                // Login
+                const formParams = new URLSearchParams();
+                formParams.append('username', formData.username);
+                formParams.append('password', formData.password);
+                
+                const response = await axios.post('/api/v1/auth/login', formParams, {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                });
+                
+                if (response.data.access_token) {
+                    localStorage.setItem('access_token', response.data.access_token);
+                    localStorage.setItem('username', formData.username);
+                    setAuthenticated(true);
+                    onClose();
+                }
+            } else {
+                // Register
+                const response = await axios.post('/api/v1/users/', {
+                    username: formData.username,
+                    password: formData.password,
+                });
+                
+                if (response.data.id) {
+                    // Auto-login after registration
+                    const formParams = new URLSearchParams();
+                    formParams.append('username', formData.username);
+                    formParams.append('password', formData.password);
+                    
+                    const loginResponse = await axios.post('/api/v1/auth/login', formParams, {
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                    });
+                    
+                    if (loginResponse.data.access_token) {
+                        localStorage.setItem('access_token', loginResponse.data.access_token);
+                        localStorage.setItem('username', formData.username);
+                        localStorage.setItem('userId', response.data.id.toString());
+                        setAuthenticated(true);
+                        onRegisterSuccess?.(response.data.id, formData.username);
+                        onClose();
+                    }
+                }
+            }
+        } catch (error: any) {
             setIsLoading(false);
-            // Set authenticated state
-            setAuthenticated(true);
-            onClose();
-        }, 1500);
+            if (error.response) {
+                setErrors({ submit: error.response.data.detail || 'Authentication failed' });
+            } else {
+                setErrors({ submit: 'Network error. Please try again.' });
+            }
+        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,9 +122,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose }) => {
         setIsLogin(!isLogin);
         setErrors({});
         setFormData({
-            email: '',
-            password: '',
             username: '',
+            password: '',
             confirmPassword: '',
         });
     };
@@ -105,50 +151,37 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose }) => {
                             {isLogin ? 'Welcome Back, Adventurer!' : 'Begin Your Journey'}
                         </h2>
                         <p className="auth-subtitle">
-                            {isLogin 
-                                ? 'Sign in to continue your adventure' 
+                            {isLogin
+                                ? 'Sign in to continue your adventure'
                                 : 'Create an account and start your epic quest'}
                         </p>
                     </div>
 
-                    <form className="auth-form" onSubmit={handleSubmit}>
-                        {!isLogin && (
-                            <div className="form-group">
-                                <label htmlFor="username">Username</label>
-                                <div className="input-wrapper">
-                                    <span className="input-icon">👤</span>
-                                    <input
-                                        type="text"
-                                        id="username"
-                                        name="username"
-                                        value={formData.username}
-                                        onChange={handleChange}
-                                        placeholder="Choose a username"
-                                        className={errors.username ? 'error' : ''}
-                                    />
-                                </div>
-                                {errors.username && (
-                                    <span className="error-message">{errors.username}</span>
-                                )}
-                            </div>
-                        )}
+                    {errors.submit && (
+                        <div className="auth-submit-error">
+                            <span>⚠️</span>
+                            <span>{errors.submit}</span>
+                        </div>
+                    )}
 
+                    <form className="auth-form" onSubmit={handleSubmit}>
                         <div className="form-group">
-                            <label htmlFor="email">Email</label>
+                            <label htmlFor="username">Username</label>
                             <div className="input-wrapper">
-                                <span className="input-icon">📧</span>
+                                <span className="input-icon">👤</span>
                                 <input
-                                    type="email"
-                                    id="email"
-                                    name="email"
-                                    value={formData.email}
+                                    type="text"
+                                    id="username"
+                                    name="username"
+                                    value={formData.username}
                                     onChange={handleChange}
-                                    placeholder="Enter your email"
-                                    className={errors.email ? 'error' : ''}
+                                    placeholder={isLogin ? "Enter your username" : "Choose a username"}
+                                    className={errors.username ? 'error' : ''}
+                                    required
                                 />
                             </div>
-                            {errors.email && (
-                                <span className="error-message">{errors.email}</span>
+                            {errors.username && (
+                                <span className="error-message">{errors.username}</span>
                             )}
                         </div>
 
@@ -164,6 +197,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose }) => {
                                     onChange={handleChange}
                                     placeholder="Enter your password"
                                     className={errors.password ? 'error' : ''}
+                                    required
                                 />
                             </div>
                             {errors.password && (

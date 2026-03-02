@@ -1,18 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { LandingFooter } from './LandingFooter';
 import { AuthModal } from './AuthModal';
+import { CharacterCreation } from './CharacterCreation';
 import { useGameStore } from '../store/gameStore';
 import './LandingPage.css';
 
 export const LandingPage: React.FC = () => {
     const { setAuthenticated } = useGameStore();
     const [authModalOpen, setAuthModalOpen] = useState<'login' | 'register' | null>(null);
+    const [showCharacterCreation, setShowCharacterCreation] = useState(false);
+    const [userId, setUserId] = useState<number | null>(null);
     const [scrolled, setScrolled] = useState(false);
-    const [scrollProgress, setScrollProgress] = useState(0);
 
     // Handle quick start (demo mode)
     const handleQuickStart = () => {
         setAuthenticated(true);
+    };
+
+    // Handle registration success
+    const handleRegisterSuccess = (newUserId: number, username: string) => {
+        setUserId(newUserId);
+        setShowCharacterCreation(true);
+    };
+
+    // Handle character creation complete
+    const handleCharacterComplete = () => {
+        setShowCharacterCreation(false);
+        setAuthModalOpen(null);
     };
 
     useEffect(() => {
@@ -106,18 +120,44 @@ export const LandingPage: React.FC = () => {
                         <button onClick={() => scrollToSection('about')}>About</button>
                     </nav>
                     <div className="header-actions">
-                        <button
-                            className="btn-login"
-                            onClick={() => setAuthModalOpen('login')}
-                        >
-                            Sign In
-                        </button>
-                        <button
-                            className="btn-register"
-                            onClick={() => setAuthModalOpen('register')}
-                        >
-                            Get Started
-                        </button>
+                        {useGameStore.getState().isAuthenticated ? (
+                            <>
+                                <button
+                                    className="btn-profile"
+                                    onClick={() => scrollToSection('profile')}
+                                >
+                                    <span className="profile-icon">👤</span>
+                                    <span className="profile-name">{localStorage.getItem('username') || 'Profile'}</span>
+                                </button>
+                                <button
+                                    className="btn-logout"
+                                    onClick={() => {
+                                        localStorage.removeItem('access_token');
+                                        localStorage.removeItem('username');
+                                        localStorage.removeItem('userId');
+                                        setAuthenticated(false);
+                                        window.location.reload();
+                                    }}
+                                >
+                                    Logout
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <button
+                                    className="btn-login"
+                                    onClick={() => setAuthModalOpen('login')}
+                                >
+                                    Sign In
+                                </button>
+                                <button
+                                    className="btn-register"
+                                    onClick={() => setAuthModalOpen('register')}
+                                >
+                                    Get Started
+                                </button>
+                            </>
+                        )}
                         <button
                             className="btn-quick-start"
                             onClick={handleQuickStart}
@@ -424,9 +464,18 @@ export const LandingPage: React.FC = () => {
 
             {/* Auth Modal */}
             {authModalOpen && (
-                <AuthModal 
+                <AuthModal
                     mode={authModalOpen}
                     onClose={() => setAuthModalOpen(null)}
+                    onRegisterSuccess={handleRegisterSuccess}
+                />
+            )}
+
+            {/* Character Creation */}
+            {showCharacterCreation && userId && (
+                <CharacterCreation
+                    userId={userId}
+                    onComplete={handleCharacterComplete}
                 />
             )}
         </div>

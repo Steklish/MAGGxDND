@@ -172,6 +172,8 @@ html::-webkit-scrollbar-thumb:hover {
 .logo-icon {
     font-size: 32px;
     font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+    display: inline-block;
+    line-height: 1;
 }
 
 .logo-text {
@@ -247,6 +249,58 @@ html::-webkit-scrollbar-thumb:hover {
 .btn-login:hover {
     border-color: var(--accent-orange);
     color: var(--accent-orange);
+}
+
+.btn-profile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-profile:hover {
+    border-color: var(--accent-purple);
+    background: rgba(157, 78, 221, 0.1);
+    box-shadow: 0 0 10px rgba(157, 78, 221, 0.3);
+}
+
+.profile-icon {
+    font-size: 18px;
+}
+
+.profile-name {
+    font-family: var(--font-family);
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-logout {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid var(--accent-red);
+    border-radius: var(--radius-md);
+    color: var(--accent-red);
+    font-family: var(--font-family);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-logout:hover {
+    background: var(--accent-red);
+    color: var(--bg-primary);
+    box-shadow: 0 0 10px rgba(230, 57, 70, 0.4);
 }
 
 .btn-register {
@@ -537,6 +591,8 @@ html::-webkit-scrollbar-thumb:hover {
 .card-icon {
     font-size: 24px;
     font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+    display: inline-block;
+    line-height: 1;
 }
 
 .card-title {
@@ -669,6 +725,7 @@ html::-webkit-scrollbar-thumb:hover {
     font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
     display: block;
     line-height: 1;
+    color: var(--text-primary);
 }
 
 .feature-card h3 {
@@ -779,6 +836,8 @@ html::-webkit-scrollbar-thumb:hover {
 .visual-icon {
     font-size: 36px;
     font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+    display: inline-block;
+    line-height: 1;
 }
 
 .step-connector {

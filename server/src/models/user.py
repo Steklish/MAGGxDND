@@ -27,3 +27,6 @@ class User(Base):
     # Relationship to AccessGroup (Many-to-One)
     # The type hint `Mapped[Optional["AccessGroup"]]` indicates this can be an AccessGroup or None.
     group: Mapped[Optional["AccessGroup"]] = relationship(back_populates="users")
+    
+    # Relationship to Characters (One-to-Many)
+    characters: Mapped[List["CharacterModel"]] = relationship("CharacterModel", back_populates="user", cascade="all, delete-orphan")
