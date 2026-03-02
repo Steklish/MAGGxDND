@@ -191,44 +191,88 @@ async def list_sessions():
 async def start_session(session_id: str, request: SessionStartRequest):
     """
     Запустить игровую сессию с инициализацией сцены и персонажей.
-    
+
     Инициализирует:
     - Начальную сцену
     - Персонажей игроков
     - NPC
-    
+
     Returns:
         Информация о запущенной сессии
     """
     session = session_manager.get_session(session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    
+
     try:
-        # Используем SessionFactory для инициализации
-        session_factory.init_new_session(
-            session=session,
-            scene_prompt=request.scene_prompt,
-            player_characters=[],  # Будут сгенерированы внутри
-            npcs=[],
-        )
+        # Создаём тестовую сцену без AI генерации
+        from schemas.in_game import SceneNode, Coordinate2D, UnifiedObject, ObjectType
         
-        # Генерируем и добавляем персонажей игроков
+        scene = SceneNode(
+            name="The Drunken Dragon",
+            description="A dimly lit tavern with worn wooden tables and the smell of ale.",
+            objects=[
+                UnifiedObject(
+                    name="Wooden Table",
+                    obj_type=ObjectType.PROP,
+                    quantity=1,
+                    is_equipped=False,
+                    position=Coordinate2D(x=5.0, y=5.0),
+                    short_summary="A sturdy wooden table"
+                ),
+            ],
+            center_position=Coordinate2D(x=10.0, y=10.0),
+            dimensions=Coordinate2D(x=20.0, y=20.0),
+            scale_unit="feet"
+        )
+        session.current_scene = scene
+        
+        # Генерируем и добавляем персонажей игроков (без AI, создаём напрямую)
         from entity.player import Player
+        from schemas.in_game import Character, CharacterClass, AbilityScores, SpellAbility, Condition
+        
         for i, prompt in enumerate(request.character_prompts):
-            character = session.generator.generate_one_shot(
-                pydantic_model=Character,
-                prompt=prompt
+            # Создаём простого персонажа
+            character = Character(
+                name=f"Character{i+1}",
+                race="Human",
+                char_class=CharacterClass.FIGHTER,
+                level=1,
+                backstory_summary=prompt,
+                personality_traits=["Brave"],
+                max_hp=30,
+                current_hp=30,
+                temp_hp=0,
+                armor_class=12,
+                speed=30,
+                stats=AbilityScores(
+                    strength=15,
+                    dexterity=12,
+                    constitution=14,
+                    intelligence=10,
+                    wisdom=10,
+                    charisma=10
+                ),
+                inventory=[],
+                active_conditions_list=[],
+                resources={},
+                position=Coordinate2D(x=float(i*2), y=float(i*2)),
+                abilities=[],
+                active_conditions="",
+                proficiency_bonus=2,
+                is_alive=True,
+                initiative_bonus=11,
+                short_summary=f"Character{i+1} the Fighter"
             )
-            
+
             player_orchestrator = Orchestrator(
                 generator=session.generator,
                 logger=session.logger.getChild("player_orchestrator")
             )
             player_orchestrator.add_state(session)
-            
+
             event_queue = session.event_pool.subscribe(character.name)
-            
+
             player = Player(
                 character=character,
                 event_queuee=event_queue,
@@ -237,26 +281,56 @@ async def start_session(session_id: str, request: SessionStartRequest):
             )
             player.inject_state(session)
             session.players.append(player)
-        
+
         # Генерируем и добавляем NPC
-        for prompt in request.npc_prompts:
-            npc_character = session.generator.generate_one_shot(
-                pydantic_model=NPCCharacter,
-                prompt=prompt
+        for i, prompt in enumerate(request.npc_prompts):
+            npc_character = NPCCharacter(
+                name=f"NPC{i+1}",
+                race="Human",
+                char_class=CharacterClass.PEASANT,
+                level=1,
+                backstory_summary=prompt,
+                personality_traits=["Neutral"],
+                max_hp=20,
+                current_hp=20,
+                temp_hp=0,
+                armor_class=10,
+                speed=30,
+                stats=AbilityScores(
+                    strength=10,
+                    dexterity=10,
+                    constitution=10,
+                    intelligence=10,
+                    wisdom=10,
+                    charisma=10
+                ),
+                inventory=[],
+                active_conditions_list=[],
+                resources={},
+                position=Coordinate2D(x=15.0, y=15.0),
+                abilities=[],
+                active_conditions="",
+                proficiency_bonus=2,
+                is_alive=True,
+                initiative_bonus=10,
+                short_summary=f"NPC{i+1}",
+                motivation="Unknown",
+                alignment="True Neutral",
+                memory="",
+                current_scene=scene.name
             )
             session._init_npc(npc_character)
-        
+
         session.logger.info(
             f"Сессия запущена: {len(session.players)} игроков, {len(session.npcs)} NPC"
         )
-        
+
         # Отправляем сообщение всем игрокам через Delivery
-        scene = session.current_scene
         session.delivery.master_message(
-            f"Добро пожаловать в {scene.name}! {scene.description}"
+            f"Welcome to {scene.name}! {scene.description}"
         )
         session.delivery.session_updated(session)
-        
+
         return SessionResponse(
             session_id=session_id,
             session_name=session.session_name,
@@ -265,7 +339,7 @@ async def start_session(session_id: str, request: SessionStartRequest):
             status="running",
             description=None
         )
-        
+
     except Exception as e:
         session.logger.error(f"Ошибка при запуске сессии: {e}")
         raise HTTPException(
