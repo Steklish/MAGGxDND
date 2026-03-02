@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './CharacterCreation.css';
 
@@ -9,7 +8,6 @@ interface CharacterCreationProps {
 }
 
 export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, onComplete }) => {
-    const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [formData, setFormData] = useState({
@@ -207,7 +205,7 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                         <button
                             type="button"
                             className="cc-cancel"
-                            onClick={() => navigate('/')}
+                            onClick={onComplete}
                         >
                             Cancel
                         </button>
