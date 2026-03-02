@@ -7,6 +7,7 @@ import { ActionPanel } from './ActionPanel';
 import { Footer } from './Footer';
 import { MiniCharacterPanel } from './MiniCharacterPanel';
 import { MiniChatPanel } from './MiniChatPanel';
+import { ProfilePage } from './ProfilePage';
 import './GameLayout.css';
 
 interface TurnEntry {
@@ -21,6 +22,7 @@ interface TurnEntry {
 
 export const GameLayout: React.FC = () => {
     const { session, currentScene, activeCharacter } = useGameStore();
+    const [showProfile, setShowProfile] = useState(false);
     const [leftPanelWidth, setLeftPanelWidth] = useState(25);
     const [rightPanelWidth, setRightPanelWidth] = useState(25);
     const [headerHeight, setHeaderHeight] = useState(() => Math.round(window.innerHeight * 0.07));
@@ -380,7 +382,7 @@ export const GameLayout: React.FC = () => {
                 </div>
 
                 <div className="header-right">
-                    <button className="profile-btn" title="Profile">
+                    <button className="profile-btn" title="Profile" onClick={() => setShowProfile(true)}>
                         <span className="profile-icon">👤</span>
                     </button>
                 </div>
@@ -442,6 +444,14 @@ export const GameLayout: React.FC = () => {
 
             {/* Footer */}
             <Footer />
+
+            {/* Profile Page Modal */}
+            {showProfile && (
+                <ProfilePage
+                    userId={parseInt(localStorage.getItem('userId') || '0')}
+                    onBack={() => setShowProfile(false)}
+                />
+            )}
         </div>
     );
 };
