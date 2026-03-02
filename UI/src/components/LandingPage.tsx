@@ -53,15 +53,15 @@ export const LandingPage: React.FC = () => {
             <div className="landing-background">
                 <div className="bg-overlay"></div>
                 <div className="floating-particles">
-                    {Array.from({ length: 50 }).map((_, i) => (
+                    {Array.from({ length: 20 }).map((_, i) => (
                         <div
                             key={i}
                             className="particle"
                             style={{
                                 left: `${Math.random() * 100}%`,
                                 top: `${Math.random() * 100}%`,
-                                animationDelay: `${Math.random() * 5}s`,
-                                animationDuration: `${3 + Math.random() * 4}s`,
+                                animationDelay: `${Math.random() * 10}s`,
+                                animationDuration: `${8 + Math.random() * 7}s`,
                             }}
                         />
                     ))}

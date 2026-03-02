@@ -45,23 +45,29 @@
 
 .particle {
     position: absolute;
-    width: 4px;
-    height: 4px;
+    width: 3px;
+    height: 3px;
     background: var(--accent-gold);
     border-radius: 50%;
-    opacity: 0.3;
+    opacity: 0;
     animation: float-particle infinite ease-in-out;
-    box-shadow: 0 0 10px var(--accent-gold);
+    box-shadow: 0 0 8px var(--accent-gold);
 }
 
 @keyframes float-particle {
-    0%, 100% {
+    0% {
+        opacity: 0;
         transform: translateY(0) translateX(0);
-        opacity: 0.3;
     }
-    50% {
-        transform: translateY(-100px) translateX(50px);
-        opacity: 0.8;
+    15% {
+        opacity: 0.5;
+    }
+    85% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-60px) translateX(20px);
     }
 }
 
