@@ -51,6 +51,16 @@ export const LandingPage: React.FC = () => {
             }
             
             scrollbar.style.setProperty('--scrollbar-color', color1);
+
+            // Animate sections on scroll
+            const sections = document.querySelectorAll('.feature-card, .step-card');
+            sections.forEach((section) => {
+                const rect = section.getBoundingClientRect();
+                const isInView = rect.top < window.innerHeight * 0.85;
+                if (isInView) {
+                    section.classList.add('visible');
+                }
+            });
         };
 
         window.addEventListener('scroll', handleScroll);

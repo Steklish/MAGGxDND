@@ -667,6 +667,8 @@ html::-webkit-scrollbar-thumb:hover {
     font-size: 48px;
     margin-bottom: 20px;
     font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+    display: block;
+    line-height: 1;
 }
 
 .feature-card h3 {
