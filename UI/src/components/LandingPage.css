@@ -28,47 +28,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: 
-        radial-gradient(ellipse at 20% 80%, rgba(157, 77, 221, 0.15) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 20%, rgba(255, 107, 53, 0.1) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 50%, rgba(42, 157, 143, 0.08) 0%, transparent 70%);
-}
-
-.floating-particles {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-}
-
-.particle {
-    position: absolute;
-    width: 2px;
-    height: 2px;
-    background: var(--accent-gold);
-    border-radius: 50%;
-    opacity: 0;
-    animation: float-particle infinite linear;
-    will-change: transform, opacity;
-}
-
-@keyframes float-particle {
-    0% {
-        opacity: 0;
-        transform: translateY(0);
-    }
-    10% {
-        opacity: 0.3;
-    }
-    90% {
-        opacity: 0.3;
-    }
-    100% {
-        opacity: 0;
-        transform: translateY(-30px);
-    }
+    background: transparent;
 }
 
 .bg-gradient-orbs {
@@ -83,48 +43,63 @@
 .orb {
     position: absolute;
     border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.4;
+    filter: blur(100px);
+    opacity: 0.5;
     animation: float-orb infinite ease-in-out;
 }
 
 .orb-1 {
-    width: 400px;
-    height: 400px;
+    width: 500px;
+    height: 500px;
     background: var(--accent-purple);
     top: -200px;
     left: -200px;
     animation-delay: 0s;
+    animation-duration: 20s;
 }
 
 .orb-2 {
-    width: 500px;
-    height: 500px;
+    width: 600px;
+    height: 600px;
     background: var(--accent-orange);
     bottom: -250px;
     right: -250px;
-    animation-delay: -2s;
+    animation-delay: -5s;
+    animation-duration: 25s;
 }
 
 .orb-3 {
-    width: 300px;
-    height: 300px;
+    width: 400px;
+    height: 400px;
     background: var(--accent-green);
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    animation-delay: -4s;
+    top: 40%;
+    left: 40%;
+    animation-delay: -10s;
+    animation-duration: 22s;
+}
+
+.orb-4 {
+    width: 450px;
+    height: 450px;
+    background: var(--accent-blue);
+    top: -100px;
+    right: 20%;
+    animation-delay: -15s;
+    animation-duration: 28s;
 }
 
 @keyframes float-orb {
     0%, 100% {
         transform: translate(0, 0) scale(1);
     }
-    33% {
-        transform: translate(50px, -50px) scale(1.1);
+    25% {
+        transform: translate(100px, -100px) scale(1.2);
     }
-    66% {
-        transform: translate(-50px, 50px) scale(0.9);
+    50% {
+        transform: translate(-50px, 100px) scale(0.9);
+    }
+    75% {
+        transform: translate(-100px, -50px) scale(1.1);
     }
 }
 

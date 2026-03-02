@@ -52,24 +52,11 @@ export const LandingPage: React.FC = () => {
             {/* Animated Background */}
             <div className="landing-background">
                 <div className="bg-overlay"></div>
-                <div className="floating-particles">
-                    {Array.from({ length: 8 }).map((_, i) => (
-                        <div
-                            key={i}
-                            className="particle"
-                            style={{
-                                left: `${Math.random() * 100}%`,
-                                top: `${Math.random() * 100}%`,
-                                animationDelay: `${Math.random() * 15}s`,
-                                animationDuration: `${15 + Math.random() * 10}s`,
-                            }}
-                        />
-                    ))}
-                </div>
                 <div className="bg-gradient-orbs">
                     <div className="orb orb-1"></div>
                     <div className="orb orb-2"></div>
                     <div className="orb orb-3"></div>
+                    <div className="orb orb-4"></div>
                 </div>
             </div>
 
