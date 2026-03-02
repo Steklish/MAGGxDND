@@ -177,6 +177,9 @@ interface GameState {
     sessionId: string | null;
     playerId: string | null;
 
+    // Authentication state
+    isAuthenticated: boolean;
+
     // Game state
     session: Session | null;
     currentScene: SceneNode | null;
@@ -199,6 +202,7 @@ interface GameState {
     setActiveCharacter: (character: Character | null) => void;
     clearError: () => void;
     getMessageType: (senderName: string) => Message['type'];
+    setAuthenticated: (authenticated: boolean) => void;
 }
 
 // Helper function to determine message type based on sender
@@ -235,6 +239,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     websocket: null,
     sessionId: 'demo_session',
     playerId: 'Ogorek',
+    isAuthenticated: false,  // Start unauthenticated
     session: mockSession,
     currentScene: mockScene,
     messages: mockMessages,
@@ -383,6 +388,10 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     getMessageType: (senderName: string) => {
         return getMessageType(senderName, get());
+    },
+
+    setAuthenticated: (authenticated: boolean) => {
+        set({ isAuthenticated: authenticated });
     },
 
     // Internal method to handle server messages

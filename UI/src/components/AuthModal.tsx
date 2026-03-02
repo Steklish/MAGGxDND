@@ -1,0 +1,241 @@
+import React, { useState } from 'react';
+import { useGameStore } from '../store/gameStore';
+import './AuthModal.css';
+
+interface AuthModalProps {
+    mode: 'login' | 'register';
+    onClose: () => void;
+}
+
+export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose }) => {
+    const [isLogin, setIsLogin] = useState(mode === 'login');
+    const [isLoading, setIsLoading] = useState(false);
+    const setAuthenticated = useGameStore(state => state.setAuthenticated);
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+        username: '',
+        confirmPassword: '',
+    });
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setErrors({});
+
+        // Validate form
+        const newErrors: Record<string, string> = {};
+
+        if (!formData.email) {
+            newErrors.email = 'Email is required';
+        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+            newErrors.email = 'Please enter a valid email';
+        }
+
+        if (!formData.password) {
+            newErrors.password = 'Password is required';
+        } else if (formData.password.length < 8) {
+            newErrors.password = 'Password must be at least 8 characters';
+        }
+
+        if (!isLogin) {
+            if (!formData.username) {
+                newErrors.username = 'Username is required';
+            }
+            if (formData.password !== formData.confirmPassword) {
+                newErrors.confirmPassword = 'Passwords do not match';
+            }
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            setIsLoading(false);
+            return;
+        }
+
+        // Simulate API call
+        setTimeout(() => {
+            setIsLoading(false);
+            // Set authenticated state
+            setAuthenticated(true);
+            onClose();
+        }, 1500);
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: '' }));
+        }
+    };
+
+    const toggleMode = () => {
+        setIsLogin(!isLogin);
+        setErrors({});
+        setFormData({
+            email: '',
+            password: '',
+            username: '',
+            confirmPassword: '',
+        });
+    };
+
+    return (
+        <div className="auth-modal-overlay" onClick={onClose}>
+            <div className="auth-modal" onClick={e => e.stopPropagation()}>
+                <div className="auth-modal-header">
+                    <div className="auth-logo">
+                        <span className="auth-logo-icon">🐉</span>
+                        <span className="auth-logo-text">MAGG<span className="auth-logo-accent">xDND</span></span>
+                    </div>
+                    <button className="auth-close" onClick={onClose}>
+                        <span>✕</span>
+                    </button>
+                </div>
+
+                <div className="auth-modal-body">
+                    <div className="auth-title-section">
+                        <h2 className="auth-title">
+                            {isLogin ? 'Welcome Back, Adventurer!' : 'Begin Your Journey'}
+                        </h2>
+                        <p className="auth-subtitle">
+                            {isLogin 
+                                ? 'Sign in to continue your adventure' 
+                                : 'Create an account and start your epic quest'}
+                        </p>
+                    </div>
+
+                    <form className="auth-form" onSubmit={handleSubmit}>
+                        {!isLogin && (
+                            <div className="form-group">
+                                <label htmlFor="username">Username</label>
+                                <div className="input-wrapper">
+                                    <span className="input-icon">👤</span>
+                                    <input
+                                        type="text"
+                                        id="username"
+                                        name="username"
+                                        value={formData.username}
+                                        onChange={handleChange}
+                                        placeholder="Choose a username"
+                                        className={errors.username ? 'error' : ''}
+                                    />
+                                </div>
+                                {errors.username && (
+                                    <span className="error-message">{errors.username}</span>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="form-group">
+                            <label htmlFor="email">Email</label>
+                            <div className="input-wrapper">
+                                <span className="input-icon">📧</span>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    placeholder="Enter your email"
+                                    className={errors.email ? 'error' : ''}
+                                />
+                            </div>
+                            {errors.email && (
+                                <span className="error-message">{errors.email}</span>
+                            )}
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="password">Password</label>
+                            <div className="input-wrapper">
+                                <span className="input-icon">🔒</span>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    placeholder="Enter your password"
+                                    className={errors.password ? 'error' : ''}
+                                />
+                            </div>
+                            {errors.password && (
+                                <span className="error-message">{errors.password}</span>
+                            )}
+                        </div>
+
+                        {!isLogin && (
+                            <div className="form-group">
+                                <label htmlFor="confirmPassword">Confirm Password</label>
+                                <div className="input-wrapper">
+                                    <span className="input-icon">🔐</span>
+                                    <input
+                                        type="password"
+                                        id="confirmPassword"
+                                        name="confirmPassword"
+                                        value={formData.confirmPassword}
+                                        onChange={handleChange}
+                                        placeholder="Confirm your password"
+                                        className={errors.confirmPassword ? 'error' : ''}
+                                    />
+                                </div>
+                                {errors.confirmPassword && (
+                                    <span className="error-message">{errors.confirmPassword}</span>
+                                )}
+                            </div>
+                        )}
+
+                        {isLogin && (
+                            <div className="form-options">
+                                <label className="remember-me">
+                                    <input type="checkbox" name="remember" />
+                                    <span>Remember me</span>
+                                </label>
+                                <a href="#" className="forgot-password">Forgot password?</a>
+                            </div>
+                        )}
+
+                        <button 
+                            type="submit" 
+                            className="auth-submit"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <span className="loading-spinner"></span>
+                            ) : (
+                                <span>{isLogin ? 'Sign In' : 'Create Account'}</span>
+                            )}
+                        </button>
+                    </form>
+
+                    <div className="auth-divider">
+                        <span>or continue with</span>
+                    </div>
+
+                    <div className="social-auth">
+                        <button className="social-btn discord">
+                            <span className="social-icon">🎮</span>
+                            <span>Discord</span>
+                        </button>
+                        <button className="social-btn google">
+                            <span className="social-icon">G</span>
+                            <span>Google</span>
+                        </button>
+                    </div>
+
+                    <div className="auth-switch">
+                        <span>
+                            {isLogin ? "Don't have an account?" : 'Already have an account?'}
+                        </span>
+                        <button onClick={toggleMode} className="toggle-auth">
+                            {isLogin ? 'Sign Up' : 'Sign In'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
