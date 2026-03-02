@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from server.src.api.routers import dev, login, user, access_group, session_router, websocket_game
+from server.src.api.routers import dev, login, user, access_group
+from server.src.api.routers.session_router import router as session_router
+from server.src.api.routers.websocket_game import router as websocket_router
 
 from server.src.database import init_db, engine
 import os
@@ -21,7 +22,7 @@ sub_app.include_router(session_router)
 app.mount("/api/v1", sub_app)
 
 # WebSocket router (не поддерживает префиксы, монтируем отдельно)
-app.include_router(websocket_game.router)
+app.include_router(websocket_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -37,25 +38,20 @@ def on_startup():
     init_db(engine)
 
 
-@app.get("/")
-def root():
-    """Root endpoint - API information."""
-    return {
-        "name": "MAGGxDND API",
-        "version": "0.1.0",
-        "description": "AI-Powered D&D Game Engine",
-        "endpoints": {
-            "api": "/api/v1",
-            "websocket": "/ws/{session_id}/{player_id}",
-            "docs": "/docs",
-            "redoc": "/redoc",
-            "ui": "/"
-        }
-    }
-
-
 # Serve UI static files
-UI_DIST_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "UI", "dist")
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+UI_DIST_PATH = os.path.join(PROJECT_ROOT, "UI", "dist")
+print(f"PROJECT_ROOT: {PROJECT_ROOT}")
+print(f"UI_DIST_PATH: {UI_DIST_PATH}")
+print(f"UI_DIST_PATH exists: {os.path.exists(UI_DIST_PATH)}")
+
+@app.get("/")
+async def serve_ui_root():
+    """Serve UI index.html"""
+    index_path = os.path.join(UI_DIST_PATH, "index.html")
+    if os.path.isfile(index_path):
+        return FileResponse(index_path)
+    return {"error": "UI not built. Run: cd UI && npm run build"}
 
 @app.get("/{full_path:path}")
 async def serve_ui(full_path: str):
