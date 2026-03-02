@@ -69,11 +69,25 @@
 .auth-logo-text {
     font-size: 20px;
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
 }
 
-.auth-logo-accent {
+.auth-magg {
+    color: var(--accent-yellow);
+    text-shadow: 0 0 10px rgba(233, 196, 106, 0.3);
+}
+
+.auth-x {
+    color: var(--accent-green);
+    text-shadow: 0 0 10px rgba(42, 157, 143, 0.3);
+}
+
+.auth-dnd {
     color: var(--accent-orange);
+    text-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
 }
 
 .auth-close {

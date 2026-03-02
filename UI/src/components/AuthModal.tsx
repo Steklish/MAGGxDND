@@ -88,7 +88,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose }) => {
                 <div className="auth-modal-header">
                     <div className="auth-logo">
                         <span className="auth-logo-icon">🐉</span>
-                        <span className="auth-logo-text">MAGG<span className="auth-logo-accent">xDND</span></span>
+                        <span className="auth-logo-text">
+                            <span className="auth-magg">MAGG</span>
+                            <span className="auth-x">x</span>
+                            <span className="auth-dnd">DND</span>
+                        </span>
                     </div>
                     <button className="auth-close" onClick={onClose}>
                         <span>✕</span>

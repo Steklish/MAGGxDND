@@ -61,7 +61,11 @@ export const LandingPage: React.FC = () => {
                 <div className="header-content">
                     <div className="logo" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                         <span className="logo-icon">🐉</span>
-                        <span className="logo-text">MAGG<span className="logo-accent">xDND</span></span>
+                        <span className="logo-text">
+                            <span className="logo-magg">MAGG</span>
+                            <span className="logo-x">x</span>
+                            <span className="logo-dnd">DND</span>
+                        </span>
                     </div>
                     <nav className="header-nav">
                         <button onClick={() => scrollToSection('features')}>Features</button>
