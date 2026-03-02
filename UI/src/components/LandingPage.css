@@ -171,6 +171,7 @@ html::-webkit-scrollbar-thumb:hover {
 
 .logo-icon {
     font-size: 32px;
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
 }
 
 .logo-text {
@@ -441,6 +442,7 @@ html::-webkit-scrollbar-thumb:hover {
 
 .btn-icon {
     font-size: 18px;
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
 }
 
 .hero-stats {
@@ -534,6 +536,7 @@ html::-webkit-scrollbar-thumb:hover {
 
 .card-icon {
     font-size: 24px;
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
 }
 
 .card-title {
@@ -663,6 +666,7 @@ html::-webkit-scrollbar-thumb:hover {
 .feature-icon {
     font-size: 48px;
     margin-bottom: 20px;
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
 }
 
 .feature-card h3 {
@@ -772,6 +776,7 @@ html::-webkit-scrollbar-thumb:hover {
 
 .visual-icon {
     font-size: 36px;
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
 }
 
 .step-connector {
