@@ -1,9 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Playwrite+New+Zealand+Basic:wght@400;700&family=Rajdhani:wght@400;500;600;700&display=swap');
 
-/* Nurito font - using similar rounded sans-serif as fallback */
+/* Nurito font - using Nunito as fallback */
 @font-face {
     font-family: 'Nurito';
-    src: local('Nurito'), local('Nunito'), url('https://fonts.gstatic.com/s/nunito/v26/XRXV3I6Li01BKofINeaBTMn8.woff2') format('woff2');
+    src: local('Nunito'), local('Nunito-Regular'), url('https://fonts.gstatic.com/s/nunito/v26/XRXV3I6Li01BKofINeaBTMn8.woff2') format('woff2');
     font-display: swap;
 }
 

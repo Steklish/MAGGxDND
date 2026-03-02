@@ -8,7 +8,6 @@ export const LandingPage: React.FC = () => {
     const { setAuthenticated } = useGameStore();
     const [authModalOpen, setAuthModalOpen] = useState<'login' | 'register' | null>(null);
     const [scrolled, setScrolled] = useState(false);
-    const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
 
     // Handle quick start (demo mode)
     const handleQuickStart = () => {
@@ -21,24 +20,21 @@ export const LandingPage: React.FC = () => {
 
             // Animate sections on scroll
             const sections = document.querySelectorAll('.feature-card, .step-card');
-            const newVisible = new Set(visibleSections);
-            
+
             sections.forEach((section) => {
                 const rect = section.getBoundingClientRect();
                 const isInView = rect.top < window.innerHeight * 0.85;
                 if (isInView) {
-                    newVisible.add(section.id);
+                    section.classList.add('visible');
                 }
             });
-            
-            setVisibleSections(newVisible);
         };
 
         window.addEventListener('scroll', handleScroll);
         handleScroll();
-        
+
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [visibleSections]);
+    }, []);
 
     const scrollToSection = (id: string) => {
         const element = document.getElementById(id);
