@@ -7,9 +7,10 @@ interface AuthModalProps {
     mode: 'login' | 'register';
     onClose: () => void;
     onRegisterSuccess?: (userId: number, username: string) => void;
+    onLoginSuccess?: (userId: number, username: string) => void;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterSuccess }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterSuccess, onLoginSuccess }) => {
     const [isLogin, setIsLogin] = useState(mode === 'login');
     const [isLoading, setIsLoading] = useState(false);
     const setAuthenticated = useGameStore(state => state.setAuthenticated);
@@ -68,8 +69,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
                 if (response.data.access_token) {
                     localStorage.setItem('access_token', response.data.access_token);
                     localStorage.setItem('username', formData.username);
-                    setAuthenticated(true);
-                    onClose();
+                    
+                    // Get user ID
+                    try {
+                        const userResponse = await axios.get(`/api/v1/users/username/${formData.username}`);
+                        localStorage.setItem('userId', userResponse.data.id.toString());
+                        setAuthenticated(true);
+                        onLoginSuccess?.(userResponse.data.id, formData.username);
+                        onClose();
+                    } catch {
+                        setAuthenticated(true);
+                        onClose();
+                    }
                 }
             } else {
                 // Register

@@ -446,7 +446,7 @@ export const GameLayout: React.FC = () => {
             <Footer />
 
             {/* Profile Page Modal */}
-            {showProfile && (
+            {showProfile && localStorage.getItem('userId') && (
                 <ProfilePage
                     userId={parseInt(localStorage.getItem('userId') || '0')}
                     onBack={() => setShowProfile(false)}

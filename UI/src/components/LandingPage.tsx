@@ -25,6 +25,12 @@ export const LandingPage: React.FC = () => {
         setShowCharacterCreation(true);
     };
 
+    // Handle login success
+    const handleLoginSuccess = (newUserId: number, username: string) => {
+        setUserId(newUserId);
+        setShowProfile(true);
+    };
+
     // Handle character creation complete
     const handleCharacterComplete = () => {
         setShowCharacterCreation(false);
@@ -476,6 +482,7 @@ export const LandingPage: React.FC = () => {
                     mode={authModalOpen}
                     onClose={() => setAuthModalOpen(null)}
                     onRegisterSuccess={handleRegisterSuccess}
+                    onLoginSuccess={handleLoginSuccess}
                 />
             )}
 
