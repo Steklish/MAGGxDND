@@ -794,3 +794,274 @@
     background: var(--accent-gold) !important;
     box-shadow: 0 0 10px rgba(233, 196, 106, 0.3);
 }
+
+/* ============================================ */
+/* Responsive Design */
+/* ============================================ */
+
+/* Large tablets and small desktops */
+@media (max-width: 1024px) {
+    .game-title {
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+    }
+
+    .turn-portrait {
+        width: 120px;
+        height: 68px;
+    }
+
+    .portrait-name-overlay {
+        font-size: 0.75rem;
+    }
+
+    .left-panel,
+    .right-panel {
+        max-width: 30%;
+    }
+}
+
+/* Tablets */
+@media (max-width: 768px) {
+    .game-header {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .game-title {
+        font-size: 1.2rem;
+        letter-spacing: 1px;
+    }
+
+    .header-right {
+        padding-right: 8px;
+    }
+
+    /* Hide portraits on tablets, show mini portraits */
+    .turn-portrait {
+        display: none;
+    }
+
+    .mini-portrait {
+        display: flex;
+        height: 24px;
+        min-width: 60px;
+        max-width: 100px;
+    }
+
+    .mini-portrait-name {
+        font-size: 0.6rem;
+    }
+
+    .left-panel,
+    .right-panel {
+        position: absolute;
+        z-index: 100;
+        height: 100%;
+        max-width: 40%;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .left-panel {
+        left: 0;
+        transform: translateX(-100%);
+        transition: transform var(--transition-normal);
+    }
+
+    .left-panel.open {
+        transform: translateX(0);
+    }
+
+    .right-panel {
+        right: 0;
+        transform: translateX(100%);
+        transition: transform var(--transition-normal);
+    }
+
+    .right-panel.open {
+        transform: translateX(0);
+    }
+
+    .resize-handle {
+        display: none;
+    }
+
+    .center-panel {
+        width: 100%;
+    }
+
+    /* Mobile menu buttons */
+    .mobile-menu-toggle {
+        display: flex;
+    }
+}
+
+/* Mobile phones */
+@media (max-width: 480px) {
+    .game-header {
+        padding: var(--spacing-sm);
+    }
+
+    .game-title {
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+    }
+
+    .title-magg,
+    .title-x,
+    .title-dnd {
+        text-shadow: none;
+    }
+
+    .profile-btn {
+        width: 32px;
+        height: 32px;
+        padding: 6px;
+    }
+
+    .profile-icon {
+        font-size: 1.2rem;
+    }
+
+    /* Stack turn queue vertically on mobile */
+    .turn-queue-container {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 4px;
+        padding: 4px 8px;
+    }
+
+    .mini-portrait {
+        height: 20px;
+        min-width: 50px;
+        max-width: 80px;
+        gap: 4px;
+    }
+
+    .mini-portrait-name {
+        font-size: 0.55rem;
+    }
+
+    .mini-portrait-indicator {
+        width: 4px;
+        height: 4px;
+    }
+
+    /* Full-width panels on mobile */
+    .left-panel,
+    .right-panel {
+        max-width: 85%;
+    }
+
+    /* Adjust action panel */
+    .action-panel-container {
+        min-height: 120px;
+    }
+
+    /* Footer adjustments */
+    .footer-content {
+        grid-template-columns: 1fr;
+        padding: var(--spacing-md);
+    }
+
+    .footer-section {
+        padding: var(--spacing-sm) 0;
+    }
+}
+
+/* Small mobile phones */
+@media (max-width: 360px) {
+    .game-title {
+        font-size: 0.9rem;
+    }
+
+    .mini-portrait {
+        min-width: 40px;
+        max-width: 60px;
+    }
+
+    .mini-portrait-name {
+        font-size: 0.5rem;
+    }
+
+    .filter-buttons {
+        flex-wrap: wrap;
+    }
+
+    .filter-buttons button {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+    }
+}
+
+/* Landscape orientation on mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+    .game-header {
+        height: 60px !important;
+    }
+
+    .game-title {
+        font-size: 1rem;
+    }
+
+    .turn-queue-container {
+        height: 100%;
+    }
+
+    .mini-portrait {
+        height: 24px;
+    }
+
+    .left-panel,
+    .right-panel {
+        max-width: 25%;
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .game-title,
+    .panel-header h2,
+    .chat-header h2 {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .turn-portrait.active,
+    .character-card.current-turn {
+        animation: none;
+    }
+}
+
+/* Print styles */
+@media print {
+    .game-header,
+    .left-panel,
+    .right-panel,
+    .action-panel-container,
+    .resize-handle,
+    .footer,
+    .profile-btn {
+        display: none !important;
+    }
+
+    .center-panel {
+        width: 100%;
+        height: auto;
+    }
+
+    .scene-container {
+        height: auto;
+        overflow: visible;
+    }
+}

@@ -1,0 +1,143 @@
+/* Loading Spinner Container */
+.loading-spinner-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: var(--spacing-md);
+}
+
+.loading-spinner-fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+/* Spinner Sizes */
+.spinner-small {
+    width: 32px;
+    height: 32px;
+}
+
+.spinner-medium {
+    width: 48px;
+    height: 48px;
+}
+
+.spinner-large {
+    width: 64px;
+    height: 64px;
+}
+
+/* Loading Spinner with Multiple Rings */
+.loading-spinner {
+    position: relative;
+    display: inline-block;
+    animation: spinnerRotate 2s linear infinite;
+}
+
+.spinner-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    animation: spinnerPulse 1.5s ease-in-out infinite;
+}
+
+.ring-1 {
+    border-top-color: var(--accent-orange);
+    animation-delay: 0s;
+}
+
+.ring-2 {
+    width: 75%;
+    height: 75%;
+    top: 12.5%;
+    left: 12.5%;
+    border-right-color: var(--accent-purple);
+    animation-delay: 0.2s;
+}
+
+.ring-3 {
+    width: 50%;
+    height: 50%;
+    top: 25%;
+    left: 25%;
+    border-bottom-color: var(--accent-green);
+    animation-delay: 0.4s;
+}
+
+@keyframes spinnerRotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes spinnerPulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(0.9);
+    }
+}
+
+/* Spinner Text */
+.spinner-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    animation: textPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes textPulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Color Variants */
+.spinner-orange .ring-1 {
+    border-top-color: var(--accent-orange);
+}
+
+.spinner-purple .ring-1 {
+    border-top-color: var(--accent-purple);
+}
+
+.spinner-green .ring-1 {
+    border-top-color: var(--accent-green);
+}
+
+.spinner-yellow .ring-1 {
+    border-top-color: var(--accent-yellow);
+}
+
+/* Alternative Simple Spinner */
+.loading-spinner-simple {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--bg-tertiary);
+    border-top-color: var(--accent-orange);
+    border-radius: 50%;
+    animation: spinnerRotate 1s linear infinite;
+}

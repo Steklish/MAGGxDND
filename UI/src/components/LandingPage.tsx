@@ -24,13 +24,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onShowProfile }) => {
     };
 
     // Handle registration success
-    const handleRegisterSuccess = (newUserId: number, username: string) => {
+    const handleRegisterSuccess = (newUserId: number) => {
         setUserId(newUserId);
         setShowCharacterCreation(true);
     };
 
     // Handle login success
-    const handleLoginSuccess = (newUserId: number, username: string) => {
+    const handleLoginSuccess = (newUserId: number) => {
         setUserId(newUserId);
         if (onShowProfile) {
             onShowProfile(newUserId.toString());
@@ -56,9 +56,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onShowProfile }) => {
             const scrollTop = window.scrollY;
             const docHeight = document.documentElement.scrollHeight - window.innerHeight;
             const progress = docHeight > 0 ? scrollTop / docHeight : 0;
-            
+
             setScrolled(scrollTop > 50);
-            setScrollProgress(progress);
 
             // Update scrollbar color based on scroll position
             const scrollbar = document.documentElement;

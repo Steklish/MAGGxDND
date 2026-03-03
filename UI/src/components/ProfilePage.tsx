@@ -19,6 +19,11 @@ interface CharacterProfile {
     max_hp: number;
     current_hp: number;
     armor_class: number;
+    speed: number;
+    proficiency_bonus: number;
+    hit_dice?: string;
+    passive_wisdom?: number;
+    inspiration?: number;
     stats: Record<string, number>;
     saving_throws: Record<string, number>;
     skills: Record<string, number>;
