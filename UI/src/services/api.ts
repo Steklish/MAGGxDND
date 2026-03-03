@@ -12,7 +12,16 @@ const api = axios.create({
     },
 });
 
-// Session types
+// Re-export from sessionAPI for backward compatibility
+export type {
+    SessionCreateRequest as SessionCreateRequestType,
+    PlayerJoinRequest as PlayerJoinRequestType,
+    SessionStartRequest as SessionStartRequestType,
+} from './sessionAPI';
+
+export { sessionAPI } from './sessionAPI';
+
+// Session types (legacy - use sessionAPI instead)
 export interface SessionCreateRequest {
     session_name: string;
     game_mode?: string;
@@ -59,8 +68,9 @@ export interface SessionStartRequest {
     npc_prompts: string[];
 }
 
-// Session API
-export const sessionAPI = {
+// Legacy sessionAPI - use sessionAPI from './sessionAPI' instead
+// Kept for backward compatibility
+export const legacySessionAPI = {
     /**
      * Create a new game session
      */

@@ -191,7 +191,7 @@ export const CharacterPanel: React.FC = () => {
         if (activeCharacter?.name === char.name) {
             setActiveCharacter(null);
         } else {
-            setActiveCharacter(char);
+            setActiveCharacter(char as any);
         }
     };
 

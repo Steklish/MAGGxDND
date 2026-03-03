@@ -1,511 +1,357 @@
-// Zustand store for game state management
 import { create } from 'zustand';
-import {
-    Session, Character, Message, Event,
-    SceneNode, NPCCharacter,
-    ServerMessage, ClientMessage,
-} from '../types/game';
-import { webSocketService } from '../services/websocket';
-import { sessionAPI, SessionCreateRequest, SessionStartRequest, PlayerJoinRequest, SessionResponse } from '../services/api';
+import { characterAPI, Character, CharacterProfile } from '../services/characterAPI';
+import { sessionAPI, GameSession } from '../services/sessionAPI';
+import { Session, Message, Event, SceneNode } from '../types/game';
 
-// Game mode for UI
-export type UIMode = 'connecting' | 'lobby' | 'playing' | 'error';
-
-// Mock data for demo mode (no server)
-const mockCharacters: Character[] = [
-    {
-        name: "Ogorek",
-        race: "Human",
-        char_class: "Wizard",
-        level: 5,
-        backstory_summary: "A powerful wizard seeking ancient knowledge",
-        personality_traits: ["Curious", "Brave", "Arcane"],
-        max_hp: 30,
-        current_hp: 24,
-        temp_hp: 0,
-        armor_class: 12,
-        speed: 30,
-        stats: {
-            strength: 8,
-            dexterity: 14,
-            constitution: 13,
-            intelligence: 18,
-            wisdom: 12,
-            charisma: 10
-        },
-        inventory: [
-            { name: "Staff of Power", short_summary: "Staff | Equipped", is_equipped: true, quantity: 1 },
-            { name: "Robes of Protection", short_summary: "Armor | Equipped", is_equipped: true, quantity: 1 },
-            { name: "Health Potion", short_summary: "Consumable", is_equipped: false, quantity: 3 }
-        ],
-        active_conditions_list: [],
-        resources: { spell_slots_lvl1: 3, spell_slots_lvl2: 2, spell_slots_lvl3: 1 },
-        position: { x: 5, y: 8 },
-        abilities: [
-            { name: "Fireball", level: 3, description: "Explosion of fire", duration: "Instantaneous", damage_dice: "8d6", damage_type: "Fire", tags: ["aoe"], short_summary: "Fireball: 8d6 Fire" },
-            { name: "Magic Missile", level: 1, description: "Magical darts", duration: "Instantaneous", damage_dice: "3d4", damage_type: "Force", tags: [], short_summary: "Magic Missile: 3d4 Force" },
-            { name: "Shield", level: 1, description: "Invisible barrier", duration: "1 round", tags: ["defense"], short_summary: "Shield: +5 AC" }
-        ],
-        active_conditions: "",
-        proficiency_bonus: 3,
-        is_alive: true,
-        initiative_bonus: 19,
-        short_summary: "Ogorek the Human Wizard (Lvl 5)"
-    },
-    {
-        name: "Notman",
-        race: "Dwarf",
-        char_class: "Fighter",
-        level: 5,
-        backstory_summary: "A seasoned warrior with a mysterious past",
-        personality_traits: ["Stoic", "Loyal", "Determined"],
-        max_hp: 45,
-        current_hp: 38,
-        temp_hp: 0,
-        armor_class: 18,
-        speed: 25,
-        stats: {
-            strength: 18,
-            dexterity: 14,
-            constitution: 16,
-            intelligence: 10,
-            wisdom: 12,
-            charisma: 8
-        },
-        inventory: [
-            { name: "Longsword +1", short_summary: "1d8 Slashing | Weapon | Equipped", is_equipped: true, quantity: 1 },
-            { name: "Shield", short_summary: "Armor | Equipped", is_equipped: true, quantity: 1 },
-            { name: "Chain Mail", short_summary: "Armor | Equipped", is_equipped: true, quantity: 1 }
-        ],
-        active_conditions_list: [
-            { name: "Blessed", rounds_remaining: 5, trigger: "Passive", periodic_effect_description: "Add d4 to attack rolls", short_summary: "[Blessed] 5 rds | Passive: Add d4 to attacks" }
-        ],
-        resources: { action_surges: 1, second_wind: 1 },
-        position: { x: 8, y: 6 },
-        abilities: [
-            { name: "Action Surge", level: 0, description: "Extra action", duration: "Instantaneous", tags: [], short_summary: "Action Surge: Extra action" },
-            { name: "Second Wind", level: 0, description: "Heal yourself", duration: "Instantaneous", healing_dice: "1d10+5", tags: [], short_summary: "Second Wind: Heals 1d10+5" }
-        ],
-        active_conditions: "[Blessed] 5 rds | Passive: Add d4 to attacks",
-        proficiency_bonus: 3,
-        is_alive: true,
-        initiative_bonus: 19,
-        short_summary: "Notman the Dwarf Fighter (Lvl 5)"
-    }
-];
-
-const mockNPCs: NPCCharacter[] = [
-    {
-        name: "Worm",
-        race: "Aberration",
-        char_class: "Peasant",
-        level: 2,
-        backstory_summary: "An evil worm lurking in the darkness",
-        personality_traits: ["Evil", "Cunning"],
-        max_hp: 15,
-        current_hp: 12,
-        temp_hp: 0,
-        armor_class: 11,
-        speed: 20,
-        stats: {
-            strength: 6,
-            dexterity: 12,
-            constitution: 10,
-            intelligence: 8,
-            wisdom: 10,
-            charisma: 4
-        },
-        inventory: [],
-        active_conditions_list: [],
-        resources: {},
-        position: { x: 12, y: 10 },
-        abilities: [],
-        active_conditions: "",
-        proficiency_bonus: 2,
-        is_alive: true,
-        initiative_bonus: 16,
-        short_summary: "Worm the Aberration Peasant (Lvl 2)",
-        motivation: "Spread corruption",
-        alignment: "Chaotic Evil",
-        memory: "",
-        current_scene: "Slime Cave"
-    }
-];
-
-const mockScene: SceneNode = {
-    name: "Slime Cave",
-    description: "A dark and eerie cavern where dark slimy worms live. The air is thick with moisture and the sound of dripping water echoes through the tunnels. Bioluminescent fungi provide dim blue lighting.",
-    objects: [
-        { name: "Stone Altar", short_summary: "Prop", obj_type: "Prop", quantity: 1, is_equipped: false, position: { x: 10, y: 5 }, tags: ["ancient", "mysterious"] },
-        { name: "Treasure Chest", short_summary: "Container | Locked", obj_type: "Container", quantity: 1, is_equipped: false, is_locked: true, position: { x: 15, y: 12 }, tags: ["treasure"] },
-        { name: "Torch", short_summary: "Prop", obj_type: "Prop", quantity: 1, is_equipped: false, position: { x: 3, y: 3 }, tags: ["light"] }
-    ],
-    center_position: { x: 10, y: 10 },
-    dimensions: { x: 20, y: 20 },
-    scale_unit: "feet"
-};
-
-const mockMessages: Message[] = [
-    { sender_name: "DM", text: "Welcome to the Slime Cave! The air is thick and you can hear strange sounds echoing from the depths.", type: 'dm' },
-    { sender_name: "Ogorek", text: "I cast Detect Magic to sense any magical auras in this cave.", type: 'player' },
-    { sender_name: "DM", text: "You sense a faint magical aura emanating from the stone altar in the center of the cave.", type: 'dm' },
-    { sender_name: "Notman", text: "I approach the altar cautiously, shield raised.", type: 'player' },
-    { sender_name: "Worm", text: "*hisses menacingly from the darkness*", type: 'hostile_npc' },
-];
-
-const mockEvents: Event[] = [
-    { event_type: "CHARACTER_MOVEMENT", event_initiator: "Ogorek", event_subject: "Ogorek", event_target: "Slime Cave", description: "Ogorek enters the Slime Cave" },
-    { event_type: "CHARACTER_MOVEMENT", event_initiator: "Notman", event_subject: "Notman", event_target: "Slime Cave", description: "Notman enters the Slime Cave" },
-    { event_type: "ACTION_RESULT", event_initiator: "Ogorek", event_subject: "Ogorek", event_target: null, description: "Ogorek casts Detect Magic" },
-];
-
-const mockSession: Session = {
-    session_name: "demo_session",
-    current_scene: mockScene,
-    game_mode: "STORY",
-    players: mockCharacters.map(c => ({ character: c })),
-    npcs: mockNPCs.map(n => ({ character: n })),
-    messages: mockMessages,
-    turn_queue: mockCharacters.map((c, i) => [c as any, Date.now() / 1000, Date.now() / 1000 + i * 10]),
-    turn_time: 0,
-    current_location_name: "Slime Cave",
-    spatial_enabled: true
-};
-
+// Combined state for backward compatibility with existing components
 interface GameState {
-    // Connection state
-    mode: UIMode;
-    websocket: WebSocket | null;
-    sessionId: string | null;
-    playerId: string | null;
-
-    // Authentication state
+    // Auth state
     isAuthenticated: boolean;
-
-    // Game state
+    userId: number | null;
+    username: string | null;
+    accessToken: string | null;
+    
+    // Character state
+    characters: Character[];
+    selectedCharacter: Character | null;
+    characterProfiles: Map<number, CharacterProfile>;
+    
+    // Game session state (new API)
+    activeSessions: GameSession[];
+    currentSession: GameSession | null;
+    sessionId: string | null;
+    
+    // Legacy game state (for existing components)
     session: Session | null;
     currentScene: SceneNode | null;
     messages: Message[];
     events: Event[];
-    turnQueue: Array<{character: string; next_turn: number}>;
+    turnQueue: Array<{ character: string; next_turn: number }>;
     turnTime: number;
     activeCharacter: Character | null;
-
-    // UI state
     isActionPending: boolean;
     clarificationText: string | null;
+    
+    // UI state
+    mode: 'menu' | 'connecting' | 'playing' | 'error' | null;
     error: string | null;
-
-    // Actions
-    connect: (sessionId: string, playerId: string) => Promise<void>;
-    disconnect: () => void;
+    isLoading: boolean;
+    
+    // Actions - Auth
+    setAuthenticated: (value: boolean) => void;
+    setUserId: (id: number) => void;
+    setUsername: (name: string) => void;
+    setAccessToken: (token: string) => void;
+    logout: () => void;
+    
+    // Actions - Characters
+    loadCharacters: (userId: number) => Promise<void>;
+    setSelectedCharacter: (character: Character | null) => void;
+    createCharacter: (data: any) => Promise<Character>;
+    deleteCharacter: (characterId: number) => Promise<void>;
+    loadCharacterProfile: (characterId: number) => Promise<CharacterProfile | null>;
+    
+    // Actions - Sessions
+    loadSessions: () => Promise<void>;
+    createSession: (data: any) => Promise<GameSession>;
+    joinSession: (sessionId: string, playerName: string) => Promise<void>;
+    leaveSession: (sessionId: string, playerId: string) => Promise<void>;
+    setCurrentSession: (session: GameSession | null) => void;
+    
+    // Actions - Legacy
     sendAction: (requestText: string, character: Character) => void;
-    choosePlayer: (playerId: string) => void;
-    setActiveCharacter: (character: Character | null) => void;
-    clearError: () => void;
     getMessageType: (senderName: string) => Message['type'];
-    setAuthenticated: (authenticated: boolean) => void;
-    
-    // Session management
-    createSession: (request: SessionCreateRequest) => Promise<string>;
-    joinSession: (sessionId: string, request: PlayerJoinRequest) => Promise<string>;
-    startSession: (sessionId: string, request: SessionStartRequest) => Promise<void>;
-    listSessions: () => Promise<SessionResponse[]>;
-}
+    setActiveCharacter: (character: Character | null) => void;
+    connect: (sessionId: string, playerId: string) => Promise<void>;
 
-// Helper function to determine message type based on sender
-function getMessageType(senderName: string, state: any): Message['type'] {
-    if (!senderName) return 'environment';
-    
-    // DM messages
-    if (senderName.startsWith('DM') || senderName === 'Game Master') return 'dm';
-    
-    // Check if sender is a player character
-    const players = state.session?.players || [];
-    for (const p of players) {
-        if (p.character.name === senderName) return 'player';
-    }
-    
-    // Check if sender is an NPC
-    const npcs = state.session?.npcs || [];
-    for (const n of npcs) {
-        if (n.character.name === senderName) {
-            const alignment = n.character.alignment || '';
-            if (alignment.includes('Good')) return 'ally_npc';
-            if (alignment.includes('Evil') || alignment.includes('Chaotic')) return 'hostile_npc';
-            return 'neutral_npc';
-        }
-    }
-    
-    // Default to environment for unknown senders
-    return 'environment';
+    // Actions - UI
+    setMode: (mode: 'menu' | 'connecting' | 'playing' | 'error' | null) => void;
+    setError: (error: string | null) => void;
+    setLoading: (loading: boolean) => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
-    // Initial state - use mock data for demo
-    mode: 'playing',  // Start in playing mode for demo
-    websocket: null,
-    sessionId: 'demo_session',
-    playerId: 'Ogorek',
-    isAuthenticated: false,  // Start unauthenticated
-    session: mockSession,
-    currentScene: mockScene,
-    messages: mockMessages,
-    events: mockEvents,
-    turnQueue: mockSession.turn_queue.map(([char, _, nt]) => ({
-        character: (char as any).name,
-        next_turn: nt
-    })),
+    // Initial state
+    isAuthenticated: false,
+    userId: null,
+    username: null,
+    accessToken: null,
+
+    characters: [],
+    selectedCharacter: null,
+    characterProfiles: new Map(),
+
+    activeSessions: [],
+    currentSession: null,
+    sessionId: null,
+
+    // Legacy game state (for existing components)
+    session: null,
+    currentScene: null,
+    messages: [],
+    events: [],
+    turnQueue: [],
     turnTime: 0,
-    activeCharacter: mockCharacters[0],  // Start with first character selected
+    activeCharacter: null,
     isActionPending: false,
     clarificationText: null,
+
+    mode: 'menu',
     error: null,
-
-    connect: async (sessionId: string, playerId: string) => {
-        console.log('Connecting to server:', { sessionId, playerId });
-        set({ mode: 'connecting', error: null });
-
-        try {
-            // Connect to WebSocket
-            await webSocketService.connect(
-                sessionId,
-                playerId,
-                // Message handler
-                (message) => {
-                    console.log('[Store] Received message:', message);
-                    // Call handleServerMessage from store
-                    const state = useGameStore.getState();
-                    (state as any).handleServerMessage(message);
-                },
-                // State handler
-                (state) => {
-                    if (!state.connected) {
-                        set({
-                            mode: 'error',
-                            error: state.error || 'Disconnected from server',
-                        });
-                    }
-                }
-            );
-
-            // Update state on successful connection
-            set({
-                mode: 'playing',
-                sessionId,
-                playerId,
-                session: mockSession, // Start with mock data until real data arrives
-                currentScene: mockScene,
-                messages: mockMessages,
-                events: mockEvents,
-                turnQueue: mockSession.turn_queue.map(([char, _, nt]) => ({
-                    character: (char as any).name,
-                    next_turn: nt,
-                })),
-                activeCharacter: mockCharacters.find((c) => c.name === playerId) || mockCharacters[0],
-                error: null,
-            });
-        } catch (error) {
-            console.error('Connection failed:', error);
-            set({
-                mode: 'error',
-                error: error instanceof Error ? error.message : 'Connection failed',
-            });
-        }
+    isLoading: false,
+    
+    // Auth actions
+    setAuthenticated: (value) => set({ isAuthenticated: value }),
+    
+    setUserId: (id) => {
+        localStorage.setItem('userId', id.toString());
+        set({ userId: id });
     },
-
-    disconnect: () => {
-        const { websocket } = get();
-        if (websocket) {
-            websocket.close();
-        }
+    
+    setUsername: (name) => {
+        localStorage.setItem('username', name);
+        set({ username: name });
+    },
+    
+    setAccessToken: (token) => {
+        localStorage.setItem('access_token', token);
+        set({ accessToken: token });
+    },
+    
+    logout: () => {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('username');
+        localStorage.removeItem('userId');
         set({
-            websocket: null,
-            mode: 'connecting',
+            isAuthenticated: false,
+            userId: null,
+            username: null,
+            accessToken: null,
+            characters: [],
+            selectedCharacter: null,
+            activeSessions: [],
+            currentSession: null,
             sessionId: null,
-            playerId: null,
-            session: null,
-            currentScene: null,
-            messages: [],
-            events: [],
-            turnQueue: [],
-            turnTime: 0,
-            activeCharacter: null,
+            mode: 'menu',
         });
     },
-
-    sendAction: (requestText: string, character: Character) => {
-        if (!webSocketService.isConnected()) {
-            // Demo mode - simulate action
-            console.log('Demo mode: simulating action:', requestText);
-            set({ isActionPending: true });
-
-            setTimeout(() => {
-                const newMessage: Message = {
-                    sender_name: `DM`,
-                    text: `You attempt to ${requestText.toLowerCase()}... (demo response)`,
-                    type: 'dm',
-                };
-                const newEvent: Event = {
-                    event_type: 'ACTION_RESULT',
-                    event_initiator: character.name,
-                    event_subject: character.name,
-                    event_target: null,
-                    description: `${character.name} attempts to ${requestText.toLowerCase()}`,
-                };
-                set((state) => ({
-                    messages: [...state.messages, newMessage],
-                    events: [...state.events, newEvent],
-                    isActionPending: false,
-                }));
-            }, 1000);
-            return;
-        }
-
-        // Real server mode - send via WebSocket
-        console.log('Sending action:', requestText);
-        set({ isActionPending: true, clarificationText: null });
-        webSocketService.sendAction(requestText, character);
-    },
-
-    choosePlayer: (playerId: string) => {
-        const { websocket } = get();
-        if (!websocket) {
-            set({ error: 'Not connected to server' });
-            return;
-        }
-
-        const chooseMsg: ClientMessage = {
-            type: 'CHOOSE_PLAYER',
-            payload: { selected_player_id: playerId }
-        };
-
-        websocket.send(JSON.stringify(chooseMsg));
-    },
-
-    setActiveCharacter: (character: Character | null) => {
-        set({ activeCharacter: character });
-    },
-
-    clearError: () => {
-        set({ error: null });
-    },
-
-    getMessageType: (senderName: string) => {
-        return getMessageType(senderName, get());
-    },
-
-    setAuthenticated: (authenticated: boolean) => {
-        set({ isAuthenticated: authenticated });
-    },
-
-    // Internal method to handle server messages
-    handleServerMessage: (message: ServerMessage) => {
-        const state = get();
-
-        switch (message.type) {
-            case 'SESSION_UPDATE':
-                set({
-                    session: message.payload.session,
-                    currentScene: message.payload.session.current_scene,
-                    messages: message.payload.session.messages,
-                    turnQueue: message.payload.session.turn_queue.map(([char, _, nt]) => ({
-                        character: char.name,
-                        next_turn: nt
-                    })),
-                    turnTime: message.payload.session.turn_time,
-                });
-                break;
-
-            case 'MASTER_MESSAGE':
-                set({
-                    messages: [...state.messages, {
-                        sender_name: `DM ${message.payload.tag || ''}`,
-                        text: message.payload.text,
-                        type: 'dm'
-                    }],
-                    isActionPending: message.payload.tag === 'Clarification' || message.payload.tag === 'Illegal' ? false : state.isActionPending,
-                    clarificationText: message.payload.tag === 'Clarification' ? message.payload.text : state.clarificationText,
-                });
-                break;
-
-            case 'GAME_EVENT':
-                set({
-                    events: [...state.events, message.payload.event]
-                });
-                break;
-
-            case 'ACTION_REQUEST':
-                set({
-                    activeCharacter: message.payload.character,
-                    isActionPending: false,
-                    clarificationText: null,
-                });
-                break;
-
-            case 'TURN_QUEUE_UPDATE':
-                set({
-                    turnQueue: message.payload.turn_queue,
-                    turnTime: message.payload.turn_time
-                });
-                break;
-
-            case 'SCENE_UPDATE':
-                set({
-                    currentScene: message.payload.scene
-                });
-                break;
-
-            case 'ERROR':
-                set({
-                    error: message.payload.message,
-                    mode: 'error'
-                });
-                break;
-        }
-    },
-
-    // Session management functions
-    createSession: async (request: SessionCreateRequest): Promise<string> => {
+    
+    // Character actions
+    loadCharacters: async (userId) => {
+        set({ isLoading: true });
         try {
-            const response = await sessionAPI.createSession(request);
-            console.log('Session created:', response);
-            return response.session_id;
-        } catch (error) {
-            console.error('Failed to create session:', error);
+            const characters = await characterAPI.getUserCharacters(userId);
+            set({ characters, isLoading: false });
+            
+            // Load profiles for each character
+            const profiles = new Map<number, CharacterProfile>();
+            for (const char of characters) {
+                try {
+                    const profile = await characterAPI.getCharacterProfile(char.id);
+                    profiles.set(char.id, profile);
+                } catch (e) {
+                    console.warn(`Failed to load profile for character ${char.id}`);
+                }
+            }
+            set({ characterProfiles: profiles });
+        } catch (error: any) {
+            console.error('Failed to load characters:', error);
+            set({ isLoading: false });
+        }
+    },
+    
+    setSelectedCharacter: (character) => {
+        set({ selectedCharacter: character });
+        if (character) {
+            localStorage.setItem('selectedCharacterId', character.id.toString());
+        }
+    },
+    
+    createCharacter: async (data) => {
+        set({ isLoading: true });
+        try {
+            const character = await characterAPI.createCharacter(data);
+            
+            // Create profile
+            if (data.profileData) {
+                await characterAPI.createCharacterProfile({
+                    character_id: character.id,
+                    ...data.profileData,
+                });
+            }
+            
+            // Refresh characters list
+            const { userId } = get();
+            if (userId) {
+                await get().loadCharacters(userId);
+            }
+            
+            set({ isLoading: false });
+            return character;
+        } catch (error: any) {
+            console.error('Failed to create character:', error);
+            set({ 
+                error: error.response?.data?.detail || 'Failed to create character',
+                isLoading: false 
+            });
             throw error;
         }
     },
-
-    joinSession: async (sessionId: string, request: PlayerJoinRequest): Promise<string> => {
+    
+    deleteCharacter: async (characterId) => {
         try {
-            const response = await sessionAPI.joinSession(sessionId, request);
-            console.log('Joined session:', response);
-            return response.player_id;
-        } catch (error) {
+            await characterAPI.deleteCharacter(characterId);
+            
+            // Refresh characters list
+            const { userId } = get();
+            if (userId) {
+                await get().loadCharacters(userId);
+            }
+            
+            // Clear selected if deleted
+            const { selectedCharacter } = get();
+            if (selectedCharacter?.id === characterId) {
+                set({ selectedCharacter: null });
+            }
+        } catch (error: any) {
+            console.error('Failed to delete character:', error);
+            throw error;
+        }
+    },
+    
+    loadCharacterProfile: async (characterId) => {
+        try {
+            const profile = await characterAPI.getCharacterProfile(characterId);
+            const { characterProfiles } = get();
+            const newProfiles = new Map(characterProfiles);
+            newProfiles.set(characterId, profile);
+            set({ characterProfiles: newProfiles });
+            return profile;
+        } catch (error: any) {
+            console.error('Failed to load character profile:', error);
+            return null;
+        }
+    },
+    
+    // Session actions
+    loadSessions: async () => {
+        try {
+            const { sessions } = await sessionAPI.listSessions();
+            set({ activeSessions: sessions });
+        } catch (error: any) {
+            console.error('Failed to load sessions:', error);
+        }
+    },
+    
+    createSession: async (data) => {
+        set({ isLoading: true });
+        try {
+            const session = await sessionAPI.createSession(data);
+            set({ 
+                currentSession: session,
+                sessionId: session.session_id,
+                isLoading: false,
+            });
+            await get().loadSessions();
+            return session;
+        } catch (error: any) {
+            console.error('Failed to create session:', error);
+            set({ 
+                error: error.response?.data?.detail || 'Failed to create session',
+                isLoading: false 
+            });
+            throw error;
+        }
+    },
+    
+    joinSession: async (sessionId: string, playerName: string) => {
+        try {
+            await sessionAPI.joinSession(sessionId, { player_name: playerName });
+            await get().loadSessions();
+        } catch (error: any) {
             console.error('Failed to join session:', error);
             throw error;
         }
     },
-
-    startSession: async (sessionId: string, request: SessionStartRequest): Promise<void> => {
+    
+    leaveSession: async (sessionId, playerId) => {
         try {
-            await sessionAPI.startSession(sessionId, request);
-            console.log('Session started');
-        } catch (error) {
-            console.error('Failed to start session:', error);
+            await sessionAPI.leaveSession(sessionId, playerId);
+            set({ currentSession: null, sessionId: null });
+            await get().loadSessions();
+        } catch (error: any) {
+            console.error('Failed to leave session:', error);
             throw error;
         }
     },
-
-    listSessions: async (): Promise<SessionResponse[]> => {
-        try {
-            const response = await sessionAPI.listSessions();
-            console.log('Sessions:', response);
-            return response.sessions;
-        } catch (error) {
-            console.error('Failed to list sessions:', error);
-            return [];
-        }
+    
+    setCurrentSession: (session) => {
+        set({
+            currentSession: session,
+            sessionId: session?.session_id || null,
+        });
     },
+
+    // Legacy actions for backward compatibility
+    sendAction: (_requestText: string, _character: Character) => {
+        // Demo mode - simulate action
+        console.log('Demo mode: simulating action');
+        set({ isActionPending: true });
+
+        setTimeout(() => {
+            const newMessage: Message = {
+                sender_name: `DM`,
+                text: `You attempt to act... (demo response)`,
+                type: 'dm',
+            };
+            set((state) => ({
+                messages: [...state.messages, newMessage],
+                isActionPending: false,
+            }));
+        }, 1000);
+    },
+
+    getMessageType: (senderName: string): Message['type'] => {
+        if (!senderName) return 'environment';
+        if (senderName.startsWith('DM') || senderName === 'Game Master') return 'dm';
+        return 'player';
+    },
+
+    setActiveCharacter: (character: Character | null) => {
+        set({ activeCharacter: character as any });
+    },
+
+    connect: async (sessionId: string, playerId: string) => {
+        console.log('Connecting to session:', sessionId, playerId);
+        set({ mode: 'connecting' });
+        // For demo mode, just set playing mode
+        setTimeout(() => {
+            set({ mode: 'playing', sessionId, error: null });
+        }, 500);
+    },
+
+    // UI actions
+    setMode: (mode) => set({ mode }),
+    setError: (error) => set({ error }),
+    setLoading: (loading) => set({ isLoading: loading }),
 }));
+
+// Initialize store from localStorage
+const initStore = () => {
+    const token = localStorage.getItem('access_token');
+    const userId = localStorage.getItem('userId');
+    const username = localStorage.getItem('username');
+    
+    if (token && userId && username) {
+        useGameStore.setState({
+            isAuthenticated: true,
+            userId: parseInt(userId),
+            username,
+            accessToken: token,
+        });
+    }
+};
+
+initStore();
+
+export default useGameStore;

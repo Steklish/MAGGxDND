@@ -31,26 +31,26 @@ export const ConnectionScreen: React.FC = () => {
     const handleCreateSession = async () => {
         setIsLoading(true);
         setError('');
-        
+
         try {
             // Create a new session
-            const newSessionId = await createSession({
+            const session = await createSession({
                 session_name: playerName ? `${playerName}'s Session` : 'New Session',
                 game_mode: 'STORY',
                 max_players: 5,
             });
-            
+
+            const newSessionId = session.session_id;
             setSessionId(newSessionId);
-            
+
             // Join the session as a player
-            const newPlayerId = await joinSession(newSessionId, {
-                player_name: playerName || 'Player',
-            });
-            
+            await joinSession(newSessionId, playerName || 'Player');
+            const newPlayerId = playerId; // Use the playerId from state
+
             setPlayerId(newPlayerId);
-            
+
             // Connect to the session
-            await connect(newSessionId, newPlayerId);
+            await connect(newSessionId, newPlayerId || 'player_1');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to create session');
             setIsLoading(false);
