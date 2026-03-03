@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { GameLayout } from './components/GameLayout';
-import { ConnectionScreen } from './components/ConnectionScreen';
 import { LandingPage } from './components/LandingPage';
 import { ProfilePage } from './components/ProfilePage';
 import { CharacterCreation } from './components/CharacterCreation';
@@ -8,11 +7,11 @@ import { useGameStore } from './store/gameStore';
 import './App.css';
 
 function App() {
-    const { isAuthenticated, userId, characters, loadCharacters, setAuthenticated } = useGameStore();
-    const [showLanding, setShowLanding] = useState(true);
+    const { isAuthenticated, userId, characters, loadCharacters } = useGameStore();
     const [showProfile, setShowProfile] = useState(false);
     const [showCharacterCreation, setShowCharacterCreation] = useState(false);
     const [localUserId, setLocalUserId] = useState<number | null>(null);
+    const [isInitialized, setIsInitialized] = useState(false);
 
     // Initialize from localStorage on mount
     useEffect(() => {
@@ -25,6 +24,7 @@ function App() {
             setLocalUserId(id);
             loadCharacters(id);
         }
+        setIsInitialized(true);
     }, []);
 
     // Handle showing profile
@@ -52,61 +52,47 @@ function App() {
         }
     };
 
-    const handleQuickStart = () => {
-        // Demo mode - just show the game layout with mock data
-        setAuthenticated(true);
-        setShowLanding(false);
-    };
-
-    // Check if user is authenticated or in demo mode
-    const isReady = isAuthenticated || !showLanding;
-
-    // If user is authenticated or has chosen to enter the game, show the game
-    if (isReady) {
-        // Show character creation if requested
-        if (showCharacterCreation && localUserId) {
-            return (
-                <CharacterCreation
-                    userId={localUserId}
-                    onComplete={handleCharacterCreationComplete}
-                />
-            );
-        }
-
-        // Show profile page if requested
-        if (showProfile && localUserId) {
-            return (
-                <ProfilePage
-                    userId={localUserId}
-                    onBack={handleBackFromProfile}
-                    onCreateCharacter={handleShowCharacterCreation}
-                />
-            );
-        }
-
-        // Show connection screen only if explicitly in connecting mode
-        if (useGameStore.getState().mode === 'connecting') {
-            return <ConnectionScreen />;
-        }
-
-        // Show error if there's an error
-        if (useGameStore.getState().mode === 'error' && useGameStore.getState().error) {
-            return (
-                <div className="error-screen">
-                    <h1>Connection Error</h1>
-                    <p>{useGameStore.getState().error}</p>
-                    <button onClick={() => window.location.reload()}>
-                        Try Again
-                    </button>
+    // Show nothing while initializing
+    if (!isInitialized) {
+        return (
+            <div className="app-loading">
+                <div className="loading-spinner">
+                    <div className="spinner-ring"></div>
+                    <div className="spinner-ring"></div>
+                    <div className="spinner-ring"></div>
                 </div>
-            );
-        }
+                <p>Loading...</p>
+            </div>
+        );
+    }
 
-        // Default: show game layout (demo mode or authenticated)
+    // Show character creation if requested
+    if (showCharacterCreation && localUserId) {
+        return (
+            <CharacterCreation
+                userId={localUserId}
+                onComplete={handleCharacterCreationComplete}
+            />
+        );
+    }
+
+    // Show profile page if requested
+    if (showProfile && localUserId) {
+        return (
+            <ProfilePage
+                userId={localUserId}
+                onBack={handleBackFromProfile}
+                onCreateCharacter={handleShowCharacterCreation}
+            />
+        );
+    }
+
+    // Show game layout if authenticated
+    if (isAuthenticated) {
         return <GameLayout />;
     }
 
-    // Show landing page for first-time visitors
+    // Default: show landing page
     return (
         <LandingPage
             onShowProfile={handleShowProfile}

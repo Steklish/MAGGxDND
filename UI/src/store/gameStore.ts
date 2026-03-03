@@ -1,65 +1,7 @@
 import { create } from 'zustand';
-import { characterAPI, Character, CharacterProfile } from '../services/characterAPI';
-import { sessionAPI, GameSession } from '../services/sessionAPI';
-import { Session, Message, Event, SceneNode, NPCCharacter } from '../types/game';
+import { characterAPI, Character, CharacterProfile } from './services/characterAPI';
+import { sessionAPI, GameSession } from './services/sessionAPI';
 
-// Demo data for offline/development mode
-const demoScene: SceneNode = {
-    name: "Slime Cave",
-    description: "A dark and eerie cavern where dark slimy worms live. The air is thick with moisture and the sound of dripping water echoes through the tunnels.",
-    objects: [
-        { name: "Stone Altar", short_summary: "Prop", obj_type: "Prop", quantity: 1, is_equipped: false, position: { x: 10, y: 5 } },
-        { name: "Treasure Chest", short_summary: "Container | Locked", obj_type: "Container", quantity: 1, is_equipped: false, is_locked: true, position: { x: 15, y: 12 } },
-    ],
-    center_position: { x: 10, y: 10 },
-    dimensions: { x: 20, y: 20 },
-    scale_unit: "feet"
-};
-
-const demoCharacter: Character = {
-    id: 1,
-    user_id: 1,
-    name: "Ogorek",
-    race: "Human",
-    char_class: "Wizard",
-    level: 5,
-    backstory_summary: "A powerful wizard seeking ancient knowledge",
-    personality_traits: '["Curious", "Brave"]',
-    max_hp: 30,
-    current_hp: 24,
-    armor_class: 12,
-    speed: 30,
-    stats: {
-        strength: 8,
-        dexterity: 14,
-        constitution: 13,
-        intelligence: 18,
-        wisdom: 12,
-        charisma: 10
-    },
-    abilities: [],
-    inventory: [],
-    position: { x: 5, y: 8 },
-    is_alive: true,
-    initiative_bonus: 2
-} as any;
-
-const demoSession: Session = {
-    session_name: "demo_session",
-    current_scene: demoScene,
-    game_mode: "STORY",
-    players: [{ character: demoCharacter }],
-    npcs: [],
-    messages: [
-        { sender_name: "DM", text: "Welcome to the Slime Cave! The air is thick and you can hear strange sounds.", type: 'dm' }
-    ],
-    turn_queue: [[demoCharacter, Date.now() / 1000, Date.now() / 1000 + 10]],
-    turn_time: 0,
-    current_location_name: "Slime Cave",
-    spatial_enabled: true
-} as any;
-
-// Combined state for backward compatibility with existing components
 interface GameState {
     // Auth state
     isAuthenticated: boolean;
@@ -72,21 +14,10 @@ interface GameState {
     selectedCharacter: Character | null;
     characterProfiles: Map<number, CharacterProfile>;
     
-    // Game session state (new API)
+    // Game session state
     activeSessions: GameSession[];
     currentSession: GameSession | null;
     sessionId: string | null;
-    
-    // Legacy game state (for existing components)
-    session: Session | null;
-    currentScene: SceneNode | null;
-    messages: Message[];
-    events: Event[];
-    turnQueue: Array<{ character: string; next_turn: number }>;
-    turnTime: number;
-    activeCharacter: Character | null;
-    isActionPending: boolean;
-    clarificationText: string | null;
     
     // UI state
     mode: 'menu' | 'connecting' | 'playing' | 'error' | null;
@@ -114,12 +45,6 @@ interface GameState {
     leaveSession: (sessionId: string, playerId: string) => Promise<void>;
     setCurrentSession: (session: GameSession | null) => void;
     
-    // Actions - Legacy
-    sendAction: (requestText: string, character: Character) => void;
-    getMessageType: (senderName: string) => Message['type'];
-    setActiveCharacter: (character: Character | null) => void;
-    connect: (sessionId: string, playerId: string) => Promise<void>;
-
     // Actions - UI
     setMode: (mode: 'menu' | 'connecting' | 'playing' | 'error' | null) => void;
     setError: (error: string | null) => void;
@@ -127,7 +52,7 @@ interface GameState {
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
-    // Initial state
+    // Initial state - NO demo data
     isAuthenticated: false,
     userId: null,
     username: null,
@@ -141,39 +66,28 @@ export const useGameStore = create<GameState>((set, get) => ({
     currentSession: null,
     sessionId: null,
 
-    // Legacy game state (for existing components)
-    session: demoSession,
-    currentScene: demoScene,
-    messages: demoSession.messages,
-    events: [],
-    turnQueue: [],
-    turnTime: 0,
-    activeCharacter: demoCharacter,
-    isActionPending: false,
-    clarificationText: null,
-
-    mode: 'playing',
+    mode: 'menu',
     error: null,
     isLoading: false,
     
     // Auth actions
     setAuthenticated: (value) => set({ isAuthenticated: value }),
-    
+
     setUserId: (id) => {
         localStorage.setItem('userId', id.toString());
         set({ userId: id });
     },
-    
+
     setUsername: (name) => {
         localStorage.setItem('username', name);
         set({ username: name });
     },
-    
+
     setAccessToken: (token) => {
         localStorage.setItem('access_token', token);
         set({ accessToken: token });
     },
-    
+
     logout: () => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('username');
@@ -191,7 +105,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             mode: 'menu',
         });
     },
-    
+
     // Character actions
     loadCharacters: async (userId) => {
         set({ isLoading: true });
@@ -215,14 +129,14 @@ export const useGameStore = create<GameState>((set, get) => ({
             set({ isLoading: false });
         }
     },
-    
+
     setSelectedCharacter: (character) => {
         set({ selectedCharacter: character });
         if (character) {
             localStorage.setItem('selectedCharacterId', character.id.toString());
         }
     },
-    
+
     createCharacter: async (data) => {
         set({ isLoading: true });
         try {
@@ -253,7 +167,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             throw error;
         }
     },
-    
+
     deleteCharacter: async (characterId) => {
         try {
             await characterAPI.deleteCharacter(characterId);
@@ -274,7 +188,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             throw error;
         }
     },
-    
+
     loadCharacterProfile: async (characterId) => {
         try {
             const profile = await characterAPI.getCharacterProfile(characterId);
@@ -298,8 +212,8 @@ export const useGameStore = create<GameState>((set, get) => ({
             console.error('Failed to load sessions:', error);
         }
     },
-    
-    createSession: async (data) => {
+
+    createSession: async (data: any): Promise<GameSession> => {
         set({ isLoading: true });
         try {
             const session = await sessionAPI.createSession(data);
@@ -319,7 +233,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             throw error;
         }
     },
-    
+
     joinSession: async (sessionId: string, playerName: string) => {
         try {
             await sessionAPI.joinSession(sessionId, { player_name: playerName });
@@ -329,8 +243,8 @@ export const useGameStore = create<GameState>((set, get) => ({
             throw error;
         }
     },
-    
-    leaveSession: async (sessionId, playerId) => {
+
+    leaveSession: async (sessionId: string, playerId: string) => {
         try {
             await sessionAPI.leaveSession(sessionId, playerId);
             set({ currentSession: null, sessionId: null });
@@ -340,50 +254,12 @@ export const useGameStore = create<GameState>((set, get) => ({
             throw error;
         }
     },
-    
+
     setCurrentSession: (session) => {
-        set({
+        set({ 
             currentSession: session,
             sessionId: session?.session_id || null,
         });
-    },
-
-    // Legacy actions for backward compatibility
-    sendAction: (_requestText: string, _character: Character) => {
-        // Demo mode - simulate action
-        console.log('Demo mode: simulating action');
-        set({ isActionPending: true });
-
-        setTimeout(() => {
-            const newMessage: Message = {
-                sender_name: `DM`,
-                text: `You attempt to act... (demo response)`,
-                type: 'dm',
-            };
-            set((state) => ({
-                messages: [...state.messages, newMessage],
-                isActionPending: false,
-            }));
-        }, 1000);
-    },
-
-    getMessageType: (senderName: string): Message['type'] => {
-        if (!senderName) return 'environment';
-        if (senderName.startsWith('DM') || senderName === 'Game Master') return 'dm';
-        return 'player';
-    },
-
-    setActiveCharacter: (character: Character | null) => {
-        set({ activeCharacter: character as any });
-    },
-
-    connect: async (sessionId: string, playerId: string) => {
-        console.log('Connecting to session:', sessionId, playerId);
-        set({ mode: 'connecting' });
-        // For demo mode, just set playing mode
-        setTimeout(() => {
-            set({ mode: 'playing', sessionId, error: null });
-        }, 500);
     },
 
     // UI actions
