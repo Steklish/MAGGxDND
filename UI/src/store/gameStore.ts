@@ -1,7 +1,60 @@
 import { create } from 'zustand';
 import { characterAPI, Character, CharacterProfile } from '../services/characterAPI';
 import { sessionAPI, GameSession } from '../services/sessionAPI';
-import { Session, Message, Event, SceneNode } from '../types/game';
+import { Session, Message, Event, SceneNode, NPCCharacter } from '../types/game';
+
+// Demo data for offline/development mode
+const demoScene: SceneNode = {
+    name: "Slime Cave",
+    description: "A dark and eerie cavern where dark slimy worms live. The air is thick with moisture and the sound of dripping water echoes through the tunnels.",
+    objects: [
+        { name: "Stone Altar", short_summary: "Prop", obj_type: "Prop", quantity: 1, is_equipped: false, position: { x: 10, y: 5 } },
+        { name: "Treasure Chest", short_summary: "Container | Locked", obj_type: "Container", quantity: 1, is_equipped: false, is_locked: true, position: { x: 15, y: 12 } },
+    ],
+    center_position: { x: 10, y: 10 },
+    dimensions: { x: 20, y: 20 },
+    scale_unit: "feet"
+};
+
+const demoCharacter: Character = {
+    id: 1,
+    user_id: 1,
+    name: "Ogorek",
+    race: "Human",
+    char_class: "Wizard",
+    level: 5,
+    backstory_summary: "A powerful wizard seeking ancient knowledge",
+    personality_traits: '["Curious", "Brave"]',
+    max_hp: 30,
+    current_hp: 24,
+    armor_class: 12,
+    speed: 30,
+    stats: {
+        strength: 8,
+        dexterity: 14,
+        constitution: 13,
+        intelligence: 18,
+        wisdom: 12,
+        charisma: 10
+    },
+    abilities: [],
+    inventory: []
+} as any;
+
+const demoSession: Session = {
+    session_name: "demo_session",
+    current_scene: demoScene,
+    game_mode: "STORY",
+    players: [{ character: demoCharacter }],
+    npcs: [],
+    messages: [
+        { sender_name: "DM", text: "Welcome to the Slime Cave! The air is thick and you can hear strange sounds.", type: 'dm' }
+    ],
+    turn_queue: [[demoCharacter, Date.now() / 1000, Date.now() / 1000 + 10]],
+    turn_time: 0,
+    current_location_name: "Slime Cave",
+    spatial_enabled: true
+} as any;
 
 // Combined state for backward compatibility with existing components
 interface GameState {
@@ -86,17 +139,17 @@ export const useGameStore = create<GameState>((set, get) => ({
     sessionId: null,
 
     // Legacy game state (for existing components)
-    session: null,
-    currentScene: null,
-    messages: [],
+    session: demoSession,
+    currentScene: demoScene,
+    messages: demoSession.messages,
     events: [],
     turnQueue: [],
     turnTime: 0,
-    activeCharacter: null,
+    activeCharacter: demoCharacter,
     isActionPending: false,
     clarificationText: null,
 
-    mode: 'menu',
+    mode: 'playing',
     error: null,
     isLoading: false,
     

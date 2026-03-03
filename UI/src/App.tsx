@@ -58,8 +58,11 @@ function App() {
         setShowLanding(false);
     };
 
+    // Check if user is authenticated or in demo mode
+    const isReady = isAuthenticated || !showLanding;
+
     // If user is authenticated or has chosen to enter the game, show the game
-    if (!showLanding || isAuthenticated) {
+    if (isReady) {
         // Show character creation if requested
         if (showCharacterCreation && localUserId) {
             return (
