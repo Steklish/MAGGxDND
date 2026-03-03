@@ -38,7 +38,10 @@ const demoCharacter: Character = {
         charisma: 10
     },
     abilities: [],
-    inventory: []
+    inventory: [],
+    position: { x: 5, y: 8 },
+    is_alive: true,
+    initiative_bonus: 2
 } as any;
 
 const demoSession: Session = {
