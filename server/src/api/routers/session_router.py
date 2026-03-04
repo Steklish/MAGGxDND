@@ -25,6 +25,9 @@ from entity.orchestrator import Orchestrator
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
+# Store for active players (temporary, until DB integration)
+active_players: Dict[str, Dict[str, any]] = {}
+
 
 # === Schemas ===
 
@@ -80,6 +83,18 @@ class SessionStartRequest(BaseModel):
     scene_prompt: str = Field(..., description="Описание начальной сцены")
     character_prompts: List[str] = Field(default=[], description="Описания персонажей")
     npc_prompts: List[str] = Field(default=[], description="Описания NPC")
+
+
+class SessionInfoResponse(BaseModel):
+    """Расширенная информация о сессии."""
+    session_id: str
+    session_name: str
+    game_mode: str
+    player_count: int
+    max_players: int
+    status: str
+    description: Optional[str] = None
+    players: List[PlayerResponse] = []
 
 
 # === Helpers ===
@@ -189,6 +204,36 @@ async def list_sessions():
     return SessionListResponse(
         sessions=session_list,
         total=len(session_list)
+    )
+
+
+@router.get("/{session_id}/info", response_model=SessionInfoResponse)
+async def get_session_info(session_id: str):
+    """Получить расширенную информацию о сессии."""
+    session = session_manager.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Получаем игроков сессии
+    players = []
+    for player_id, player_data in active_players.items():
+        if player_data["session_id"] == session_id:
+            players.append(PlayerResponse(
+                player_id=player_id,
+                player_name=player_data["player_name"],
+                character_name=player_data["character_name"],
+                connected=player_data["connected"]
+            ))
+    
+    return SessionInfoResponse(
+        session_id=session_id,
+        session_name=session.session_name,
+        game_mode=session.game_mode,
+        player_count=len(players),
+        max_players=5,  # TODO: Get from session config
+        status="active",
+        description=None,
+        players=players
     )
 
 
@@ -385,29 +430,35 @@ async def delete_session(session_id: str):
     return None
 
 
+# Store for active players (temporary, until DB integration)
+active_players: Dict[str, Dict[str, any]] = {}
+
 @router.post("/{session_id}/players", response_model=PlayerResponse)
 async def join_session(session_id: str, request: PlayerJoinRequest):
     """
     Добавить игрока в сессию.
-    
+
     Возвращает player_id для подключения через WebSocket.
     """
     if not session_manager.session_exists(session_id):
         raise HTTPException(status_code=404, detail="Session not found")
-    
+
     # Генерируем ID игрока
     player_id = str(uuid.uuid4())
     
-    # TODO: Здесь нужно добавить реальную логику добавления игрока в сессию
-    # - Создать Player объект
-    # - Добавить в session.players
-    # - Создать персонажа если указано character_name
-    
+    # Сохраняем игрока
+    active_players[player_id] = {
+        "session_id": session_id,
+        "player_name": request.player_name,
+        "character_name": request.character_name,
+        "connected": True
+    }
+
     return PlayerResponse(
         player_id=player_id,
         player_name=request.player_name,
         character_name=request.character_name,
-        connected=False  # Подключится через WebSocket
+        connected=True
     )
 
 
@@ -431,19 +482,16 @@ async def get_session_players(session_id: str):
     """Получить список всех игроков в сессии."""
     if not session_manager.session_exists(session_id):
         raise HTTPException(status_code=404, detail="Session not found")
-    
-    websockets = session_manager.get_all_session_websockets(session_id)
-    
-    # TODO: Получить реальных игроков из session.players
-    # Для пока возвращаем только подключенные WebSocket
-    
+
+    # Возвращаем игроков для этой сессии
     players = []
-    for player_id in websockets.keys():
-        players.append(PlayerResponse(
-            player_id=player_id,
-            player_name="Unknown",  # TODO: Получить из Player объекта
-            character_name=None,
-            connected=True
-        ))
-    
+    for player_id, player_data in active_players.items():
+        if player_data["session_id"] == session_id:
+            players.append(PlayerResponse(
+                player_id=player_id,
+                player_name=player_data["player_name"],
+                character_name=player_data["character_name"],
+                connected=player_data["connected"]
+            ))
+
     return players

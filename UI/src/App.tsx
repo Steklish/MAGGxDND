@@ -70,10 +70,27 @@ function App() {
         setShowSessionDetail(true);
     };
 
-    const handleJoinSession = (sessionId: string) => {
-        // Join session - for now just show detail page
-        // TODO: Implement actual join logic with WebSocket connection
-        alert(`Joining session: ${sessionId}\n\nBackend integration required for actual connection.`);
+    const handleJoinSession = async (sessionId: string) => {
+        try {
+            const username = localStorage.getItem('username') || 'Player';
+            const response = await fetch(`/api/v1/sessions/${sessionId}/players`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ player_name: username }),
+            });
+            
+            if (!response.ok) throw new Error('Failed to join');
+            const data = await response.json();
+            
+            // Store connection info
+            localStorage.setItem('currentSessionId', sessionId);
+            localStorage.setItem('currentPlayerId', data.player_id);
+            
+            alert(`Successfully joined session!\nSession: ${sessionId}\nPlayer ID: ${data.player_id}`);
+        } catch (error) {
+            console.error('Failed to join session:', error);
+            alert('Failed to join session. Make sure backend is running on port 8000.');
+        }
     };
 
     const handleSessionDetailBack = () => {

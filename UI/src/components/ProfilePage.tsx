@@ -189,13 +189,22 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCrea
 
     const handleJoinGame = async (sessionId: string) => {
         try {
-            await axios.post(`/api/v1/sessions/${sessionId}/players`, {
-                player_name: userProfile?.username || 'Player',
+            const username = localStorage.getItem('username') || 'Player';
+            const response = await axios.post(`/api/v1/sessions/${sessionId}/players`, {
+                player_name: username,
             });
-            alert('Joined game successfully!');
+            
+            const playerId = response.data.player_id;
+            console.log('Joined session with player ID:', playerId);
+            
+            // Store connection info
+            localStorage.setItem('currentSessionId', sessionId);
+            localStorage.setItem('currentPlayerId', playerId);
+            
+            alert(`Successfully joined session!\nPlayer ID: ${playerId}`);
         } catch (error) {
             console.error('Failed to join game:', error);
-            alert('Failed to join game');
+            alert('Failed to join session: ' + (error as any).response?.data?.detail || 'Unknown error');
         }
     };
 
