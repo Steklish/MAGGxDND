@@ -71,31 +71,45 @@ function App() {
     };
 
     const handleJoinSession = async (sessionId: string) => {
+        console.log('🔵 Joining session:', sessionId);
         try {
             const username = localStorage.getItem('username') || 'Player';
+            console.log('🔵 Username:', username);
+            
             const response = await fetch(`/api/v1/sessions/${sessionId}/players`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ player_name: username }),
             });
             
-            if (!response.ok) throw new Error('Failed to join');
+            console.log('🔵 Response status:', response.status);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('🔴 Error response:', errorText);
+                throw new Error(`Failed to join: ${response.status}`);
+            }
+            
             const data = await response.json();
+            console.log('🟢 Joined successfully:', data);
             
             // Store connection info
             localStorage.setItem('currentSessionId', sessionId);
             localStorage.setItem('currentPlayerId', data.player_id);
             
-            // Set authenticated and redirect to game
-            setAuthenticated(true);
-            setShowProfile(false);
-            setShowSessionDetail(false);
+            console.log('💾 Stored session:', sessionId);
+            console.log('💾 Stored player:', data.player_id);
             
-            // Force reload to update GameLayout with new session info
+            // Set authenticated
+            setAuthenticated(true);
+            
+            alert(`✅ Successfully joined session!\n\nSession: ${sessionId}\nPlayer ID: ${data.player_id}`);
+            
+            // Force reload
             window.location.reload();
         } catch (error) {
-            console.error('Failed to join session:', error);
-            alert('Failed to join session. Make sure backend is running on port 8000.');
+            console.error('🔴 Failed to join session:', error);
+            alert('❌ Failed to join session.\n\nCheck console (F12) for details.\nMake sure backend is running on port 8000.');
         }
     };
 

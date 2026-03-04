@@ -31,9 +31,11 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     const { session, currentScene, activeCharacter, loadSessions, activeSessions } = useGameStore();
     const [showProfile, setShowProfile] = useState(false);
     const [showCreateSession, setShowCreateSession] = useState(false);
-    const userId = localStorage.getItem('userId');
-    const sessionId = localStorage.getItem('currentSessionId');
-    const playerId = localStorage.getItem('currentPlayerId');
+    
+    // Read session info from localStorage
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+    const sessionId = typeof window !== 'undefined' ? localStorage.getItem('currentSessionId') : null;
+    const playerId = typeof window !== 'undefined' ? localStorage.getItem('currentPlayerId') : null;
 
     const handleSessionCreated = (newSessionId: string) => {
         setShowCreateSession(false);
