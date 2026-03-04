@@ -9,7 +9,7 @@ import { useGameStore } from './store/gameStore';
 import './App.css';
 
 function App() {
-    const { isAuthenticated, userId, characters, loadCharacters } = useGameStore();
+    const { isAuthenticated, userId, characters, loadCharacters, setAuthenticated } = useGameStore();
     const [showProfile, setShowProfile] = useState(false);
     const [showCharacterCreation, setShowCharacterCreation] = useState(false);
     const [showSessionCreation, setShowSessionCreation] = useState(false);
@@ -86,7 +86,7 @@ function App() {
             localStorage.setItem('currentSessionId', sessionId);
             localStorage.setItem('currentPlayerId', data.player_id);
             
-            // Redirect to game layout
+            // Set authenticated and redirect to game
             setAuthenticated(true);
             setShowProfile(false);
             setShowSessionDetail(false);
