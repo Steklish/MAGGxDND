@@ -91,7 +91,8 @@ function App() {
             setShowProfile(false);
             setShowSessionDetail(false);
             
-            alert(`Successfully joined session!\nSession: ${sessionId}\nPlayer ID: ${data.player_id}\n\nRedirecting to game...`);
+            // Force reload to update GameLayout with new session info
+            window.location.reload();
         } catch (error) {
             console.error('Failed to join session:', error);
             alert('Failed to join session. Make sure backend is running on port 8000.');
