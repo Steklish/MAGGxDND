@@ -142,10 +142,10 @@
 
 .btn-create {
     padding: 12px 28px;
-    background: linear-gradient(135deg, var(--accent-orange) 0%, var(--gradient-orange) 100%);
-    border: 1px solid var(--accent-orange);
+    background: linear-gradient(135deg, #FF8A5C 0%, #FFB347 100%);
+    border: 2px solid #FF8A5C;
     border-radius: 8px;
-    color: var(--bg-primary);
+    color: #1a1a1a;
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
@@ -156,8 +156,9 @@
 }
 
 .btn-create:hover {
+    background: linear-gradient(135deg, #FFB347 0%, #FF8A5C 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+    box-shadow: 0 6px 20px rgba(255, 138, 92, 0.6);
 }
 
 .btn-icon {
@@ -639,11 +640,11 @@
 
 .btn-create-game {
     padding: 10px 24px;
-    background: var(--accent-green);
-    border: none;
+    background: linear-gradient(135deg, #2ECC71 0%, #14A76C 100%);
+    border: 2px solid #2ECC71;
     border-radius: 6px;
-    color: var(--bg-primary);
-    font-weight: 600;
+    color: #1a1a1a;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
@@ -652,8 +653,9 @@
 }
 
 .btn-create-game:hover {
+    background: linear-gradient(135deg, #14A76C 0%, #2ECC71 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(42, 157, 143, 0.4);
+    box-shadow: 0 6px 15px rgba(46, 204, 113, 0.5);
 }
 
 .games-section {
