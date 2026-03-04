@@ -47,11 +47,9 @@ export const SessionCreation: React.FC<SessionCreationProps> = ({ userId, onComp
         
         // Prevent double submission
         if (isLoading) {
-            console.warn('⚠️ Prevented duplicate submission!');
             return;
         }
         
-        console.log('🟢 Starting session creation...');
         setIsLoading(true);
         setErrors({});
 
