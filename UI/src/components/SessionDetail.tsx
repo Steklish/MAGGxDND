@@ -27,20 +27,32 @@ interface SessionDetailProps {
 }
 
 export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack, onLeave }) => {
-    const [session, setSession] = useState<SessionDetail | null>(null);
+    const [session, setSession] = useState<any | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         loadSessionDetail();
-        const interval = setInterval(loadSessionDetail, 5000); // Refresh every 5 seconds
+        // Refresh every 5 seconds
+        const interval = setInterval(loadSessionDetail, 5000);
         return () => clearInterval(interval);
     }, [sessionId]);
 
     const loadSessionDetail = async () => {
         try {
-            const response = await axios.get(`/api/v1/sessions/${sessionId}/info`);
-            setSession(response.data);
+            // Get session list and find our session
+            const response = await axios.get('/api/v1/sessions');
+            const foundSession = response.data.sessions.find((s: any) => s.session_id === sessionId);
+            
+            if (foundSession) {
+                // Mock players data since endpoint not implemented
+                setSession({
+                    ...foundSession,
+                    players: [] // TODO: Implement players endpoint
+                });
+            } else {
+                setError('Session not found');
+            }
             setError(null);
         } catch (err: any) {
             console.error('Failed to load session detail:', err);
@@ -50,30 +62,15 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
         }
     };
 
-    const handleKickPlayer = async (playerId: string) => {
-        if (!confirm(`Kick player ${playerId}?`)) return;
-        
-        try {
-            await axios.delete(`/api/v1/sessions/${sessionId}/players/${playerId}`);
-            loadSessionDetail();
-        } catch (err) {
-            console.error('Failed to kick player:', err);
-            alert('Failed to kick player');
-        }
+    const handleLeaveSession = async () => {
+        // TODO: Implement leave session endpoint
+        alert('Leave session feature coming soon!');
+        onLeave();
     };
 
     const handleStartSession = async () => {
-        try {
-            await axios.post(`/api/v1/sessions/${sessionId}/start`, {
-                scene_prompt: 'A dark dungeon corridor...',
-                character_prompts: [],
-                npc_prompts: []
-            });
-            alert('Session started!');
-        } catch (err: any) {
-            console.error('Failed to start session:', err);
-            alert('Failed to start session: ' + (err.response?.data?.detail || 'Unknown error'));
-        }
+        // TODO: Implement start session endpoint
+        alert('Start session feature coming soon! This requires backend implementation.');
     };
 
     if (isLoading) {
@@ -172,13 +169,7 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                                             {player.connected ? '🟢 Connected' : '🔴 Disconnected'}
                                         </span>
                                     </div>
-                                    <button 
-                                        className="btn-kick"
-                                        onClick={() => handleKickPlayer(player.player_id)}
-                                        title="Kick player"
-                                    >
-                                        👢
-                                    </button>
+                                    {/* Kick button removed - endpoint not implemented */}
                                 </div>
                             ))}
                         </div>

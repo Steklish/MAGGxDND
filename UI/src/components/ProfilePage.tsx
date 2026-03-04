@@ -275,23 +275,25 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCrea
                                 {/* Character Selector */}
                                 <div className="character-selector">
                                     {characters.map(char => (
-                                        <button
+                                        <div
                                             key={char.id}
                                             className={`character-option ${selectedCharacter?.id === char.id ? 'active' : ''}`}
                                             onClick={() => setSelectedCharacter(char)}
                                         >
-                                            <div className="character-option-avatar">
-                                                {char.portrait_url ? (
-                                                    <img src={char.portrait_url} alt={char.name} />
-                                                ) : (
-                                                    <span>{char.name.charAt(0)}</span>
-                                                )}
-                                            </div>
-                                            <div className="character-option-info">
-                                                <span className="character-option-name">{char.name}</span>
-                                                <span className="character-option-class">
-                                                    Lvl {char.level} {char.race} {char.char_class}
-                                                </span>
+                                            <div className="character-option-main">
+                                                <div className="character-option-avatar">
+                                                    {char.portrait_url ? (
+                                                        <img src={char.portrait_url} alt={char.name} />
+                                                    ) : (
+                                                        <span>{char.name.charAt(0)}</span>
+                                                    )}
+                                                </div>
+                                                <div className="character-option-info">
+                                                    <span className="character-option-name">{char.name}</span>
+                                                    <span className="character-option-class">
+                                                        Lvl {char.level} {char.race} {char.char_class}
+                                                    </span>
+                                                </div>
                                             </div>
                                             <button
                                                 className="btn-delete-char"
@@ -303,9 +305,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCrea
                                             >
                                                 🗑️
                                             </button>
-                                        </button>
+                                        </div>
                                     ))}
-                                    <button
+                                    <div
                                         className="character-option add-new"
                                         onClick={onCreateCharacter}
                                     >
@@ -316,7 +318,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCrea
                                             <span className="character-option-name">Create New</span>
                                             <span className="character-option-class">Forge a new hero</span>
                                         </div>
-                                    </button>
+                                    </div>
                                 </div>
 
                                 {selectedCharacter && (
