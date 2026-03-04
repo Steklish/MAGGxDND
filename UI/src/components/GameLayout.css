@@ -47,6 +47,7 @@
     flex-direction: column;
     gap: 12px;
     margin-bottom: 32px;
+    overflow: visible;
 }
 
 .btn-create-session,
@@ -58,6 +59,7 @@
     font-size: 15px;
     cursor: pointer;
     transition: all 0.2s ease;
+    position: relative;
 }
 
 .btn-create-session {
