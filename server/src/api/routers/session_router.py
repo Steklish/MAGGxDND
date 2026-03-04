@@ -113,18 +113,22 @@ def _create_session_internal(
 async def create_session(request: SessionCreateRequest):
     """
     Создать новую игровую сессию со всеми зависимостями.
-    
+
     Создаёт:
     - Session с ChromaClient, Generator, Logger
     - EventPool для событий
     - Manipulator для обработки действий
     - Orchestrator для координации
-    
+
     Returns:
         Информация о созданной сессии
     """
-    session_id = str(uuid.uuid4())
+    import logging
+    logger = logging.getLogger(__name__)
     
+    session_id = str(uuid.uuid4())
+    logger.info(f"🟢 Creating session: {session_id} - {request.session_name}")
+
     # Создаём конфигурацию
     config = SessionConfig(
         session_name=request.session_name,
@@ -135,11 +139,12 @@ async def create_session(request: SessionCreateRequest):
         gemini_api_key=request.gemini_api_key,
         gemini_model=request.gemini_model
     )
-    
+
     try:
         # Создаём сессию со всеми зависимостями
         session = _create_session_internal(session_id, config)
-        
+        logger.info(f"✅ Session created successfully: {session_id}")
+
         return SessionResponse(
             session_id=session_id,
             session_name=request.session_name,
@@ -148,13 +153,15 @@ async def create_session(request: SessionCreateRequest):
             status="created",
             description=request.description
         )
-        
+
     except ImportError as e:
+        logger.error(f"❌ ImportError: {e}")
         raise HTTPException(
             status_code=503,
             detail=f"SKLS зависимости не установлены: {str(e)}"
         )
     except Exception as e:
+        logger.error(f"❌ Exception: {e}")
         raise HTTPException(
             status_code=500,
             detail=f"Ошибка при создании сессии: {str(e)}"

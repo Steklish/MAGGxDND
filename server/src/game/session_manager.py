@@ -64,16 +64,23 @@ class SessionManager:
     ) -> None:
         """
         Зарегистрировать игровую сессию в реестре.
-        
+
         Args:
             session_id: Уникальный ID сессии
             session: Экземпляр Session (владеет своим event_pool)
         """
+        import logging
+        logger = logging.getLogger(__name__)
+        
         with self._lock:
+            logger.info(f"📝 Registering session: {session_id} - {session.session_name}")
+            if session_id in self._sessions:
+                logger.warning(f"⚠️ Session {session_id} already exists! Overwriting.")
             self._sessions[session_id] = session
             self._player_websockets[session_id] = {}
             self._player_subscriber_queues[session_id] = {}
             self._session_locks[session_id] = asyncio.Lock()
+            logger.info(f"✅ Session registered: {session_id}")
     
     def get_session(self, session_id: str) -> Optional[Session]:
         """Получить сессию по ID."""

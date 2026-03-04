@@ -157,16 +157,18 @@ class SessionFactory:
         # 12. Инициализируем сюжет (если есть guide)
         if config.guide:
             session._init_plot(config.guide)
-        
+
         # 13. Регистрируем сессию в SessionManager
-        from server.src.game.session_manager import session_manager
+        # Импортируем singleton экземпляр
+        from server.src.game.session_manager import SessionManager
+        session_manager = SessionManager.get_instance()
         session_manager.register_session(session_id, session)
-        
+
         # Сохраняем сессию в фабрике
         self._sessions[session_id] = session
-        
+
         logger.info(f"Сессия '{config.session_name}' создана с ID: {session_id}")
-        
+
         return session
     
     def _create_logger(self, session_name: str, log_dir: str) -> logging.Logger:
