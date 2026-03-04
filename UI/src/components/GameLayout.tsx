@@ -30,6 +30,8 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     const { session, currentScene, activeCharacter, loadSessions, activeSessions } = useGameStore();
     const [showProfile, setShowProfile] = useState(false);
     const userId = localStorage.getItem('userId');
+    const sessionId = localStorage.getItem('currentSessionId');
+    const playerId = localStorage.getItem('currentPlayerId');
     const [leftPanelWidth, setLeftPanelWidth] = useState(25);
     const [rightPanelWidth, setRightPanelWidth] = useState(25);
     const [headerHeight, setHeaderHeight] = useState(() => Math.round(window.innerHeight * 0.07));
@@ -456,6 +458,12 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                     <button className="profile-btn" title="Profile" onClick={() => setShowProfile(true)}>
                         <span className="profile-icon">👤</span>
                     </button>
+                    {sessionId && playerId && (
+                        <div className="session-status">
+                            <span className="status-dot">🟢</span>
+                            <span className="session-id" title={sessionId}>{sessionId.substring(0, 8)}...</span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Header resize handle */}

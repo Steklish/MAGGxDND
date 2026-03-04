@@ -86,7 +86,12 @@ function App() {
             localStorage.setItem('currentSessionId', sessionId);
             localStorage.setItem('currentPlayerId', data.player_id);
             
-            alert(`Successfully joined session!\nSession: ${sessionId}\nPlayer ID: ${data.player_id}`);
+            // Redirect to game layout
+            setAuthenticated(true);
+            setShowProfile(false);
+            setShowSessionDetail(false);
+            
+            alert(`Successfully joined session!\nSession: ${sessionId}\nPlayer ID: ${data.player_id}\n\nRedirecting to game...`);
         } catch (error) {
             console.error('Failed to join session:', error);
             alert('Failed to join session. Make sure backend is running on port 8000.');

@@ -201,7 +201,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCrea
             localStorage.setItem('currentSessionId', sessionId);
             localStorage.setItem('currentPlayerId', playerId);
             
-            alert(`Successfully joined session!\nPlayer ID: ${playerId}`);
+            alert(`Successfully joined session!\nPlayer ID: ${playerId}\n\nRedirecting to game...`);
+            
+            // Redirect to game - call onJoinSession callback if provided
+            if (onJoinSession) {
+                onJoinSession(sessionId);
+            }
         } catch (error) {
             console.error('Failed to join game:', error);
             alert('Failed to join session: ' + (error as any).response?.data?.detail || 'Unknown error');
