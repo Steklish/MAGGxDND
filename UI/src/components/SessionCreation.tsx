@@ -44,6 +44,10 @@ export const SessionCreation: React.FC<SessionCreationProps> = ({ userId, onComp
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Prevent double submission
+        if (isLoading) return;
+        
         setIsLoading(true);
         setErrors({});
 
@@ -69,9 +73,14 @@ export const SessionCreation: React.FC<SessionCreationProps> = ({ userId, onComp
             
             if (response.data.session_id) {
                 // Join the session as creator
-                await axios.post(`/api/v1/sessions/${response.data.session_id}/players`, {
-                    player_name: localStorage.getItem('username') || 'Player',
-                });
+                try {
+                    await axios.post(`/api/v1/sessions/${response.data.session_id}/players`, {
+                        player_name: localStorage.getItem('username') || 'Player',
+                    });
+                } catch (joinError) {
+                    console.warn('Failed to auto-join session:', joinError);
+                    // Continue anyway - session was created
+                }
                 onComplete(response.data.session_id);
             }
         } catch (error: any) {
