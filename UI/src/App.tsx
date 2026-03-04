@@ -70,6 +70,12 @@ function App() {
         setShowSessionDetail(true);
     };
 
+    const handleJoinSession = (sessionId: string) => {
+        // Join session - for now just show detail page
+        // TODO: Implement actual join logic with WebSocket connection
+        alert(`Joining session: ${sessionId}\n\nBackend integration required for actual connection.`);
+    };
+
     const handleSessionDetailBack = () => {
         setShowSessionDetail(false);
         setSelectedSessionId(null);
@@ -145,13 +151,14 @@ function App() {
                 onCreateCharacter={handleShowCharacterCreation}
                 onCreateSession={handleShowSessionCreation}
                 onViewSession={handleShowSessionDetail}
+                onJoinSession={handleJoinSession}
             />
         );
     }
 
     // Show game layout if authenticated
     if (isAuthenticated) {
-        return <GameLayout onCreateSession={handleShowSessionCreation} onViewSession={handleShowSessionDetail} />;
+        return <GameLayout onCreateSession={handleShowSessionCreation} onViewSession={handleShowSessionDetail} onJoinSession={handleJoinSession} />;
     }
 
     // Default: show landing page

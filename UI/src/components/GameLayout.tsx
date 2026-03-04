@@ -23,9 +23,10 @@ interface TurnEntry {
 interface GameLayoutProps {
     onCreateSession?: () => void;
     onViewSession?: (sessionId: string) => void;
+    onJoinSession?: (sessionId: string) => void;
 }
 
-export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewSession }) => {
+export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewSession, onJoinSession }) => {
     const { session, currentScene, activeCharacter, loadSessions, activeSessions } = useGameStore();
     const [showProfile, setShowProfile] = useState(false);
     const userId = localStorage.getItem('userId');
@@ -96,8 +97,16 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                                 <div className="sessions-list">
                                     {activeSessions.map(sess => (
                                         <div key={sess.session_id} className="session-item">
-                                            <span className="session-name">{sess.session_name}</span>
-                                            <span className="session-players">{sess.player_count}/{sess.max_players} players</span>
+                                            <div className="session-item-info">
+                                                <span className="session-name">{sess.session_name}</span>
+                                                <span className="session-players">{sess.player_count}/{sess.max_players} players</span>
+                                            </div>
+                                            <button 
+                                                className="btn-join-session"
+                                                onClick={() => onJoinSession && onJoinSession(sess.session_id)}
+                                            >
+                                                🚪 Join
+                                            </button>
                                         </div>
                                     ))}
                                 </div>

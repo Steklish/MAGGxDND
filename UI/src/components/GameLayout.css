@@ -170,6 +170,30 @@
     box-shadow: 0 2px 8px rgba(255, 107, 53, 0.2);
 }
 
+.session-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.btn-join-session {
+    padding: 8px 20px;
+    background: linear-gradient(135deg, var(--accent-green) 0%, #2ECC71 100%);
+    border: none;
+    border-radius: 6px;
+    color: var(--bg-primary);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.btn-join-session:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(42, 157, 143, 0.4);
+}
+
 .session-name {
     font-weight: 600;
     color: var(--text-primary);
