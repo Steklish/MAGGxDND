@@ -10,20 +10,24 @@
 /* No Session Screen */
 .no-session-screen {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     height: 100vh;
     background: var(--bg-secondary);
+    padding-top: 80px;
+    overflow-y: auto;
 }
 
 .no-session-content {
     text-align: center;
-    padding: 60px 40px;
+    padding: 40px;
     background: var(--bg-primary);
     border-radius: 16px;
     border: 1px solid var(--border-color);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     max-width: 600px;
+    width: 90%;
+    margin-bottom: 40px;
 }
 
 .no-session-content h1 {
@@ -102,6 +106,8 @@
     text-align: left;
     padding-top: 24px;
     border-top: 1px solid var(--border-color);
+    max-height: 400px;
+    overflow-y: auto;
 }
 
 .available-sessions h3 {
@@ -109,6 +115,29 @@
     font-size: 18px;
     font-weight: 700;
     color: var(--text-primary);
+    position: sticky;
+    top: 0;
+    background: var(--bg-primary);
+    padding: 8px 0;
+    z-index: 1;
+}
+
+.available-sessions::-webkit-scrollbar {
+    width: 8px;
+}
+
+.available-sessions::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+}
+
+.available-sessions::-webkit-scrollbar-thumb {
+    background: var(--accent-orange);
+    border-radius: 4px;
+}
+
+.available-sessions::-webkit-scrollbar-thumb:hover {
+    background: var(--gradient-orange);
 }
 
 .sessions-list {
