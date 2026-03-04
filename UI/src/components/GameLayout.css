@@ -608,16 +608,18 @@
 
 /* Session Info Panel */
 .session-info-panel {
-    position: absolute;
-    top: 20px;
+    position: fixed;
+    top: 80px;
     right: 20px;
-    width: 300px;
+    width: 320px;
     background: var(--bg-primary);
     border-radius: 12px;
     border: 2px solid var(--accent-green);
     padding: 20px;
-    z-index: 100;
+    z-index: 1000;
     box-shadow: 0 8px 32px rgba(42, 157, 143, 0.3);
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
 .session-info-header {

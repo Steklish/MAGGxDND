@@ -550,7 +550,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
 
                 {/* Session Info Panel - Shows when connected to session */}
                 {sessionId && playerId && (
-                    <div className="session-info-panel">
+                    <div className="session-info-panel" style={{ border: '2px solid red' }}>
                         <div className="session-info-header">
                             <h3>🎮 Active Session</h3>
                             <button className="btn-leave-session" onClick={handleLeaveSession}>
