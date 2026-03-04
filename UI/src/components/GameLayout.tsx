@@ -8,6 +8,7 @@ import { Footer } from './Footer';
 import { MiniCharacterPanel } from './MiniCharacterPanel';
 import { MiniChatPanel } from './MiniChatPanel';
 import { ProfilePage } from './ProfilePage';
+import { SessionCreation } from './SessionCreation';
 import './GameLayout.css';
 
 interface TurnEntry {
@@ -29,9 +30,38 @@ interface GameLayoutProps {
 export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewSession, onJoinSession }) => {
     const { session, currentScene, activeCharacter, loadSessions, activeSessions } = useGameStore();
     const [showProfile, setShowProfile] = useState(false);
+    const [showCreateSession, setShowCreateSession] = useState(false);
     const userId = localStorage.getItem('userId');
     const sessionId = localStorage.getItem('currentSessionId');
     const playerId = localStorage.getItem('currentPlayerId');
+
+    const handleSessionCreated = (newSessionId: string) => {
+        setShowCreateSession(false);
+        // Auto-join the created session
+        const username = localStorage.getItem('username') || 'Player';
+        fetch(`/api/v1/sessions/${newSessionId}/players`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ player_name: username }),
+        }).then(res => res.json()).then(data => {
+            localStorage.setItem('currentSessionId', newSessionId);
+            localStorage.setItem('currentPlayerId', data.player_id);
+            alert(`Session created and joined!\nPlayer ID: ${data.player_id}`);
+        }).catch(err => {
+            console.error('Failed to auto-join:', err);
+            localStorage.setItem('currentSessionId', newSessionId);
+        });
+    };
+
+    // Show session creation overlay
+    if (showCreateSession && userId) {
+        return <SessionCreation userId={parseInt(userId)} onComplete={handleSessionCreated} onBack={() => setShowCreateSession(false)} />;
+    }
+
+    // Show profile page
+    if (showProfile && userId) {
+        return <ProfilePage userId={parseInt(userId)} onBack={() => setShowProfile(false)} onJoinSession={onJoinSession} />;
+    }
     const [leftPanelWidth, setLeftPanelWidth] = useState(25);
     const [rightPanelWidth, setRightPanelWidth] = useState(25);
     const [headerHeight, setHeaderHeight] = useState(() => Math.round(window.innerHeight * 0.07));
@@ -455,6 +485,9 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                 </div>
 
                 <div className="header-right">
+                    <button className="btn-create-session-header" onClick={() => setShowCreateSession(true)}>
+                        ➕ Create Session
+                    </button>
                     <button className="profile-btn" title="Profile" onClick={() => setShowProfile(true)}>
                         <span className="profile-icon">👤</span>
                     </button>

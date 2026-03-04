@@ -565,6 +565,23 @@
     white-space: nowrap;
 }
 
+.btn-create-session-header {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, var(--accent-orange) 0%, #FFB347 100%);
+    border: none;
+    border-radius: 6px;
+    color: var(--bg-primary);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 13px;
+}
+
+.btn-create-session-header:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+}
+
 /* Header resize handle */
 .header-resize-handle {
     position: absolute;
