@@ -9,13 +9,11 @@
 
 /* No Session Screen */
 .no-session-screen {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
+    display: block;
     height: 100vh;
     background: var(--bg-secondary);
-    padding-top: 80px;
     overflow-y: auto;
+    padding: 40px 20px;
 }
 
 .no-session-content {
@@ -27,7 +25,7 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     max-width: 600px;
     width: 90%;
-    margin-bottom: 40px;
+    margin: 0 auto 40px auto;
 }
 
 .no-session-content h1 {
@@ -106,8 +104,9 @@
     text-align: left;
     padding-top: 24px;
     border-top: 1px solid var(--border-color);
-    max-height: 400px;
+    max-height: 300px;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .available-sessions h3 {
@@ -122,22 +121,23 @@
     z-index: 1;
 }
 
+/* Custom scrollbar - vertical */
 .available-sessions::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
 }
 
 .available-sessions::-webkit-scrollbar-track {
     background: var(--bg-tertiary);
-    border-radius: 4px;
+    border-radius: 5px;
 }
 
 .available-sessions::-webkit-scrollbar-thumb {
-    background: var(--accent-orange);
-    border-radius: 4px;
+    background: linear-gradient(135deg, #FF8A5C 0%, #FFB347 100%);
+    border-radius: 5px;
 }
 
 .available-sessions::-webkit-scrollbar-thumb:hover {
-    background: var(--gradient-orange);
+    background: linear-gradient(135deg, #FFB347 0%, #FF8A5C 100%);
 }
 
 .sessions-list {
