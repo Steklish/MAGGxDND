@@ -167,7 +167,7 @@
 
 .session-item:hover {
     border-color: var(--accent-orange);
-    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.2);
 }
 
 .session-name {
