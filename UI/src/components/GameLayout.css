@@ -18,14 +18,15 @@
 
 .no-session-content {
     text-align: center;
-    padding: 40px;
+    padding: 60px 50px;
     background: var(--bg-primary);
     border-radius: 16px;
     border: 1px solid var(--border-color);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    max-width: 600px;
+    max-width: 700px;
     width: 90%;
     margin: 0 auto 40px auto;
+    min-height: 500px;
 }
 
 .no-session-content h1 {
