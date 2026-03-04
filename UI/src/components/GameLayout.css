@@ -606,6 +606,106 @@
     position: relative;
 }
 
+/* Session Info Panel */
+.session-info-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 300px;
+    background: var(--bg-primary);
+    border-radius: 12px;
+    border: 2px solid var(--accent-green);
+    padding: 20px;
+    z-index: 100;
+    box-shadow: 0 8px 32px rgba(42, 157, 143, 0.3);
+}
+
+.session-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.session-info-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.btn-leave-session {
+    padding: 6px 12px;
+    background: var(--accent-red);
+    border: none;
+    border-radius: 6px;
+    color: var(--bg-primary);
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-leave-session:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(230, 57, 70, 0.4);
+}
+
+.session-info-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.session-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.detail-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    font-size: 14px;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.detail-value.mono {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    word-break: break-all;
+}
+
+.detail-value.status-connected {
+    color: var(--accent-green);
+}
+
+.btn-start-game {
+    margin-top: 8px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, var(--accent-orange) 0%, #FFB347 100%);
+    border: none;
+    border-radius: 8px;
+    color: var(--bg-primary);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-start-game:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+}
+
 .left-panel {
     background-color: var(--bg-secondary);
     border-right: 1px solid var(--border-color);

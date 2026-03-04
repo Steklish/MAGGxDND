@@ -49,10 +49,40 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
             localStorage.setItem('currentSessionId', newSessionId);
             localStorage.setItem('currentPlayerId', data.player_id);
             alert(`Session created and joined!\nPlayer ID: ${data.player_id}`);
+            window.location.reload();
         }).catch(err => {
             console.error('Failed to auto-join:', err);
             localStorage.setItem('currentSessionId', newSessionId);
         });
+    };
+
+    const handleStartGame = async () => {
+        if (!sessionId) return;
+        try {
+            const response = await fetch(`/api/v1/sessions/${sessionId}/start`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    scene_prompt: 'A dark dungeon corridor with flickering torches...',
+                    character_prompts: [],
+                    npc_prompts: []
+                }),
+            });
+            if (response.ok) {
+                alert('Game started! (Backend integration needed for full gameplay)');
+            } else {
+                alert('Failed to start game. Backend endpoint not fully implemented yet.');
+            }
+        } catch (error) {
+            console.error('Failed to start game:', error);
+            alert('Failed to start game.');
+        }
+    };
+
+    const handleLeaveSession = () => {
+        localStorage.removeItem('currentSessionId');
+        localStorage.removeItem('currentPlayerId');
+        window.location.reload();
     };
 
     // Show session creation overlay
@@ -517,6 +547,35 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                 >
                     {leftPanelWidth <= 5 ? <MiniCharacterPanel /> : <CharacterPanel />}
                 </aside>
+
+                {/* Session Info Panel - Shows when connected to session */}
+                {sessionId && playerId && (
+                    <div className="session-info-panel">
+                        <div className="session-info-header">
+                            <h3>🎮 Active Session</h3>
+                            <button className="btn-leave-session" onClick={handleLeaveSession}>
+                                🚪 Leave
+                            </button>
+                        </div>
+                        <div className="session-info-content">
+                            <div className="session-detail">
+                                <span className="detail-label">Session ID:</span>
+                                <span className="detail-value mono">{sessionId}</span>
+                            </div>
+                            <div className="session-detail">
+                                <span className="detail-label">Player ID:</span>
+                                <span className="detail-value mono">{playerId}</span>
+                            </div>
+                            <div className="session-detail">
+                                <span className="detail-label">Status:</span>
+                                <span className="detail-value status-connected">🟢 Connected</span>
+                            </div>
+                            <button className="btn-start-game" onClick={handleStartGame}>
+                                🎲 Start Game
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Left resize handle */}
                 <div
