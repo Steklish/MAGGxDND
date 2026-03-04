@@ -21,7 +21,7 @@ interface TurnEntry {
 }
 
 export const GameLayout: React.FC = () => {
-    const { session, currentScene, activeCharacter } = useGameStore();
+    const { session, currentScene, activeCharacter, loadSessions, activeSessions } = useGameStore();
     const [showProfile, setShowProfile] = useState(false);
     const userId = localStorage.getItem('userId');
     const [leftPanelWidth, setLeftPanelWidth] = useState(25);
@@ -47,6 +47,58 @@ export const GameLayout: React.FC = () => {
     const prevActionPanelHeight = useRef(70);
     const containerWidth = useRef(0);
     const containerHeight = useRef(0);
+
+    // Load sessions on mount
+    useEffect(() => {
+        loadSessions();
+    }, []);
+
+    // Show "no session" state when not in active game
+    if (!session || !currentScene) {
+        return (
+            <div className="game-layout">
+                <div className="no-session-screen">
+                    <div className="no-session-content">
+                        <h1>🎲 No Active Game Session</h1>
+                        <p>You are not currently in an active game session.</p>
+                        <div className="no-session-actions">
+                            <button 
+                                className="btn-create-session"
+                                onClick={() => {/* TODO: Create session */}}
+                            >
+                                ✨ Create New Session
+                            </button>
+                            <button 
+                                className="btn-join-session"
+                                onClick={() => {/* TODO: Join session */}}
+                            >
+                                🚪 Join Existing Session
+                            </button>
+                            <button 
+                                className="btn-back-landing"
+                                onClick={() => window.location.reload()}
+                            >
+                                ← Back to Home
+                            </button>
+                        </div>
+                        {activeSessions && activeSessions.length > 0 && (
+                            <div className="available-sessions">
+                                <h3>Available Sessions:</h3>
+                                <div className="sessions-list">
+                                    {activeSessions.map(sess => (
+                                        <div key={sess.session_id} className="session-item">
+                                            <span className="session-name">{sess.session_name}</span>
+                                            <span className="session-players">{sess.player_count}/{sess.max_players} players</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     // Initialize turn queue from session
     useEffect(() => {

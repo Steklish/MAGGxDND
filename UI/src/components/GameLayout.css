@@ -7,6 +7,139 @@
     background: var(--gradient-dark);
 }
 
+/* No Session Screen */
+.no-session-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: var(--bg-secondary);
+}
+
+.no-session-content {
+    text-align: center;
+    padding: 60px 40px;
+    background: var(--bg-primary);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+}
+
+.no-session-content h1 {
+    margin: 0 0 16px;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.no-session-content > p {
+    margin: 0 0 32px;
+    font-size: 16px;
+    color: var(--text-muted);
+}
+
+.no-session-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 32px;
+}
+
+.btn-create-session,
+.btn-join-session {
+    padding: 14px 28px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-create-session {
+    background: linear-gradient(135deg, var(--accent-orange) 0%, var(--gradient-orange) 100%);
+    color: var(--bg-primary);
+}
+
+.btn-create-session:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+}
+
+.btn-join-session {
+    background: var(--accent-green);
+    color: var(--bg-primary);
+}
+
+.btn-join-session:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(42, 157, 143, 0.4);
+}
+
+.btn-back-landing {
+    padding: 12px 24px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-back-landing:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-orange);
+    color: var(--accent-orange);
+}
+
+.available-sessions {
+    text-align: left;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+}
+
+.available-sessions h3 {
+    margin: 0 0 16px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.sessions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.session-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.session-item:hover {
+    border-color: var(--accent-orange);
+    transform: translateX(4px);
+}
+
+.session-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 15px;
+}
+
+.session-players {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
 /* Game content - scrollable area */
 .game-content {
     display: flex;
