@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { characterAPI, Character, CharacterProfile } from './services/characterAPI';
-import { sessionAPI, GameSession } from './services/sessionAPI';
+import { characterAPI, Character, CharacterProfile } from '../services/characterAPI';
+import { sessionAPI, GameSession } from '../services/sessionAPI';
 
 interface GameState {
     // Auth state
