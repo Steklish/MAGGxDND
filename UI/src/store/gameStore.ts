@@ -207,7 +207,11 @@ export const useGameStore = create<GameState>((set, get) => ({
     loadSessions: async () => {
         try {
             const { sessions } = await sessionAPI.listSessions();
-            set({ activeSessions: sessions });
+            // Filter out duplicates by session_id
+            const uniqueSessions = sessions.filter(
+                (sess, index, self) => index === self.findIndex(s => s.session_id === sess.session_id)
+            );
+            set({ activeSessions: uniqueSessions });
         } catch (error: any) {
             console.error('Failed to load sessions:', error);
         }

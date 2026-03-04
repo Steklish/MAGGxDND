@@ -46,8 +46,12 @@ export const SessionCreation: React.FC<SessionCreationProps> = ({ userId, onComp
         e.preventDefault();
         
         // Prevent double submission
-        if (isLoading) return;
+        if (isLoading) {
+            console.warn('⚠️ Prevented duplicate submission!');
+            return;
+        }
         
+        console.log('🟢 Starting session creation...');
         setIsLoading(true);
         setErrors({});
 
@@ -69,35 +73,24 @@ export const SessionCreation: React.FC<SessionCreationProps> = ({ userId, onComp
                 description: formData.description,
             };
 
-            console.log('Creating session with data:', sessionData);
             const response = await axios.post('/api/v1/sessions', sessionData);
-            console.log('Session created:', response.data);
-
+            
             if (response.data.session_id) {
-                console.log('Joining session:', response.data.session_id);
                 // Join the session as creator
                 try {
                     await axios.post(`/api/v1/sessions/${response.data.session_id}/players`, {
                         player_name: localStorage.getItem('username') || 'Player',
                     });
-                    console.log('Joined session successfully');
                 } catch (joinError) {
                     console.warn('Failed to auto-join session:', joinError);
-                    // Continue anyway - session was created
                 }
-                console.log('Calling onComplete with session_id:', response.data.session_id);
                 onComplete(response.data.session_id);
             }
         } catch (error: any) {
-            console.error('Session creation error:', error);
-            console.error('Error response:', error.response);
-            console.error('Error message:', error.message);
             setIsLoading(false);
             if (error.response) {
-                console.error('Error data:', error.response.data);
                 setErrors({ submit: error.response.data.detail || 'Failed to create session' });
             } else if (error.request) {
-                console.error('No response received:', error.request);
                 setErrors({ submit: 'No response from server. Is the backend running?' });
             } else {
                 setErrors({ submit: 'Network error. Please try again.' });
