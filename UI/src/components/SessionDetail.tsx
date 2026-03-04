@@ -24,10 +24,9 @@ interface SessionDetailProps {
     sessionId: string;
     onBack: () => void;
     onLeave: () => void;
-    onJoin?: () => void;
 }
 
-export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack, onLeave, onJoin }) => {
+export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack, onLeave }) => {
     const [session, setSession] = useState<any | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -113,9 +112,6 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                             🚀 Start Session
                         </button>
                     )}
-                    <button className="btn-join" onClick={onJoin}>
-                        🚪 Join Session
-                    </button>
                     <button className="btn-leave" onClick={onLeave}>
                         ← Back
                     </button>

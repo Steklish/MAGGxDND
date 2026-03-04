@@ -170,51 +170,6 @@
     box-shadow: 0 2px 8px rgba(255, 107, 53, 0.2);
 }
 
-.session-item-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-}
-
-.session-item-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.btn-view-session-small,
-.btn-join-session-small {
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
-    font-size: 13px;
-}
-
-.btn-view-session-small {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-}
-
-.btn-view-session-small:hover {
-    background: var(--accent-purple);
-    border-color: var(--accent-purple);
-    color: var(--bg-primary);
-}
-
-.btn-join-session-small {
-    background: linear-gradient(135deg, var(--accent-green) 0%, #2ECC71 100%);
-    color: var(--bg-primary);
-}
-
-.btn-join-session-small:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(42, 157, 143, 0.4);
-}
-
 .session-name {
     font-weight: 600;
     color: var(--text-primary);

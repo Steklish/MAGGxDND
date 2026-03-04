@@ -89,22 +89,6 @@
     box-shadow: 0 4px 15px rgba(42, 157, 143, 0.4);
 }
 
-.btn-join {
-    padding: 10px 24px;
-    background: linear-gradient(135deg, var(--accent-orange) 0%, #FFB347 100%);
-    border: none;
-    border-radius: 8px;
-    color: var(--bg-primary);
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-join:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
-}
-
 .btn-leave {
     padding: 10px 24px;
     background: var(--bg-tertiary);
