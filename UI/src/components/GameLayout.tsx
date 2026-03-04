@@ -20,7 +20,11 @@ interface TurnEntry {
     deathSaveFailures: number;
 }
 
-export const GameLayout: React.FC = () => {
+interface GameLayoutProps {
+    onCreateSession?: () => void;
+}
+
+export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession }) => {
     const { session, currentScene, activeCharacter, loadSessions, activeSessions } = useGameStore();
     const [showProfile, setShowProfile] = useState(false);
     const userId = localStorage.getItem('userId');
@@ -64,7 +68,7 @@ export const GameLayout: React.FC = () => {
                         <div className="no-session-actions">
                             <button 
                                 className="btn-create-session"
-                                onClick={() => {/* TODO: Create session */}}
+                                onClick={onCreateSession}
                             >
                                 ✨ Create New Session
                             </button>

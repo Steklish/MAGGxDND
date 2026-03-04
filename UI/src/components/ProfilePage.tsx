@@ -55,9 +55,10 @@ interface ProfilePageProps {
     userId: number;
     onBack: () => void;
     onCreateCharacter?: () => void;
+    onCreateSession?: () => void;
 }
 
-export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCreateCharacter }) => {
+export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCreateCharacter, onCreateSession }) => {
     const [characters, setCharacters] = useState<CharacterProfile[]>([]);
     const [selectedCharacter, setSelectedCharacter] = useState<CharacterProfile | null>(null);
     const [characterTab, setCharacterTab] = useState<'overview' | 'combat' | 'skills' | 'equipment' | 'spells' | 'notes'>('overview');
@@ -197,7 +198,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCrea
     };
 
     const handleCreateGame = () => {
-        alert('Create game feature coming soon!');
+        if (onCreateSession) {
+            onCreateSession();
+        }
     };
 
     if (isLoading) {

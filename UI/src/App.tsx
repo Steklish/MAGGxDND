@@ -3,6 +3,7 @@ import { GameLayout } from './components/GameLayout';
 import { LandingPage } from './components/LandingPage';
 import { ProfilePage } from './components/ProfilePage';
 import { CharacterCreation } from './components/CharacterCreation';
+import { SessionCreation } from './components/SessionCreation';
 import { useGameStore } from './store/gameStore';
 import './App.css';
 
@@ -10,6 +11,7 @@ function App() {
     const { isAuthenticated, userId, characters, loadCharacters } = useGameStore();
     const [showProfile, setShowProfile] = useState(false);
     const [showCharacterCreation, setShowCharacterCreation] = useState(false);
+    const [showSessionCreation, setShowSessionCreation] = useState(false);
     const [localUserId, setLocalUserId] = useState<number | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
 
@@ -44,12 +46,23 @@ function App() {
         setShowProfile(false);
     };
 
-    const handleCharacterCreationComplete = () => {
+    const handleShowSessionCreation = () => {
+        setShowSessionCreation(true);
+    };
+
+    const handleCharacterComplete = () => {
         setShowCharacterCreation(false);
         setShowProfile(true);
         if (localUserId) {
             loadCharacters(localUserId);
         }
+    };
+
+    const handleSessionComplete = (sessionId: string) => {
+        setShowSessionCreation(false);
+        // Redirect to game with session
+        console.log('Session created:', sessionId);
+        // TODO: Redirect to game session
     };
 
     // Show nothing while initializing
@@ -66,12 +79,23 @@ function App() {
         );
     }
 
+    // Show session creation if requested
+    if (showSessionCreation && localUserId) {
+        return (
+            <SessionCreation
+                userId={localUserId}
+                onComplete={handleSessionComplete}
+                onBack={() => setShowSessionCreation(false)}
+            />
+        );
+    }
+
     // Show character creation if requested
     if (showCharacterCreation && localUserId) {
         return (
             <CharacterCreation
                 userId={localUserId}
-                onComplete={handleCharacterCreationComplete}
+                onComplete={handleCharacterComplete}
             />
         );
     }
@@ -83,13 +107,14 @@ function App() {
                 userId={localUserId}
                 onBack={handleBackFromProfile}
                 onCreateCharacter={handleShowCharacterCreation}
+                onCreateSession={handleShowSessionCreation}
             />
         );
     }
 
     // Show game layout if authenticated
     if (isAuthenticated) {
-        return <GameLayout />;
+        return <GameLayout onCreateSession={handleShowSessionCreation} />;
     }
 
     // Default: show landing page
