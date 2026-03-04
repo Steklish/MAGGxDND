@@ -57,9 +57,10 @@ interface ProfilePageProps {
     onCreateCharacter?: () => void;
     onCreateSession?: () => void;
     onViewSession?: (sessionId: string) => void;
+    onJoinSession?: (sessionId: string) => void;
 }
 
-export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCreateCharacter, onCreateSession, onViewSession }) => {
+export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCreateCharacter, onCreateSession, onViewSession, onJoinSession }) => {
     const [characters, setCharacters] = useState<CharacterProfile[]>([]);
     const [selectedCharacter, setSelectedCharacter] = useState<CharacterProfile | null>(null);
     const [characterTab, setCharacterTab] = useState<'overview' | 'combat' | 'skills' | 'equipment' | 'spells' | 'notes'>('overview');
@@ -775,9 +776,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCrea
                                                 </button>
                                                 <button
                                                     className="btn-join-game"
-                                                    onClick={() => handleJoinGame(game.session_id)}
+                                                    onClick={() => onJoinSession && onJoinSession(game.session_id)}
                                                 >
-                                                    Join Session
+                                                    🚪 Join Session
                                                 </button>
                                             </div>
                                         </div>

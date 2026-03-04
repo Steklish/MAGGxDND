@@ -22,9 +22,11 @@ interface TurnEntry {
 
 interface GameLayoutProps {
     onCreateSession?: () => void;
+    onViewSession?: (sessionId: string) => void;
+    onJoinSession?: (sessionId: string) => void;
 }
 
-export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession }) => {
+export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewSession, onJoinSession }) => {
     const { session, currentScene, activeCharacter, loadSessions, activeSessions } = useGameStore();
     const [showProfile, setShowProfile] = useState(false);
     const userId = localStorage.getItem('userId');
@@ -95,8 +97,24 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession }) => {
                                 <div className="sessions-list">
                                     {activeSessions.map(sess => (
                                         <div key={sess.session_id} className="session-item">
-                                            <span className="session-name">{sess.session_name}</span>
-                                            <span className="session-players">{sess.player_count}/{sess.max_players} players</span>
+                                            <div className="session-item-info">
+                                                <span className="session-name">{sess.session_name}</span>
+                                                <span className="session-players">{sess.player_count}/{sess.max_players} players</span>
+                                            </div>
+                                            <div className="session-item-actions">
+                                                <button 
+                                                    className="btn-view-session-small"
+                                                    onClick={() => onViewSession && onViewSession(sess.session_id)}
+                                                >
+                                                    👁️
+                                                </button>
+                                                <button 
+                                                    className="btn-join-session-small"
+                                                    onClick={() => onJoinSession && onJoinSession(sess.session_id)}
+                                                >
+                                                    🚪 Join
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
