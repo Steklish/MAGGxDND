@@ -763,7 +763,7 @@
     border: none;
     border-radius: 6px;
     color: var(--bg-primary);
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -771,6 +771,30 @@
 .btn-join-game:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(42, 157, 143, 0.4);
+}
+
+.game-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.btn-view-session {
+    flex: 1;
+    padding: 10px 16px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-view-session:hover {
+    background: var(--accent-purple);
+    border-color: var(--accent-purple);
+    color: var(--bg-primary);
 }
 
 .games-list {

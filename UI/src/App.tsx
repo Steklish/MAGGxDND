@@ -4,6 +4,7 @@ import { LandingPage } from './components/LandingPage';
 import { ProfilePage } from './components/ProfilePage';
 import { CharacterCreation } from './components/CharacterCreation';
 import { SessionCreation } from './components/SessionCreation';
+import { SessionDetail } from './components/SessionDetail';
 import { useGameStore } from './store/gameStore';
 import './App.css';
 
@@ -12,6 +13,8 @@ function App() {
     const [showProfile, setShowProfile] = useState(false);
     const [showCharacterCreation, setShowCharacterCreation] = useState(false);
     const [showSessionCreation, setShowSessionCreation] = useState(false);
+    const [showSessionDetail, setShowSessionDetail] = useState(false);
+    const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
     const [localUserId, setLocalUserId] = useState<number | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
 
@@ -62,6 +65,16 @@ function App() {
         setShowSessionCreation(true);
     };
 
+    const handleShowSessionDetail = (sessionId: string) => {
+        setSelectedSessionId(sessionId);
+        setShowSessionDetail(true);
+    };
+
+    const handleSessionDetailBack = () => {
+        setShowSessionDetail(false);
+        setSelectedSessionId(null);
+    };
+
     const handleCharacterComplete = () => {
         setShowCharacterCreation(false);
         setShowProfile(true);
@@ -88,6 +101,17 @@ function App() {
                 </div>
                 <p>Loading...</p>
             </div>
+        );
+    }
+
+    // Show session detail if requested
+    if (showSessionDetail && selectedSessionId) {
+        return (
+            <SessionDetail
+                sessionId={selectedSessionId}
+                onBack={handleSessionDetailBack}
+                onLeave={handleSessionDetailBack}
+            />
         );
     }
 
@@ -120,13 +144,14 @@ function App() {
                 onBack={handleBackFromProfile}
                 onCreateCharacter={handleShowCharacterCreation}
                 onCreateSession={handleShowSessionCreation}
+                onViewSession={handleShowSessionDetail}
             />
         );
     }
 
     // Show game layout if authenticated
     if (isAuthenticated) {
-        return <GameLayout onCreateSession={handleShowSessionCreation} />;
+        return <GameLayout onCreateSession={handleShowSessionCreation} onViewSession={handleShowSessionDetail} />;
     }
 
     // Default: show landing page

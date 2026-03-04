@@ -56,9 +56,10 @@ interface ProfilePageProps {
     onBack: () => void;
     onCreateCharacter?: () => void;
     onCreateSession?: () => void;
+    onViewSession?: (sessionId: string) => void;
 }
 
-export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCreateCharacter, onCreateSession }) => {
+export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCreateCharacter, onCreateSession, onViewSession }) => {
     const [characters, setCharacters] = useState<CharacterProfile[]>([]);
     const [selectedCharacter, setSelectedCharacter] = useState<CharacterProfile | null>(null);
     const [characterTab, setCharacterTab] = useState<'overview' | 'combat' | 'skills' | 'equipment' | 'spells' | 'notes'>('overview');
@@ -606,16 +607,28 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCrea
                                                 <div className="skills-tab">
                                                     <h3>Skill Modifiers</h3>
                                                     <div className="skills-grid">
-                                                        {Object.entries(selectedCharacter.skills || {}).length > 0 ? (
-                                                            Object.entries(selectedCharacter.skills || {}).map(([skill, modifier]) => (
-                                                                <div key={skill} className="skill-item">
-                                                                    <span className="skill-name">{skill.replace(/_/g, ' ')}</span>
-                                                                    <span className="skill-modifier">{modifier >= 0 ? '+' : ''}{modifier}</span>
-                                                                </div>
-                                                            ))
-                                                        ) : (
-                                                            <p className="empty-message">No skill proficiencies set yet</p>
-                                                        )}
+                                                        {(() => {
+                                                            // Parse skills if it's a string
+                                                            let skillsObj = selectedCharacter.skills || {};
+                                                            if (typeof skillsObj === 'string') {
+                                                                try {
+                                                                    skillsObj = JSON.parse(skillsObj);
+                                                                } catch {
+                                                                    skillsObj = {};
+                                                                }
+                                                            }
+                                                            
+                                                            const skillEntries = Object.entries(skillsObj);
+                                                            if (skillEntries.length > 0) {
+                                                                return skillEntries.map(([skill, modifier]) => (
+                                                                    <div key={skill} className="skill-item">
+                                                                        <span className="skill-name">{skill.replace(/_/g, ' ')}</span>
+                                                                        <span className="skill-modifier">{modifier >= 0 ? '+' : ''}{modifier}</span>
+                                                                    </div>
+                                                                ));
+                                                            }
+                                                            return <p className="empty-message">No skill proficiencies set yet</p>;
+                                                        })()}
                                                     </div>
                                                 </div>
                                             )}
@@ -623,39 +636,80 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCrea
                                             {characterTab === 'equipment' && (
                                                 <div className="equipment-tab">
                                                     <h3>Equipment & Inventory</h3>
-                                                    {selectedCharacter.equipment && selectedCharacter.equipment.length > 0 ? (
-                                                        <ul className="equipment-list">
-                                                            {selectedCharacter.equipment.map((item, idx) => (
-                                                                <li key={idx} className="equipment-item">
-                                                                    {typeof item === 'string' ? item : item.name}
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    ) : (
-                                                        <p className="empty-message">No equipment yet</p>
-                                                    )}
+                                                    {(() => {
+                                                        // Parse equipment if it's a string
+                                                        let equipmentList = selectedCharacter.equipment || [];
+                                                        if (typeof equipmentList === 'string') {
+                                                            try {
+                                                                equipmentList = JSON.parse(equipmentList);
+                                                            } catch {
+                                                                equipmentList = [];
+                                                            }
+                                                        }
+                                                        
+                                                        if (Array.isArray(equipmentList) && equipmentList.length > 0) {
+                                                            return (
+                                                                <ul className="equipment-list">
+                                                                    {equipmentList.map((item, idx) => {
+                                                                        let itemName = 'Unknown Item';
+                                                                        if (typeof item === 'string') {
+                                                                            itemName = item;
+                                                                        } else if (item && typeof item === 'object') {
+                                                                            itemName = item.name || item.short_summary || 'Unknown Item';
+                                                                        }
+                                                                        return (
+                                                                            <li key={idx} className="equipment-item">
+                                                                                {itemName}
+                                                                            </li>
+                                                                        );
+                                                                    })}
+                                                                </ul>
+                                                            );
+                                                        }
+                                                        return <p className="empty-message">No equipment yet</p>;
+                                                    })()}
                                                 </div>
                                             )}
 
                                             {characterTab === 'spells' && (
                                                 <div className="spells-tab">
                                                     <h3>Spell Slots</h3>
-                                                    {selectedCharacter.spell_slots && Object.keys(selectedCharacter.spell_slots).length > 0 ? (
-                                                        <div className="spell-slots-grid">
-                                                            {Object.entries(selectedCharacter.spell_slots).map(([level, slots]) => (
-                                                                <div key={level} className="spell-slot">
-                                                                    <span className="spell-level">Level {level}</span>
-                                                                    <div className="slot-dots">
-                                                                        {Array.from({ length: slots }).map((_, i) => (
-                                                                            <span key={i} className="slot-dot filled"></span>
-                                                                        ))}
-                                                                    </div>
+                                                    {(() => {
+                                                        // Parse spell_slots if it's a string
+                                                        let spellSlotsObj = selectedCharacter.spell_slots || {};
+                                                        if (typeof spellSlotsObj === 'string') {
+                                                            try {
+                                                                spellSlotsObj = JSON.parse(spellSlotsObj);
+                                                            } catch {
+                                                                spellSlotsObj = {};
+                                                            }
+                                                        }
+                                                        
+                                                        const spellSlotEntries = Object.entries(spellSlotsObj);
+                                                        if (spellSlotEntries.length > 0) {
+                                                            return (
+                                                                <div className="spell-slots-grid">
+                                                                    {spellSlotEntries.map(([level, slots]) => {
+                                                                        const slotCount = typeof slots === 'number' ? slots : parseInt(slots) || 0;
+                                                                        if (slotCount > 0) {
+                                                                            return (
+                                                                                <div key={level} className="spell-slot">
+                                                                                    <span className="spell-level">Level {parseInt(level) + 1}</span>
+                                                                                    <div className="slot-dots">
+                                                                                        {Array.from({ length: slotCount }).map((_, i) => (
+                                                                                            <span key={i} className="slot-dot filled"></span>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                </div>
+                                                                            );
+                                                                        }
+                                                                        return null;
+                                                                    })}
                                                                 </div>
-                                                            ))}
-                                                        </div>
-                                                    ) : (
-                                                        <p className="empty-message">No spell slots available</p>
-                                                    )}
+                                                            );
+                                                        }
+                                                        return <p className="empty-message">No spell slots available</p>;
+                                                    })()}
                                                 </div>
                                             )}
 
@@ -710,12 +764,20 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCrea
                                                     👥 {game.player_count}/{game.max_players} players
                                                 </span>
                                             </div>
-                                            <button 
-                                                className="btn-join-game"
-                                                onClick={() => handleJoinGame(game.session_id)}
-                                            >
-                                                Join Session
-                                            </button>
+                                            <div className="game-card-actions">
+                                                <button
+                                                    className="btn-view-session"
+                                                    onClick={() => onViewSession && onViewSession(game.session_id)}
+                                                >
+                                                    👁️ View Details
+                                                </button>
+                                                <button
+                                                    className="btn-join-game"
+                                                    onClick={() => handleJoinGame(game.session_id)}
+                                                >
+                                                    Join Session
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
