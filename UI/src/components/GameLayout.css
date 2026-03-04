@@ -58,23 +58,27 @@
 }
 
 .btn-create-session {
-    background: linear-gradient(135deg, var(--accent-orange) 0%, var(--gradient-orange) 100%);
-    color: var(--bg-primary);
+    background: linear-gradient(135deg, #FF8A5C 0%, #FFB347 100%);
+    color: #1a1a1a;
+    border: 2px solid #FF8A5C;
 }
 
 .btn-create-session:hover {
+    background: linear-gradient(135deg, #FFB347 0%, #FF8A5C 100%);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+    box-shadow: 0 6px 20px rgba(255, 138, 92, 0.5);
 }
 
 .btn-join-session {
-    background: var(--accent-green);
-    color: var(--bg-primary);
+    background: linear-gradient(135deg, #2ECC71 0%, #14A76C 100%);
+    color: #1a1a1a;
+    border: 2px solid #2ECC71;
 }
 
 .btn-join-session:hover {
+    background: linear-gradient(135deg, #14A76C 0%, #2ECC71 100%);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(42, 157, 143, 0.4);
+    box-shadow: 0 6px 20px rgba(46, 204, 113, 0.5);
 }
 
 .btn-back-landing {
