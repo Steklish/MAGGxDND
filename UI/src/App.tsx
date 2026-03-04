@@ -29,6 +29,18 @@ function App() {
         setIsInitialized(true);
     }, []);
 
+    // Listen for show-profile event from GameLayout
+    useEffect(() => {
+        const handleShowProfile = () => {
+            if (localUserId) {
+                setShowProfile(true);
+            }
+        };
+
+        window.addEventListener('show-profile', handleShowProfile);
+        return () => window.removeEventListener('show-profile', handleShowProfile);
+    }, [localUserId]);
+
     // Handle showing profile
     const handleShowProfile = (id: string) => {
         const userId = parseInt(id);

@@ -81,14 +81,12 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession }) => {
                             <button 
                                 className="btn-back-landing"
                                 onClick={() => {
-                                    // Clear auth and redirect to landing
-                                    localStorage.removeItem('access_token');
-                                    localStorage.removeItem('username');
-                                    localStorage.removeItem('userId');
-                                    window.location.reload();
+                                    // Redirect to profile page
+                                    const event = new CustomEvent('show-profile');
+                                    window.dispatchEvent(event);
                                 }}
                             >
-                                ← Back to Home
+                                ← Back to Profile
                             </button>
                         </div>
                         {activeSessions && activeSessions.length > 0 && (
