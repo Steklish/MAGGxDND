@@ -76,7 +76,13 @@ export const GameLayout: React.FC = () => {
                             </button>
                             <button 
                                 className="btn-back-landing"
-                                onClick={() => window.location.reload()}
+                                onClick={() => {
+                                    // Clear auth and redirect to landing
+                                    localStorage.removeItem('access_token');
+                                    localStorage.removeItem('username');
+                                    localStorage.removeItem('userId');
+                                    window.location.reload();
+                                }}
                             >
                                 ← Back to Home
                             </button>
