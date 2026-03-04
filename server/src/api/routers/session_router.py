@@ -90,7 +90,7 @@ def _create_session_internal(
 ) -> Session:
     """
     Внутренняя функция для создания сессии через SessionFactory.
-    
+
     Создаёт Session со всеми зависимостями:
     - ChromaClient
     - Generator
@@ -101,11 +101,9 @@ def _create_session_internal(
     - Orchestrator
     """
     # Используем SessionFactory для создания полноценной сессии
+    # SessionFactory автоматически регистрирует сессию в SessionManager
     session = session_factory.create_session(config)
-    
-    # Регистрируем сессию в SessionManager
-    session_manager.register_session(session_id, session)
-    
+
     return session
 
 
