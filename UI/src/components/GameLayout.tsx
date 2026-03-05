@@ -168,14 +168,16 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     // Load sessions on mount
     useEffect(() => {
         loadSessions();
+        console.log('🔍 GameLayout mounted:', { sessionId, playerId, currentSession, isGenerating });
     }, []);
 
     // Check if user has active session (from localStorage)
     const hasActiveSession = sessionId && playerId;
 
     // Check if game was started (session is running)
-    // We check if sessionId changed after joining (indicates game start)
-    const isGameStarted = hasActiveSession && currentSession?.status === 'running';
+    const isGameStarted = currentSession?.status === 'running';
+    
+    console.log('🔍 GameLayout render:', { hasActiveSession, isGameStarted, sessionId, playerId, currentSession });
 
     // Show loading screen during game generation
     if (isGenerating) {
