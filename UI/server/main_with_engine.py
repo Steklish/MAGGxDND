@@ -1,0 +1,354 @@
+"""
+MAGGxDND Game Server with Full Game Engine Integration
+This server integrates the FastAPI backend with the actual game engine
+"""
+
+import asyncio
+import logging
+import os
+import sys
+import uuid
+from typing import Dict, Optional, List
+
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+# Add parent directory to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+from game.event_pool import EventPool, SubscriberQueue
+from interface.delivery import Delivery, Request
+from schemas.in_game import Character, NPCCharacter, SceneNode, GameModes, Coordinate2D
+from schemas.orchestration import Event
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("game_server_engine")
+
+
+# Import GameDelivery and WebSocketHandler from main.py
+from server.main import GameDelivery, WebSocketHandler
+
+
+# Global state
+active_sessions: Dict[str, dict] = {}
+event_pools: Dict[str, EventPool] = {}
+game_deliveries: Dict[str, GameDelivery] = {}
+session_managers: Dict[str, any] = {}  # Will hold Session objects
+
+
+# Request models
+class SessionInitRequest(BaseModel):
+    session_name: str
+    game_mode: str = "STORY"
+    scene_prompt: str = "A dark dungeon corridor"
+    character_prompts: List[str] = []
+    npc_prompts: List[str] = []
+    gemini_api_key: Optional[str] = None
+
+
+# Create FastAPI app
+app = FastAPI(
+    title="MAGGxDND Game Server (With Engine)",
+    description="WebSocket & REST API with full game engine integration",
+    version="0.2.0"
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize server on startup."""
+    logger.info("MAGGxDND Game Server (with Engine) starting...")
+
+
+@app.websocket("/ws/{session_id}/{player_id}")
+async def websocket_endpoint(websocket: WebSocket, session_id: str, player_id: str):
+    """WebSocket endpoint for real-time game communication."""
+    logger.info(f"New WebSocket connection: session={session_id}, player={player_id}")
+    
+    # Get or create event pool for this session
+    if session_id not in event_pools:
+        event_pools[session_id] = EventPool()
+        logger.info(f"Created new EventPool for session: {session_id}")
+    
+    event_pool = event_pools[session_id]
+    
+    # Subscribe player to events
+    subscriber_queue = event_pool.subscribe(player_id)
+    
+    # Create or get delivery instance
+    if session_id not in game_deliveries:
+        delivery = GameDelivery(subscriber_queue, logger)
+        game_deliveries[session_id] = delivery
+        active_sessions[session_id] = {
+            "delivery": delivery,
+            "players": {},
+            "session_object": None
+        }
+    else:
+        delivery = game_deliveries[session_id]
+    
+    # Create WebSocket handler
+    handler = WebSocketHandler(
+        websocket=websocket,
+        session_id=session_id,
+        player_id=player_id,
+        delivery=delivery,
+        event_queue=subscriber_queue,
+        logger_instance=logger
+    )
+    
+    # Connect and handle
+    await handler.connect()
+    
+    # Keep connection alive
+    try:
+        while True:
+            await asyncio.sleep(1)
+    except WebSocketDisconnect:
+        await handler.disconnect()
+    except Exception as e:
+        logger.error(f"WebSocket error: {e}")
+        await handler.disconnect()
+
+
+@app.post("/api/v1/sessions/init", response_model=dict)
+async def init_game_session(request: SessionInitRequest, background_tasks: BackgroundTasks):
+    """
+    Initialize a full game session with the game engine.
+    This creates a Session object and starts the game loop.
+    """
+    logger.info(f"Initializing game session: {request.session_name}")
+    
+    try:
+        # Import game engine components
+        from game.engine import Session
+        from game.manipulator import Manipulator
+        from entity.orchestrator import Orchestrator
+        from skls_embeddings.chroma_client import ChromaClient
+        from skls_embeddings.embedding_client import EmbeddingClient
+        from skls_generator.generator import Generator
+        from skls_generator.gen_backends.google_gen import GoogleGenAI
+        
+        session_id = str(uuid.uuid4())
+        
+        # Create event pool
+        event_pool = EventPool()
+        event_pools[session_id] = event_pool
+        
+        # Create delivery
+        delivery_queue = event_pool.subscribe(f"delivery_{session_id}")
+        delivery = GameDelivery(delivery_queue, logger)
+        game_deliveries[session_id] = delivery
+        
+        # Setup game engine components
+        chroma_client = ChromaClient(
+            EmbeddingClient(os.getenv("LLAMACPP_EMBED_BASE", "localhost:12345")),
+            path="./chroma_db/data.db",
+            logger_instance=logger
+        )
+        
+        generator = Generator(
+            GoogleGenAI(
+                api_key=request.gemini_api_key or os.getenv("GEMINI_API_KEY", "NO_KEY"),
+                logger=logger,
+                model_name="gemini-2.0-flash"
+            ),
+            logger_instance=logger
+        )
+        
+        # Create session
+        session = Session(
+            session_name=request.session_name,
+            chroma_client=chroma_client,
+            logger=logger.getChild("session"),
+            generator=generator,
+            event_pool=event_pool,
+            delivery=delivery
+        )
+        
+        # Set game mode
+        if request.game_mode.upper() == "COMBAT":
+            session.game_mode = GameModes.COMBAT
+        else:
+            session.game_mode = GameModes.STORY
+        
+        # Inject manipulator
+        manipulator = Manipulator(
+            generator=generator,
+            session=session,
+            archive=None,
+            logger=logger.getChild("manipulator")
+        )
+        session.inject_manipulator(manipulator)
+        
+        # Create and set orchestrator
+        orchestrator = Orchestrator(
+            generator=generator,
+            logger=logger.getChild("orchestrator")
+        )
+        orchestrator.add_state(session)
+        session._init_orchestrator(orchestrator)
+        
+        # Initialize scene if prompt provided
+        if request.scene_prompt:
+            scene = generator.generate_one_shot(
+                pydantic_model=SceneNode,
+                prompt=request.scene_prompt
+            )
+            session.current_scene = scene
+            session.current_location_name = scene.name
+        
+        # Store session
+        active_sessions[session_id]["session_object"] = session
+        session_managers[session_id] = session
+        
+        # Start game loop in background
+        background_tasks.add_task(run_game_loop, session_id)
+        
+        logger.info(f"Game session initialized: {session_id}")
+        
+        return {
+            "status": "initialized",
+            "session_id": session_id,
+            "session_name": request.session_name,
+            "game_mode": request.game_mode,
+            "message": "Game session initialized. Starting game loop..."
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to initialize game session: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to initialize session: {str(e)}")
+
+
+async def run_game_loop(session_id: str):
+    """Run the game loop for a session."""
+    session = session_managers.get(session_id)
+    if not session:
+        logger.error(f"Session not found: {session_id}")
+        return
+    
+    try:
+        logger.info(f"Starting game loop for session: {session_id}")
+        await session.game_loop()
+    except Exception as e:
+        logger.error(f"Game loop error for session {session_id}: {e}", exc_info=True)
+
+
+@app.post("/api/v1/sessions/{session_id}/add_player_character")
+async def add_player_character(
+    session_id: str,
+    character_data: dict,
+    background_tasks: BackgroundTasks
+):
+    """Add a player character to an active session."""
+    session = session_managers.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    try:
+        # Create Character object
+        character = Character(**character_data)
+        
+        # Import Player class
+        from entity.player import Player
+        
+        # Get player's event queue
+        player_id = character.name
+        event_queue = event_pools[session_id].subscribe(player_id)
+        
+        # Create player
+        player = Player(
+            character=character,
+            event_queuee=event_queue,
+            logger=logger.getChild("player"),
+            orchestrator=session.orchestrator
+        )
+        
+        # Add to session
+        session.players.append(player)
+        
+        logger.info(f"Added player character: {character.name} to session {session_id}")
+        
+        return {
+            "status": "success",
+            "player_id": player_id,
+            "character_name": character.name
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to add player character: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to add character: {str(e)}")
+
+
+@app.post("/api/v1/sessions/{session_id}/add_npc")
+async def add_npc(
+    session_id: str,
+    character_data: dict,
+    background_tasks: BackgroundTasks
+):
+    """Add an NPC to an active session."""
+    session = session_managers.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    try:
+        # Create NPCCharacter object
+        character = NPCCharacter(**character_data)
+        
+        # Import NPC class
+        from entity.npc import NPC
+        
+        # Get NPC's event queue
+        event_queue = event_pools[session_id].subscribe(f"npc_{character.name}")
+        
+        # Create NPC
+        npc = NPC(
+            character=character,
+            event_queuee=event_queue,
+            logger=logger.getChild("npc")
+        )
+        
+        # Add to session
+        session.npcs.append(npc)
+        
+        logger.info(f"Added NPC: {character.name} to session {session_id}")
+        
+        return {
+            "status": "success",
+            "npc_name": character.name
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to add NPC: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to add NPC: {str(e)}")
+
+
+# Include original routes for compatibility
+from server.routes import sessions, characters, auth
+
+app.include_router(sessions.router, prefix="/api/v1", tags=["Sessions"])
+app.include_router(characters.router, prefix="/api/v1", tags=["Characters"])
+app.include_router(auth.router, prefix="/api/v1", tags=["Authentication"])
+
+
+if __name__ == "__main__":
+    import uvicorn
+    
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=8000,
+        log_level="info"
+    )
