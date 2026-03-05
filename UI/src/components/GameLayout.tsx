@@ -32,10 +32,10 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     const [showProfile, setShowProfile] = useState(false);
     const [showCreateSession, setShowCreateSession] = useState(false);
     
-    // Read session info from localStorage
-    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+    // Read session info from localStorage directly (not from store)
     const sessionId = typeof window !== 'undefined' ? localStorage.getItem('currentSessionId') : null;
     const playerId = typeof window !== 'undefined' ? localStorage.getItem('currentPlayerId') : null;
+    const gameStatus = typeof window !== 'undefined' ? localStorage.getItem('gameStatus') : null;
 
     const handleSessionCreated = (newSessionId: string) => {
         setShowCreateSession(false);
@@ -175,9 +175,9 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     const hasActiveSession = sessionId && playerId;
 
     // Check if game was started (session is running)
-    const isGameStarted = currentSession?.status === 'running';
+    const isGameStarted = gameStatus === 'running';
     
-    console.log('🔍 GameLayout render:', { hasActiveSession, isGameStarted, sessionId, playerId, currentSession });
+    console.log('🔍 GameLayout render:', { hasActiveSession, isGameStarted, sessionId, playerId, gameStatus, currentSession });
 
     // Show loading screen during game generation
     if (isGenerating) {
@@ -204,10 +204,8 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
         // Game is running - show the full game interface
         // currentScene will be populated when WebSocket connects
         console.log('🎮 Showing game interface for running session');
-    }
-
-    // Show placeholder when session exists but game not started yet
-    if (hasActiveSession && !isGameStarted) {
+        // Continue to render the game interface below
+    } else if (hasActiveSession && !isGameStarted) {
         return (
             <div className="game-layout">
                 <div className="no-session-screen">
@@ -230,8 +228,8 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
         );
     }
 
-    // Show "no session" state when not in active game
-    if (!session || !currentScene) {
+    // Show "no session" state when not in active game AND game not started
+    if ((!hasActiveSession || !isGameStarted) && (!session || !currentScene)) {
         return (
             <div className="game-layout">
                 <div className="no-session-screen">
