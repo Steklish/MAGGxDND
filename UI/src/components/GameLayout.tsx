@@ -295,7 +295,8 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
         const queue: TurnEntry[] = [];
 
         // Add players
-        session.players.forEach(p => {
+        session.players?.forEach(p => {
+            if (!p?.character) return;
             const char = p.character;
             queue.push({
                 character: char,
@@ -309,7 +310,8 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
         });
 
         // Add NPCs
-        session.npcs.forEach(n => {
+        session.npcs?.forEach(n => {
+            if (!n?.character) return;
             const char = n.character;
             // Determine NPC attitude based on context (for now, default to hostile)
             let type: 'hostile' | 'neutral' | 'ally' = 'hostile';
