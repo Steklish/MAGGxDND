@@ -175,8 +175,8 @@ export const CharacterPanel: React.FC = () => {
         );
     }
 
-    const players = session.players.map(p => p.character);
-    const npcs = session.npcs.map(n => n.character);
+    const players = session.players?.map(p => p.character) || [];
+    const npcs = session.npcs?.map(n => n.character) || [];
 
     // Get current turn character
     const getCurrentTurnCharacter = () => {
