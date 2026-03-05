@@ -5,6 +5,7 @@ import { ProfilePage } from './components/ProfilePage';
 import { CharacterCreation } from './components/CharacterCreation';
 import { SessionCreation } from './components/SessionCreation';
 import { SessionDetail } from './components/SessionDetail';
+import { ToastProvider } from './components/common/Toast';
 import { useGameStore } from './store/gameStore';
 import './App.css';
 
@@ -206,4 +207,11 @@ function App() {
     );
 }
 
-export default App;
+// Wrap entire app with ToastProvider
+const AppWithProvider = () => (
+    <ToastProvider>
+        <App />
+    </ToastProvider>
+);
+
+export default AppWithProvider;
