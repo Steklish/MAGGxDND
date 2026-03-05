@@ -123,36 +123,41 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, player_id: s
         await handler.disconnect()
 
 
-@app.post("/api/v1/sessions/init", response_model=dict)
-async def init_game_session(request: SessionInitRequest, background_tasks: BackgroundTasks):
+@app.post("/api/v1/sessions/start_real_game", response_model=dict)
+async def start_real_game(request: SessionInitRequest, background_tasks: BackgroundTasks):
     """
-    Initialize a full game session with the game engine.
-    This creates a Session object and starts the game loop.
+    Start a REAL game session with the actual game engine running.
+    This creates characters, NPCs, scene, and starts the game loop.
     """
-    logger.info(f"Initializing game session: {request.session_name}")
+    logger.info(f"Starting REAL game session: {request.session_name}")
     
     try:
         # Import game engine components
         from game.engine import Session
         from game.manipulator import Manipulator
         from entity.orchestrator import Orchestrator
+        from entity.player import Player
+        from entity.npc import NPC
         from skls_embeddings.chroma_client import ChromaClient
         from skls_embeddings.embedding_client import EmbeddingClient
         from skls_generator.generator import Generator
         from skls_generator.gen_backends.google_gen import GoogleGenAI
+        from schemas.in_game import GameModes, SceneNode, Character, NPCCharacter
         
         session_id = str(uuid.uuid4())
         
         # Create event pool
         event_pool = EventPool()
         event_pools[session_id] = event_pool
+        logger.info(f"[{session_id}] EventPool created")
         
         # Create delivery
         delivery_queue = event_pool.subscribe(f"delivery_{session_id}")
         delivery = GameDelivery(delivery_queue, logger)
         game_deliveries[session_id] = delivery
+        logger.info(f"[{session_id}] GameDelivery created")
         
-        # Setup game engine components
+        # Setup components
         chroma_client = ChromaClient(
             EmbeddingClient(os.getenv("LLAMACPP_EMBED_BASE", "localhost:12345")),
             path="./chroma_db/data.db",
@@ -201,14 +206,64 @@ async def init_game_session(request: SessionInitRequest, background_tasks: Backg
         orchestrator.add_state(session)
         session._init_orchestrator(orchestrator)
         
-        # Initialize scene if prompt provided
-        if request.scene_prompt:
-            scene = generator.generate_one_shot(
-                pydantic_model=SceneNode,
-                prompt=request.scene_prompt
-            )
-            session.current_scene = scene
-            session.current_location_name = scene.name
+        # Generate scene
+        logger.info(f"[{session_id}] Generating scene...")
+        scene = generator.generate_one_shot(
+            pydantic_model=SceneNode,
+            prompt=request.scene_prompt or "A medieval tavern"
+        )
+        session.current_scene = scene
+        session.current_location_name = scene.name
+        logger.info(f"[{session_id}] Scene: {scene.name}")
+        
+        # Generate player characters
+        character_prompts = request.character_prompts or [
+            "A human wizard named Gandor with fireball spell",
+            "A dwarf fighter named Thorin with an axe"
+        ]
+        
+        for prompt in character_prompts:
+            try:
+                char = generator.generate_one_shot(
+                    pydantic_model=Character,
+                    prompt=prompt
+                )
+                
+                player_queue = event_pool.subscribe(f"player_{char.name}")
+                player = Player(
+                    character=char,
+                    event_queuee=player_queue,
+                    logger=logger.getChild("player"),
+                    orchestrator=orchestrator
+                )
+                session.players.append(player)
+                logger.info(f"[{session_id}] Player: {char.name}")
+            except Exception as e:
+                logger.error(f"Failed to create character: {e}")
+        
+        # Generate NPCs
+        npc_prompts = request.npc_prompts or [
+            "A mysterious hooded stranger"
+        ]
+        
+        for prompt in npc_prompts:
+            try:
+                npc_char = generator.generate_one_shot(
+                    pydantic_model=NPCCharacter,
+                    prompt=prompt
+                )
+                npc_char.current_scene = scene.name
+                
+                npc_queue = event_pool.subscribe(f"npc_{npc_char.name}")
+                npc = NPC(
+                    character=npc_char,
+                    event_queuee=npc_queue,
+                    logger=logger.getChild("npc")
+                )
+                session.npcs.append(npc)
+                logger.info(f"[{session_id}] NPC: {npc_char.name}")
+            except Exception as e:
+                logger.error(f"Failed to create NPC: {e}")
         
         # Store session
         active_sessions[session_id]["session_object"] = session
@@ -217,19 +272,22 @@ async def init_game_session(request: SessionInitRequest, background_tasks: Backg
         # Start game loop in background
         background_tasks.add_task(run_game_loop, session_id)
         
-        logger.info(f"Game session initialized: {session_id}")
+        logger.info(f"[{session_id}] REAL GAME STARTED!")
         
         return {
-            "status": "initialized",
+            "status": "running",
             "session_id": session_id,
             "session_name": request.session_name,
             "game_mode": request.game_mode,
-            "message": "Game session initialized. Starting game loop..."
+            "scene": scene.name,
+            "players": [p.character.name for p in session.players],
+            "npcs": [n.character.name for n in session.npcs],
+            "message": "Real game session started with AI!"
         }
         
     except Exception as e:
-        logger.error(f"Failed to initialize game session: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Failed to initialize session: {str(e)}")
+        logger.error(f"Failed to start real game: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to start game: {str(e)}")
 
 
 async def run_game_loop(session_id: str):
