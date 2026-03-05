@@ -266,8 +266,16 @@ async def start_real_game(request: SessionInitRequest, background_tasks: Backgro
                 logger.error(f"Failed to create NPC: {e}")
         
         # Store session
-        active_sessions[session_id]["session_object"] = session
+        active_sessions[session_id] = {
+            "delivery": delivery,
+            "players": {p.character.name: p for p in session.players},
+            "session_object": session
+        }
         session_managers[session_id] = session
+        game_deliveries[session_id] = delivery
+        event_pools[session_id] = event_pool
+        
+        logger.info(f"[{session_id}] Session stored in active_sessions")
         
         # Start game loop in background
         background_tasks.add_task(run_game_loop, session_id)
@@ -288,6 +296,68 @@ async def start_real_game(request: SessionInitRequest, background_tasks: Backgro
     except Exception as e:
         logger.error(f"Failed to start real game: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to start game: {str(e)}")
+
+
+@app.get("/api/v1/sessions/{session_id}/game_info")
+async def get_game_info(session_id: str):
+    """Get detailed game session info including players, NPCs, and scene."""
+    session = session_managers.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    try:
+        session_data = active_sessions.get(session_id, {})
+        session_obj = session_data.get("session_object")
+        
+        players_data = []
+        for player_name, player_obj in session_data.get("players", {}).items():
+            if hasattr(player_obj, 'character'):
+                char = player_obj.character
+                players_data.append({
+                    "name": char.name if hasattr(char, 'name') else str(char),
+                    "race": getattr(char, 'race', 'Unknown'),
+                    "char_class": getattr(char, 'char_class', 'Unknown'),
+                    "level": getattr(char, 'level', 1),
+                    "hp": getattr(char, 'current_hp', 0),
+                    "ac": getattr(char, 'armor_class', 10),
+                    "initiative_bonus": getattr(char, 'initiative_bonus', 0),
+                })
+        
+        npcs_data = []
+        if session_obj and hasattr(session_obj, 'npcs'):
+            for npc in session_obj.npcs:
+                if hasattr(npc, 'character'):
+                    char = npc.character
+                    npcs_data.append({
+                        "name": getattr(char, 'name', 'Unknown'),
+                        "race": getattr(char, 'race', 'Unknown'),
+                        "char_class": getattr(char, 'char_class', 'Unknown'),
+                        "alignment": getattr(char, 'alignment', 'Neutral'),
+                        "hp": getattr(char, 'current_hp', 0),
+                    })
+        
+        scene_data = None
+        if session_obj and hasattr(session_obj, 'current_scene'):
+            scene = session_obj.current_scene
+            if scene:
+                scene_data = {
+                    "name": getattr(scene, 'name', 'Unknown'),
+                    "description": getattr(scene, 'description', ''),
+                }
+        
+        return {
+            "session_id": session_id,
+            "session_name": session.session_name,
+            "game_mode": session.game_mode.value if hasattr(session.game_mode, 'value') else str(session.game_mode),
+            "status": "running",
+            "players": players_data,
+            "npcs": npcs_data,
+            "scene": scene_data,
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get game info: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to get game info: {str(e)}")
 
 
 async def run_game_loop(session_id: str):

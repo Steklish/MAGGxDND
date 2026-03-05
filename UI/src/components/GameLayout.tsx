@@ -67,6 +67,59 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     useEffect(() => {
         loadSessions();
         console.log('🔍 GameLayout mounted:', { sessionId, playerId, currentSession, isGenerating });
+        
+        // If game is running, try to load game data from server
+        if (sessionId && playerId && gameStatus === 'running') {
+            console.log('📡 Loading game data for session:', sessionId);
+            fetch(`/api/v1/sessions/${sessionId}/game_info`)
+                .then(res => res.json())
+                .then(data => {
+                    console.log('📦 Game info loaded:', data);
+                    if (data.players && data.players.length > 0) {
+                        console.log('🎭 Players loaded:', data.players.length);
+                        console.log('🎭 NPCs loaded:', data.npcs?.length || 0);
+                        console.log('🏰 Scene:', data.scene?.name);
+                        
+                        // Update session in store with game data
+                        const gameSession = {
+                            session_id: data.session_id,
+                            session_name: data.session_name,
+                            game_mode: data.game_mode,
+                            status: data.status,
+                            player_count: data.players.length,
+                            max_players: 5,
+                            description: null,
+                            players: data.players.map((p: any) => ({
+                                character: {
+                                    name: p.name,
+                                    race: p.race,
+                                    char_class: p.char_class,
+                                    level: p.level,
+                                    current_hp: p.hp,
+                                    armor_class: p.ac,
+                                    initiative_bonus: p.initiative_bonus,
+                                }
+                            })),
+                            npcs: (data.npcs || []).map((n: any) => ({
+                                character: {
+                                    name: n.name,
+                                    race: n.race,
+                                    char_class: n.char_class,
+                                    alignment: n.alignment,
+                                    current_hp: n.hp,
+                                    initiative_bonus: 0,
+                                }
+                            })),
+                            current_scene: data.scene ? {
+                                name: data.scene.name,
+                                description: data.scene.description,
+                            } : null,
+                        };
+                        setCurrentSession(gameSession);
+                    }
+                })
+                .catch(err => console.error('Failed to load game info:', err));
+        }
     }, []);
 
     useEffect(() => {
