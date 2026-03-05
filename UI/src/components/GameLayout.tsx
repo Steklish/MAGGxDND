@@ -219,13 +219,14 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     }, []);
 
     const advanceTurn = useCallback(() => {
-        if (aliveQueue.length === 0) return;
-        const currentChar = aliveQueue[currentIndex % aliveQueue.length];
+        const queue = turnQueue.filter(entry => !entry.isDead);
+        if (queue.length === 0) return;
+        const currentChar = queue[currentIndex % queue.length];
         if (currentChar?.isDying) {
             performDeathSave(currentChar.character.name);
         }
-        setCurrentIndex(prev => (prev + 1) % aliveQueue.length);
-    }, [aliveQueue, currentIndex, performDeathSave]);
+        setCurrentIndex(prev => (prev + 1) % queue.length);
+    }, [turnQueue, currentIndex, performDeathSave]);
 
     const handleMouseMove = useCallback((e: MouseEvent) => {
         if (!isResizingLeft && !isResizingRight && !isResizingHeader && !isResizingActionPanel) return;
@@ -302,7 +303,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
         }
     }, [isResizingLeft, isResizingRight, isResizingHeader, isResizingActionPanel, handleMouseMove, handleMouseUp]);
 
-    // Variables derived from hooks (must be after hooks)
+    // Variables derived from hooks (must be after ALL hooks)
     const aliveQueue = getAliveQueue();
     const currentTurnChar = aliveQueue[currentIndex % aliveQueue.length];
 
