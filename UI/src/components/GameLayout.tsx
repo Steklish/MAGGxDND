@@ -33,6 +33,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     // ALL HOOKS MUST BE AT THE TOP - before any conditional returns
     const [showProfile, setShowProfile] = useState(false);
     const [showCreateSession, setShowCreateSession] = useState(false);
+    const [sessionNotFound, setSessionNotFound] = useState(false);
     const [leftPanelWidth, setLeftPanelWidth] = useState(25);
     const [rightPanelWidth, setRightPanelWidth] = useState(25);
     const [headerHeight, setHeaderHeight] = useState(() => Math.round(window.innerHeight * 0.07));
@@ -75,7 +76,14 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                 .then(res => res.json())
                 .then(data => {
                     console.log('📦 Game info loaded:', data);
-                    if (data.players && data.players.length > 0) {
+                    if (data.detail === 'Session not found') {
+                        console.warn('⚠️ Session not found on server - may have been lost');
+                        // Clear invalid session
+                        localStorage.removeItem('gameStatus');
+                        setGenerationStatus('');
+                        setIsGenerating(false);
+                        setSessionNotFound(true);
+                    } else if (data.players && data.players.length > 0) {
                         console.log('🎭 Players loaded:', data.players.length);
                         console.log('🎭 NPCs loaded:', data.npcs?.length || 0);
                         console.log('🏰 Scene:', data.scene?.name);
@@ -385,6 +393,35 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     // Only consider game started if we have both sessionId AND playerId
     const isGameStarted = hasActiveSession && gameStatus === 'running';
     
+    // Show message if session was lost
+    if (sessionNotFound) {
+        return (
+            <div className="game-layout">
+                <div className="no-session-screen">
+                    <div className="no-session-content">
+                        <h1>⚠️ Session Not Found</h1>
+                        <p>The game session could not be loaded from the server.</p>
+                        <p className="hint">This may happen if the server was restarted or the session expired.</p>
+                        <div className="no-session-actions">
+                            <button className="btn-create-session" onClick={() => {
+                                localStorage.removeItem('currentSessionId');
+                                localStorage.removeItem('currentPlayerId');
+                                localStorage.removeItem('gameStatus');
+                                setSessionNotFound(false);
+                                window.location.reload();
+                            }}>
+                                🔄 Clear & Start Fresh
+                            </button>
+                            <button className="btn-join-session" onClick={onCreateSession}>
+                                ✨ Create New Session
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     console.log('🔍 GameLayout render:', { hasActiveSession, isGameStarted, sessionId, playerId, gameStatus });
 
     // Show loading screen during game generation
