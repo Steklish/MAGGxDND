@@ -28,7 +28,7 @@ interface GameLayoutProps {
 }
 
 export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewSession, onJoinSession }) => {
-    const { session, currentScene, activeCharacter, loadSessions, activeSessions } = useGameStore();
+    const { session, currentSession, currentScene, activeCharacter, loadSessions, activeSessions, setCurrentSession, isGenerating, generationStatus, setIsGenerating, setGenerationStatus } = useGameStore();
     const [showProfile, setShowProfile] = useState(false);
     const [showCreateSession, setShowCreateSession] = useState(false);
     
@@ -59,29 +59,63 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     const handleStartGame = async () => {
         if (!sessionId) return;
         try {
-            const response = await fetch(`/api/v1/sessions/${sessionId}/start`, {
+            // Set generating state
+            setIsGenerating(true);
+            setGenerationStatus('🎲 Инициализация игрового мира...');
+            
+            const response = await fetch(`/api/v1/sessions/start_real_game`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    scene_prompt: 'A dark dungeon corridor with flickering torches...',
-                    character_prompts: [],
-                    npc_prompts: []
+                    session_name: 'Active Session',
+                    game_mode: 'STORY',
+                    scene_prompt: 'A medieval tavern with adventurers',
+                    character_prompts: ['A brave hero'],
+                    npc_prompts: ['A mysterious stranger']
                 }),
             });
+            const data = await response.json();
+            
             if (response.ok) {
-                alert('Game started! (Backend integration needed for full gameplay)');
+                setGenerationStatus('✨ Генерация персонажа...');
+                // Small delay to show the status
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                setGenerationStatus('🧙 Создание NPC...');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Update localStorage with new session ID
+                localStorage.setItem('currentSessionId', data.session_id);
+                localStorage.setItem('currentPlayerId', data.players[0]);
+                console.log('🎮 Game started:', data);
+                
+                setGenerationStatus('🌍 Загрузка мира...');
+                await new Promise(resolve => setTimeout(resolve, 800));
+                
+                // Reset generating state
+                setIsGenerating(false);
+                setGenerationStatus('');
+                
+                // Reload to show game interface
+                window.location.reload();
             } else {
-                alert('Failed to start game. Backend endpoint not fully implemented yet.');
+                console.error('Failed to start game:', data.detail);
+                setIsGenerating(false);
+                setGenerationStatus('');
             }
         } catch (error) {
             console.error('Failed to start game:', error);
-            alert('Failed to start game.');
+            setIsGenerating(false);
+            setGenerationStatus('');
         }
     };
 
     const handleLeaveSession = () => {
         localStorage.removeItem('currentSessionId');
         localStorage.removeItem('currentPlayerId');
+        // Update store to clear session
+        setCurrentSession(null);
+        // Force re-render by updating local state
         window.location.reload();
     };
 
@@ -123,6 +157,62 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
         loadSessions();
     }, []);
 
+    // Check if user has active session (from localStorage)
+    const hasActiveSession = sessionId && playerId;
+
+    // Check if session is running (game started)
+    const isSessionRunning = currentSession?.status === 'running' || (session?.status === 'running');
+
+    // Show loading screen during game generation
+    if (isGenerating) {
+        return (
+            <div className="game-layout">
+                <div className="loading-screen">
+                    <div className="loading-content">
+                        <div className="loading-animation">
+                            <div className="loading-spinner"></div>
+                            <div className="loading-spinner-delay"></div>
+                            <div className="loading-spinner-delay-2"></div>
+                        </div>
+                        <h2>🎮 Создание игры...</h2>
+                        <p className="loading-status">{generationStatus}</p>
+                        <p className="loading-hint">Пожалуйста, подождите. Это может занять несколько секунд.</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Show placeholder when session exists but no scene data (backend not fully initialized)
+    if (hasActiveSession && !currentScene && !isSessionRunning) {
+        return (
+            <div className="game-layout">
+                <div className="no-session-screen">
+                    <div className="no-session-content">
+                        <h1>🎮 Connected to Session</h1>
+                        <p>You are connected to session: <strong>{sessionId}</strong></p>
+                        <p>Player ID: <strong>{playerId}</strong></p>
+                        <div className="no-session-actions">
+                            <button className="btn-create-session" onClick={handleStartGame}>
+                                ▶️ Start Game
+                            </button>
+                            <button className="btn-join-session" onClick={handleLeaveSession}>
+                                🚪 Leave Session
+                            </button>
+                        </div>
+                        <p className="text-muted">Note: Full game integration requires backend to initialize scene data.</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Show game interface when session is running (even without currentScene)
+    if (hasActiveSession && isSessionRunning) {
+        // Game is running - show the full game interface
+        // currentScene will be populated when WebSocket connects
+    }
+
     // Show "no session" state when not in active game
     if (!session || !currentScene) {
         return (
@@ -132,19 +222,19 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                         <h1>🎲 No Active Game Session</h1>
                         <p>You are not currently in an active game session.</p>
                         <div className="no-session-actions">
-                            <button 
+                            <button
                                 className="btn-create-session"
                                 onClick={onCreateSession}
                             >
                                 ✨ Create New Session
                             </button>
-                            <button 
+                            <button
                                 className="btn-join-session"
                                 onClick={() => {/* TODO: Join session */}}
                             >
                                 🚪 Join Existing Session
                             </button>
-                            <button 
+                            <button
                                 className="btn-back-landing"
                                 onClick={() => {
                                     // Redirect to profile page
@@ -165,7 +255,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                                                 <span className="session-name">{sess.session_name}</span>
                                                 <span className="session-players">{sess.player_count}/{sess.max_players} players</span>
                                             </div>
-                                            <button 
+                                            <button
                                                 className="btn-join-session"
                                                 onClick={() => onJoinSession && onJoinSession(sess.session_id)}
                                             >

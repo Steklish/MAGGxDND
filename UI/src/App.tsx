@@ -10,7 +10,7 @@ import { useGameStore } from './store/gameStore';
 import './App.css';
 
 function App() {
-    const { isAuthenticated, userId, characters, loadCharacters, setAuthenticated } = useGameStore();
+    const { isAuthenticated, userId, characters, loadCharacters, setAuthenticated, loadSessions } = useGameStore();
     const [showProfile, setShowProfile] = useState(false);
     const [showCharacterCreation, setShowCharacterCreation] = useState(false);
     const [showSessionCreation, setShowSessionCreation] = useState(false);
@@ -73,44 +73,68 @@ function App() {
 
     const handleJoinSession = async (sessionId: string) => {
         console.log('🔵 Joining session:', sessionId);
+        
+        // Check if already joined this session
+        const existingSessionId = localStorage.getItem('currentSessionId');
+        const existingPlayerId = localStorage.getItem('currentPlayerId');
+        
+        if (existingSessionId && existingPlayerId) {
+            // Already in a session - just open game interface
+            console.log('✅ Already in session, opening game interface');
+            setAuthenticated(true);
+            return;
+        }
+        
         try {
             const username = localStorage.getItem('username') || 'Player';
             console.log('🔵 Username:', username);
-            
+
             const response = await fetch(`/api/v1/sessions/${sessionId}/players`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ player_name: username }),
             });
-            
+
             console.log('🔵 Response status:', response.status);
-            
+
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('🔴 Error response:', errorText);
+                
+                // Check for specific errors
+                if (response.status === 400) {
+                    if (errorText.includes('Session is full')) {
+                        console.error('❌ Session is full');
+                        return;
+                    } else if (errorText.includes('already joined')) {
+                        console.error('❌ Already joined this session');
+                        return;
+                    }
+                }
+                
                 throw new Error(`Failed to join: ${response.status}`);
             }
-            
+
             const data = await response.json();
             console.log('🟢 Joined successfully:', data);
-            
+
             // Store connection info
             localStorage.setItem('currentSessionId', sessionId);
             localStorage.setItem('currentPlayerId', data.player_id);
-            
+
             console.log('💾 Stored session:', sessionId);
             console.log('💾 Stored player:', data.player_id);
-            
-            // Set authenticated
+
+            // Update store with session info
             setAuthenticated(true);
             
-            alert(`✅ Successfully joined session!\n\nSession: ${sessionId}\nPlayer ID: ${data.player_id}`);
-            
-            // Force reload
-            window.location.reload();
+            // Reload sessions to show updated player count
+            loadSessions();
+
+            console.log('✅ Session joined, game interface will open');
+            // No reload needed - GameLayout will detect session from localStorage
         } catch (error) {
             console.error('🔴 Failed to join session:', error);
-            alert('❌ Failed to join session.\n\nCheck console (F12) for details.\nMake sure backend is running on port 8000.');
         }
     };
 
@@ -194,8 +218,10 @@ function App() {
         );
     }
 
-    // Show game layout if authenticated
-    if (isAuthenticated) {
+    // Show game layout if authenticated OR if already in active session
+    const hasActiveSession = typeof window !== 'undefined' && localStorage.getItem('currentSessionId') && localStorage.getItem('currentPlayerId');
+    
+    if (isAuthenticated || hasActiveSession) {
         return <GameLayout onCreateSession={handleShowSessionCreation} onViewSession={handleShowSessionDetail} onJoinSession={handleJoinSession} />;
     }
 

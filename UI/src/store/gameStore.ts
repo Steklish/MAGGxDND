@@ -17,12 +17,15 @@ interface GameState {
     // Game session state
     activeSessions: GameSession[];
     currentSession: GameSession | null;
+    session: GameSession | null; // Alias for currentSession (for compatibility)
     sessionId: string | null;
     
     // UI state
     mode: 'menu' | 'connecting' | 'playing' | 'error' | null;
     error: string | null;
     isLoading: boolean;
+    isGenerating: boolean; // For game generation loading state
+    generationStatus: string; // Status message during generation
     
     // Actions - Auth
     setAuthenticated: (value: boolean) => void;
@@ -64,11 +67,14 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     activeSessions: [],
     currentSession: null,
+    session: null,
     sessionId: null,
 
     mode: 'menu',
     error: null,
     isLoading: false,
+    isGenerating: false,
+    generationStatus: '',
     
     // Auth actions
     setAuthenticated: (value) => set({ isAuthenticated: value }),
@@ -260,8 +266,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     },
 
     setCurrentSession: (session) => {
-        set({ 
+        set({
             currentSession: session,
+            session: session, // Also update alias
             sessionId: session?.session_id || null,
         });
     },
@@ -270,6 +277,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     setMode: (mode) => set({ mode }),
     setError: (error) => set({ error }),
     setLoading: (loading) => set({ isLoading: loading }),
+    setIsGenerating: (generating) => set({ isGenerating: generating }),
+    setGenerationStatus: (status) => set({ generationStatus: status }),
 }));
 
 // Initialize store from localStorage
@@ -277,13 +286,34 @@ const initStore = () => {
     const token = localStorage.getItem('access_token');
     const userId = localStorage.getItem('userId');
     const username = localStorage.getItem('username');
-    
+    const sessionId = localStorage.getItem('currentSessionId');
+    const playerId = localStorage.getItem('currentPlayerId');
+
     if (token && userId && username) {
         useGameStore.setState({
             isAuthenticated: true,
             userId: parseInt(userId),
             username,
             accessToken: token,
+        });
+    }
+
+    // Restore session if already joined
+    if (sessionId && playerId) {
+        const sessionData = {
+            session_id: sessionId,
+            session_name: 'Active Session',
+            game_mode: 'STORY',
+            player_count: 1,
+            max_players: 5,
+            status: 'running', // Assume running if we have sessionId
+            description: null,
+            players: [{ player_id: playerId, player_name: username || 'Player', character_name: null }],
+        };
+        useGameStore.setState({
+            sessionId,
+            currentSession: sessionData,
+            session: sessionData, // Also set 'session' for compatibility
         });
     }
 };
