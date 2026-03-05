@@ -201,6 +201,111 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
         window.location.reload();
     };
 
+    // ALL useCallback MUST BE BEFORE ANY CONDITIONAL RETURNS
+    const getAliveQueue = useCallback(() => {
+        return turnQueue.filter(entry => !entry.isDead);
+    }, [turnQueue]);
+
+    const handleDeathAnimation = useCallback((characterName: string) => {
+        setDyingCharacters(prev => [...prev, characterName]);
+        setTimeout(() => {
+            setDyingCharacters(prev => prev.filter(name => name !== characterName));
+        }, 1000);
+    }, []);
+
+    const performDeathSave = useCallback((characterName: string) => {
+        const roll = Math.floor(Math.random() * 20) + 1;
+        console.log(`${characterName} death save roll: ${roll}`);
+    }, []);
+
+    const advanceTurn = useCallback(() => {
+        if (aliveQueue.length === 0) return;
+        const currentChar = aliveQueue[currentIndex % aliveQueue.length];
+        if (currentChar?.isDying) {
+            performDeathSave(currentChar.character.name);
+        }
+        setCurrentIndex(prev => (prev + 1) % aliveQueue.length);
+    }, [aliveQueue, currentIndex, performDeathSave]);
+
+    const handleMouseMove = useCallback((e: MouseEvent) => {
+        if (!isResizingLeft && !isResizingRight && !isResizingHeader && !isResizingActionPanel) return;
+        if (!containerRef.current) return;
+        const container = containerRef.current;
+        const containerRect = container.getBoundingClientRect();
+        if (isResizingHeader) {
+            const deltaY = e.clientY - startY.current;
+            const newHeight = startHeaderHeight.current + deltaY;
+            const minHeight = window.innerHeight * 0.05;
+            const maxHeight = window.innerHeight * 0.10;
+            setHeaderHeight(Math.max(minHeight, Math.min(maxHeight, newHeight)));
+        } else if (isResizingActionPanel) {
+            const deltaY = e.clientY - startY.current;
+            const deltaPercent = (deltaY / containerRect.height) * 100;
+            const newHeight = startActionPanelHeight.current + deltaPercent;
+            if (newHeight < 10) {
+                setIsSceneCollapsed(true);
+                prevActionPanelHeight.current = actionPanelHeight;
+                setActionPanelHeight(0);
+            } else {
+                setIsSceneCollapsed(false);
+                setActionPanelHeight(Math.max(10, Math.min(60, newHeight)));
+            }
+        } else {
+            const deltaX = e.clientX - startX.current;
+            const deltaPercent = (deltaX / containerWidth.current) * 100;
+            if (isResizingLeft) {
+                const newWidth = startLeftWidth.current + deltaPercent;
+                setLeftPanelWidth(Math.max(5, Math.min(25, newWidth)));
+            }
+            if (isResizingRight) {
+                const newWidth = startRightWidth.current - deltaPercent;
+                setRightPanelWidth(Math.max(5, Math.min(25, newWidth)));
+            }
+        }
+    }, [isResizingLeft, isResizingRight, isResizingHeader, isResizingActionPanel]);
+
+    const handleMouseUp = useCallback(() => {
+        if (isResizingHeader) {
+            const minHeight = window.innerHeight * 0.05;
+            const maxHeight = window.innerHeight * 0.10;
+            const midpoint = (minHeight + maxHeight) / 2;
+            if (headerHeight > midpoint) {
+                setHeaderHeight(maxHeight);
+            } else {
+                setHeaderHeight(minHeight);
+            }
+        }
+        if (isResizingActionPanel) {
+            const collapseThreshold = 10;
+            if (actionPanelHeight < collapseThreshold) {
+                setIsSceneCollapsed(true);
+                setActionPanelHeight(0);
+            } else {
+                setIsSceneCollapsed(false);
+                setActionPanelHeight(70);
+            }
+        }
+        setIsResizingLeft(false);
+        setIsResizingRight(false);
+        setIsResizingHeader(false);
+        setIsResizingActionPanel(false);
+    }, [isResizingHeader, isResizingActionPanel, headerHeight, actionPanelHeight]);
+
+    useEffect(() => {
+        if (isResizingLeft || isResizingRight || isResizingHeader || isResizingActionPanel) {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            return () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+            };
+        }
+    }, [isResizingLeft, isResizingRight, isResizingHeader, isResizingActionPanel, handleMouseMove, handleMouseUp]);
+
+    // Variables derived from hooks (must be after hooks)
+    const aliveQueue = getAliveQueue();
+    const currentTurnChar = aliveQueue[currentIndex % aliveQueue.length];
+
     // Show session creation overlay
     if (showCreateSession && userId) {
         return <SessionCreation userId={parseInt(userId)} onComplete={handleSessionCreated} onBack={() => setShowCreateSession(false)} />;
@@ -327,136 +432,6 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
             </div>
         );
     }
-
-    // Get alive queue (filter out dead, keep dying for death saves)
-    const getAliveQueue = useCallback(() => {
-        return turnQueue.filter(entry => !entry.isDead);
-    }, [turnQueue]);
-
-    const aliveQueue = getAliveQueue();
-    const currentTurnChar = aliveQueue[currentIndex % aliveQueue.length];
-
-    // Handle character death animation
-    const handleDeathAnimation = useCallback((characterName: string) => {
-        setDyingCharacters(prev => [...prev, characterName]);
-        setTimeout(() => {
-            setDyingCharacters(prev => prev.filter(name => name !== characterName));
-        }, 1000);
-    }, []);
-
-    // Handle death save for dying characters
-    const performDeathSave = useCallback((characterName: string) => {
-        // In a real implementation, this would roll a d20
-        const roll = Math.floor(Math.random() * 20) + 1;
-        console.log(`${characterName} death save roll: ${roll}`);
-        // Update death save counters based on roll
-        // 10+ = success, <10 = failure
-        // 1 = 2 failures, 20 = automatic success
-    }, []);
-
-    // Advance turn
-    const advanceTurn = useCallback(() => {
-        if (aliveQueue.length === 0) return;
-
-        const currentChar = aliveQueue[currentIndex % aliveQueue.length];
-
-        // Check if current character is dying - perform death save
-        if (currentChar?.isDying) {
-            performDeathSave(currentChar.character.name);
-        }
-
-        // Move to next character
-        setCurrentIndex(prev => (prev + 1) % aliveQueue.length);
-    }, [aliveQueue, currentIndex, performDeathSave]);
-
-    const handleMouseMove = useCallback((e: MouseEvent) => {
-        if (!isResizingLeft && !isResizingRight && !isResizingHeader && !isResizingActionPanel) return;
-        if (!containerRef.current) return;
-
-        const container = containerRef.current;
-        const containerRect = container.getBoundingClientRect();
-
-        if (isResizingHeader) {
-            const deltaY = e.clientY - startY.current;
-            const newHeight = startHeaderHeight.current + deltaY;
-            // Allow dragging between min and max, will snap on release
-            const minHeight = window.innerHeight * 0.05;
-            const maxHeight = window.innerHeight * 0.10;
-            setHeaderHeight(Math.max(minHeight, Math.min(maxHeight, newHeight)));
-        } else if (isResizingActionPanel) {
-            const deltaY = e.clientY - startY.current;
-            const deltaPercent = (deltaY / containerRect.height) * 100;
-            const newHeight = startActionPanelHeight.current + deltaPercent;
-            
-            // If dragging below threshold, collapse scene
-            if (newHeight < 10) {
-                setIsSceneCollapsed(true);
-                prevActionPanelHeight.current = actionPanelHeight;
-                setActionPanelHeight(0);
-            } else {
-                setIsSceneCollapsed(false);
-                setActionPanelHeight(Math.max(10, Math.min(60, newHeight)));
-            }
-        } else {
-            const deltaX = e.clientX - startX.current;
-            const deltaPercent = (deltaX / containerWidth.current) * 100;
-
-            if (isResizingLeft) {
-                const newWidth = startLeftWidth.current + deltaPercent;
-                setLeftPanelWidth(Math.max(5, Math.min(25, newWidth)));
-            }
-
-            if (isResizingRight) {
-                const newWidth = startRightWidth.current - deltaPercent;
-                setRightPanelWidth(Math.max(5, Math.min(25, newWidth)));
-            }
-        }
-    }, [isResizingLeft, isResizingRight, isResizingHeader, isResizingActionPanel]);
-
-    const handleMouseUp = useCallback(() => {
-        // Snap header to min or max height
-        if (isResizingHeader) {
-            const minHeight = window.innerHeight * 0.05;
-            const maxHeight = window.innerHeight * 0.10;
-            const midpoint = (minHeight + maxHeight) / 2;
-            
-            // Snap to max if above midpoint, otherwise snap to min
-            if (headerHeight > midpoint) {
-                setHeaderHeight(maxHeight);
-            } else {
-                setHeaderHeight(minHeight);
-            }
-        }
-        
-        // Snap action panel to collapsed or expanded
-        if (isResizingActionPanel) {
-            const collapseThreshold = 10;
-            if (actionPanelHeight < collapseThreshold) {
-                setIsSceneCollapsed(true);
-                setActionPanelHeight(0);
-            } else {
-                setIsSceneCollapsed(false);
-                // Snap to default expanded height
-                setActionPanelHeight(70);
-            }
-        }
-        
-        setIsResizingLeft(false);
-        setIsResizingRight(false);
-        setIsResizingHeader(false);
-        setIsResizingActionPanel(false);
-    }, [isResizingHeader, isResizingActionPanel, headerHeight, actionPanelHeight]);
-
-    useEffect(() => {
-        if (isResizingLeft || isResizingRight || isResizingHeader || isResizingActionPanel) {
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', handleMouseUp);
-            return () => {
-                document.removeEventListener('mousemove', handleMouseMove);
-                document.removeEventListener('mouseup', handleMouseUp);
-            };
-        }
-    }, [isResizingLeft, isResizingRight, isResizingHeader, isResizingActionPanel, handleMouseMove, handleMouseUp]);
 
     const startLeftResize = (e: React.MouseEvent) => {
         e.preventDefault();
