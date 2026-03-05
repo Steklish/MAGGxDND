@@ -43,7 +43,7 @@ const CharacterMiniPreview: React.FC<CharacterMiniPreviewProps> = ({ character }
             {character.active_conditions && character.active_conditions.trim() && (
                 <div className="mini-preview-conditions">
                     <span className="mini-preview-condition-title">Conditions:</span>
-                    {character.active_conditions.split('\n').map((cond: string, idx: number) => (
+                    {character.active_conditions.split('\n')?.map((cond: string, idx: number) => (
                         <span key={idx} className="mini-preview-condition">{cond}</span>
                     ))}
                 </div>
@@ -102,8 +102,8 @@ export const MiniCharacterPanel: React.FC = () => {
         );
     }
 
-    const players = session.players.map(p => p.character);
-    const npcs = session.npcs.map(n => n.character);
+    const players = session.players?.map(p => p.character) || [];
+    const npcs = session.npcs?.map(n => n.character) || [];
 
     const getCurrentTurnCharacter = () => {
         if (!session.turn_queue || session.turn_queue.length === 0) return null;
