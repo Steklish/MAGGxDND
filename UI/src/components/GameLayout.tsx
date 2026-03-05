@@ -78,19 +78,31 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
             
             if (response.ok) {
                 setGenerationStatus('✨ Генерация персонажа...');
-                // Small delay to show the status
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
                 setGenerationStatus('🧙 Создание NPC...');
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
-                // Update localStorage with new session ID
+                // Update localStorage with new session ID and mark as running
                 localStorage.setItem('currentSessionId', data.session_id);
                 localStorage.setItem('currentPlayerId', data.players[0]);
+                localStorage.setItem('gameStatus', 'running');
                 console.log('🎮 Game started:', data);
                 
                 setGenerationStatus('🌍 Загрузка мира...');
                 await new Promise(resolve => setTimeout(resolve, 800));
+                
+                // Update store
+                setCurrentSession({
+                    session_id: data.session_id,
+                    session_name: data.session_name,
+                    game_mode: data.game_mode,
+                    status: 'running',
+                    player_count: data.players.length,
+                    max_players: 5,
+                    description: null,
+                    players: data.players.map(p => ({ player_id: p, player_name: p, character_name: null })),
+                });
                 
                 // Reset generating state
                 setIsGenerating(false);
@@ -113,6 +125,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     const handleLeaveSession = () => {
         localStorage.removeItem('currentSessionId');
         localStorage.removeItem('currentPlayerId');
+        localStorage.removeItem('gameStatus');
         // Update store to clear session
         setCurrentSession(null);
         // Force re-render by updating local state
@@ -160,6 +173,10 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     // Check if user has active session (from localStorage)
     const hasActiveSession = sessionId && playerId;
 
+    // Check if game was started (session is running)
+    // We check if sessionId changed after joining (indicates game start)
+    const isGameStarted = hasActiveSession && currentSession?.status === 'running';
+
     // Show loading screen during game generation
     if (isGenerating) {
         return (
@@ -180,8 +197,15 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
         );
     }
 
+    // Show game interface when game is started (even without currentScene from WebSocket)
+    if (hasActiveSession && isGameStarted) {
+        // Game is running - show the full game interface
+        // currentScene will be populated when WebSocket connects
+        console.log('🎮 Showing game interface for running session');
+    }
+
     // Show placeholder when session exists but game not started yet
-    if (hasActiveSession && !currentScene) {
+    if (hasActiveSession && !isGameStarted) {
         return (
             <div className="game-layout">
                 <div className="no-session-screen">

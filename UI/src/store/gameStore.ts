@@ -288,6 +288,7 @@ const initStore = () => {
     const username = localStorage.getItem('username');
     const sessionId = localStorage.getItem('currentSessionId');
     const playerId = localStorage.getItem('currentPlayerId');
+    const gameStatus = localStorage.getItem('gameStatus');
 
     if (token && userId && username) {
         useGameStore.setState({
@@ -306,7 +307,7 @@ const initStore = () => {
             game_mode: 'STORY',
             player_count: 1,
             max_players: 5,
-            status: 'running', // Assume running if we have sessionId
+            status: gameStatus === 'running' ? 'running' : 'created',
             description: null,
             players: [{ player_id: playerId, player_name: username || 'Player', character_name: null }],
         };
