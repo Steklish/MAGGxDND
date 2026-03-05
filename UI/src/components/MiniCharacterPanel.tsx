@@ -126,12 +126,12 @@ export const MiniCharacterPanel: React.FC = () => {
             <div className="mini-panel-section">
                 <div className="mini-section-icon" title="Players">👤</div>
                 <div className="mini-icons-list">
-                    {players.map(char => (
+                    {players.filter(Boolean).map(char => (
                         <MiniCharacterIcon
-                            key={char.name}
+                            key={char?.name || 'unknown'}
                             character={char}
-                            isCurrentTurn={currentTurnChar?.name === char.name}
-                            isActive={activeCharacter?.name === char.name}
+                            isCurrentTurn={currentTurnChar?.name === char?.name}
+                            isActive={activeCharacter?.name === char?.name}
                             onClick={() => handleSelectCharacter(char)}
                         />
                     ))}
@@ -142,12 +142,12 @@ export const MiniCharacterPanel: React.FC = () => {
                 <div className="mini-panel-section">
                     <div className="mini-section-icon" title="NPCs">🎭</div>
                     <div className="mini-icons-list">
-                        {npcs.map(char => (
+                        {npcs.filter(Boolean).map(char => (
                             <MiniCharacterIcon
-                                key={char.name}
+                                key={char?.name || 'unknown'}
                                 character={char}
-                                isCurrentTurn={currentTurnChar?.name === char.name}
-                                isActive={activeCharacter?.name === char.name}
+                                isCurrentTurn={currentTurnChar?.name === char?.name}
+                                isActive={activeCharacter?.name === char?.name}
                                 onClick={() => handleSelectCharacter(char)}
                             />
                         ))}
