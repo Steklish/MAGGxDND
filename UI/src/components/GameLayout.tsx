@@ -70,7 +70,14 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     }, []);
 
     useEffect(() => {
-        if (!session) return;
+        console.log('🔍 Initializing turn queue, session:', session);
+        if (!session) {
+            console.log('⚠️ No session available');
+            return;
+        }
+        console.log('📊 Session players:', session.players?.length || 0);
+        console.log('📊 Session npcs:', session.npcs?.length || 0);
+        
         const queue: TurnEntry[] = [];
         session.players?.forEach(p => {
             if (!p?.character) return;
@@ -104,6 +111,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
         queue.sort((a, b) => b.initiative - a.initiative);
         setTurnQueue(queue);
         setCurrentIndex(0);
+        console.log('🎯 Turn queue initialized with', queue.length, 'entries');
     }, [session]);
 
     const handleSessionCreated = (newSessionId: string) => {
@@ -532,65 +540,72 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
 
                 {/* Turn Queue with Portraits */}
                 <div className="header-center turn-queue-container">
-                    {aliveQueue.map((entry, idx) => {
-                        const isCurrentTurn = idx === (currentIndex % aliveQueue.length);
-                        const isDying = entry.isDying;
-                        const color = getAttitudeColor(entry.type);
-                        const bgGradient = getAttitudeBgGradient(entry.type);
+                    {aliveQueue && aliveQueue.length > 0 ? (
+                        aliveQueue.map((entry, idx) => {
+                            const isCurrentTurn = idx === (currentIndex % aliveQueue.length);
+                            const isDying = entry.isDying;
+                            const color = getAttitudeColor(entry.type);
+                            const bgGradient = getAttitudeBgGradient(entry.type);
 
-                        return (
-                            <React.Fragment key={`${entry.character.name}-${entry.initiative}`}>
-                                {/* Full Portrait - 16:9 horizontal rectangle */}
-                                <div
-                                    className={`turn-portrait ${isCurrentTurn ? 'active' : ''} ${isDying ? 'dying' : ''} ${dyingCharacters.includes(entry.character.name) ? 'death-animation' : ''}`}
-                                    style={{
-                                        borderColor: color,
-                                        opacity: isCurrentTurn ? 1 : 0.4,
-                                        background: bgGradient
-                                    } as React.CSSProperties}
-                                >
-                                    <div className="portrait-frame">
-                                        {/* Character name overlay */}
-                                        <div className="portrait-name-overlay">
-                                            {entry.character.name}
+                            return (
+                                <React.Fragment key={`${entry.character.name}-${entry.initiative}`}>
+                                    {/* Full Portrait - 16:9 horizontal rectangle */}
+                                    <div
+                                        className={`turn-portrait ${isCurrentTurn ? 'active' : ''} ${isDying ? 'dying' : ''} ${dyingCharacters.includes(entry.character.name) ? 'death-animation' : ''}`}
+                                        style={{
+                                            borderColor: color,
+                                            opacity: isCurrentTurn ? 1 : 0.4,
+                                            background: bgGradient
+                                        } as React.CSSProperties}
+                                    >
+                                        <div className="portrait-frame">
+                                            {/* Character name overlay */}
+                                            <div className="portrait-name-overlay">
+                                                {entry.character.name}
+                                            </div>
+                                            {/* Attitude indicator bar */}
+                                            <div
+                                                className="attitude-indicator"
+                                                style={{ backgroundColor: color }}
+                                            />
                                         </div>
-                                        {/* Attitude indicator bar */}
-                                        <div
-                                            className="attitude-indicator"
-                                            style={{ backgroundColor: color }}
-                                        />
+
+                                        {/* Death save counters */}
+                                        {isDying && (
+                                            <div className="death-saves">
+                                                <div className="death-save-successes">
+                                                    {'✓'.repeat(entry.deathSaveSuccesses)}
+                                                </div>
+                                                <div className="death-save-failures">
+                                                    {'✗'.repeat(entry.deathSaveFailures)}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
-                                    {/* Death save counters */}
-                                    {isDying && (
-                                        <div className="death-saves">
-                                            <div className="death-save-successes">
-                                                {'✓'.repeat(entry.deathSaveSuccesses)}
-                                            </div>
-                                            <div className="death-save-failures">
-                                                {'✗'.repeat(entry.deathSaveFailures)}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Mini Portrait - for small headers */}
-                                <div
-                                    className={`mini-portrait ${isCurrentTurn ? 'active' : ''}`}
-                                    style={{
-                                        borderColor: color,
-                                        opacity: isCurrentTurn ? 1 : 0.5
-                                    } as React.CSSProperties}
-                                >
+                                    {/* Mini Portrait - for small headers */}
                                     <div
-                                        className="mini-portrait-indicator"
-                                        style={{ backgroundColor: color }}
-                                    />
-                                    <span className="mini-portrait-name">{entry.character.name}</span>
-                                </div>
-                            </React.Fragment>
-                        );
-                    })}
+                                        className={`mini-portrait ${isCurrentTurn ? 'active' : ''}`}
+                                        style={{
+                                            borderColor: color,
+                                            opacity: isCurrentTurn ? 1 : 0.5
+                                        } as React.CSSProperties}
+                                    >
+                                        <div
+                                            className="mini-portrait-indicator"
+                                            style={{ backgroundColor: color }}
+                                        />
+                                        <span className="mini-portrait-name">{entry.character.name}</span>
+                                    </div>
+                                </React.Fragment>
+                            );
+                        })
+                    ) : (
+                        <div className="no-turn-queue">
+                            <p>⏳ Waiting for game data...</p>
+                            <p className="hint">Game is running but character data not loaded yet</p>
+                        </div>
+                    )}
                 </div>
 
                 <div className="header-right">
