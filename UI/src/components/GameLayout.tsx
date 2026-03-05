@@ -160,9 +160,6 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     // Check if user has active session (from localStorage)
     const hasActiveSession = sessionId && playerId;
 
-    // Check if session is running (game started)
-    const isSessionRunning = currentSession?.status === 'running' || (session?.status === 'running');
-
     // Show loading screen during game generation
     if (isGenerating) {
         return (
@@ -183,8 +180,8 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
         );
     }
 
-    // Show placeholder when session exists but no scene data (backend not fully initialized)
-    if (hasActiveSession && !currentScene && !isSessionRunning) {
+    // Show placeholder when session exists but game not started yet
+    if (hasActiveSession && !currentScene) {
         return (
             <div className="game-layout">
                 <div className="no-session-screen">
@@ -205,12 +202,6 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                 </div>
             </div>
         );
-    }
-
-    // Show game interface when session is running (even without currentScene)
-    if (hasActiveSession && isSessionRunning) {
-        // Game is running - show the full game interface
-        // currentScene will be populated when WebSocket connects
     }
 
     // Show "no session" state when not in active game

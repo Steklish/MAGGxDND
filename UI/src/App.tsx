@@ -74,15 +74,21 @@ function App() {
     const handleJoinSession = async (sessionId: string) => {
         console.log('🔵 Joining session:', sessionId);
         
-        // Check if already joined this session
         const existingSessionId = localStorage.getItem('currentSessionId');
         const existingPlayerId = localStorage.getItem('currentPlayerId');
         
-        if (existingSessionId && existingPlayerId) {
-            // Already in a session - just open game interface
-            console.log('✅ Already in session, opening game interface');
+        // If already in THIS session, just open game interface
+        if (existingSessionId === sessionId && existingPlayerId) {
+            console.log('✅ Already in this session, opening game interface');
             setAuthenticated(true);
             return;
+        }
+        
+        // If in a different session, clear it first
+        if (existingSessionId && existingSessionId !== sessionId) {
+            console.log('🔄 Leaving previous session:', existingSessionId);
+            localStorage.removeItem('currentSessionId');
+            localStorage.removeItem('currentPlayerId');
         }
         
         try {
