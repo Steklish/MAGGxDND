@@ -12,20 +12,20 @@ const getCharacterType = (char: any, session: any): 'player' | 'ally_npc' | 'hos
     // Check if character is a player
     const players = session?.players || [];
     for (const p of players) {
-        if (p.character.name === char.name) return 'player';
+        if (p.character?.name === char.name) return 'player';
     }
-    
+
     // Check if character is an NPC
     const npcs = session?.npcs || [];
     for (const n of npcs) {
-        if (n.character.name === char.name) {
+        if (n.character?.name === char.name) {
             const alignment = n.character.alignment || '';
             if (alignment.includes('Good')) return 'ally_npc';
             if (alignment.includes('Evil') || alignment.includes('Chaotic')) return 'hostile_npc';
             return 'neutral_npc';
         }
     }
-    
+
     return 'player';
 };
 
@@ -204,7 +204,8 @@ export const CharacterPanel: React.FC = () => {
             <div className="characters-list">
                 <div className="character-section">
                     <h3 style={{ color: 'var(--accent-yellow)' }}>Players ({players.length})</h3>
-                    {players.map(char => {
+                    {players.filter(Boolean).map(char => {
+                        if (!char) return null;
                         const charType = getCharacterType(char, session);
                         const typeColor = getTypeColor(charType);
                         const typeBg = getTypeBgGradient(charType);
@@ -267,7 +268,8 @@ export const CharacterPanel: React.FC = () => {
 
                 <div className="character-section">
                     <h3 style={{ color: 'var(--accent-yellow)' }}>NPCs ({npcs.length})</h3>
-                    {npcs.map(char => {
+                    {npcs.filter(Boolean).map(char => {
+                        if (!char) return null;
                         const charType = getCharacterType(char, session);
                         const typeColor = getTypeColor(charType);
                         const typeBg = getTypeBgGradient(charType);
@@ -322,34 +324,34 @@ export const CharacterPanel: React.FC = () => {
                         <div className="ability-scores">
                             <div className="ability-score">
                                 <span className="ability-name">STR</span>
-                                <span className="ability-value">{activeCharacter.stats.strength}</span>
+                                <span className="ability-value">{activeCharacter.stats?.strength || 10}</span>
                             </div>
                             <div className="ability-score">
                                 <span className="ability-name">DEX</span>
-                                <span className="ability-value">{activeCharacter.stats.dexterity}</span>
+                                <span className="ability-value">{activeCharacter.stats?.dexterity || 10}</span>
                             </div>
                             <div className="ability-score">
                                 <span className="ability-name">CON</span>
-                                <span className="ability-value">{activeCharacter.stats.constitution}</span>
+                                <span className="ability-value">{activeCharacter.stats?.constitution || 10}</span>
                             </div>
                             <div className="ability-score">
                                 <span className="ability-name">INT</span>
-                                <span className="ability-value">{activeCharacter.stats.intelligence}</span>
+                                <span className="ability-value">{activeCharacter.stats?.intelligence || 10}</span>
                             </div>
                             <div className="ability-score">
                                 <span className="ability-name">WIS</span>
-                                <span className="ability-value">{activeCharacter.stats.wisdom}</span>
+                                <span className="ability-value">{activeCharacter.stats?.wisdom || 10}</span>
                             </div>
                             <div className="ability-score">
                                 <span className="ability-name">CHA</span>
-                                <span className="ability-value">{activeCharacter.stats.charisma}</span>
+                                <span className="ability-value">{activeCharacter.stats?.charisma || 10}</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="details-section">
                         <h4>Abilities & Spells</h4>
-                        {activeCharacter.abilities.length > 0 ? (
+                        {activeCharacter.abilities?.length > 0 ? (
                             <div className="abilities-list">
                                 {activeCharacter.abilities.map((ability, idx) => (
                                     <div key={idx} className="ability-item">
@@ -370,7 +372,7 @@ export const CharacterPanel: React.FC = () => {
 
                     <div className="details-section">
                         <h4>Inventory</h4>
-                        {activeCharacter.inventory.length > 0 ? (
+                        {activeCharacter.inventory?.length > 0 ? (
                             <div className="inventory-list">
                                 {activeCharacter.inventory.map((item, idx) => (
                                     <div key={idx} className={`inventory-item ${item.is_equipped ? 'equipped' : ''}`}>
