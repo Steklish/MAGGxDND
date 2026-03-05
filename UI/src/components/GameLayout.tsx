@@ -29,14 +29,82 @@ interface GameLayoutProps {
 
 export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewSession, onJoinSession }) => {
     const { session, currentSession, currentScene, activeCharacter, loadSessions, activeSessions, setCurrentSession, isGenerating, generationStatus, setIsGenerating, setGenerationStatus } = useGameStore();
+    
+    // ALL HOOKS MUST BE AT THE TOP - before any conditional returns
     const [showProfile, setShowProfile] = useState(false);
     const [showCreateSession, setShowCreateSession] = useState(false);
+    const [leftPanelWidth, setLeftPanelWidth] = useState(25);
+    const [rightPanelWidth, setRightPanelWidth] = useState(25);
+    const [headerHeight, setHeaderHeight] = useState(() => Math.round(window.innerHeight * 0.07));
+    const [actionPanelHeight, setActionPanelHeight] = useState(() => Math.round(window.innerHeight * 0.07));
+    const [isSceneCollapsed, setIsSceneCollapsed] = useState(false);
+    const [isCollapsing, setIsCollapsing] = useState(false);
+    const [isResizingLeft, setIsResizingLeft] = useState(false);
+    const [isResizingRight, setIsResizingRight] = useState(false);
+    const [isResizingHeader, setIsResizingHeader] = useState(false);
+    const [isResizingActionPanel, setIsResizingActionPanel] = useState(false);
+    const [turnQueue, setTurnQueue] = useState<TurnEntry[]>([]);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [dyingCharacters, setDyingCharacters] = useState<string[]>([]);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const startX = useRef(0);
+    const startY = useRef(0);
+    const startLeftWidth = useRef(0);
+    const startRightWidth = useRef(0);
+    const startHeaderHeight = useRef(0);
+    const startActionPanelHeight = useRef(0);
+    const prevActionPanelHeight = useRef(70);
+    const containerWidth = useRef(0);
+    const containerHeight = useRef(0);
     
     // Read session info from localStorage directly (not from store)
     const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
     const sessionId = typeof window !== 'undefined' ? localStorage.getItem('currentSessionId') : null;
     const playerId = typeof window !== 'undefined' ? localStorage.getItem('currentPlayerId') : null;
     const gameStatus = typeof window !== 'undefined' ? localStorage.getItem('gameStatus') : null;
+
+    // ALL useEffect MUST BE BEFORE ANY CONDITIONAL RETURNS
+    useEffect(() => {
+        loadSessions();
+        console.log('🔍 GameLayout mounted:', { sessionId, playerId, currentSession, isGenerating });
+    }, []);
+
+    useEffect(() => {
+        if (!session) return;
+        const queue: TurnEntry[] = [];
+        session.players?.forEach(p => {
+            if (!p?.character) return;
+            const char = p.character;
+            queue.push({
+                character: char,
+                type: 'player',
+                initiative: char.initiative_bonus || 10,
+                isDead: char.current_hp <= 0 && char.is_alive === false,
+                isDying: char.current_hp <= 0 && char.is_alive !== false,
+                deathSaveSuccesses: 0,
+                deathSaveFailures: 0
+            });
+        });
+        session.npcs?.forEach(n => {
+            if (!n?.character) return;
+            const char = n.character;
+            let type: 'hostile' | 'neutral' | 'ally' = 'hostile';
+            if (char.alignment?.includes('Good')) type = 'ally';
+            else if (char.alignment?.includes('Neutral')) type = 'neutral';
+            queue.push({
+                character: char,
+                type,
+                initiative: char.initiative_bonus || 10,
+                isDead: char.current_hp <= 0 && char.is_alive === false,
+                isDying: char.current_hp <= 0 && char.is_alive !== false,
+                deathSaveSuccesses: 0,
+                deathSaveFailures: 0
+            });
+        });
+        queue.sort((a, b) => b.initiative - a.initiative);
+        setTurnQueue(queue);
+        setCurrentIndex(0);
+    }, [session]);
 
     const handleSessionCreated = (newSessionId: string) => {
         setShowCreateSession(false);
@@ -142,82 +210,6 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     if (showProfile && userId) {
         return <ProfilePage userId={parseInt(userId)} onBack={() => setShowProfile(false)} onJoinSession={onJoinSession} />;
     }
-    const [leftPanelWidth, setLeftPanelWidth] = useState(25);
-    const [rightPanelWidth, setRightPanelWidth] = useState(25);
-    const [headerHeight, setHeaderHeight] = useState(() => Math.round(window.innerHeight * 0.07));
-    const [actionPanelHeight, setActionPanelHeight] = useState(() => Math.round(window.innerHeight * 0.07));
-    const [isSceneCollapsed, setIsSceneCollapsed] = useState(false);
-    const [isCollapsing, setIsCollapsing] = useState(false);
-    const [isResizingLeft, setIsResizingLeft] = useState(false);
-    const [isResizingRight, setIsResizingRight] = useState(false);
-    const [isResizingHeader, setIsResizingHeader] = useState(false);
-    const [isResizingActionPanel, setIsResizingActionPanel] = useState(false);
-    const [turnQueue, setTurnQueue] = useState<TurnEntry[]>([]);
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [dyingCharacters, setDyingCharacters] = useState<string[]>([]);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const startX = useRef(0);
-    const startY = useRef(0);
-    const startLeftWidth = useRef(0);
-    const startRightWidth = useRef(0);
-    const startHeaderHeight = useRef(0);
-    const startActionPanelHeight = useRef(0);
-    const prevActionPanelHeight = useRef(70);
-    const containerWidth = useRef(0);
-    const containerHeight = useRef(0);
-
-    // Load sessions on mount
-    useEffect(() => {
-        loadSessions();
-        console.log('🔍 GameLayout mounted:', { sessionId, playerId, currentSession, isGenerating });
-    }, []);
-
-    // Initialize turn queue from session - MUST be before any early returns
-    useEffect(() => {
-        if (!session) return;
-
-        const queue: TurnEntry[] = [];
-
-        // Add players
-        session.players?.forEach(p => {
-            if (!p?.character) return;
-            const char = p.character;
-            queue.push({
-                character: char,
-                type: 'player',
-                initiative: char.initiative_bonus || 10,
-                isDead: char.current_hp <= 0 && char.is_alive === false,
-                isDying: char.current_hp <= 0 && char.is_alive !== false,
-                deathSaveSuccesses: 0,
-                deathSaveFailures: 0
-            });
-        });
-
-        // Add NPCs
-        session.npcs?.forEach(n => {
-            if (!n?.character) return;
-            const char = n.character;
-            // Determine NPC attitude based on context (for now, default to hostile)
-            let type: 'hostile' | 'neutral' | 'ally' = 'hostile';
-            if (char.alignment?.includes('Good')) type = 'ally';
-            else if (char.alignment?.includes('Neutral')) type = 'neutral';
-
-            queue.push({
-                character: char,
-                type,
-                initiative: char.initiative_bonus || 10,
-                isDead: char.current_hp <= 0 && char.is_alive === false,
-                isDying: char.current_hp <= 0 && char.is_alive !== false,
-                deathSaveSuccesses: 0,
-                deathSaveFailures: 0
-            });
-        });
-
-        // Sort by initiative (descending)
-        queue.sort((a, b) => b.initiative - a.initiative);
-        setTurnQueue(queue);
-        setCurrentIndex(0);
-    }, [session]);
 
     // Check if user has active session (from localStorage)
     const hasActiveSession = sessionId && playerId;
