@@ -84,11 +84,12 @@ function App() {
             return;
         }
         
-        // If in a different session, clear it first
-        if (existingSessionId && existingSessionId !== sessionId) {
+        // If in a different session OR have stale gameStatus, clear and join new
+        if (existingSessionId || existingPlayerId || localStorage.getItem('gameStatus')) {
             console.log('🔄 Leaving previous session:', existingSessionId);
             localStorage.removeItem('currentSessionId');
             localStorage.removeItem('currentPlayerId');
+            localStorage.removeItem('gameStatus');
         }
         
         try {
