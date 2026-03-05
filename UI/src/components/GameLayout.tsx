@@ -640,35 +640,6 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                     {leftPanelWidth <= 5 ? <MiniCharacterPanel /> : <CharacterPanel />}
                 </aside>
 
-                {/* Session Info Panel - Shows when connected to session */}
-                {sessionId && playerId && (
-                    <div className="session-info-panel" style={{ border: '2px solid red' }}>
-                        <div className="session-info-header">
-                            <h3>🎮 Active Session</h3>
-                            <button className="btn-leave-session" onClick={handleLeaveSession}>
-                                🚪 Leave
-                            </button>
-                        </div>
-                        <div className="session-info-content">
-                            <div className="session-detail">
-                                <span className="detail-label">Session ID:</span>
-                                <span className="detail-value mono">{sessionId}</span>
-                            </div>
-                            <div className="session-detail">
-                                <span className="detail-label">Player ID:</span>
-                                <span className="detail-value mono">{playerId}</span>
-                            </div>
-                            <div className="session-detail">
-                                <span className="detail-label">Status:</span>
-                                <span className="detail-value status-connected">🟢 Connected</span>
-                            </div>
-                            <button className="btn-start-game" onClick={handleStartGame}>
-                                🎲 Start Game
-                            </button>
-                        </div>
-                    </div>
-                )}
-
                 {/* Left resize handle */}
                 <div
                     className={`resize-handle left-resize ${isResizingLeft ? 'resizing' : ''}`}
