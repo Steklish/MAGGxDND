@@ -100,8 +100,8 @@ export const ChatPanel: React.FC = () => {
 
     const getFilteredMessages = () => {
         const allMessages = [
-            ...messages.map(m => ({ type: 'message' as const, data: m })),
-            ...events.map(e => ({ type: 'event' as const, data: e }))
+            ...(messages?.map(m => ({ type: 'message' as const, data: m })) || []),
+            ...(events?.map(e => ({ type: 'event' as const, data: e })) || [])
         ];
 
         switch (filter) {
@@ -178,7 +178,7 @@ export const ChatPanel: React.FC = () => {
             </div>
 
             <div className="chat-messages">
-                {filteredMessages.length === 0 ? (
+                {!filteredMessages || filteredMessages.length === 0 ? (
                     <div className="no-messages">
                         <p>No messages yet</p>
                         <p className="hint">Game messages will appear here</p>
