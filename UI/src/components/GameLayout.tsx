@@ -175,9 +175,10 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     const hasActiveSession = sessionId && playerId;
 
     // Check if game was started (session is running)
-    const isGameStarted = gameStatus === 'running';
+    // Only consider game started if we have both sessionId AND playerId
+    const isGameStarted = hasActiveSession && gameStatus === 'running';
     
-    console.log('🔍 GameLayout render:', { hasActiveSession, isGameStarted, sessionId, playerId, gameStatus, currentSession });
+    console.log('🔍 GameLayout render:', { hasActiveSession, isGameStarted, sessionId, playerId, gameStatus });
 
     // Show loading screen during game generation
     if (isGenerating) {
