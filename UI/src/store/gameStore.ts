@@ -27,6 +27,10 @@ interface GameState {
     isGenerating: boolean; // For game generation loading state
     generationStatus: string; // Status message during generation
     
+    // Game messages/events
+    messages: any[];
+    events: any[];
+    
     // Actions - Auth
     setAuthenticated: (value: boolean) => void;
     setUserId: (id: number) => void;
@@ -52,6 +56,10 @@ interface GameState {
     setMode: (mode: 'menu' | 'connecting' | 'playing' | 'error' | null) => void;
     setError: (error: string | null) => void;
     setLoading: (loading: boolean) => void;
+    setIsGenerating: (generating: boolean) => void;
+    setGenerationStatus: (status: string) => void;
+    setMessages: (messages: any[]) => void;
+    setEvents: (events: any[]) => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -75,6 +83,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     isLoading: false,
     isGenerating: false,
     generationStatus: '',
+    messages: [],
+    events: [],
     
     // Auth actions
     setAuthenticated: (value) => set({ isAuthenticated: value }),
@@ -279,6 +289,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     setLoading: (loading) => set({ isLoading: loading }),
     setIsGenerating: (generating) => set({ isGenerating: generating }),
     setGenerationStatus: (status) => set({ generationStatus: status }),
+    setMessages: (messages) => set({ messages }),
+    setEvents: (events) => set({ events }),
 }));
 
 // Initialize store from localStorage

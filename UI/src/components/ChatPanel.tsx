@@ -89,6 +89,10 @@ export const ChatPanel: React.FC = () => {
     const { messages, events } = useGameStore();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [filter, setFilter] = useState<'all' | 'dm' | 'players' | 'events'>('all');
+    
+    // Default to empty arrays if undefined
+    const safeMessages = messages || [];
+    const safeEvents = events || [];
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -96,12 +100,12 @@ export const ChatPanel: React.FC = () => {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages, events]);
+    }, [safeMessages, safeEvents]);
 
     const getFilteredMessages = () => {
         const allMessages = [
-            ...(messages?.map(m => ({ type: 'message' as const, data: m })) || []),
-            ...(events?.map(e => ({ type: 'event' as const, data: e })) || [])
+            ...(safeMessages.map(m => ({ type: 'message' as const, data: m }))),
+            ...(safeEvents.map(e => ({ type: 'event' as const, data: e })))
         ];
 
         switch (filter) {
