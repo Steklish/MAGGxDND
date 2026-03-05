@@ -172,6 +172,53 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
         console.log('🔍 GameLayout mounted:', { sessionId, playerId, currentSession, isGenerating });
     }, []);
 
+    // Initialize turn queue from session - MUST be before any early returns
+    useEffect(() => {
+        if (!session) return;
+
+        const queue: TurnEntry[] = [];
+
+        // Add players
+        session.players?.forEach(p => {
+            if (!p?.character) return;
+            const char = p.character;
+            queue.push({
+                character: char,
+                type: 'player',
+                initiative: char.initiative_bonus || 10,
+                isDead: char.current_hp <= 0 && char.is_alive === false,
+                isDying: char.current_hp <= 0 && char.is_alive !== false,
+                deathSaveSuccesses: 0,
+                deathSaveFailures: 0
+            });
+        });
+
+        // Add NPCs
+        session.npcs?.forEach(n => {
+            if (!n?.character) return;
+            const char = n.character;
+            // Determine NPC attitude based on context (for now, default to hostile)
+            let type: 'hostile' | 'neutral' | 'ally' = 'hostile';
+            if (char.alignment?.includes('Good')) type = 'ally';
+            else if (char.alignment?.includes('Neutral')) type = 'neutral';
+
+            queue.push({
+                character: char,
+                type,
+                initiative: char.initiative_bonus || 10,
+                isDead: char.current_hp <= 0 && char.is_alive === false,
+                isDying: char.current_hp <= 0 && char.is_alive !== false,
+                deathSaveSuccesses: 0,
+                deathSaveFailures: 0
+            });
+        });
+
+        // Sort by initiative (descending)
+        queue.sort((a, b) => b.initiative - a.initiative);
+        setTurnQueue(queue);
+        setCurrentIndex(0);
+    }, [session]);
+
     // Check if user has active session (from localStorage)
     const hasActiveSession = sessionId && playerId;
 
@@ -288,53 +335,6 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
             </div>
         );
     }
-
-    // Initialize turn queue from session
-    useEffect(() => {
-        if (!session) return;
-
-        const queue: TurnEntry[] = [];
-
-        // Add players
-        session.players?.forEach(p => {
-            if (!p?.character) return;
-            const char = p.character;
-            queue.push({
-                character: char,
-                type: 'player',
-                initiative: char.initiative_bonus || 10,
-                isDead: char.current_hp <= 0 && char.is_alive === false,
-                isDying: char.current_hp <= 0 && char.is_alive !== false,
-                deathSaveSuccesses: 0,
-                deathSaveFailures: 0
-            });
-        });
-
-        // Add NPCs
-        session.npcs?.forEach(n => {
-            if (!n?.character) return;
-            const char = n.character;
-            // Determine NPC attitude based on context (for now, default to hostile)
-            let type: 'hostile' | 'neutral' | 'ally' = 'hostile';
-            if (char.alignment?.includes('Good')) type = 'ally';
-            else if (char.alignment?.includes('Neutral')) type = 'neutral';
-
-            queue.push({
-                character: char,
-                type,
-                initiative: char.initiative_bonus || 10,
-                isDead: char.current_hp <= 0 && char.is_alive === false,
-                isDying: char.current_hp <= 0 && char.is_alive !== false,
-                deathSaveSuccesses: 0,
-                deathSaveFailures: 0
-            });
-        });
-
-        // Sort by initiative (descending)
-        queue.sort((a, b) => b.initiative - a.initiative);
-        setTurnQueue(queue);
-        setCurrentIndex(0);
-    }, [session]);
 
     // Get alive queue (filter out dead, keep dying for death saves)
     const getAliveQueue = useCallback(() => {
