@@ -756,3 +756,74 @@ async def start_real_game(request: SessionInitRequest, background_tasks: Backgro
     except Exception as e:
         logger.error(f"Failed to start real game: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to start game: {str(e)}")
+
+
+class PlayerActionRequest(BaseModel):
+    character_name: str
+    action: str
+
+
+@router.post("/{session_id}/player_action", response_model=dict)
+async def process_player_action(session_id: str, request: PlayerActionRequest):
+    """
+    Process player action through AI and return DM response.
+    This is the main game loop interaction point.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    # Get active session
+    session = game_session_managers.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Active game session not found")
+    
+    try:
+        logger.info(f"[{session_id}] Processing action for {request.character_name}: {request.action}")
+        
+        # Use AI to generate response
+        generator = session.generator
+        
+        # Create prompt for AI
+        prompt = f"""You are the Dungeon Master for a D&D game. 
+
+Current scene: {session.current_scene.name if session.current_scene else 'Unknown'}
+{session.current_scene.description if session.current_scene else ''}
+
+Player character: {request.character_name}
+Player action: {request.action}
+
+Respond as the DM describing what happens. Be concise (2-3 sentences). Consider:
+- The current environment
+- NPC reactions (especially Zaltar if mentioned)
+- Game rules and logic
+- Make it engaging and dynamic
+
+DM Response:"""
+
+        # Generate AI response
+        response_text = generator.generate_one_shot(
+            pydantic_model=None,
+            prompt=prompt,
+            max_tokens=200
+        )
+        
+        logger.info(f"[{session_id}] AI response: {response_text}")
+        
+        return {
+            "session_id": session_id,
+            "character": request.character_name,
+            "action": request.action,
+            "response": response_text,
+            "status": "processed"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to process action: {e}", exc_info=True)
+        # Return fallback response
+        return {
+            "session_id": session_id,
+            "character": request.character_name,
+            "action": request.action,
+            "response": f"The DM considers your action: '{request.action}'. What happens next depends on your approach.",
+            "status": "fallback"
+        }

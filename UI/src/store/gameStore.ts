@@ -329,11 +329,11 @@ export const useGameStore = create<GameState>((set, get) => ({
     setCurrentScene: (scene) => set({ currentScene: scene }),
     setActiveCharacter: (character) => set({ activeCharacter: character }),
     
-    // Mock action handler (would be replaced with real WebSocket/API call)
-    sendAction: (actionText: string, character: any) => {
+    // Mock action handler - sends to backend for AI processing
+    sendAction: async (actionText: string, character: any) => {
         console.log('📝 Player action:', actionText);
         
-        // Add player message to store
+        // Add player message to store immediately
         const playerMessage = {
             sender_name: character.name,
             text: actionText,
@@ -342,42 +342,58 @@ export const useGameStore = create<GameState>((set, get) => ({
         };
         useGameStore.getState().addMessage(playerMessage);
         
-        // Simulate intelligent DM response based on action type
-        setTimeout(() => {
-            const actionLower = actionText.toLowerCase();
-            let dmResponseText = '';
+        // Send to backend for AI processing
+        try {
+            const sessionId = localStorage.getItem('currentSessionId');
+            const response = await fetch(`/api/v1/sessions/${sessionId}/player_action`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    character_name: character.name,
+                    action: actionText,
+                }),
+            });
             
-            // Check for combat-related actions
-            if (actionLower.includes('убить') || actionLower.includes('kill') || actionLower.includes('attack') || actionLower.includes('атак')) {
-                const targetMatch = actionLower.match(/(убить|kill|атак|attack)\s+(?:на\s+)?(\w+)/);
-                const target = targetMatch ? targetMatch[2] : 'your target';
-                dmResponseText = `You move to attack ${target}! Roll for initiative. What's your attack bonus?`;
+            if (response.ok) {
+                const data = await response.json();
+                // Add AI response from backend
+                const dmResponse = {
+                    sender_name: 'DM',
+                    text: data.response || data.message || 'The DM considers your action...',
+                    type: 'dm',
+                    timestamp: new Date().toISOString(),
+                };
+                useGameStore.getState().addMessage(dmResponse);
+            } else {
+                // Fallback if backend not available
+                throw new Error('Backend unavailable');
             }
-            // Check for movement
-            else if (actionLower.includes('идти') || actionLower.includes('go') || actionLower.includes('move') || actionLower.includes('walk')) {
-                dmResponseText = `You move through the tavern. Where exactly are you going?`;
-            }
-            // Check for talking
-            else if (actionLower.includes('говор') || actionLower.includes('talk') || actionLower.includes('say') || actionLower.includes('спрос')) {
-                dmResponseText = `You speak out loud. Who are you addressing?`;
-            }
-            // Check for looking/observing
-            else if (actionLower.includes('смотр') || actionLower.includes('look') || actionLower.includes('осмотр')) {
-                dmResponseText = `You look around carefully. What specifically are you examining?`;
-            }
-            // Default response
-            else {
-                dmResponseText = `You attempt to ${actionText.toLowerCase()}. Describe how you do this in more detail.`;
-            }
-            
-            const dmResponse = {
-                sender_name: 'DM',
-                text: dmResponseText,
-                type: 'dm',
-                timestamp: new Date().toISOString(),
-            };
-            useGameStore.getState().addMessage(dmResponse);
-        }, 800);
+        } catch (error) {
+            console.warn('⚠️ AI not available, using fallback response');
+            // Fallback response when backend/AI is not available
+            setTimeout(() => {
+                const actionLower = actionText.toLowerCase();
+                let dmResponseText = '';
+                
+                if (actionLower.includes('убить') || actionLower.includes('kill') || actionLower.includes('attack')) {
+                    const targetMatch = actionLower.match(/(убить|kill|атак|attack)\s+(?:на\s+)?(\w+)/i);
+                    const target = targetMatch ? targetMatch[2] : 'your target';
+                    dmResponseText = `⚠️ AI unavailable. You move to attack ${target}! [Enable backend for full AI responses]`;
+                } else if (actionLower.includes('смотр') || actionLower.includes('look') || actionLower.includes('осмотр')) {
+                    dmResponseText = `⚠️ AI unavailable. You look around carefully. [Enable backend for full AI responses]`;
+                } else {
+                    dmResponseText = `⚠️ AI unavailable. You attempt to ${actionText}. [Enable backend for full AI responses]`;
+                }
+                
+                const dmResponse = {
+                    sender_name: 'DM',
+                    text: dmResponseText,
+                    type: 'dm',
+                    timestamp: new Date().toISOString(),
+                };
+                useGameStore.getState().addMessage(dmResponse);
+            }, 500);
+        }
     },
     
     // Placeholder functions for compatibility
