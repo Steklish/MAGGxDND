@@ -1,11 +1,10 @@
 """
 MAGGxDND Game Server Launcher
-Запускает сервер с полной интеграцией игрового движка
+Запускает основной сервер с полной интеграцией игрового движка
 """
 
 import sys
 import os
-import asyncio
 
 # Set UTF-8 encoding for Windows
 if sys.platform == 'win32':
@@ -33,17 +32,16 @@ print("Press Ctrl+C to stop")
 print("=" * 60)
 print()
 
-# Import server app directly
-# Run with uvicorn
+# Run with uvicorn - use main server
 if __name__ == "__main__":
     import uvicorn
 
     try:
         uvicorn.run(
-            "server.main_with_engine:app",
+            "server.main:app",  # Use main server
             host="0.0.0.0",
             port=8000,
-            reload=False,  # Disable reload for stability
+            reload=False,
             log_level="info"
         )
     except KeyboardInterrupt:

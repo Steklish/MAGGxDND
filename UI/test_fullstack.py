@@ -100,12 +100,12 @@ def main():
     
     # Test 1: Health check
     if not test_health():
-        print("\n❌ Server health check failed!")
+        print("\n[FAIL] Server health check failed!")
         print("Make sure the server is running:")
         print("  python server\\run_fullstack.py")
         return
     
-    print("\n✓ Server is healthy")
+    print("\n[OK] Server is healthy")
     
     # Test 2: Create user
     test_create_user()
@@ -113,22 +113,22 @@ def main():
     # Test 3: Login
     token = test_login()
     if not token:
-        print("\n❌ Login failed!")
+        print("\n[FAIL] Login failed!")
         return
     
-    print("\n✓ Login successful")
+    print("\n[OK] Login successful")
     
     # Test 4: Start real game
     game_data = test_start_real_game()
     if not game_data:
-        print("\n❌ Failed to start game!")
+        print("\n[FAIL] Failed to start game!")
         print("\nPossible issues:")
         print("  - GEMINI_API_KEY not set")
         print("  - Game engine initialization error")
         print("\nCheck logs: log\\fullstack_runner.log")
         return
     
-    print("\n✓ Real game session created!")
+    print("\n[OK] Real game session created!")
     
     # Test 5: WebSocket (info only)
     if game_data['players']:
@@ -138,9 +138,9 @@ def main():
     print("\n" + "=" * 60)
     print("TEST SUMMARY")
     print("=" * 60)
-    print("✓ Server health check passed")
-    print("✓ User authentication working")
-    print("✓ Real game session created with:")
+    print("[OK] Server health check passed")
+    print("[OK] User authentication working")
+    print("[OK] Real game session created with:")
     print(f"    - {len(game_data['players'])} player characters")
     print(f"    - {len(game_data['npcs'])} NPCs")
     print(f"    - Scene: {game_data['scene']}")

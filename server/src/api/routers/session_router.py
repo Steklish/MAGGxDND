@@ -443,9 +443,28 @@ async def join_session(session_id: str, request: PlayerJoinRequest):
     if not session_manager.session_exists(session_id):
         raise HTTPException(status_code=404, detail="Session not found")
 
+    # Check if player already joined this session (by player_name)
+    for existing_player_id, player_data in active_players.items():
+        if player_data["session_id"] == session_id and player_data["player_name"] == request.player_name:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Player '{request.player_name}' has already joined this session"
+            )
+
+    # Check session capacity
+    session_players_count = sum(1 for p in active_players.values() if p["session_id"] == session_id)
+    session = session_manager.get_session(session_id)
+    max_players = session.max_players if session else 5
+    
+    if session_players_count >= max_players:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Session is full (max {max_players} players)"
+        )
+
     # Генерируем ID игрока
     player_id = str(uuid.uuid4())
-    
+
     # Сохраняем игрока
     active_players[player_id] = {
         "session_id": session_id,
@@ -495,3 +514,104 @@ async def get_session_players(session_id: str):
             ))
 
     return players
+
+
+@router.get("/{session_id}/game_info", response_model=dict)
+async def get_session_game_info(session_id: str):
+    """
+    Get detailed game session info including players, NPCs, and scene.
+    For active game sessions with full engine integration.
+    """
+    session = session_manager.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    try:
+        # Get active session data
+        from server.src.game.session_manager import session_manager as sm
+        session_data = {}
+        
+        # Build players data
+        players_data = []
+        for player in session.players:
+            if hasattr(player, 'character'):
+                char = player.character
+                stats = getattr(char, 'stats', None)
+                players_data.append({
+                    "name": getattr(char, 'name', 'Unknown'),
+                    "race": getattr(char, 'race', 'Human'),
+                    "char_class": getattr(char, 'char_class', 'Fighter'),
+                    "level": getattr(char, 'level', 1),
+                    "current_hp": getattr(char, 'current_hp', 10),
+                    "max_hp": getattr(char, 'max_hp', 10),
+                    "armor_class": getattr(char, 'armor_class', 10),
+                    "speed": getattr(char, 'speed', 30),
+                    "proficiency_bonus": getattr(char, 'proficiency_bonus', 2),
+                    "initiative_bonus": getattr(char, 'initiative_bonus', 0),
+                    "is_alive": getattr(char, 'is_alive', True),
+                    "stats": {
+                        "strength": getattr(stats, 'strength', 10) if stats else 10,
+                        "dexterity": getattr(stats, 'dexterity', 10) if stats else 10,
+                        "constitution": getattr(stats, 'constitution', 10) if stats else 10,
+                        "intelligence": getattr(stats, 'intelligence', 10) if stats else 10,
+                        "wisdom": getattr(stats, 'wisdom', 10) if stats else 10,
+                        "charisma": getattr(stats, 'charisma', 10) if stats else 10,
+                    } if stats else {
+                        "strength": 10, "dexterity": 10, "constitution": 10,
+                        "intelligence": 10, "wisdom": 10, "charisma": 10,
+                    },
+                })
+
+        # Build NPCs data
+        npcs_data = []
+        for npc in session.npcs:
+            if hasattr(npc, 'character'):
+                char = npc.character
+                stats = getattr(char, 'stats', None)
+                npcs_data.append({
+                    "name": getattr(char, 'name', 'Unknown'),
+                    "race": getattr(char, 'race', 'Human'),
+                    "char_class": getattr(char, 'char_class', 'Commoner'),
+                    "alignment": getattr(char, 'alignment', 'Neutral'),
+                    "current_hp": getattr(char, 'current_hp', 10),
+                    "max_hp": getattr(char, 'max_hp', 10),
+                    "armor_class": getattr(char, 'armor_class', 10),
+                    "speed": getattr(char, 'speed', 30),
+                    "proficiency_bonus": getattr(char, 'proficiency_bonus', 2),
+                    "initiative_bonus": getattr(char, 'initiative_bonus', 0),
+                    "is_alive": getattr(char, 'is_alive', True),
+                    "stats": {
+                        "strength": getattr(stats, 'strength', 10) if stats else 10,
+                        "dexterity": getattr(stats, 'dexterity', 10) if stats else 10,
+                        "constitution": getattr(stats, 'constitution', 10) if stats else 10,
+                        "intelligence": getattr(stats, 'intelligence', 10) if stats else 10,
+                        "wisdom": getattr(stats, 'wisdom', 10) if stats else 10,
+                        "charisma": getattr(stats, 'charisma', 10) if stats else 10,
+                    } if stats else {
+                        "strength": 10, "dexterity": 10, "constitution": 10,
+                        "intelligence": 10, "wisdom": 10, "charisma": 10,
+                    },
+                })
+
+        # Build scene data
+        scene_data = None
+        if hasattr(session, 'current_scene') and session.current_scene:
+            scene = session.current_scene
+            scene_data = {
+                "name": getattr(scene, 'name', 'Unknown'),
+                "description": getattr(scene, 'description', ''),
+            }
+
+        return {
+            "session_id": session_id,
+            "session_name": session.session_name,
+            "game_mode": session.game_mode.value if hasattr(session.game_mode, 'value') else str(session.game_mode),
+            "status": "running",
+            "players": players_data,
+            "npcs": npcs_data,
+            "scene": scene_data,
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to get game info: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to get game info: {str(e)}")

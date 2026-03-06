@@ -1,5 +1,6 @@
 from logging import Logger
 from typing import TYPE_CHECKING, List
+import os
 
 if TYPE_CHECKING:
     from game.engine import Session
@@ -8,6 +9,9 @@ if TYPE_CHECKING:
 from skls_generator.generator import Generator
 from schemas.orchestration import OrchestrationVerdict, OrchestrationVerdictType, RuleViolationObject, RulesCheck, UserInteractionProcessing, UserInterationType, ClarityCheck
 from game.manipulators.base_manipulation import Archive, BaseManipulation
+
+# Get project root directory (works from any working directory)
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 MAX_MESSAGES_HISTORY_PROVIDED = 6
 MAX_EVENTS_PROVIDED = 5
@@ -18,13 +22,14 @@ class Orchestrator:
         self.generator = generator
         self.manipulations : List[BaseManipulation] = []
         self.logger = logger
-        
-        with open("prompts/character_action_rules.md", "r", encoding="utf-8") as f:
+        self.logger.info(f"Orchestrator initializing, PROJECT_ROOT={PROJECT_ROOT}")
+
+        with open(os.path.join(PROJECT_ROOT, "prompts/character_action_rules.md"), "r", encoding="utf-8") as f:
             self.character_action_rules = f.read()
 
-        with open("prompts/combat.md", "r", encoding="utf-8") as f:
+        with open(os.path.join(PROJECT_ROOT, "prompts/combat.md"), "r", encoding="utf-8") as f:
             self.combat_rules = f.read()
-        with open("prompts/story.md", "r", encoding="utf-8") as f:
+        with open(os.path.join(PROJECT_ROOT, "prompts/story.md"), "r", encoding="utf-8") as f:
             self.story_rules = f.read()
         
     def add_state(self, state : "Session"):

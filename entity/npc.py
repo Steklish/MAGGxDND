@@ -1,5 +1,6 @@
 from logging import Logger
 from typing import TYPE_CHECKING
+import os
 from game.event_pool import SubscriberQueue
 from entity.schemas import NPCActDecision
 from schemas.in_game import NPCCharacter
@@ -9,6 +10,8 @@ from entity.game_entity import GameEntity
 
 MEMORY_LENGTH_LIMIT = 2000  # characters
 
+# Get project root directory
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 class NPC(GameEntity):
     """The idea is that the NPC class creature is intependent actor
@@ -21,7 +24,7 @@ class NPC(GameEntity):
     Multiple events can be processed at a time.
     """
     try:
-        with open("prompts/npc.md", "r", encoding="utf-8") as f:
+        with open(os.path.join(PROJECT_ROOT, "prompts/npc.md"), "r", encoding="utf-8") as f:
             npc_instruction = f.read()
     except FileNotFoundError:
         # Default instruction if file not found

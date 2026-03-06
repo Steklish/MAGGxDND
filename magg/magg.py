@@ -1,5 +1,6 @@
 from logging import Logger
 from typing import TYPE_CHECKING, List, Optional
+import os
 
 from utils.threads import run_list_in_parallel, run_list_in_parallel_generator
 if TYPE_CHECKING:
@@ -11,9 +12,11 @@ from skls_generator.generator import Generator
 from schemas.orchestration import Event, Message
 from game.manipulators.base_manipulation import Archive
 
+# Get project root directory
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 class Magg:
-    with open("prompts/DM_personality.md", "r", encoding="utf-8") as f:
+    with open(os.path.join(PROJECT_ROOT, "prompts/DM_personality.md"), "r", encoding="utf-8") as f:
         character_prompt = f.read()
     
     def __init__(self, generator : Generator, 
