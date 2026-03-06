@@ -75,27 +75,27 @@ const CharacterPreview: React.FC<CharacterPreviewProps> = ({ character, type = '
                 <div className="character-preview-stats">
                     <div className="character-preview-stat">
                         <span className="character-preview-stat-name">STR</span>
-                        <span className="character-preview-stat-value">{character.stats.strength}</span>
+                        <span className="character-preview-stat-value">{character.stats?.strength || 10}</span>
                     </div>
                     <div className="character-preview-stat">
                         <span className="character-preview-stat-name">DEX</span>
-                        <span className="character-preview-stat-value">{character.stats.dexterity}</span>
+                        <span className="character-preview-stat-value">{character.stats?.dexterity || 10}</span>
                     </div>
                     <div className="character-preview-stat">
                         <span className="character-preview-stat-name">CON</span>
-                        <span className="character-preview-stat-value">{character.stats.constitution}</span>
+                        <span className="character-preview-stat-value">{character.stats?.constitution || 10}</span>
                     </div>
                     <div className="character-preview-stat">
                         <span className="character-preview-stat-name">INT</span>
-                        <span className="character-preview-stat-value">{character.stats.intelligence}</span>
+                        <span className="character-preview-stat-value">{character.stats?.intelligence || 10}</span>
                     </div>
                     <div className="character-preview-stat">
                         <span className="character-preview-stat-name">WIS</span>
-                        <span className="character-preview-stat-value">{character.stats.wisdom}</span>
+                        <span className="character-preview-stat-value">{character.stats?.wisdom || 10}</span>
                     </div>
                     <div className="character-preview-stat">
                         <span className="character-preview-stat-name">CHA</span>
-                        <span className="character-preview-stat-value">{character.stats.charisma}</span>
+                        <span className="character-preview-stat-value">{character.stats?.charisma || 10}</span>
                     </div>
                 </div>
             </div>
@@ -104,18 +104,18 @@ const CharacterPreview: React.FC<CharacterPreviewProps> = ({ character, type = '
                 <span className="character-preview-section-title">Vitals</span>
                 <div className="character-preview-hp">
                     <div className="character-preview-hp-bar">
-                        <div 
-                            className="character-preview-hp-fill" 
+                        <div
+                            className="character-preview-hp-fill"
                             style={{ width: `${hpPercent}%`, backgroundColor: hpColor }}
                         />
                     </div>
-                    <span className="character-preview-hp-text">{character.current_hp}/{character.max_hp} HP</span>
+                    <span className="character-preview-hp-text">{character.current_hp || 10}/{character.max_hp || 10} HP</span>
                 </div>
                 <div className="character-preview-vitals-grid">
-                    <span>AC: <strong>{character.armor_class}</strong></span>
-                    <span>SPD: <strong>{character.speed}</strong></span>
-                    <span>Prof: <strong>+{character.proficiency_bonus}</strong></span>
-                    <span>Init: <strong>+{character.initiative_bonus}</strong></span>
+                    <span>AC: <strong>{character.armor_class || 10}</strong></span>
+                    <span>SPD: <strong>{character.speed || 30}</strong></span>
+                    <span>Prof: <strong>+{character.proficiency_bonus || 2}</strong></span>
+                    <span>Init: <strong>+{character.initiative_bonus || 0}</strong></span>
                 </div>
             </div>
 
