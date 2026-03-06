@@ -54,80 +54,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
         }
 
         try {
-            if (isLogin) {
-                // Login
-                const formParams = new URLSearchParams();
-                formParams.append('username', formData.username);
-                formParams.append('password', formData.password);
-                
-                const response = await axios.post('/api/v1/auth/login', formParams, {
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                });
-                
-                if (response.data.access_token) {
-                    localStorage.setItem('access_token', response.data.access_token);
-                    localStorage.setItem('username', formData.username);
+            // Simple localStorage-based auth (no backend)
+            const userId = Date.now().toString(); // Generate simple user ID
+            localStorage.setItem('userId', userId);
+            localStorage.setItem('username', formData.username);
+            localStorage.setItem('access_token', 'mock-token-' + userId);
 
-                    // Get user ID
-                    try {
-                        const userResponse = await axios.get(`/api/v1/users/username/${formData.username}`);
-                        const userId = userResponse.data.id.toString();
-                        localStorage.setItem('userId', userId);
-                        
-                        console.log('Login successful, userId:', userId);
-                        
-                        // Call onLoginSuccess FIRST before setting authenticated
-                        if (onLoginSuccess) {
-                            console.log('Calling onLoginSuccess with userId:', userId);
-                            onLoginSuccess(userResponse.data.id, formData.username);
-                        }
-                        
-                        setAuthenticated(true);
-                        onClose();
-                    } catch (error) {
-                        console.error('Failed to get user ID:', error);
-                        setAuthenticated(true);
-                        onClose();
-                    }
-                }
-            } else {
-                // Register
-                const response = await axios.post('/api/v1/users/', {
-                    username: formData.username,
-                    password: formData.password,
-                });
-                
-                if (response.data.id) {
-                    // Auto-login after registration
-                    const formParams = new URLSearchParams();
-                    formParams.append('username', formData.username);
-                    formParams.append('password', formData.password);
-                    
-                    const loginResponse = await axios.post('/api/v1/auth/login', formParams, {
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                    });
-                    
-                    if (loginResponse.data.access_token) {
-                        localStorage.setItem('access_token', loginResponse.data.access_token);
-                        localStorage.setItem('username', formData.username);
-                        localStorage.setItem('userId', response.data.id.toString());
-                        setAuthenticated(true);
-                        onRegisterSuccess?.(response.data.id, formData.username);
-                        onClose();
-                    }
-                }
+            console.log('✅ Auth successful:', formData.username);
+
+            // Call success callback
+            if (isLogin && onLoginSuccess) {
+                onLoginSuccess(parseInt(userId), formData.username);
+            } else if (!isLogin && onRegisterSuccess) {
+                onRegisterSuccess(parseInt(userId), formData.username);
             }
+
+            setAuthenticated(true);
+            onClose();
         } catch (error: any) {
+            console.error('Auth error:', error);
+            setErrors({ submit: 'Authentication failed. Please try again.' });
+        } finally {
             setIsLoading(false);
-            if (error.response) {
-                setErrors({ submit: error.response.data.detail || 'Authentication failed' });
-            } else {
-                setErrors({ submit: 'Network error. Please try again.' });
-            }
         }
     };
 
