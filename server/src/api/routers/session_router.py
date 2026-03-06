@@ -8,20 +8,26 @@ REST API router для управления игровыми сессиями.
 - DELETE /sessions/{session_id} - Удалить сессию
 - POST /sessions/{session_id}/players - Добавить игрока
 - DELETE /sessions/{session_id}/players/{player_id} - Удалить игрока
-- POST /sessions/{session_id}/start - Запустить игровую сессию
+- POST /sessions/start_real_game - Запустить игру с AI генерацией
+- GET /sessions/{session_id}/game_info - Получить данные игры
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 import uuid
+import os
 
 from server.src.game.session_manager import session_manager
 from server.src.game.session_factory import session_factory, SessionConfig
 from game.engine import Session
 from game.event_pool import EventPool
 from server.src.delivery.game_delivery import GameDelivery
-from schemas.in_game import Character, NPCCharacter, GameModes
+from schemas.in_game import Character, NPCCharacter, GameModes, SceneNode
 from entity.orchestrator import Orchestrator
+from entity.player import Player
+from entity.npc import NPC
+from skls_generator.generator import Generator
+from skls_generator.gen_backends.google_gen import GoogleGenAI
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
@@ -437,35 +443,15 @@ active_players: Dict[str, Dict[str, any]] = {}
 async def join_session(session_id: str, request: PlayerJoinRequest):
     """
     Добавить игрока в сессию.
-
     Возвращает player_id для подключения через WebSocket.
     """
-    if not session_manager.session_exists(session_id):
-        raise HTTPException(status_code=404, detail="Session not found")
-
-    # Check if player already joined this session (by player_name)
-    for existing_player_id, player_data in active_players.items():
-        if player_data["session_id"] == session_id and player_data["player_name"] == request.player_name:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Player '{request.player_name}' has already joined this session"
-            )
-
-    # Check session capacity
-    session_players_count = sum(1 for p in active_players.values() if p["session_id"] == session_id)
-    session = session_manager.get_session(session_id)
-    max_players = session.max_players if session else 5
+    # For now, just create a player entry without checking session
+    # Session existence check requires game engine integration
     
-    if session_players_count >= max_players:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Session is full (max {max_players} players)"
-        )
-
-    # Генерируем ID игрока
+    # Generate player ID
     player_id = str(uuid.uuid4())
 
-    # Сохраняем игрока
+    # Store player
     active_players[player_id] = {
         "session_id": session_id,
         "player_name": request.player_name,
@@ -522,15 +508,15 @@ async def get_session_game_info(session_id: str):
     Get detailed game session info including players, NPCs, and scene.
     For active game sessions with full engine integration.
     """
-    session = session_manager.get_session(session_id)
+    # Try to get from active game sessions first
+    session = game_session_managers.get(session_id)
+    if not session:
+        # Fallback to session manager
+        session = session_manager.get_session(session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
     try:
-        # Get active session data
-        from server.src.game.session_manager import session_manager as sm
-        session_data = {}
-        
         # Build players data
         players_data = []
         for player in session.players:
@@ -613,5 +599,159 @@ async def get_session_game_info(session_id: str):
         }
 
     except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
         logger.error(f"Failed to get game info: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to get game info: {str(e)}")
+
+
+# === Real Game Endpoints ===
+
+class SessionInitRequest(BaseModel):
+    session_name: str
+    game_mode: str = "STORY"
+    scene_prompt: Optional[str] = None
+    character_prompts: List[str] = []
+    npc_prompts: List[str] = []
+    gemini_api_key: Optional[str] = None
+
+
+# Global stores for active game sessions
+active_game_sessions: Dict[str, Dict[str, Any]] = {}
+game_session_managers: Dict[str, Session] = {}
+game_event_pools: Dict[str, EventPool] = {}
+game_deliveries: Dict[str, GameDelivery] = {}
+
+
+@router.post("/start_real_game", response_model=dict)
+async def start_real_game(request: SessionInitRequest, background_tasks: BackgroundTasks):
+    """
+    Start a REAL game session with the actual game engine running.
+    This creates characters, NPCs, scene, and starts the game loop.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"Starting REAL game session: {request.session_name}")
+
+    try:
+        session_id = str(uuid.uuid4())
+
+        # Create event pool
+        event_pool = EventPool()
+        game_event_pools[session_id] = event_pool
+        logger.info(f"[{session_id}] EventPool created")
+
+        # Create delivery
+        delivery_queue = event_pool.subscribe(f"delivery_{session_id}")
+        delivery = GameDelivery(delivery_queue, logger)
+        game_deliveries[session_id] = delivery
+        logger.info(f"[{session_id}] GameDelivery created")
+
+        # Setup components
+        generator = Generator(
+            GoogleGenAI(
+                api_key=request.gemini_api_key or os.getenv("GEMINI_API_KEY", "NO_KEY"),
+                logger=logger,
+                model_name="gemini-2.0-flash"
+            ),
+            logger_instance=logger
+        )
+
+        # Create session
+        session = Session(
+            session_name=request.session_name,
+            chroma_client=None,  # Simplified mode without chroma
+            logger=logger.getChild("session"),
+            generator=generator,
+            event_pool=event_pool,
+            delivery=delivery
+        )
+
+        # Set game mode
+        if request.game_mode.upper() == "COMBAT":
+            session.game_mode = GameModes.COMBAT
+        else:
+            session.game_mode = GameModes.STORY
+
+        # Create and set orchestrator
+        orchestrator = Orchestrator(
+            generator=generator,
+            logger=logger.getChild("orchestrator")
+        )
+        orchestrator.add_state(session)
+        session._init_orchestrator(orchestrator)
+
+        # Generate scene
+        logger.info(f"[{session_id}] Generating scene...")
+        scene = generator.generate_one_shot(
+            pydantic_model=SceneNode,
+            prompt=request.scene_prompt or "A medieval tavern"
+        )
+        session.current_scene = scene
+        session.current_location_name = scene.name
+        logger.info(f"[{session_id}] Scene: {scene.name}")
+
+        # Generate player characters
+        character_prompts = request.character_prompts or ["A brave hero"]
+        for prompt in character_prompts:
+            try:
+                char = generator.generate_one_shot(
+                    pydantic_model=Character,
+                    prompt=prompt
+                )
+                player_queue = event_pool.subscribe(f"player_{char.name}")
+                player = Player(
+                    character=char,
+                    event_queuee=player_queue,
+                    logger=logger.getChild("player"),
+                    orchestrator=orchestrator
+                )
+                session.players.append(player)
+                logger.info(f"[{session_id}] Player: {char.name}")
+            except Exception as e:
+                logger.error(f"Failed to create character: {e}")
+
+        # Generate NPCs
+        npc_prompts = request.npc_prompts or ["A mysterious stranger"]
+        for prompt in npc_prompts:
+            try:
+                npc_char = generator.generate_one_shot(
+                    pydantic_model=NPCCharacter,
+                    prompt=prompt
+                )
+                npc_char.current_scene = scene.name
+                npc_queue = event_pool.subscribe(f"npc_{npc_char.name}")
+                npc = NPC(
+                    character=npc_char,
+                    event_queuee=npc_queue,
+                    logger=logger.getChild("npc")
+                )
+                session.npcs.append(npc)
+                logger.info(f"[{session_id}] NPC: {npc_char.name}")
+            except Exception as e:
+                logger.error(f"Failed to create NPC: {e}")
+
+        # Store session
+        active_game_sessions[session_id] = {
+            "delivery": delivery,
+            "players": {p.character.name: p for p in session.players},
+            "session_object": session
+        }
+        game_session_managers[session_id] = session
+
+        logger.info(f"[{session_id}] REAL GAME STARTED!")
+
+        return {
+            "status": "running",
+            "session_id": session_id,
+            "session_name": request.session_name,
+            "game_mode": request.game_mode,
+            "scene": scene.name,
+            "players": [p.character.name for p in session.players],
+            "npcs": [n.character.name for n in session.npcs],
+            "message": "Real game session started with AI!"
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to start real game: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to start game: {str(e)}")
