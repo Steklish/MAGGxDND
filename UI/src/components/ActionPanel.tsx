@@ -3,7 +3,7 @@ import { useGameStore } from '../store/gameStore';
 import './ActionPanel.css';
 
 export const ActionPanel: React.FC = () => {
-    const { activeCharacter, sendAction, isActionPending, clarificationText, messages, getMessageType } = useGameStore();
+    const { activeCharacter, sendAction, isActionPending, clarificationText, messages, getMessageType, isDMThinking } = useGameStore();
     const [actionText, setActionText] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const dialogueContainerRef = useRef<HTMLDivElement>(null);
@@ -95,6 +95,19 @@ export const ActionPanel: React.FC = () => {
                     )}
                     <div ref={messagesEndRef} />
                 </div>
+
+                {/* DM Thinking Animation */}
+                {isDMThinking && (
+                    <div className="dm-thinking">
+                        <div className="thinking-dots">
+                            <span className="dot">•</span>
+                            <span className="dot">•</span>
+                            <span className="dot">•</span>
+                            <span className="dot">•</span>
+                        </div>
+                        <span className="thinking-text">DM is thinking...</span>
+                    </div>
+                )}
 
                 {clarificationText && (
                     <div className="clarification-box">

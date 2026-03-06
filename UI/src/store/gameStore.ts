@@ -28,6 +28,7 @@ interface GameState {
     isLoading: boolean;
     isGenerating: boolean; // For game generation loading state
     generationStatus: string; // Status message during generation
+    isDMThinking: boolean; // DM is thinking about player action
     
     // Game messages/events
     messages: any[];
@@ -65,6 +66,7 @@ interface GameState {
     setLoading: (loading: boolean) => void;
     setIsGenerating: (generating: boolean) => void;
     setGenerationStatus: (status: string) => void;
+    setIsDMThinking: (thinking: boolean) => void;
     setMessages: (messages: any[]) => void;
     setEvents: (events: any[]) => void;
     addMessage: (message: any) => void;
@@ -99,6 +101,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     isLoading: false,
     isGenerating: false,
     generationStatus: '',
+    isDMThinking: false,
     messages: [],
     events: [],
     currentScene: null,
@@ -311,6 +314,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     setLoading: (loading) => set({ isLoading: loading }),
     setIsGenerating: (generating) => set({ isGenerating: generating }),
     setGenerationStatus: (status) => set({ generationStatus: status }),
+    setIsDMThinking: (thinking) => set({ isDMThinking: thinking }),
     setMessages: (messages) => set({ messages }),
     setEvents: (events) => set({ events }),
     addMessage: (message) => set((state) => {
@@ -333,6 +337,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     sendAction: async (actionText: string, character: any) => {
         console.log('📝 Player action:', actionText);
         
+        const state = useGameStore.getState();
+        
         // Add player message to store immediately
         const playerMessage = {
             sender_name: character.name,
@@ -340,7 +346,10 @@ export const useGameStore = create<GameState>((set, get) => ({
             type: 'player',
             timestamp: new Date().toISOString(),
         };
-        useGameStore.getState().addMessage(playerMessage);
+        state.addMessage(playerMessage);
+        
+        // Set DM thinking state
+        state.setIsDMThinking(true);
         
         // Send to backend for AI processing
         const sessionId = localStorage.getItem('currentSessionId');
@@ -360,17 +369,22 @@ export const useGameStore = create<GameState>((set, get) => ({
             
             const data = await response.json();
             
+            // Clear thinking state
+            state.setIsDMThinking(false);
+            
             // Add AI response from backend
             const dmResponse = {
                 sender_name: 'DM',
-                text: data.response,
+                text: data.response || data.dm_response || 'The DM considers your action...',
                 type: 'dm',
                 timestamp: new Date().toISOString(),
             };
-            useGameStore.getState().addMessage(dmResponse);
+            state.addMessage(dmResponse);
             
         } catch (error) {
             console.error('❌ Failed to process action:', error);
+            state.setIsDMThinking(false);
+            
             // Show error message
             const errorResponse = {
                 sender_name: 'System',
@@ -378,7 +392,7 @@ export const useGameStore = create<GameState>((set, get) => ({
                 type: 'environment',
                 timestamp: new Date().toISOString(),
             };
-            useGameStore.getState().addMessage(errorResponse);
+            state.addMessage(errorResponse);
         }
     },
     
