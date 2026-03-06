@@ -329,7 +329,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     setCurrentScene: (scene) => set({ currentScene: scene }),
     setActiveCharacter: (character) => set({ activeCharacter: character }),
     
-    // Mock action handler - sends to backend for AI processing
+    // Send action to backend for AI processing
     sendAction: async (actionText: string, character: any) => {
         console.log('📝 Player action:', actionText);
         
@@ -343,8 +343,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         useGameStore.getState().addMessage(playerMessage);
         
         // Send to backend for AI processing
+        const sessionId = localStorage.getItem('currentSessionId');
         try {
-            const sessionId = localStorage.getItem('currentSessionId');
             const response = await fetch(`/api/v1/sessions/${sessionId}/player_action`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -354,45 +354,31 @@ export const useGameStore = create<GameState>((set, get) => ({
                 }),
             });
             
-            if (response.ok) {
-                const data = await response.json();
-                // Add AI response from backend
-                const dmResponse = {
-                    sender_name: 'DM',
-                    text: data.response || data.message || 'The DM considers your action...',
-                    type: 'dm',
-                    timestamp: new Date().toISOString(),
-                };
-                useGameStore.getState().addMessage(dmResponse);
-            } else {
-                // Fallback if backend not available
-                throw new Error('Backend unavailable');
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
             }
+            
+            const data = await response.json();
+            
+            // Add AI response from backend
+            const dmResponse = {
+                sender_name: 'DM',
+                text: data.response,
+                type: 'dm',
+                timestamp: new Date().toISOString(),
+            };
+            useGameStore.getState().addMessage(dmResponse);
+            
         } catch (error) {
-            console.warn('⚠️ AI not available, using fallback response');
-            // Fallback response when backend/AI is not available
-            setTimeout(() => {
-                const actionLower = actionText.toLowerCase();
-                let dmResponseText = '';
-                
-                if (actionLower.includes('убить') || actionLower.includes('kill') || actionLower.includes('attack')) {
-                    const targetMatch = actionLower.match(/(убить|kill|атак|attack)\s+(?:на\s+)?(\w+)/i);
-                    const target = targetMatch ? targetMatch[2] : 'your target';
-                    dmResponseText = `⚠️ AI unavailable. You move to attack ${target}! [Enable backend for full AI responses]`;
-                } else if (actionLower.includes('смотр') || actionLower.includes('look') || actionLower.includes('осмотр')) {
-                    dmResponseText = `⚠️ AI unavailable. You look around carefully. [Enable backend for full AI responses]`;
-                } else {
-                    dmResponseText = `⚠️ AI unavailable. You attempt to ${actionText}. [Enable backend for full AI responses]`;
-                }
-                
-                const dmResponse = {
-                    sender_name: 'DM',
-                    text: dmResponseText,
-                    type: 'dm',
-                    timestamp: new Date().toISOString(),
-                };
-                useGameStore.getState().addMessage(dmResponse);
-            }, 500);
+            console.error('❌ Failed to process action:', error);
+            // Show error message
+            const errorResponse = {
+                sender_name: 'System',
+                text: `Failed to process action: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                type: 'environment',
+                timestamp: new Date().toISOString(),
+            };
+            useGameStore.getState().addMessage(errorResponse);
         }
     },
     
