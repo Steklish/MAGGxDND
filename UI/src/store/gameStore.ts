@@ -13,6 +13,7 @@ interface GameState {
     characters: Character[];
     selectedCharacter: Character | null;
     characterProfiles: Map<number, CharacterProfile>;
+    activeCharacter: Character | null; // Currently active character for actions
     
     // Game session state
     activeSessions: GameSession[];
@@ -46,6 +47,7 @@ interface GameState {
     // Actions - Characters
     loadCharacters: (userId: number) => Promise<void>;
     setSelectedCharacter: (character: Character | null) => void;
+    setActiveCharacter: (character: Character | null) => void;
     createCharacter: (data: any) => Promise<Character>;
     deleteCharacter: (characterId: number) => Promise<void>;
     loadCharacterProfile: (characterId: number) => Promise<CharacterProfile | null>;
@@ -77,6 +79,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     characters: [],
     selectedCharacter: null,
     characterProfiles: new Map(),
+    activeCharacter: null,
 
     activeSessions: [],
     currentSession: null,
@@ -157,6 +160,10 @@ export const useGameStore = create<GameState>((set, get) => ({
         if (character) {
             localStorage.setItem('selectedCharacterId', character.id.toString());
         }
+    },
+
+    setActiveCharacter: (character) => {
+        set({ activeCharacter: character });
     },
 
     createCharacter: async (data) => {

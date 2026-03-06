@@ -28,7 +28,7 @@ interface GameLayoutProps {
 }
 
 export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewSession, onJoinSession }) => {
-    const { session, currentSession, currentScene, activeCharacter, loadSessions, activeSessions, setCurrentSession, setCurrentScene, isGenerating, generationStatus, setIsGenerating, setGenerationStatus, addMessage } = useGameStore();
+    const { session, currentSession, currentScene, activeCharacter, loadSessions, activeSessions, setCurrentSession, setCurrentScene, setActiveCharacter, isGenerating, generationStatus, setIsGenerating, setGenerationStatus, addMessage } = useGameStore();
     
     // ALL HOOKS MUST BE AT THE TOP - before any conditional returns
     const [showProfile, setShowProfile] = useState(false);
@@ -138,12 +138,14 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                         // Add initial game messages
                         const dmMessage = {
                             sender_name: 'DM',
-                            message_text: `Welcome to ${data.scene.name}! ${data.scene.description}`,
+                            text: `Welcome to ${data.scene.name}! ${data.scene.description}`,
+                            type: 'dm',
                             timestamp: new Date().toISOString(),
                         };
                         const systemMessage = {
                             sender_name: 'System',
-                            message_text: `Game started with ${data.players.length} player(s) and ${data.npcs?.length || 0} NPC(s).`,
+                            text: `Game started with ${data.players.length} player(s) and ${data.npcs?.length || 0} NPC(s).`,
+                            type: 'environment',
                             timestamp: new Date().toISOString(),
                         };
                         
@@ -163,8 +165,29 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                             console.log('🏰 Scene loaded:', data.scene.name);
                         }
                         
-                        console.log('💬 DM Message:', dmMessage.message_text);
-                        console.log('💬 System:', systemMessage.message_text);
+                        // Set active character (first player)
+                        if (data.players && data.players.length > 0) {
+                            const firstPlayer = data.players[0];
+                            const activeChar = {
+                                name: firstPlayer.name,
+                                race: firstPlayer.race,
+                                char_class: firstPlayer.char_class,
+                                level: firstPlayer.level,
+                                current_hp: firstPlayer.current_hp,
+                                max_hp: firstPlayer.max_hp,
+                                armor_class: firstPlayer.armor_class,
+                                speed: firstPlayer.speed,
+                                proficiency_bonus: firstPlayer.proficiency_bonus,
+                                initiative_bonus: firstPlayer.initiative_bonus,
+                                is_alive: firstPlayer.is_alive,
+                                stats: firstPlayer.stats,
+                            } as any;
+                            setActiveCharacter(activeChar);
+                            console.log('🎭 Active character:', activeChar.name);
+                        }
+                        
+                        console.log('💬 DM Message:', dmMessage.text);
+                        console.log('💬 System:', systemMessage.text);
                     }
                 })
                 .catch(err => console.error('Failed to load game info:', err));
