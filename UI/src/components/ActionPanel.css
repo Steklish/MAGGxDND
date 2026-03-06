@@ -285,19 +285,20 @@
 
 .submit-btn {
     flex: 0 0 calc(60% - var(--spacing-sm));
-    background: var(--gradient-green);
-    color: var(--bg-primary);
+    background: linear-gradient(135deg, #2A9D8F 0%, #1D7A6F 100%); /* Bright green */
+    color: #FFFFFF;
     border: none;
     min-width: 0;
-    opacity: 1; /* Always bright */
+    opacity: 1;
     transition: all var(--transition-fast);
-    box-shadow: 0 2px 8px rgba(42, 157, 143, 0.3);
+    box-shadow: 0 2px 8px rgba(42, 157, 143, 0.4);
 }
 
 .submit-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #35B5A5 0%, #2A9D8F 100%);
     opacity: 1;
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(42, 157, 143, 0.5);
+    box-shadow: 0 4px 16px rgba(42, 157, 143, 0.6);
 }
 
 .submit-btn:active:not(:disabled) {
