@@ -22,6 +22,7 @@ from server.src.game.session_factory import session_factory, SessionConfig
 from game.engine import Session
 from game.event_pool import EventPool
 from server.src.delivery.game_delivery import GameDelivery
+from server.src.delivery.rest_api_delivery import RESTAPIDelivery
 from schemas.in_game import Character, NPCCharacter, GameModes, SceneNode
 from entity.orchestrator import Orchestrator
 from entity.player import Player
@@ -620,7 +621,7 @@ class SessionInitRequest(BaseModel):
 active_game_sessions: Dict[str, Dict[str, Any]] = {}
 game_session_managers: Dict[str, Session] = {}
 game_event_pools: Dict[str, EventPool] = {}
-game_deliveries: Dict[str, GameDelivery] = {}
+game_deliveries: Dict[str, Any] = {}
 
 
 @router.post("/start_real_game", response_model=dict)
@@ -667,12 +668,13 @@ async def start_real_game(request: SessionInitRequest, background_tasks: Backgro
         else:
             session.game_mode = GameModes.STORY
 
-        # Create delivery (needs session reference)
+        # Create delivery (REST API compatible)
         delivery_queue = event_pool.subscribe(f"delivery_{session_id}")
-        delivery = GameDelivery(session_id, session, delivery_queue, logger)
-        session.delivery = delivery  # Set delivery reference
+        delivery = RESTAPIDelivery(delivery_queue, logger, session_id)
+        delivery.set_session(session)  # Set session reference
+        session.delivery = delivery
         game_deliveries[session_id] = delivery
-        logger.info(f"[{session_id}] GameDelivery created")
+        logger.info(f"[{session_id}] RESTAPIDelivery created")
 
         # Create and set orchestrator
         orchestrator = Orchestrator(
@@ -766,8 +768,8 @@ class PlayerActionRequest(BaseModel):
 @router.post("/{session_id}/player_action", response_model=dict)
 async def process_player_action(session_id: str, request: PlayerActionRequest):
     """
-    Process player action through AI and return DM response.
-    This is the main game loop interaction point.
+    Process player action through the game engine.
+    Uses session's Delivery for proper interaction.
     """
     import logging
     logger = logging.getLogger(__name__)
@@ -780,50 +782,26 @@ async def process_player_action(session_id: str, request: PlayerActionRequest):
     try:
         logger.info(f"[{session_id}] Processing action for {request.character_name}: {request.action}")
         
-        # Use AI to generate response
-        generator = session.generator
+        # Use session's delivery to process action
+        if not session.delivery:
+            raise ValueError("Session has no delivery")
         
-        # Create prompt for AI
-        prompt = f"""You are the Dungeon Master for a D&D game. 
-
-Current scene: {session.current_scene.name if session.current_scene else 'Unknown'}
-{session.current_scene.description if session.current_scene else ''}
-
-Player character: {request.character_name}
-Player action: {request.action}
-
-Respond as the DM describing what happens. Be concise (2-3 sentences). Consider:
-- The current environment
-- NPC reactions (especially Zaltar if mentioned)
-- Game rules and logic
-- Make it engaging and dynamic
-
-DM Response:"""
-
-        # Generate AI response
-        response_text = generator.generate_one_shot(
-            pydantic_model=None,
-            prompt=prompt,
-            max_tokens=200
+        # Process through delivery
+        result = session.delivery.process_player_action(
+            character_name=request.character_name,
+            action_text=request.action
         )
         
-        logger.info(f"[{session_id}] AI response: {response_text}")
+        logger.info(f"[{session_id}] Action result: {result}")
         
-        return {
-            "session_id": session_id,
-            "character": request.character_name,
-            "action": request.action,
-            "response": response_text,
-            "status": "processed"
-        }
+        return result
         
     except Exception as e:
-        logger.error(f"Failed to process action: {e}", exc_info=True)
-        # Return fallback response
+        logger.error(f"[{session_id}] Failed to process action: {e}", exc_info=True)
         return {
             "session_id": session_id,
             "character": request.character_name,
             "action": request.action,
-            "response": f"The DM considers your action: '{request.action}'. What happens next depends on your approach.",
-            "status": "fallback"
+            "response": f"Error processing action: {str(e)}",
+            "status": "error"
         }
