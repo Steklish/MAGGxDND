@@ -35,7 +35,12 @@
     gap: var(--spacing-sm);
     padding: var(--spacing-sm) var(--spacing-md);
     min-height: 0;
-    max-height: calc(100% - 180px); /* Fixed height, leaving space for form */
+    max-height: calc(100% - 180px);
+}
+
+.dialogue-message {
+    flex: 0 0 auto; /* Prevent messages from shrinking */
+    min-width: 0;
 }
 
 .dialogue-messages::-webkit-scrollbar {
