@@ -18,12 +18,6 @@ export const SceneViewer: React.FC = () => {
 
     return (
         <div className="scene-viewer">
-            <div className="scene-header">
-                <h3>{currentScene.name}</h3>
-                {currentScene.description && (
-                    <p className="scene-description">{currentScene.description}</p>
-                )}
-            </div>
             <div className="scene-content">
                 <div className="grid-container">
                     <div className="grid">
