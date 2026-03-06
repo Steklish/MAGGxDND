@@ -67,6 +67,14 @@ interface GameState {
     setGenerationStatus: (status: string) => void;
     setMessages: (messages: any[]) => void;
     setEvents: (events: any[]) => void;
+    addMessage: (message: any) => void;
+    addEvent: (event: any) => void;
+    setCurrentScene: (scene: any) => void;
+    setActiveCharacter: (character: any) => void;
+    sendAction: (actionText: string, character: any) => void;
+    getMessageType: (senderName: string) => string;
+    isActionPending: boolean;
+    clarificationText: string;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -308,6 +316,40 @@ export const useGameStore = create<GameState>((set, get) => ({
     addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
     addEvent: (event) => set((state) => ({ events: [...state.events, event] })),
     setCurrentScene: (scene) => set({ currentScene: scene }),
+    setActiveCharacter: (character) => set({ activeCharacter: character }),
+    
+    // Mock action handler (would be replaced with real WebSocket/API call)
+    sendAction: (actionText: string, character: any) => {
+        console.log('📝 Player action:', actionText);
+        // Add player message to store
+        const playerMessage = {
+            sender_name: character.name,
+            text: actionText,
+            type: 'player',
+            timestamp: new Date().toISOString(),
+        };
+        useGameStore.getState().addMessage(playerMessage);
+        
+        // Simulate DM response (would be replaced with AI response)
+        setTimeout(() => {
+            const dmResponse = {
+                sender_name: 'DM',
+                text: `You attempt to ${actionText.toLowerCase()}. What happens next?`,
+                type: 'dm',
+                timestamp: new Date().toISOString(),
+            };
+            useGameStore.getState().addMessage(dmResponse);
+        }, 1000);
+    },
+    
+    // Placeholder functions for compatibility
+    getMessageType: (senderName: string) => {
+        if (senderName === 'DM') return 'dm';
+        if (senderName === 'System') return 'environment';
+        return 'player';
+    },
+    isActionPending: false,
+    clarificationText: '',
 }));
 
 // Initialize store from localStorage
