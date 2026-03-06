@@ -308,34 +308,69 @@ async def get_game_info(session_id: str):
     try:
         session_data = active_sessions.get(session_id, {})
         session_obj = session_data.get("session_object")
-        
+
         players_data = []
         for player_name, player_obj in session_data.get("players", {}).items():
             if hasattr(player_obj, 'character'):
                 char = player_obj.character
+                # Get stats if available
+                stats = getattr(char, 'stats', None)
                 players_data.append({
                     "name": char.name if hasattr(char, 'name') else str(char),
-                    "race": getattr(char, 'race', 'Unknown'),
-                    "char_class": getattr(char, 'char_class', 'Unknown'),
+                    "race": getattr(char, 'race', 'Human'),
+                    "char_class": getattr(char, 'char_class', 'Fighter'),
                     "level": getattr(char, 'level', 1),
-                    "hp": getattr(char, 'current_hp', 0),
-                    "ac": getattr(char, 'armor_class', 10),
+                    "current_hp": getattr(char, 'current_hp', 10),
+                    "max_hp": getattr(char, 'max_hp', 10),
+                    "armor_class": getattr(char, 'armor_class', 10),
+                    "speed": getattr(char, 'speed', 30),
+                    "proficiency_bonus": getattr(char, 'proficiency_bonus', 2),
                     "initiative_bonus": getattr(char, 'initiative_bonus', 0),
+                    "is_alive": getattr(char, 'is_alive', True),
+                    "stats": {
+                        "strength": getattr(stats, 'strength', 10) if stats else 10,
+                        "dexterity": getattr(stats, 'dexterity', 10) if stats else 10,
+                        "constitution": getattr(stats, 'constitution', 10) if stats else 10,
+                        "intelligence": getattr(stats, 'intelligence', 10) if stats else 10,
+                        "wisdom": getattr(stats, 'wisdom', 10) if stats else 10,
+                        "charisma": getattr(stats, 'charisma', 10) if stats else 10,
+                    } if stats else {
+                        "strength": 10, "dexterity": 10, "constitution": 10,
+                        "intelligence": 10, "wisdom": 10, "charisma": 10,
+                    },
                 })
-        
+
         npcs_data = []
         if session_obj and hasattr(session_obj, 'npcs'):
             for npc in session_obj.npcs:
                 if hasattr(npc, 'character'):
                     char = npc.character
+                    stats = getattr(char, 'stats', None)
                     npcs_data.append({
                         "name": getattr(char, 'name', 'Unknown'),
-                        "race": getattr(char, 'race', 'Unknown'),
-                        "char_class": getattr(char, 'char_class', 'Unknown'),
+                        "race": getattr(char, 'race', 'Human'),
+                        "char_class": getattr(char, 'char_class', 'Commoner'),
                         "alignment": getattr(char, 'alignment', 'Neutral'),
-                        "hp": getattr(char, 'current_hp', 0),
+                        "current_hp": getattr(char, 'current_hp', 10),
+                        "max_hp": getattr(char, 'max_hp', 10),
+                        "armor_class": getattr(char, 'armor_class', 10),
+                        "speed": getattr(char, 'speed', 30),
+                        "proficiency_bonus": getattr(char, 'proficiency_bonus', 2),
+                        "initiative_bonus": getattr(char, 'initiative_bonus', 0),
+                        "is_alive": getattr(char, 'is_alive', True),
+                        "stats": {
+                            "strength": getattr(stats, 'strength', 10) if stats else 10,
+                            "dexterity": getattr(stats, 'dexterity', 10) if stats else 10,
+                            "constitution": getattr(stats, 'constitution', 10) if stats else 10,
+                            "intelligence": getattr(stats, 'intelligence', 10) if stats else 10,
+                            "wisdom": getattr(stats, 'wisdom', 10) if stats else 10,
+                            "charisma": getattr(stats, 'charisma', 10) if stats else 10,
+                        } if stats else {
+                            "strength": 10, "dexterity": 10, "constitution": 10,
+                            "intelligence": 10, "wisdom": 10, "charisma": 10,
+                        },
                     })
-        
+
         scene_data = None
         if session_obj and hasattr(session_obj, 'current_scene'):
             scene = session_obj.current_scene
@@ -344,7 +379,7 @@ async def get_game_info(session_id: str):
                     "name": getattr(scene, 'name', 'Unknown'),
                     "description": getattr(scene, 'description', ''),
                 }
-        
+
         return {
             "session_id": session_id,
             "session_name": session.session_name,
@@ -354,7 +389,7 @@ async def get_game_info(session_id: str):
             "npcs": npcs_data,
             "scene": scene_data,
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get game info: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to get game info: {str(e)}")

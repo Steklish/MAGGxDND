@@ -103,9 +103,14 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                                     race: p.race,
                                     char_class: p.char_class,
                                     level: p.level,
-                                    current_hp: p.hp,
-                                    armor_class: p.ac,
+                                    current_hp: p.current_hp,
+                                    max_hp: p.max_hp,
+                                    armor_class: p.armor_class,
                                     initiative_bonus: p.initiative_bonus,
+                                    speed: p.speed,
+                                    proficiency_bonus: p.proficiency_bonus,
+                                    is_alive: p.is_alive,
+                                    stats: p.stats,
                                 }
                             })),
                             npcs: (data.npcs || []).map((n: any) => ({
@@ -114,16 +119,23 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                                     race: n.race,
                                     char_class: n.char_class,
                                     alignment: n.alignment,
-                                    current_hp: n.hp,
-                                    initiative_bonus: 0,
+                                    current_hp: n.current_hp,
+                                    max_hp: n.max_hp,
+                                    armor_class: n.armor_class,
+                                    initiative_bonus: n.initiative_bonus,
+                                    speed: n.speed,
+                                    proficiency_bonus: n.proficiency_bonus,
+                                    is_alive: n.is_alive,
+                                    stats: n.stats,
                                 }
                             })),
-                            current_scene: data.scene ? {
-                                name: data.scene.name,
-                                description: data.scene.description,
-                            } : null,
                         };
                         setCurrentSession(gameSession);
+                        
+                        // Update currentScene if available
+                        if (data.scene) {
+                            console.log('🏰 Scene loaded:', data.scene.name);
+                        }
                     }
                 })
                 .catch(err => console.error('Failed to load game info:', err));
@@ -132,15 +144,17 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
 
     useEffect(() => {
         console.log('🔍 Initializing turn queue, session:', session);
-        if (!session) {
+        console.log('🔍 currentSession:', currentSession);
+        if (!session && !currentSession) {
             console.log('⚠️ No session available');
             return;
         }
-        console.log('📊 Session players:', session.players?.length || 0);
-        console.log('📊 Session npcs:', session.npcs?.length || 0);
-        
+        const activeSession = session || currentSession;
+        console.log('📊 Session players:', activeSession.players?.length || 0);
+        console.log('📊 Session npcs:', activeSession.npcs?.length || 0);
+
         const queue: TurnEntry[] = [];
-        session.players?.forEach(p => {
+        activeSession.players?.forEach(p => {
             if (!p?.character) return;
             const char = p.character;
             queue.push({
@@ -153,7 +167,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                 deathSaveFailures: 0
             });
         });
-        session.npcs?.forEach(n => {
+        activeSession.npcs?.forEach(n => {
             if (!n?.character) return;
             const char = n.character;
             let type: 'hostile' | 'neutral' | 'ally' = 'hostile';
@@ -173,7 +187,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
         setTurnQueue(queue);
         setCurrentIndex(0);
         console.log('🎯 Turn queue initialized with', queue.length, 'entries');
-    }, [session]);
+    }, [session, currentSession]);
 
     const handleSessionCreated = (newSessionId: string) => {
         setShowCreateSession(false);
