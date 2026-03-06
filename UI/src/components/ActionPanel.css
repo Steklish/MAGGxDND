@@ -35,6 +35,7 @@
     gap: var(--spacing-sm);
     padding: var(--spacing-sm) var(--spacing-md);
     min-height: 0;
+    max-height: calc(100% - 180px); /* Fixed height, leaving space for form */
 }
 
 .dialogue-messages::-webkit-scrollbar {
@@ -210,6 +211,9 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
+    flex: 0 0 auto;
+    min-height: 140px;
+    max-height: 140px;
 }
 
 .form-group {
@@ -226,6 +230,10 @@
     font-size: 0.9rem;
     font-family: inherit;
     resize: none;
+    flex: 1;
+    min-height: 60px;
+    max-height: 60px;
+    overflow-y: auto;
     transition: all var(--transition-fast);
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
