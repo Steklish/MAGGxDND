@@ -128,7 +128,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         try {
             const characters = await characterAPI.getUserCharacters(userId);
             set({ characters, isLoading: false });
-            
+
             // Load profiles for each character
             const profiles = new Map<number, CharacterProfile>();
             for (const char of characters) {
@@ -141,8 +141,8 @@ export const useGameStore = create<GameState>((set, get) => ({
             }
             set({ characterProfiles: profiles });
         } catch (error: any) {
-            console.error('Failed to load characters:', error);
-            set({ isLoading: false });
+            console.warn('Failed to load characters (using empty list):', error.message);
+            set({ characters: [], isLoading: false });
         }
     },
 
@@ -229,7 +229,8 @@ export const useGameStore = create<GameState>((set, get) => ({
             );
             set({ activeSessions: uniqueSessions });
         } catch (error: any) {
-            console.error('Failed to load sessions:', error);
+            console.warn('Failed to load sessions (using empty list):', error.message);
+            set({ activeSessions: [] });
         }
     },
 
