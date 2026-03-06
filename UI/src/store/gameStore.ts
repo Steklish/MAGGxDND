@@ -19,6 +19,7 @@ interface GameState {
     currentSession: GameSession | null;
     session: GameSession | null; // Alias for currentSession (for compatibility)
     sessionId: string | null;
+    currentScene: any | null; // Current scene data
     
     // UI state
     mode: 'menu' | 'connecting' | 'playing' | 'error' | null;
@@ -30,6 +31,10 @@ interface GameState {
     // Game messages/events
     messages: any[];
     events: any[];
+    
+    // Actions - Messages
+    addMessage: (message: any) => void;
+    addEvent: (event: any) => void;
     
     // Actions - Auth
     setAuthenticated: (value: boolean) => void;
@@ -85,6 +90,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     generationStatus: '',
     messages: [],
     events: [],
+    currentScene: null,
     
     // Auth actions
     setAuthenticated: (value) => set({ isAuthenticated: value }),
@@ -284,7 +290,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         });
     },
 
-    // UI actions
+    // Actions - UI
     setMode: (mode) => set({ mode }),
     setError: (error) => set({ error }),
     setLoading: (loading) => set({ isLoading: loading }),
@@ -292,6 +298,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     setGenerationStatus: (status) => set({ generationStatus: status }),
     setMessages: (messages) => set({ messages }),
     setEvents: (events) => set({ events }),
+    addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
+    addEvent: (event) => set((state) => ({ events: [...state.events, event] })),
+    setCurrentScene: (scene) => set({ currentScene: scene }),
 }));
 
 // Initialize store from localStorage

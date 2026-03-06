@@ -6,6 +6,25 @@
     padding: 20px;
 }
 
+.scene-header {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.scene-header h3 {
+    margin: 0 0 8px;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+}
+
+.scene-description {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
 .no-scene {
     display: flex;
     flex-direction: column;

@@ -28,7 +28,7 @@ interface GameLayoutProps {
 }
 
 export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewSession, onJoinSession }) => {
-    const { session, currentSession, currentScene, activeCharacter, loadSessions, activeSessions, setCurrentSession, isGenerating, generationStatus, setIsGenerating, setGenerationStatus } = useGameStore();
+    const { session, currentSession, currentScene, activeCharacter, loadSessions, activeSessions, setCurrentSession, setCurrentScene, isGenerating, generationStatus, setIsGenerating, setGenerationStatus, addMessage } = useGameStore();
     
     // ALL HOOKS MUST BE AT THE TOP - before any conditional returns
     const [showProfile, setShowProfile] = useState(false);
@@ -132,10 +132,39 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                         };
                         setCurrentSession(gameSession);
                         
-                        // Update currentScene if available
+                        // Add welcome message from DM
+                        console.log('🏰 Scene loaded:', data.scene.name);
+                        
+                        // Add initial game messages
+                        const dmMessage = {
+                            sender_name: 'DM',
+                            message_text: `Welcome to ${data.scene.name}! ${data.scene.description}`,
+                            timestamp: new Date().toISOString(),
+                        };
+                        const systemMessage = {
+                            sender_name: 'System',
+                            message_text: `Game started with ${data.players.length} player(s) and ${data.npcs?.length || 0} NPC(s).`,
+                            timestamp: new Date().toISOString(),
+                        };
+                        
+                        // Add messages to store
+                        addMessage(dmMessage);
+                        addMessage(systemMessage);
+                        
+                        // Set current scene
                         if (data.scene) {
+                            setCurrentScene({
+                                name: data.scene.name,
+                                description: data.scene.description,
+                                center_position: { x: 10, y: 10 },
+                                dimensions: { x: 20, y: 20 },
+                                objects: [],
+                            });
                             console.log('🏰 Scene loaded:', data.scene.name);
                         }
+                        
+                        console.log('💬 DM Message:', dmMessage.message_text);
+                        console.log('💬 System:', systemMessage.message_text);
                     }
                 })
                 .catch(err => console.error('Failed to load game info:', err));
