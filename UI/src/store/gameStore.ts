@@ -313,7 +313,18 @@ export const useGameStore = create<GameState>((set, get) => ({
     setGenerationStatus: (status) => set({ generationStatus: status }),
     setMessages: (messages) => set({ messages }),
     setEvents: (events) => set({ events }),
-    addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
+    addMessage: (message) => set((state) => {
+        // Prevent duplicate messages
+        const isDuplicate = state.messages.some(
+            m => m.sender_name === message.sender_name && 
+                 m.text === message.text && 
+                 Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 1000
+        );
+        if (isDuplicate) {
+            return state;
+        }
+        return { messages: [...state.messages, message] };
+    }),
     addEvent: (event) => set((state) => ({ events: [...state.events, event] })),
     setCurrentScene: (scene) => set({ currentScene: scene }),
     setActiveCharacter: (character) => set({ activeCharacter: character }),
@@ -321,6 +332,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     // Mock action handler (would be replaced with real WebSocket/API call)
     sendAction: (actionText: string, character: any) => {
         console.log('📝 Player action:', actionText);
+        
         // Add player message to store
         const playerMessage = {
             sender_name: character.name,
@@ -330,16 +342,42 @@ export const useGameStore = create<GameState>((set, get) => ({
         };
         useGameStore.getState().addMessage(playerMessage);
         
-        // Simulate DM response (would be replaced with AI response)
+        // Simulate intelligent DM response based on action type
         setTimeout(() => {
+            const actionLower = actionText.toLowerCase();
+            let dmResponseText = '';
+            
+            // Check for combat-related actions
+            if (actionLower.includes('убить') || actionLower.includes('kill') || actionLower.includes('attack') || actionLower.includes('атак')) {
+                const targetMatch = actionLower.match(/(убить|kill|атак|attack)\s+(?:на\s+)?(\w+)/);
+                const target = targetMatch ? targetMatch[2] : 'your target';
+                dmResponseText = `You move to attack ${target}! Roll for initiative. What's your attack bonus?`;
+            }
+            // Check for movement
+            else if (actionLower.includes('идти') || actionLower.includes('go') || actionLower.includes('move') || actionLower.includes('walk')) {
+                dmResponseText = `You move through the tavern. Where exactly are you going?`;
+            }
+            // Check for talking
+            else if (actionLower.includes('говор') || actionLower.includes('talk') || actionLower.includes('say') || actionLower.includes('спрос')) {
+                dmResponseText = `You speak out loud. Who are you addressing?`;
+            }
+            // Check for looking/observing
+            else if (actionLower.includes('смотр') || actionLower.includes('look') || actionLower.includes('осмотр')) {
+                dmResponseText = `You look around carefully. What specifically are you examining?`;
+            }
+            // Default response
+            else {
+                dmResponseText = `You attempt to ${actionText.toLowerCase()}. Describe how you do this in more detail.`;
+            }
+            
             const dmResponse = {
                 sender_name: 'DM',
-                text: `You attempt to ${actionText.toLowerCase()}. What happens next?`,
+                text: dmResponseText,
                 type: 'dm',
                 timestamp: new Date().toISOString(),
             };
             useGameStore.getState().addMessage(dmResponse);
-        }, 1000);
+        }, 800);
     },
     
     // Placeholder functions for compatibility
