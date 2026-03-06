@@ -641,12 +641,6 @@ async def start_real_game(request: SessionInitRequest, background_tasks: Backgro
         game_event_pools[session_id] = event_pool
         logger.info(f"[{session_id}] EventPool created")
 
-        # Create delivery
-        delivery_queue = event_pool.subscribe(f"delivery_{session_id}")
-        delivery = GameDelivery(delivery_queue, logger)
-        game_deliveries[session_id] = delivery
-        logger.info(f"[{session_id}] GameDelivery created")
-
         # Setup components
         generator = Generator(
             GoogleGenAI(
@@ -664,7 +658,7 @@ async def start_real_game(request: SessionInitRequest, background_tasks: Backgro
             logger=logger.getChild("session"),
             generator=generator,
             event_pool=event_pool,
-            delivery=delivery
+            delivery=None  # Will be set after creation
         )
 
         # Set game mode
@@ -672,6 +666,13 @@ async def start_real_game(request: SessionInitRequest, background_tasks: Backgro
             session.game_mode = GameModes.COMBAT
         else:
             session.game_mode = GameModes.STORY
+
+        # Create delivery (needs session reference)
+        delivery_queue = event_pool.subscribe(f"delivery_{session_id}")
+        delivery = GameDelivery(session_id, session, delivery_queue, logger)
+        session.delivery = delivery  # Set delivery reference
+        game_deliveries[session_id] = delivery
+        logger.info(f"[{session_id}] GameDelivery created")
 
         # Create and set orchestrator
         orchestrator = Orchestrator(

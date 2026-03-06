@@ -187,6 +187,13 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
         setTurnQueue(queue);
         setCurrentIndex(0);
         console.log('🎯 Turn queue initialized with', queue.length, 'entries');
+        console.log('📋 Turn queue entries:', queue.map(e => ({
+            name: e.character?.name,
+            type: e.type,
+            initiative: e.initiative,
+            hasCharacter: !!e.character,
+            characterKeys: e.character ? Object.keys(e.character) : 'none'
+        })));
     }, [session, currentSession]);
 
     const handleSessionCreated = (newSessionId: string) => {
@@ -286,7 +293,13 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
 
     // ALL useCallback MUST BE BEFORE ANY CONDITIONAL RETURNS
     const getAliveQueue = useCallback(() => {
-        return turnQueue.filter(entry => !entry.isDead);
+        const result = turnQueue.filter(entry => !entry.isDead);
+        console.log('🔍 getAliveQueue:', {
+            turnQueueLength: turnQueue.length,
+            aliveLength: result.length,
+            entries: result.map(e => ({ name: e.character?.name, isDead: e.isDead, type: e.type }))
+        });
+        return result;
     }, [turnQueue]);
 
     const handleDeathAnimation = useCallback((characterName: string) => {
@@ -707,7 +720,8 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                     ) : (
                         <div className="no-turn-queue">
                             <p>⏳ Waiting for game data...</p>
-                            <p className="hint">Game is running but character data not loaded yet</p>
+                            <p className="hint">Turn queue: {turnQueue?.length || 0} | Alive: {aliveQueue?.length || 0}</p>
+                            <p className="hint">Session players: {session?.players?.length || 0} | NPCs: {session?.npcs?.length || 0}</p>
                         </div>
                     )}
                 </div>

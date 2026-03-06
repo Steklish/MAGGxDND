@@ -326,8 +326,8 @@
     aspect-ratio: 16/9;
 }
 
-/* Show portraits only when header is at full height (>120px) */
-@media (min-height: 121px) {
+/* Show portraits only when header is at reasonable height (>70px) */
+@media (min-height: 71px) {
     .turn-portrait {
         display: flex;
     }
