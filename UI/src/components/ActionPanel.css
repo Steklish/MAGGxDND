@@ -274,23 +274,13 @@
 .submit-btn::before,
 .clear-btn::before,
 .skip-btn::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
+    content: none; /* Remove ripple effect */
 }
 
 .submit-btn:active::before,
 .clear-btn:active::before,
 .skip-btn:active::before {
-    width: 300px;
-    height: 300px;
+    content: none;
 }
 
 .submit-btn {
@@ -299,7 +289,7 @@
     color: var(--bg-primary);
     border: none;
     min-width: 0;
-    opacity: 0.7;
+    opacity: 1; /* Always bright */
     transition: all var(--transition-fast);
     box-shadow: 0 2px 8px rgba(42, 157, 143, 0.3);
 }
