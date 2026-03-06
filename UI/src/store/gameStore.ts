@@ -321,7 +321,8 @@ const initStore = () => {
             max_players: 5,
             status: gameStatus === 'running' ? 'running' : 'created',
             description: null,
-            players: [{ player_id: playerId, player_name: username || 'Player', character_name: null }],
+            players: [{ player_id: playerId, player_name: username || 'Player', character_name: null, character: null }],
+            npcs: [],
         };
         useGameStore.setState({
             sessionId,

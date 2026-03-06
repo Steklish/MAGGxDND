@@ -80,8 +80,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCrea
 
     const loadUserProfile = async () => {
         try {
-            const response = await axios.get(`/api/v1/users/username/${localStorage.getItem('username')}`);
-            setUserProfile(response.data);
+            // Skip loading full user profile - endpoint not available
+            // const response = await axios.get(`/api/v1/users/username/${localStorage.getItem('username')}`);
+            // setUserProfile(response.data);
+            setUserProfile({ id: userId, username: localStorage.getItem('username') });
         } catch (error) {
             console.error('Failed to load user profile:', error);
         }
