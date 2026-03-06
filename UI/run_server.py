@@ -6,6 +6,11 @@ MAGGxDND Game Server Launcher
 import sys
 import os
 
+# Add project root to path
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 # Set UTF-8 encoding for Windows
 if sys.platform == 'win32':
     sys.stdout.reconfigure(encoding='utf-8')
@@ -32,10 +37,15 @@ print("Press Ctrl+C to stop")
 print("=" * 60)
 print()
 
-# Run with uvicorn - use main server
+# Run with uvicorn - use main server from project root
 if __name__ == "__main__":
     import uvicorn
-
+    import subprocess
+    
+    # Change to project root for correct database path
+    os.chdir(PROJECT_ROOT)
+    print(f"Working directory: {os.getcwd()}")
+    
     try:
         uvicorn.run(
             "server.main:app",  # Use main server
