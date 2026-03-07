@@ -684,55 +684,125 @@ async def start_real_game(request: SessionInitRequest, background_tasks: Backgro
         orchestrator.add_state(session)
         session._init_orchestrator(orchestrator)
 
-        # Generate scene
+        # Generate scene (with fallback if AI fails)
         logger.info(f"[{session_id}] Generating scene...")
-        scene = generator.generate_one_shot(
-            pydantic_model=SceneNode,
-            prompt=request.scene_prompt or "A medieval tavern"
-        )
+        try:
+            scene = generator.generate_one_shot(
+                pydantic_model=SceneNode,
+                prompt=request.scene_prompt or "A medieval tavern"
+            )
+        except Exception as e:
+            logger.warning(f"AI scene generation failed: {e}, using fallback")
+            from schemas.in_game import Coordinate2D, UnifiedObject
+            scene = SceneNode(
+                name="Default Tavern",
+                description="A cozy medieval tavern with warm fire and wooden tables.",
+                objects=[],
+                center_position=Coordinate2D(x=10, y=10),
+                dimensions=Coordinate2D(x=20, y=20),
+                scale_unit="meters"
+            )
         session.current_scene = scene
         session.current_location_name = scene.name
         logger.info(f"[{session_id}] Scene: {scene.name}")
 
-        # Generate player characters
+        # Generate player characters (with fallback if AI fails)
         character_prompts = request.character_prompts or ["A brave hero"]
-        for prompt in character_prompts:
+        if not character_prompts:
+            character_prompts = ["A brave hero"]
+        for i, prompt in enumerate(character_prompts):
             try:
                 char = generator.generate_one_shot(
                     pydantic_model=Character,
                     prompt=prompt
                 )
-                player_queue = event_pool.subscribe(f"player_{char.name}")
-                player = Player(
-                    character=char,
-                    event_queuee=player_queue,
-                    logger=logger.getChild("player"),
-                    orchestrator=orchestrator
-                )
-                session.players.append(player)
-                logger.info(f"[{session_id}] Player: {char.name}")
             except Exception as e:
-                logger.error(f"Failed to create character: {e}")
+                logger.warning(f"AI character generation failed: {e}, using fallback")
+                from schemas.in_game import AbilityScores
+                char = Character(
+                    name=f"Hero{i+1}",
+                    race="Human",
+                    char_class="Fighter",
+                    level=1,
+                    backstory_summary="A brave adventurer",
+                    personality_traits=["Brave", "Kind"],
+                    max_hp=10,
+                    current_hp=10,
+                    temp_hp=0,
+                    armor_class=12,
+                    speed=30,
+                    stats=AbilityScores(strength=10, dexterity=10, constitution=10, intelligence=10, wisdom=10, charisma=10),
+                    inventory=[],
+                    active_conditions_list=[],
+                    resources={},
+                    position=Coordinate2D(x=10, y=10),
+                    abilities=[],
+                    active_conditions="",
+                    proficiency_bonus=2,
+                    is_alive=True,
+                    initiative_bonus=0,
+                    short_summary="A brave hero"
+                )
+            player_queue = event_pool.subscribe(f"player_{char.name}")
+            player = Player(
+                character=char,
+                event_queuee=player_queue,
+                logger=logger.getChild("player"),
+                orchestrator=orchestrator
+            )
+            session.players.append(player)
+            logger.info(f"[{session_id}] Player: {char.name}")
 
-        # Generate NPCs
+        # Generate NPCs (with fallback if AI fails)
         npc_prompts = request.npc_prompts or ["A mysterious stranger"]
-        for prompt in npc_prompts:
+        if not npc_prompts:
+            npc_prompts = ["A mysterious stranger"]
+        for i, prompt in enumerate(npc_prompts):
             try:
                 npc_char = generator.generate_one_shot(
                     pydantic_model=NPCCharacter,
                     prompt=prompt
                 )
-                npc_char.current_scene = scene.name
-                npc_queue = event_pool.subscribe(f"npc_{npc_char.name}")
-                npc = NPC(
-                    character=npc_char,
-                    event_queuee=npc_queue,
-                    logger=logger.getChild("npc")
-                )
-                session.npcs.append(npc)
-                logger.info(f"[{session_id}] NPC: {npc_char.name}")
             except Exception as e:
-                logger.error(f"Failed to create NPC: {e}")
+                logger.warning(f"AI NPC generation failed: {e}, using fallback")
+                from schemas.in_game import AbilityScores
+                npc_char = NPCCharacter(
+                    name=f"NPC{i+1}",
+                    race="Human",
+                    char_class="Commoner",
+                    level=1,
+                    backstory_summary="A local villager",
+                    personality_traits=["Friendly"],
+                    max_hp=8,
+                    current_hp=8,
+                    temp_hp=0,
+                    armor_class=10,
+                    speed=30,
+                    stats=AbilityScores(strength=10, dexterity=10, constitution=10, intelligence=10, wisdom=10, charisma=10),
+                    inventory=[],
+                    active_conditions_list=[],
+                    resources={},
+                    position=Coordinate2D(x=10, y=10),
+                    abilities=[],
+                    active_conditions="",
+                    proficiency_bonus=2,
+                    is_alive=True,
+                    initiative_bonus=0,
+                    short_summary="A villager",
+                    motivation="To live peacefully",
+                    alignment="Neutral Good",
+                    memory="",
+                    current_scene=scene.name
+                )
+            npc_char.current_scene = scene.name
+            npc_queue = event_pool.subscribe(f"npc_{npc_char.name}")
+            npc = NPC(
+                character=npc_char,
+                event_queuee=npc_queue,
+                logger=logger.getChild("npc")
+            )
+            session.npcs.append(npc)
+            logger.info(f"[{session_id}] NPC: {npc_char.name}")
 
         # Store session
         active_game_sessions[session_id] = {
