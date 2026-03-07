@@ -5,7 +5,10 @@ import './SceneViewer.css';
 export const SceneViewer: React.FC = () => {
     const { currentScene, session } = useGameStore();
 
-    if (!currentScene) {
+    console.log('🏰 SceneViewer render:', { currentScene });
+
+    // Check for null, undefined, or invalid scene
+    if (!currentScene || typeof currentScene !== 'object') {
         return (
             <div className="scene-viewer">
                 <div className="no-scene">
@@ -16,14 +19,26 @@ export const SceneViewer: React.FC = () => {
         );
     }
 
+    // Safely access nested properties with defaults
+    const centerPos = currentScene.center_position || { x: 10, y: 10 };
+    const dimensions = currentScene.dimensions || { x: 20, y: 20 };
+    
+    // Ensure x and y exist
+    const centerX = typeof centerPos.x === 'number' ? centerPos.x : 10;
+    const centerY = typeof centerPos.y === 'number' ? centerPos.y : 10;
+    const dimX = typeof dimensions.x === 'number' ? dimensions.x : 20;
+    const dimY = typeof dimensions.y === 'number' ? dimensions.y : 20;
+
+    console.log('🏰 Scene dimensions:', { centerX, centerY, dimX, dimY });
+
     return (
         <div className="scene-viewer">
             <div className="scene-content">
                 <div className="grid-container">
                     <div className="grid">
-                        {Array(20).fill(null).map((_, y) => (
+                        {Array(dimY).fill(null).map((_, y) => (
                             <div key={y} className="grid-row">
-                                {Array(20).fill(null).map((_, x) => (
+                                {Array(dimX).fill(null).map((_, x) => (
                                     <div key={x} className="grid-cell" title={`Cell ${x},${y}`}>·</div>
                                 ))}
                             </div>
