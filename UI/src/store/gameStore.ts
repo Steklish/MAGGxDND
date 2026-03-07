@@ -33,7 +33,8 @@ interface GameState {
     // Game messages/events
     messages: any[];
     events: any[];
-    
+    turnQueue: any[];
+
     // Actions - Messages
     addMessage: (message: any) => void;
     addEvent: (event: any) => void;
@@ -69,10 +70,7 @@ interface GameState {
     setIsDMThinking: (thinking: boolean) => void;
     setMessages: (messages: any[]) => void;
     setEvents: (events: any[]) => void;
-    addMessage: (message: any) => void;
-    addEvent: (event: any) => void;
     setCurrentScene: (scene: any) => void;
-    setActiveCharacter: (character: any) => void;
     sendAction: (actionText: string, character: any) => void;
     getMessageType: (senderName: string) => string;
     isActionPending: boolean;
@@ -104,6 +102,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     isDMThinking: false,
     messages: [],
     events: [],
+    turnQueue: [],
     currentScene: null,
     
     // Auth actions
@@ -331,8 +330,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }),
     addEvent: (event) => set((state) => ({ events: [...state.events, event] })),
     setCurrentScene: (scene) => set({ currentScene: scene }),
-    setActiveCharacter: (character) => set({ activeCharacter: character }),
-    
+
     // Send action to backend for AI processing
     sendAction: async (actionText: string, character: any) => {
         console.log('📝 Player action:', actionText);
@@ -433,8 +431,8 @@ const initStore = () => {
             player_count: 1,
             max_players: 5,
             status: gameStatus === 'running' ? 'running' : 'created',
-            description: null,
-            players: [{ player_id: playerId, player_name: username || 'Player', character_name: null, character: null }],
+            description: undefined,
+            players: [{ player_id: playerId, player_name: username || 'Player', character_name: undefined, character: undefined }],
             npcs: [],
         };
         useGameStore.setState({

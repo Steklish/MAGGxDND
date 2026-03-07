@@ -8,7 +8,7 @@ interface SessionCreationProps {
     onBack: () => void;
 }
 
-export const SessionCreation: React.FC<SessionCreationProps> = ({ userId, onComplete, onBack }) => {
+export const SessionCreation: React.FC<SessionCreationProps> = ({ userId: _userId, onComplete, onBack }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [step, setStep] = useState(1);

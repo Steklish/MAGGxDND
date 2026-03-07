@@ -8,25 +8,25 @@ export const ConnectionScreen: React.FC = () => {
     const [playerName, setPlayerName] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    
-    const connect = useGameStore((state) => state.connect);
+
+    // const connect = useGameStore((state) => state.connect);
     const createSession = useGameStore((state) => state.createSession);
     const joinSession = useGameStore((state) => state.joinSession);
 
-    const handleConnect = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!sessionId || !playerId) return;
-        
-        setIsLoading(true);
-        setError('');
-        
-        try {
-            await connect(sessionId, playerId);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Connection failed');
-            setIsLoading(false);
-        }
-    };
+    // const handleConnect = async (e: React.FormEvent) => {
+    //     e.preventDefault();
+    //     if (!sessionId || !playerId) return;
+
+    //     setIsLoading(true);
+    //     setError('');
+
+    //     try {
+    //         await connect(sessionId, playerId);
+    //     } catch (err) {
+    //         setError(err instanceof Error ? err.message : 'Connection failed');
+    //         setIsLoading(false);
+    //     }
+    // };
 
     const handleCreateSession = async () => {
         setIsLoading(true);
@@ -50,7 +50,7 @@ export const ConnectionScreen: React.FC = () => {
             setPlayerId(newPlayerId);
 
             // Connect to the session
-            await connect(newSessionId, newPlayerId || 'player_1');
+            // await connect(newSessionId, newPlayerId || 'player_1');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to create session');
             setIsLoading(false);
@@ -66,7 +66,11 @@ export const ConnectionScreen: React.FC = () => {
         setError('');
         
         try {
-            await connect(newSessionId, newPlayerId);
+            // await connect(newSessionId, newPlayerId);
+            // Quick start disabled - use create session instead
+            setError('Quick start disabled. Please create a session.');
+            setIsLoading(false);
+            return;
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Connection failed');
             setIsLoading(false);
@@ -90,7 +94,7 @@ export const ConnectionScreen: React.FC = () => {
                     </div>
                 )}
 
-                <form onSubmit={handleConnect} className="connection-form">
+                <form onSubmit={(e) => { e.preventDefault(); setError('Connection disabled. Please create a new session.'); }} className="connection-form">
                     <div className="form-group">
                         <label htmlFor="playerName">Your Name (Optional)</label>
                         <input

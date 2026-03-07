@@ -11,6 +11,10 @@ export interface GameSession {
     max_players: number;
     created_at?: string;
     updated_at?: string;
+    // Extended fields for game state
+    players?: any[];
+    npcs?: any[];
+    turn_queue?: any[];
 }
 
 // Legacy types for backward compatibility

@@ -153,7 +153,7 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                     <h2>👥 Connected Players ({session.players?.length || 0})</h2>
                     {session.players && session.players.length > 0 ? (
                         <div className="players-list">
-                            {session.players.map(player => (
+                            {session.players.map((player: any) => (
                                 <div key={player.player_id} className="player-item">
                                     <div className="player-info">
                                         <div className="player-avatar">

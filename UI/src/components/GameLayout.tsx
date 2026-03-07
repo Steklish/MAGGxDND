@@ -27,7 +27,7 @@ interface GameLayoutProps {
     onJoinSession?: (sessionId: string) => void;
 }
 
-export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewSession, onJoinSession }) => {
+export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewSession: _onViewSession, onJoinSession }) => {
     const { session, currentSession, currentScene, activeCharacter, loadSessions, activeSessions, setCurrentSession, setCurrentScene, setActiveCharacter, isGenerating, generationStatus, setIsGenerating, setGenerationStatus, addMessage } = useGameStore();
     
     // ALL HOOKS MUST BE AT THE TOP - before any conditional returns
@@ -96,7 +96,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                             status: data.status,
                             player_count: data.players.length,
                             max_players: 5,
-                            description: null,
+                            description: undefined,
                             players: data.players.map((p: any) => ({
                                 character: {
                                     name: p.name,
@@ -129,7 +129,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                                     stats: n.stats,
                                 }
                             })),
-                        };
+                        } as any;
                         setCurrentSession(gameSession);
                         
                         // Add welcome message from DM
@@ -202,11 +202,15 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
             return;
         }
         const activeSession = session || currentSession;
+        if (!activeSession) {
+            console.log('⚠️ No active session');
+            return;
+        }
         console.log('📊 Session players:', activeSession.players?.length || 0);
         console.log('📊 Session npcs:', activeSession.npcs?.length || 0);
 
         const queue: TurnEntry[] = [];
-        activeSession.players?.forEach(p => {
+        activeSession.players?.forEach((p: any) => {
             if (!p?.character) return;
             const char = p.character;
             queue.push({
@@ -219,7 +223,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                 deathSaveFailures: 0
             });
         });
-        activeSession.npcs?.forEach(n => {
+        activeSession.npcs?.forEach((n: any) => {
             if (!n?.character) return;
             const char = n.character;
             let type: 'hostile' | 'neutral' | 'ally' = 'hostile';
@@ -311,9 +315,9 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                     status: 'running',
                     player_count: data.players.length,
                     max_players: 5,
-                    description: null,
-                    players: data.players.map(p => ({ player_id: p, player_name: p, character_name: null })),
-                });
+                    description: undefined,
+                    players: data.players.map((p: any) => ({ player_id: p, player_name: p, character_name: undefined })),
+                } as any);
                 
                 // Reset generating state
                 setIsGenerating(false);

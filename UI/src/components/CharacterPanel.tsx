@@ -255,7 +255,7 @@ export const CharacterPanel: React.FC = () => {
                                 </div>
                                 {char.active_conditions && char.active_conditions.trim() && (
                                     <div className="character-conditions">
-                                        {char.active_conditions.split('\n').map((cond, idx) => (
+                                        {char.active_conditions.split('\n').map((cond: string, idx: number) => (
                                             <span key={idx} className="condition-tag" style={{ borderColor: typeColor, color: typeColor }}>{cond}</span>
                                         ))}
                                     </div>
