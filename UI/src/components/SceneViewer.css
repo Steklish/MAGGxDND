@@ -4,6 +4,21 @@
     flex-direction: column;
     overflow: hidden;
     padding: 20px;
+    background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+    position: relative;
+}
+
+.scene-viewer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 50% 50%, rgba(255, 107, 53, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(157, 78, 221, 0.02) 0%, transparent 40%);
+    pointer-events: none;
 }
 
 .no-scene {
@@ -14,6 +29,12 @@
     height: 100%;
     color: var(--text-secondary);
     text-align: center;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .no-scene .hint {
@@ -27,6 +48,8 @@
     display: flex;
     gap: 20px;
     overflow: hidden;
+    position: relative;
+    z-index: 1;
 }
 
 .grid-container {
@@ -40,10 +63,21 @@
     display: inline-grid;
     gap: 2px;
     padding: 16px;
-    background-color: var(--bg-secondary);
-    border-radius: 8px;
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+    border-radius: 12px;
     border: 1px solid var(--border-color);
     align-self: center;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.grid:hover {
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 0 20px rgba(255, 107, 53, 0.1);
 }
 
 .grid-row {
@@ -61,9 +95,55 @@
     font-weight: 700;
     font-size: 14px;
     cursor: default;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 2px;
+    transition: all 0.2s ease;
+    color: var(--text-muted);
 }
 
 .grid-cell:hover {
-    background-color: var(--bg-tertiary);
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(244, 162, 97, 0.15) 100%);
+    border-color: rgba(255, 107, 53, 0.4);
     border-radius: 4px;
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+    z-index: 10;
+}
+
+/* Grid animation for initialization */
+@keyframes gridAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.grid {
+    animation: gridAppear 0.5s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .grid-cell {
+        width: 16px;
+        height: 16px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .grid-cell {
+        width: 12px;
+        height: 12px;
+        font-size: 10px;
+    }
+    
+    .grid {
+        padding: 12px;
+    }
 }
