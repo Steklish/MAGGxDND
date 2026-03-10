@@ -58,9 +58,9 @@ class RESTAPIDelivery(Delivery):
         self.logger.info(f"[{self.session_id}] DM: {text}")
         
         # Also emit as event
-        from schemas.orchestration import Event, EventType
+        from schemas.orchestration import Event, EventTypes
         event = Event(
-            event_type=EventType.NARRATION,
+            event_type=EventTypes.NARRATION,
             source="DM",
             text=text,
             tags=[tag] if tag else []
@@ -159,6 +159,8 @@ class RESTAPIDelivery(Delivery):
                 request_text=action_text
             )
             
+            self.logger.info(f"[{self.session_id}] User interaction: {user_interaction}")
+            
             # Process based on game mode
             if self._session.game_mode.value == "COMBAT":
                 verdict = orchestrator.character_action_combat(
@@ -173,8 +175,12 @@ class RESTAPIDelivery(Delivery):
                     processed_interaction=user_interaction
                 )
             
+            self.logger.info(f"[{self.session_id}] Verdict: {verdict}")
+            
             # Get DM response
-            dm_response = verdict.summary if hasattr(verdict, 'summary') else "Action processed."
+            dm_response = verdict.summary if hasattr(verdict, 'summary') and verdict.summary else "The DM considers your action..."
+            
+            self.logger.info(f"[{self.session_id}] DM Response: {dm_response}")
             
             # Send through delivery
             self.master_message(dm_response)
