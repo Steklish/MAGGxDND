@@ -4,12 +4,12 @@ import sys
 import logging
 import subprocess
 from logging.handlers import RotatingFileHandler
-from game.engine import Session
-from game.event_pool import EventPool
-from game.manipulator import Manipulator
-from entity.orchestrator import Orchestrator
-from interface.native_terminal_delivery import NativeTerminalDelivery
-from schemas.in_game import Character, NPCCharacter, SceneNode
+from core.game.engine import Session
+from core.game.event_pool import EventPool
+from core.game.manipulator import Manipulator
+from core.entity.orchestrator import Orchestrator
+from core.interface.native_terminal_delivery import NativeTerminalDelivery
+from core.schemas.in_game import Character, NPCCharacter, SceneNode
 from skls_generator.generator import Generator
 from skls_generator.gen_backends.google_gen import GoogleGenAI
 from skls_embeddings.chroma_client import ChromaClient

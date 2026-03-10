@@ -1,0 +1,256 @@
+// API service for REST calls to the MAGGxDND server
+import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+
+// Use relative path - API will be served from the same origin
+const API_BASE_URL = '/api/v1';
+
+// Custom error types
+export class APIError extends Error {
+    constructor(
+        public status: number,
+        public message: string,
+        public code?: string,
+        public details?: any
+    ) {
+        super(message);
+        this.name = 'APIError';
+    }
+}
+
+export class NetworkError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'NetworkError';
+    }
+}
+
+// Create axios instance with default config
+const api: AxiosInstance = axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    timeout: 30000, // 30 second timeout
+});
+
+// Request interceptor to add auth token
+api.interceptors.request.use(
+    (config: InternalAxiosRequestConfig) => {
+        const token = localStorage.getItem('access_token');
+        if (token && config.headers) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+// Response interceptor for error handling
+api.interceptors.response.use(
+    (response) => response,
+    (error: AxiosError) => {
+        // Handle network errors
+        if (!error.response) {
+            throw new NetworkError(
+                'Unable to connect to server. Please check your connection.'
+            );
+        }
+
+        // Handle HTTP errors
+        const status = error.response.status;
+        const data = error.response.data as any;
+
+        let message = 'An unexpected error occurred';
+        if (typeof data === 'string') {
+            message = data;
+        } else if (data?.detail) {
+            message = data.detail;
+        } else if (data?.message) {
+            message = data.message;
+        }
+
+        // Handle specific status codes
+        switch (status) {
+            case 401:
+                // Clear invalid token
+                localStorage.removeItem('access_token');
+                message = 'Session expired. Please log in again.';
+                break;
+            case 403:
+                message = 'You do not have permission to perform this action.';
+                break;
+            case 404:
+                message = 'The requested resource was not found.';
+                break;
+            case 429:
+                message = 'Too many requests. Please try again later.';
+                break;
+            case 500:
+                message = 'Server error. Please try again later.';
+                break;
+            case 503:
+                message = 'Service unavailable. Please try again later.';
+                break;
+        }
+
+        throw new APIError(
+            status,
+            message,
+            data?.error_code,
+            data
+        );
+    }
+);
+
+// Re-export from sessionAPI for backward compatibility
+export type {
+    SessionCreateRequest as SessionCreateRequestType,
+    PlayerJoinRequest as PlayerJoinRequestType,
+    SessionStartRequest as SessionStartRequestType,
+} from './sessionAPI';
+
+export { sessionAPI } from './sessionAPI';
+
+// Session types (legacy - use sessionAPI instead)
+export interface SessionCreateRequest {
+    session_name: string;
+    game_mode?: string;
+    max_players?: number;
+    description?: string;
+    guide?: string;
+    scene_prompt?: string;
+    character_prompts?: string[];
+    npc_prompts?: string[];
+    gemini_api_key?: string;
+    gemini_model?: string;
+}
+
+export interface SessionResponse {
+    session_id: string;
+    session_name: string;
+    game_mode: string;
+    player_count: number;
+    status: string;
+    description?: string;
+}
+
+export interface SessionListResponse {
+    sessions: SessionResponse[];
+    total: number;
+}
+
+export interface PlayerJoinRequest {
+    player_name: string;
+    character_name?: string;
+    character_prompt?: string;
+}
+
+export interface PlayerResponse {
+    player_id: string;
+    player_name: string;
+    character_name?: string;
+    connected: boolean;
+}
+
+export interface SessionStartRequest {
+    scene_prompt: string;
+    character_prompts: string[];
+    npc_prompts: string[];
+}
+
+// Legacy sessionAPI - use sessionAPI from './sessionAPI' instead
+// Kept for backward compatibility
+export const legacySessionAPI = {
+    /**
+     * Create a new game session
+     */
+    createSession: async (request: SessionCreateRequest): Promise<SessionResponse> => {
+        const response = await api.post<SessionResponse>('/sessions', request);
+        return response.data;
+    },
+
+    /**
+     * Get list of all active sessions
+     */
+    listSessions: async (): Promise<SessionListResponse> => {
+        const response = await api.get<SessionListResponse>('/sessions');
+        return response.data;
+    },
+
+    /**
+     * Get session info by ID
+     */
+    getSession: async (sessionId: string): Promise<SessionResponse> => {
+        const response = await api.get<SessionResponse>(`/sessions/${sessionId}`);
+        return response.data;
+    },
+
+    /**
+     * Delete a session
+     */
+    deleteSession: async (sessionId: string): Promise<void> => {
+        await api.delete(`/sessions/${sessionId}`);
+    },
+
+    /**
+     * Start a session with initial scene and characters
+     */
+    startSession: async (
+        sessionId: string,
+        request: SessionStartRequest
+    ): Promise<SessionResponse> => {
+        const response = await api.post<SessionResponse>(
+            `/sessions/${sessionId}/start`,
+            request
+        );
+        return response.data;
+    },
+
+    /**
+     * Join a session as a player
+     */
+    joinSession: async (
+        sessionId: string,
+        request: PlayerJoinRequest
+    ): Promise<PlayerResponse> => {
+        const response = await api.post<PlayerResponse>(
+            `/sessions/${sessionId}/players`,
+            request
+        );
+        return response.data;
+    },
+
+    /**
+     * Leave a session
+     */
+    leaveSession: async (sessionId: string, playerId: string): Promise<void> => {
+        await api.delete(`/sessions/${sessionId}/players/${playerId}`);
+    },
+
+    /**
+     * Get all players in a session
+     */
+    getSessionPlayers: async (sessionId: string): Promise<PlayerResponse[]> => {
+        const response = await api.get<PlayerResponse[]>(
+            `/sessions/${sessionId}/players`
+        );
+        return response.data;
+    },
+
+    /**
+     * Get session info including connected players
+     */
+    getSessionInfo: async (sessionId: string): Promise<any> => {
+        const response = await api.get(`/sessions/${sessionId}/info`);
+        return response.data;
+    },
+};
+
+// User/Auth API (placeholder for future implementation)
+export const userAPI = {
+    // TODO: Implement user authentication endpoints
+};
+
+export default api;

@@ -1,27 +1,383 @@
-# MAGGxDND
+# 🐉 MAGGxDND
 
-- Кроссовер 2 интересных вещей в моей жизни. Первое - это то, что ондажды заставило меня впервые загуглить, что такое API, затем узнать, что такое web и http, а второе еще в мою и без того нескладную персону добавила дополнительную нотку нёрдости. И, да, это вторая попытка доделать оба проекта, которые по одному в разное время умерли из-за нехватки навыков и запала, огромнейшей фрустрации, которая появлялась при столкновении фактов того, что по идее я сделал все, что смог, но кривищна моей реализации не раскрывала потенциал задумки. Сейчас мало, что поменялось, но, надеюсь, сейчас получится довести это до какого-то результата. (это я пишу в первый вечер работы над обновленным проектом _13.01.2026_)
+> AI-Powered D&D Game Engine with Real-Time Web Interface
 
-- Пишу-пишу-пишу. Игорь натолкнул на очень интересную идею. Пусть каждый объекс остается самодостаточной сущностью. Тогда я могу плодить NPC сколько мне уодно и они не будут перегружать контекст своим присутствием. Мастер тогда становится таким же персонажем, но с более слодными инструкциями и большими привилегиями. Остается еще сделать движок, к интерфейсу которого будут обращаться все сущности для игры. Придумать правила тоже надо. Еще, чтобы это работало, нужно придумать систему, которая будет распространять события по всем персонажам, чтобы они уже действовали основываясь на своей реакции на них. Мастер рассказывает, что происходит внутри движка пользователям, а еще определяет сюжет и может влиять на все.  (_22.01.2026_)
-
-- Пишу уже больше недели (конечно, с большими перерывами) и еще ни разу не щапускал целиком. Видимо, я очень сильно хочу разочароваться, когда оно не заработает, когда придет время. По возможности, конечно, я тестирую компоненты, но мне кажется, что я это не проглочу - маловат. (_24.01.2026_)
-
-- Мяса на костях нарастает намного больше, чем я планировал. Особенно меня пугает, что функционал не прирастает с той же скоростью. Еще я решил добавить учет координат, та как подумал, что с этим можно будет в случае чего сделать много интересного. (_27.01.2026_)
-
-- Нужно бы сделать _external_action отдельно для мирного режима и для боя со своими инструкциями. (_28.01.2026_)
-
-- Время соединять запросы с валифацией и придумывать, как сарвнивать с правилами игры. (_29.01.2026_)
-
-- Все зависит от всего. Кошмар. Эта архитектура просто ужас. Но и объекты тоже становятся все более умными. На самом деле хочу больше решений принимать  программно, но все рано не ограничивать ИИ в креативе, чтобы оно дышало. (_30.01.2026_)
-
-- Я тону в оверижениринге. Или нет - я не понимаю. Система до сих пор не "вау", хотя, мне кажется, что уже пора бы. Боюсь, что это может ни к чему не привести. Уговорил ребят взять этот проект как тему для ЖЦРПО. Не думаю, что это будет сильно проще, чем сделать рандомную прогу для таск менеджмента или расписание или научный калькулятор, но путь будет так. В худшем случае мы получим плохие отметки (и то не факт), а в лучшем будет более-менее рабочее приложение. Теперь я добавил прослойку для привязки интерфейса и нужно бы посмотреть, не нужно ли мне слуяайно, переделывать систему, чтобы она была более thread-safe (_09.02.2026_)
----
-
-<div align="center" justify-content: center; align-items: center; gap: 20px; margin: 20px 0;>
-  <img src="./img/MAGGxDND.png" alt="MAGG" width="70%">
+<div align="center">
+  <img src="./img/MAGGxDND.png" alt="MAGGxDND Logo" width="60%">
 </div>
 
+---
 
-__The project depends on `SKLS_core` btw__
+## 📖 О Проекте
 
-**by anton kozlov**
+**MAGGxDND** — это кроссовер двух важных вещей в моей жизни:
+1. Проект, который заставил меня впервые загуглить "что такое API"
+2. Проект, добавивший нотку нёрдости в мою персону
+
+Это вторая попытка доделать оба проекта. Теперь с улучшенной архитектурой и веб-интерфейсом!
+
+---
+
+## 🚀 Быстрый Старт
+
+### 1. Настройка окружения
+
+```bash
+# Скопируйте шаблон .env
+cp .env.example .env
+
+# Отредактируйте .env, добавьте ваш GEMINI_API_KEY
+# Получить ключ: https://makersuite.google.com/app/apikey
+```
+
+### 2. Установка зависимостей
+
+```bash
+# Python зависимости
+pip install -r requirements.txt
+
+# SKLS_core (обязательно)
+pip install -e C:\VS_Code\SKLS_core
+
+# Frontend зависимости
+cd frontend
+npm install
+npm run build
+cd ..
+```
+
+### 3. Запуск
+
+```bash
+# Запуск сервера
+python start.py
+
+# ИЛИ через uvicorn напрямую
+python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
+```
+
+### 4. Открыть в браузере
+
+```
+http://localhost:8000
+```
+
+---
+
+## 📁 Структура Проекта
+
+```
+MAGGxDND/
+│
+├── 📄 main.py                  # Точка входа (CLI версия)
+├── 📄 start.py                 # Скрипт запуска сервера
+├── 📄 requirements.txt         # Python зависимости
+├── 📄 .env.example             # Шаблон переменных окружения
+│
+├── 📂 backend/                 # Backend сервер (FastAPI)
+│   ├── main.py                # FastAPI приложение
+│   ├── src/
+│   │   ├── api/               # REST API routers
+│   │   │   └── routers/
+│   │   │       ├── session_router.py    # Управление сессиями
+│   │   │       ├── websocket_game.py    # WebSocket для real-time
+│   │   │       ├── character.py         # Персонажи API
+│   │   │       ├── user.py              # Пользователи API
+│   │   │       └── login.py             # Аутентификация
+│   │   ├── auth/              # Аутентификация и авторизация
+│   │   ├── config/            # Конфигурация приложения
+│   │   │   └── settings.py    # Настройки из .env
+│   │   ├── database/          # База данных (SQLAlchemy)
+│   │   ├── delivery/          # Система доставки событий
+│   │   ├── game/              # Менеджмент игровых сессий
+│   │   │   ├── session_manager.py
+│   │   │   └── session_factory.py
+│   │   ├── models/            # SQLAlchemy модели
+│   │   ├── repositories/      # Data access layer
+│   │   ├── schema/            # Pydantic схемы
+│   │   ├── services/          # Бизнес логика
+│   │   └── utils/             # Утилиты backend
+│   │       ├── security.py    # Хеширование, JWT
+│   │       └── validation.py  # Валидация input
+│   └── tests/                 # Тесты backend
+│
+├── 📂 frontend/                # Frontend приложение (React + Vite)
+│   ├── src/
+│   │   ├── components/        # React компоненты
+│   │   │   ├── common/        # Переиспользуемые компоненты
+│   │   │   │   ├── ErrorBoundary.tsx
+│   │   │   │   ├── LoadingSpinner.tsx
+│   │   │   │   ├── Skeleton.tsx
+│   │   │   │   └── Toast.tsx
+│   │   │   ├── ActionPanel.tsx
+│   │   │   ├── CharacterPanel.tsx
+│   │   │   ├── ChatPanel.tsx
+│   │   │   ├── GameLayout.tsx
+│   │   │   ├── LandingPage.tsx
+│   │   │   ├── SceneViewer.tsx
+│   │   │   ├── SessionCreation.tsx
+│   │   │   └── ...
+│   │   ├── services/          # API клиенты
+│   │   │   ├── api.ts         # REST API клиент
+│   │   │   ├── websocket.ts   # WebSocket сервис
+│   │   │   ├── sessionAPI.ts  # Session API
+│   │   │   └── characterAPI.ts # Character API
+│   │   ├── store/             # State management (Zustand)
+│   │   │   └── gameStore.ts   # Игровой store
+│   │   ├── tests/             # Тесты frontend
+│   │   ├── types/             # TypeScript типы
+│   │   │   └── game.ts        # Игровые типы
+│   │   ├── App.tsx            # Корневой компонент
+│   │   └── main.tsx           # Точка входа React
+│   ├── arts/                  # Графические ассеты
+│   │   ├── backgrounds/       # Фоновые изображения
+│   │   ├── characters/        # Портреты персонажей
+│   │   ├── items/             # Иконки предметов
+│   │   ├── locations/         # Изображения локаций
+│   │   ├── effects/           # Визуальные эффекты
+│   │   └── ui-elements/       # UI элементы
+│   ├── public/                # Статические файлы
+│   ├── package.json
+│   └── vite.config.ts
+│
+├── 📂 core/                    # Ядро игрового движка
+│   ├── game/                  # Игровой движок
+│   │   ├── engine.py          # Основной движок Session
+│   │   ├── event_pool.py      # Система событий
+│   │   ├── manipulator.py     # Обработка действий
+│   │   └── manipulators/      # Модули действий
+│   ├── entity/                # Игровые сущности
+│   │   ├── player.py          # Игрок
+│   │   ├── npc.py             # NPC
+│   │   ├── orchestrator.py    # Координатор действий
+│   │   └── game_entity.py     # Базовая сущность
+│   ├── schemas/               # Схемы данных
+│   │   ├── in_game.py         # Игровые схемы
+│   │   ├── orchestration.py   # Схемы оркестрации
+│   │   └── save_game.py       # Схемы сохранений
+│   ├── magg/                  # AI Game Master
+│   │   ├── magg.py            # Мастер подземелий
+│   │   ├── magg_schemas.py    # Схемы MAGG
+│   │   └── plot_schemas.py    # Схемы сюжета
+│   ├── interface/             # Интерфейсы доставки
+│   │   ├── delivery.py        # Базовый интерфейс
+│   │   └── native_terminal_delivery.py
+│   └── utils/                 # Утилиты ядра
+│       ├── colors.py          # Цвета для терминала
+│       ├── dice_utils.py      # Броски кубиков
+│       ├── naming_utils.py    # Генерация имен
+│       └── spatial_utils.py   # Пространственная логика
+│
+├── 📂 docs/                    # Документация
+│   ├── QUICKSTART.md          # Быстрый старт
+│   ├── REORGANIZATION_GUIDE.md # Гид по реорганизации
+│   ├── ENV_SETUP_GUIDE.md     # Настройка окружения
+│   ├── SERVER_ARCHITECTURE.md # Архитектура сервера
+│   ├── SESSION_API_GUIDE.md   # API сессий
+│   └── prompts/               # AI промпты
+│       ├── character_action_rules.md
+│       ├── combat.md
+│       ├── DM_personality.md
+│       ├── npc.md
+│       ├── plot_generation.md
+│       └── story.md
+│
+├── 📂 chroma_db/              # Векторная база данных (ChromaDB)
+├── 📂 log/                    # Логи приложения
+├── 📂 img/                    # Изображения проекта
+├── 📂 prompts/                # AI промпты (дубликат для совместимости)
+│
+└── 📄 README.md               # Этот файл
+```
+
+---
+
+## 🎮 Компоненты
+
+### Backend (FastAPI)
+
+| Компонент | Описание |
+|-----------|----------|
+| **REST API** | Управление сессиями, персонажами, пользователями |
+| **WebSocket** | Real-time обновления игрового состояния |
+| **Auth** | JWT аутентификация и авторизация |
+| **Rate Limiting** | Защита от злоупотреблений |
+| **Validation** | Валидация всех входных данных |
+
+### Frontend (React + Vite)
+
+| Компонент | Описание |
+|-----------|----------|
+| **GameLayout** | Основной игровой интерфейс |
+| **CharacterPanel** | Отображение характеристик |
+| **ActionPanel** | Панель действий игрока |
+| **ChatPanel** | Чат и лог событий |
+| **SceneViewer** | Визуализация сцены |
+| **SessionCreation** | Создание новой сессии |
+
+### Core (Game Engine)
+
+| Компонент | Описание |
+|-----------|----------|
+| **Session** | Управление игровой сессией |
+| **EventPool** | Система событий |
+| **Manipulator** | Обработка действий |
+| **MAGG** | AI Dungeon Master |
+| **Orchestrator** | Координация сущностей |
+
+---
+
+## 🔧 Конфигурация
+
+### Переменные окружения
+
+Создайте файл `.env` в корне проекта:
+
+```bash
+# Обязательно
+GEMINI_API_KEY=your_api_key_here
+SECRET_KEY=change-this-for-production
+
+# Опционально
+DEBUG=True
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+DATABASE_URL=sqlite:///./maggxdnd.db
+```
+
+Полный список: см. `.env.example`
+
+---
+
+## 📚 Документация
+
+| Файл | Описание |
+|------|----------|
+| [QUICKSTART.md](./docs/QUICKSTART.md) | Быстрый старт за 5 минут |
+| [ENV_SETUP_GUIDE.md](./backend/ENV_SETUP_GUIDE.md) | Полная настройка окружения |
+| [REORGANIZATION_GUIDE.md](./docs/REORGANIZATION_GUIDE.md) | Гид по структуре проекта |
+| [SERVER_ARCHITECTURE.md](./docs/SERVER_ARCHITECTURE.md) | Архитектура сервера |
+| [SESSION_API_GUIDE.md](./docs/SESSION_API_GUIDE.md) | API управление сессиями |
+
+---
+
+## 🧪 Тестирование
+
+### Backend тесты
+
+```bash
+cd backend
+pytest tests/
+```
+
+### Frontend тесты
+
+```bash
+cd frontend
+npm run test
+```
+
+---
+
+## 🛠 Разработка
+
+### Backend (Dev режим)
+
+```bash
+python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Frontend (Dev режим)
+
+```bash
+cd frontend
+npm run dev
+```
+
+### Одновременный запуск
+
+**Терминал 1** - Backend:
+```bash
+python start.py
+```
+
+**Терминал 2** - Frontend:
+```bash
+cd frontend
+npm run dev
+```
+
+---
+
+## 📦 Зависимости
+
+### Python
+
+- **FastAPI** - Web framework
+- **Pydantic** - Валидация данных
+- **SQLAlchemy** - ORM
+- **ChromaDB** - Векторная база
+- **Google Generative AI** - AI генерация
+- **SlowAPI** - Rate limiting
+
+### Node.js
+
+- **React 19** - UI библиотека
+- **Vite** - Build tool
+- **Zustand** - State management
+- **Axios** - HTTP клиент
+- **TypeScript** - Типизация
+
+---
+
+## 🎨 UI Assets
+
+Для настройки графики см. [`frontend/arts/README.md`](./frontend/arts/README.md)
+
+### Required Assets
+
+```
+frontend/arts/
+├── backgrounds/
+│   ├── bg-login.jpg
+│   ├── bg-game.jpg
+│   └── bg-combat.jpg
+├── characters/
+│   ├── portrait-default.png
+│   └── avatar-*.png
+├── items/
+│   └── icon-*.png
+└── ui-elements/
+    └── ui-*.png
+```
+
+---
+
+## 🤝 Вклад
+
+1. Fork репозиторий
+2. Создай ветку (`git checkout -b feature/amazing-feature`)
+3. Commit изменения (`git commit -m 'Add amazing feature'`)
+4. Push в ветку (`git push origin feature/amazing-feature`)
+5. Открой Pull Request
+
+---
+
+## 📝 License
+
+Этот проект создан в образовательных целях.
+
+---
+
+## 👨‍💻 Автор
+
+**anton kozlov**
+
+---
+
+<div align="center">
+
+**MAGGxDND** - AI-Powered D&D Game Engine
+
+[Документация](./docs/) • [API Docs](http://localhost:8000/docs) • [GitHub](#)
+
+</div>

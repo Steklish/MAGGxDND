@@ -77,10 +77,43 @@ coverage/
 .sass-cache/
 *.bak
 
-
-# DATA
+# --- Project Specific ---
+# Data & Saves
 data/
 saves/
 
-#AI
+# AI
 QWEN.md
+
+# Database
+*.db
+chroma_db/
+
+# Logs
+log/
+
+# Frontend build artifacts
+frontend/dist/
+frontend/.vite/
+frontend/tsconfig.node.tsbuildinfo
+frontend/tsconfig.tsbuildinfo
+
+# Backend test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Migration scripts (temporary)
+migrate_imports.*
+cleanup.bat
+
+# Old directories (after reorganization)
+server/
+UI/
+game/
+entity/
+schemas/
+magg/
+interface/
+utils/
+prompts/

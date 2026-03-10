@@ -1,0 +1,193 @@
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+from backend.src.api.routers import dev, login, user, access_group
+from backend.src.api.routers.session_router import router as session_router
+from backend.src.api.routers.websocket_game import router as websocket_router
+from backend.src.api.routers import character, profile
+from backend.src.config import settings
+from backend.src.database import init_db, engine
+from logging import getLogger
+import os
+
+logger = getLogger(__name__)
+
+app = FastAPI(
+    title="MAGGxDND - AI-Powered D&D Game Engine",
+    description="Real-time AI-powered D&D game engine with web interface",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
+
+# Initialize rate limiter
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=[settings.RATE_LIMIT_DEFAULT],
+    enabled=settings.RATE_LIMIT_ENABLED,
+)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# This will be our sub-application to hold all the prefixed routes
+sub_app = FastAPI()
+sub_app.include_router(user.router)
+sub_app.include_router(access_group.router)
+sub_app.include_router(login.router)
+sub_app.include_router(dev.router)
+sub_app.include_router(session_router)
+sub_app.include_router(character.router)
+sub_app.include_router(profile.router)
+
+# Apply rate limiting to auth endpoints
+login.router.dependencies.insert(0, limiter.limit(settings.RATE_LIMIT_AUTH))
+
+app.mount("/api/v1", sub_app)
+
+# WebSocket router (не поддерживает префиксы, монтируем отдельно)
+app.include_router(websocket_router)
+
+# CORS Middleware - restricted origins from settings
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
+    allow_methods=settings.CORS_ALLOW_METHODS,
+    allow_headers=settings.CORS_ALLOW_HEADERS,
+)
+
+# Global exception handler for better error responses
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Handle uncaught exceptions gracefully."""
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "Internal server error",
+            "type": type(exc).__name__,
+        }
+    )
+
+@app.on_event("startup")
+async def on_startup():
+    """Initialize application on startup."""
+    # Validate settings in production
+    if settings.is_production():
+        try:
+            settings.validate()
+            logger.info("✓ Settings validated for production")
+        except ValueError as e:
+            logger.error(f"Settings validation failed: {e}")
+            raise
+
+    # Initialize the database tables
+    init_db(engine)
+    logger.info(f"✓ Database initialized: {settings.DATABASE_URL}")
+    logger.info(f"✓ CORS origins configured: {settings.CORS_ORIGINS}")
+    logger.info(f"✓ Rate limiting: {settings.RATE_LIMIT_ENABLED} ({settings.RATE_LIMIT_DEFAULT})")
+    logger.info(f"✓ Server running on {settings.SERVER_HOST}:{settings.SERVER_PORT}")
+
+
+# ===================================================================
+# HEALTH CHECK & MONITORING ENDPOINTS
+# ===================================================================
+
+@app.get("/health", tags=["Health"], summary="Health check endpoint")
+async def health_check():
+    """
+    Basic health check endpoint.
+    Returns 200 OK if the server is running.
+    """
+    return {
+        "status": "healthy",
+        "version": "1.0.0",
+        "timestamp": __import__("datetime").datetime.utcnow().isoformat()
+    }
+
+
+@app.get("/health/ready", tags=["Health"], summary="Readiness check endpoint")
+async def health_ready():
+    """
+    Readiness check endpoint.
+    Returns 200 OK if the server is ready to accept requests.
+    """
+    try:
+        # Check database connection
+        from backend.src.database import get_db
+        db = next(get_db())
+        db.execute("SELECT 1")
+        db.close()
+        return {
+            "status": "ready",
+            "database": "connected",
+            "timestamp": __import__("datetime").datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Readiness check failed: {e}")
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "not ready",
+                "database": "disconnected",
+                "error": str(e),
+                "timestamp": __import__("datetime").datetime.utcnow().isoformat()
+            }
+        )
+
+
+@app.get("/health/live", tags=["Health"], summary="Liveness check endpoint")
+async def health_live():
+    """
+    Liveness check endpoint.
+    Returns 200 OK if the server is alive and responsive.
+    """
+    return {
+        "status": "alive",
+        "uptime": "running",
+        "timestamp": __import__("datetime").datetime.utcnow().isoformat()
+    }
+
+
+# ===================================================================
+# UI STATIC FILES SERVING
+# ===================================================================
+
+# Serve UI static files
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+UI_DIST_PATH = os.path.join(PROJECT_ROOT, "frontend", "dist")
+print(f"PROJECT_ROOT: {PROJECT_ROOT}")
+print(f"UI_DIST_PATH: {UI_DIST_PATH}")
+print(f"UI_DIST_PATH exists: {os.path.exists(UI_DIST_PATH)}")
+
+@app.get("/")
+async def serve_ui_root():
+    """Serve UI index.html"""
+    index_path = os.path.join(UI_DIST_PATH, "index.html")
+    if os.path.isfile(index_path):
+        return FileResponse(index_path)
+    return {"error": "UI not built. Run: cd UI && npm run build"}
+
+@app.get("/{full_path:path}")
+async def serve_ui(full_path: str):
+    """Serve UI files for all non-API routes."""
+    # Skip API and docs routes
+    if full_path.startswith("api/") or full_path in ["docs", "redoc", "openapi.json"]:
+        return None
+    
+    # Build file path
+    file_path = os.path.join(UI_DIST_PATH, full_path)
+    
+    # Check if file exists, otherwise serve index.html (for SPA routing)
+    if os.path.isfile(file_path):
+        return FileResponse(file_path)
+    
+    # Serve index.html for SPA routes
+    index_path = os.path.join(UI_DIST_PATH, "index.html")
+    if os.path.isfile(index_path):
+        return FileResponse(index_path)
+    
+    return {"error": "File not found"}

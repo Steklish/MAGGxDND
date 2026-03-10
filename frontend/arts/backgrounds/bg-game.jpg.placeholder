@@ -1,0 +1,27 @@
+# Background: Main Game Screen
+## File: bg-game.jpg
+
+**Purpose**: Primary background for game interface
+**Dimensions**: 1920x1080 pixels
+**Format**: JPG or PNG
+
+## Description
+Fantasy adventure scene. Options:
+- Medieval town square
+- Castle courtyard
+- Forest clearing
+- Mountain path
+
+## Color Palette
+- Primary: #0f0f1a (very dark blue)
+- Secondary: #1a1a2e (dark blue)
+- Accent: #4a4a6a (muted purple)
+- Highlight: #8b8ba7 (soft gray)
+
+## Notes
+- Keep edges darker for UI panels
+- Center should be slightly brighter for scene view
+- Subtle animation friendly (optional parallax)
+
+---
+REPLACE THIS FILE WITH YOUR IMAGE

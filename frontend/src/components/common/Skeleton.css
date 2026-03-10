@@ -1,0 +1,96 @@
+/* Skeleton Loading States */
+
+.skeleton {
+    display: inline-block;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.08) 0%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.08) 100%
+    );
+    background-size: 200% 100%;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Variants */
+.skeleton-text {
+    height: 1em;
+    border-radius: 2px;
+}
+
+.skeleton-circular {
+    border-radius: 50%;
+}
+
+.skeleton-rectangular {
+    border-radius: 4px;
+}
+
+.skeleton-rounded {
+    border-radius: 8px;
+}
+
+/* Animations */
+@keyframes skeleton-pulse {
+    0% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.6;
+    }
+}
+
+@keyframes skeleton-wave {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.skeleton-pulse {
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-wave {
+    animation: skeleton-wave 1.5s ease-in-out infinite;
+}
+
+/* Text container */
+.skeleton-text-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Card */
+.skeleton-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.skeleton-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Dark theme adjustments */
+@media (prefers-color-scheme: dark) {
+    .skeleton {
+        background: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.05) 0%,
+            rgba(255, 255, 255, 0.1) 50%,
+            rgba(255, 255, 255, 0.05) 100%
+        );
+    }
+}
