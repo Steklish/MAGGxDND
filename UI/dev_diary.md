@@ -26,10 +26,19 @@
 - [x] Адаптивный дизайн для мобильных
 - [x] Плавные hover эффекты
 
-#### 3. Проверка сборки
+#### 3. SceneViewer Enhancements
+- [x] Градиентный фон с радиальными overlay
+- [x] Улучшенные тени и границы для сетки
+- [x] Hover эффекты с scale и glow
+- [x] Анимация появления сетки (gridAppear)
+- [x] Адаптивный дизайн для мобильных устройств
+- [x] Fade-in анимация для no-scene состояния
+
+#### 4. Проверка сборки
 - [x] `npm install` — зависимости установлены
 - [x] `npm run build` — сборка успешна (124 модуля)
 - [x] Dev server запущен на :5173
+- [x] Все коммиты созданы
 
 ### Технические детали
 
@@ -53,20 +62,44 @@
 }
 ```
 
+#### SceneViewer.css Enhancements
+```css
+.scene-viewer::before {
+    background: 
+        radial-gradient(circle at 50% 50%, rgba(255, 107, 53, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(157, 78, 221, 0.02) 0%, transparent 40%);
+}
+
+.grid-cell:hover {
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(244, 162, 97, 0.15) 100%);
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+}
+```
+
 ### Проблемы и решения
 
 | Проблема | Решение |
 |----------|---------|
 | Отсутствовал Toast.css | Создан полный файл стилей |
 | TypeScript build info изменены | Закоммичены с основными изменениями |
+| SceneViewer выглядел плоско | Добавлены градиенты, тени, hover эффекты |
+
+### Созданные коммиты
+
+1. `66d04bb` feat: Add UI assets and update TypeScript build info
+2. `1981c12` feat: Add Toast component styles and update dev diary
+3. `510f2aa` style: Enhance SceneViewer visual effects
 
 ### Следующие шаги
 
 - [ ] Улучшение адаптивности Landing Page
-- [ ] Добавление анимаций для кнопок
+- [ ] Добавление анимаций для кнопок ActionPanel
 - [ ] Оптимизация производительности рендеринга
 - [ ] Добавление placeholder изображений для портретов
 - [ ] Улучшение цветовой индикации в Turn Queue
+- [ ] Добавление звуковых эффектов
+- [ ] Интеграция с WebSocket сервером
 
 ---
 
