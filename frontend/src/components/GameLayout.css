@@ -540,6 +540,29 @@
     font-size: 1.5rem;
 }
 
+.btn-logout-header {
+    background: linear-gradient(135deg, rgba(229, 62, 62, 0.2) 0%, rgba(229, 62, 62, 0.1) 100%);
+    border: 1px solid rgba(229, 62, 62, 0.3);
+    border-radius: var(--radius-md);
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 14px;
+    margin-left: 12px;
+}
+
+.btn-logout-header:hover {
+    background: linear-gradient(135deg, rgba(229, 62, 62, 0.3) 0%, rgba(229, 62, 62, 0.2) 100%);
+    border-color: var(--accent-red);
+    box-shadow: 0 0 15px rgba(229, 62, 62, 0.3);
+    transform: translateY(-2px);
+}
+
 .session-status {
     display: flex;
     align-items: center;

@@ -28,7 +28,7 @@ interface GameLayoutProps {
 }
 
 export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewSession: _onViewSession, onJoinSession }) => {
-    const { session, currentSession, currentScene, activeCharacter, loadSessions, activeSessions, setCurrentSession, setCurrentScene, setActiveCharacter, isGenerating, generationStatus, setIsGenerating, setGenerationStatus, addMessage } = useGameStore();
+    const { session, currentSession, currentScene, activeCharacter, loadSessions, activeSessions, setCurrentSession, setCurrentScene, setActiveCharacter, isGenerating, generationStatus, setIsGenerating, setGenerationStatus, addMessage, logout } = useGameStore();
     
     // ALL HOOKS MUST BE AT THE TOP - before any conditional returns
     const [showProfile, setShowProfile] = useState(false);
@@ -466,7 +466,17 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
 
     // Show profile page
     if (showProfile && userId) {
-        return <ProfilePage userId={parseInt(userId)} onBack={() => setShowProfile(false)} onJoinSession={onJoinSession} />;
+        return (
+            <ProfilePage 
+                userId={parseInt(userId)} 
+                onBack={() => setShowProfile(false)} 
+                onGoHome={() => {
+                    setShowProfile(false);
+                    // Navigate to home page
+                }}
+                onJoinSession={onJoinSession} 
+            />
+        );
     }
 
     // Check if user has active session (from localStorage)
@@ -789,6 +799,18 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                     <button className="profile-btn" title="Profile" onClick={() => setShowProfile(true)}>
                         <span className="profile-icon">👤</span>
                     </button>
+                    <button 
+                        className="btn-logout-header" 
+                        title="Logout" 
+                        onClick={() => {
+                            if (confirm('Вы уверены, что хотите выйти?')) {
+                                logout();
+                                window.location.href = '/';
+                            }
+                        }}
+                    >
+                        🚪 Выйти
+                    </button>
                     {sessionId && playerId && (
                         <div className="session-status">
                             <span className="status-dot">🟢</span>
@@ -860,6 +882,10 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                 <ProfilePage
                     userId={parseInt(userId)}
                     onBack={() => setShowProfile(false)}
+                    onGoHome={() => {
+                        setShowProfile(false);
+                        // Navigate to home page
+                    }}
                 />
             )}
         </div>
