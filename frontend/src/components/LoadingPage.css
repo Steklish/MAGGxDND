@@ -1,0 +1,382 @@
+/* Loading Page with D20 Dice Animation */
+
+.loading-page {
+    min-height: 100vh;
+    background: var(--bg-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.loading-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+        rgba(15, 15, 20, 0.95) 0%, 
+        rgba(30, 30, 40, 0.95) 100%);
+    z-index: 0;
+}
+
+.bg-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--accent-orange);
+    border-radius: 50%;
+    opacity: 0;
+    animation: float 3s ease-in-out infinite;
+    box-shadow: 0 0 10px var(--accent-orange);
+}
+
+@keyframes float {
+    0%, 100% {
+        opacity: 0;
+        transform: translateY(0) scale(0);
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(-20px) scale(1);
+    }
+    90% {
+        opacity: 1;
+        transform: translateY(-100px) scale(1);
+    }
+}
+
+.loading-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    padding: 40px;
+    max-width: 600px;
+    width: 100%;
+}
+
+/* Dice Animation */
+.dice-animation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.dice-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.d20-dice {
+    width: 150px;
+    height: 150px;
+    transition: all 0.3s ease;
+}
+
+.d20-dice.rolling {
+    animation: diceRoll 0.5s ease-in-out infinite;
+}
+
+.d20-dice.landed {
+    animation: diceLand 0.5s ease-out;
+}
+
+@keyframes diceRoll {
+    0%, 100% {
+        transform: rotate(0deg) scale(1);
+    }
+    25% {
+        transform: rotate(90deg) scale(1.1);
+    }
+    50% {
+        transform: rotate(180deg) scale(0.9);
+    }
+    75% {
+        transform: rotate(270deg) scale(1.1);
+    }
+}
+
+@keyframes diceLand {
+    0% {
+        transform: rotate(720deg) scale(1.5);
+    }
+    100% {
+        transform: rotate(0deg) scale(1);
+    }
+}
+
+.d20-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 20px rgba(255, 107, 53, 0.5));
+}
+
+.d20-face {
+    fill: url(#d20-gradient);
+    stroke: var(--accent-orange);
+    stroke-width: 2;
+}
+
+.d20-number {
+    fill: var(--text-primary);
+    font-size: 40px;
+    font-weight: 700;
+    text-shadow: 0 0 10px var(--accent-orange);
+}
+
+/* Roll effect */
+.roll-effect {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.roll-number {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent-orange);
+    text-shadow: 0 0 10px var(--accent-orange);
+}
+
+/* Roll history */
+.roll-history {
+    position: absolute;
+    bottom: -40px;
+    display: flex;
+    gap: 8px;
+}
+
+.history-die {
+    width: 30px;
+    height: 30px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.history-die.crit-success {
+    background: rgba(42, 157, 143, 0.3);
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+    box-shadow: 0 0 10px var(--accent-green);
+}
+
+.history-die.crit-fail {
+    background: rgba(229, 62, 62, 0.3);
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+    box-shadow: 0 0 10px var(--accent-red);
+}
+
+/* Roll message */
+.roll-message {
+    min-height: 30px;
+    text-align: center;
+}
+
+.rolling-text,
+.crit-success-text,
+.crit-fail-text,
+.success-text,
+.neutral-text,
+.fail-text {
+    font-size: 18px;
+    font-weight: 600;
+    animation: messageFade 0.3s ease;
+}
+
+@keyframes messageFade {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.crit-success-text {
+    color: var(--accent-green);
+    text-shadow: 0 0 20px var(--accent-green);
+}
+
+.crit-fail-text {
+    color: var(--accent-red);
+    text-shadow: 0 0 20px var(--accent-red);
+}
+
+.success-text {
+    color: var(--accent-yellow);
+}
+
+.neutral-text {
+    color: var(--text-secondary);
+}
+
+.fail-text {
+    color: var(--text-muted);
+}
+
+/* Loading message */
+.loading-message {
+    text-align: center;
+}
+
+.loading-message h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 10px;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.loading-dots {
+    display: inline-flex;
+    gap: 4px;
+}
+
+.dot {
+    font-size: 24px;
+    color: var(--accent-orange);
+    animation: dotPulse 1.5s ease-in-out infinite;
+}
+
+.dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes dotPulse {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(0.8);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+}
+
+/* Loading bar */
+.loading-bar-container {
+    width: 100%;
+    max-width: 400px;
+}
+
+.loading-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.loading-bar-fill {
+    height: 100%;
+    width: 100%;
+    background: var(--gradient-primary);
+    border-radius: 3px;
+    animation: loadingPulse 2s ease-in-out infinite;
+}
+
+@keyframes loadingPulse {
+    0%, 100% {
+        opacity: 0.6;
+        transform: scaleX(0.95);
+    }
+    50% {
+        opacity: 1;
+        transform: scaleX(1);
+    }
+}
+
+/* Tips section */
+.loading-tips {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    max-width: 500px;
+}
+
+.tip-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.tip-text {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .loading-content {
+        padding: 20px;
+        gap: 30px;
+    }
+
+    .dice-container {
+        width: 150px;
+        height: 150px;
+    }
+
+    .d20-dice {
+        width: 120px;
+        height: 120px;
+    }
+
+    .loading-message h2 {
+        font-size: 22px;
+    }
+
+    .loading-tips {
+        padding: 16px;
+    }
+
+    .tip-text {
+        font-size: 13px;
+    }
+}

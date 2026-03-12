@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GameLayout } from './components/GameLayout';
 import { LandingPage } from './components/LandingPage';
 import { HomePage } from './components/HomePage';
+import { LoadingPage } from './components/LoadingPage';
 import { ProfilePage } from './components/ProfilePage';
 import { CharacterCreation } from './components/CharacterCreation';
 import { SessionCreation } from './components/SessionCreation';
@@ -19,12 +20,14 @@ function App() {
     const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
     const [localUserId, setLocalUserId] = useState<number | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);  // Loading state for transitions
+    const [loadingMessage, setLoadingMessage] = useState('');
 
     // Initialize from localStorage on mount
     useEffect(() => {
         // Check for persisted authentication (including guest tokens and remember me)
         checkAuthPersistence();
-        
+
         const storedUserId = localStorage.getItem('userId');
         const storedUsername = localStorage.getItem('username');
         const token = localStorage.getItem('access_token');
@@ -36,6 +39,18 @@ function App() {
         }
         setIsInitialized(true);
     }, [checkAuthPersistence]);
+
+    // Helper function for page transitions with loading
+    const transitionToPage = (callback: () => void, message: string = 'Загрузка...') => {
+        setIsLoading(true);
+        setLoadingMessage(message);
+        setTimeout(() => {
+            callback();
+            setTimeout(() => {
+                setIsLoading(false);
+            }, 500);
+        }, 1500);
+    };
 
     // Listen for show-profile event from GameLayout
     useEffect(() => {
@@ -51,14 +66,18 @@ function App() {
 
     // Handle showing profile
     const handleShowProfile = (id: string) => {
-        const userId = parseInt(id);
-        setLocalUserId(userId);
-        setShowProfile(true);
-        loadCharacters(userId);
+        transitionToPage(() => {
+            const userId = parseInt(id);
+            setLocalUserId(userId);
+            setShowProfile(true);
+            loadCharacters(userId);
+        }, 'Загрузка профиля...');
     };
 
     const handleBackFromProfile = () => {
-        setShowProfile(false);
+        transitionToPage(() => {
+            setShowProfile(false);
+        }, 'Возврат...');
     };
 
     const handleShowCharacterCreation = () => {
@@ -168,6 +187,11 @@ function App() {
         console.log('Session created:', sessionId);
         // TODO: Redirect to game session
     };
+
+    // Show loading page
+    if (isLoading) {
+        return <LoadingPage message={loadingMessage} />;
+    }
 
     // Show nothing while initializing
     if (!isInitialized) {
