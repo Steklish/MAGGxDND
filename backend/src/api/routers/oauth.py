@@ -23,6 +23,31 @@ router = APIRouter(prefix="/oauth", tags=["oauth"])
 oauth_states = {}
 
 
+class OAuthConfigResponse(BaseModel):
+    google_configured: bool
+    discord_configured: bool
+
+
+@router.get("/config", response_model=OAuthConfigResponse)
+async def get_oauth_config():
+    """
+    Get OAuth configuration status.
+    Returns which providers are configured.
+    """
+    return OAuthConfigResponse(
+        google_configured=bool(
+            settings.GOOGLE_CLIENT_ID 
+            and settings.GOOGLE_CLIENT_ID != "your_google_client_id"
+            and settings.GOOGLE_CLIENT_SECRET
+        ),
+        discord_configured=bool(
+            settings.DISCORD_CLIENT_ID 
+            and settings.DISCORD_CLIENT_ID != "your_discord_client_id"
+            and settings.DISCORD_CLIENT_SECRET
+        )
+    )
+
+
 class OAuthCallbackData(BaseModel):
     code: str
     state: str
@@ -34,10 +59,16 @@ async def google_login(request: Request, response: Response):
     Initiate Google OAuth login flow.
     Redirects user to Google's OAuth consent screen.
     """
+    # Check if Google OAuth is configured
+    if not settings.GOOGLE_CLIENT_ID or settings.GOOGLE_CLIENT_ID == "your_google_client_id":
+        # Redirect to frontend with error
+        frontend_url = f"{settings.FRONTEND_URL}/auth/callback?provider=google&error=not_configured&message=Google OAuth is not configured"
+        return RedirectResponse(url=frontend_url)
+    
     # Generate state token to prevent CSRF attacks
     state = secrets.token_urlsafe(32)
     oauth_states[state] = {"provider": "google", "timestamp": datetime.now()}
-    
+
     # Google OAuth URL
     google_auth_url = (
         "https://accounts.google.com/o/oauth2/v2/auth?"
@@ -49,7 +80,7 @@ async def google_login(request: Request, response: Response):
         "access_type=offline&"
         "prompt=select_account"
     )
-    
+
     return RedirectResponse(url=google_auth_url)
 
 
@@ -160,10 +191,16 @@ async def discord_login(request: Request, response: Response):
     Initiate Discord OAuth login flow.
     Redirects user to Discord's OAuth consent screen.
     """
+    # Check if Discord OAuth is configured
+    if not settings.DISCORD_CLIENT_ID or settings.DISCORD_CLIENT_ID == "your_discord_client_id":
+        # Redirect to frontend with error
+        frontend_url = f"{settings.FRONTEND_URL}/auth/callback?provider=discord&error=not_configured&message=Discord OAuth is not configured"
+        return RedirectResponse(url=frontend_url)
+    
     # Generate state token to prevent CSRF attacks
     state = secrets.token_urlsafe(32)
     oauth_states[state] = {"provider": "discord", "timestamp": datetime.now()}
-    
+
     # Discord OAuth URL
     discord_auth_url = (
         "https://discord.com/api/oauth2/authorize?"

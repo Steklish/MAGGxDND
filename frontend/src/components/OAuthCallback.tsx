@@ -16,6 +16,22 @@ export const OAuthCallback: React.FC = () => {
             const provider = searchParams.get('provider');
             const username = searchParams.get('username');
             const userId = searchParams.get('user_id');
+            const error = searchParams.get('error');
+            const message = searchParams.get('message');
+
+            // Check for configuration errors
+            if (error === 'not_configured') {
+                setStatus('error');
+                setMessage(`${provider} OAuth is not configured. Please use username/password login.`);
+                return;
+            }
+
+            // Check for other errors
+            if (error) {
+                setStatus('error');
+                setMessage(message || `OAuth error: ${error}`);
+                return;
+            }
 
             if (!provider || !username || !userId) {
                 setStatus('error');
