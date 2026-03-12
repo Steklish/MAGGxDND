@@ -4,7 +4,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
-from backend.src.api.routers import dev, login, user, access_group
+from backend.src.api.routers import dev, login, user, access_group, oauth
 from backend.src.api.routers.session_router import router as session_router
 from backend.src.api.routers.websocket_game import router as websocket_router
 from backend.src.api.routers import character, profile
@@ -41,6 +41,7 @@ sub_app.include_router(dev.router)
 sub_app.include_router(session_router)
 sub_app.include_router(character.router)
 sub_app.include_router(profile.router)
+sub_app.include_router(oauth.router)
 
 # Apply rate limiting to auth endpoints
 login.router.dependencies.insert(0, limiter.limit(settings.RATE_LIMIT_AUTH))
@@ -159,9 +160,22 @@ async def health_live():
 # Serve UI static files
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UI_DIST_PATH = os.path.join(PROJECT_ROOT, "frontend", "dist")
+UI_ARTS_PATH = os.path.join(PROJECT_ROOT, "frontend", "arts")
 print(f"PROJECT_ROOT: {PROJECT_ROOT}")
 print(f"UI_DIST_PATH: {UI_DIST_PATH}")
 print(f"UI_DIST_PATH exists: {os.path.exists(UI_DIST_PATH)}")
+
+@app.get("/favicon.ico")
+async def serve_favicon():
+    """Serve favicon from arts folder."""
+    favicon_path = os.path.join(UI_ARTS_PATH, "icons", "app.png")
+    if os.path.isfile(favicon_path):
+        return FileResponse(favicon_path, media_type="image/png")
+    # Fallback to dist version
+    favicon_dist_path = os.path.join(UI_DIST_PATH, "arts", "icons", "app.png")
+    if os.path.isfile(favicon_dist_path):
+        return FileResponse(favicon_dist_path, media_type="image/png")
+    return {"error": "Favicon not found"}
 
 @app.get("/")
 async def serve_ui_root():

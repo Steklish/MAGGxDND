@@ -54,13 +54,14 @@ interface UserProfile {
 interface ProfilePageProps {
     userId: number;
     onBack: () => void;
+    onGoHome?: () => void;  // New callback for home button
     onCreateCharacter?: () => void;
     onCreateSession?: () => void;
     onViewSession?: (sessionId: string) => void;
     onJoinSession?: (sessionId: string) => void;
 }
 
-export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCreateCharacter, onCreateSession, onViewSession, onJoinSession }) => {
+export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onGoHome, onCreateCharacter, onCreateSession, onViewSession, onJoinSession }) => {
     const [characters, setCharacters] = useState<CharacterProfile[]>([]);
     const [selectedCharacter, setSelectedCharacter] = useState<CharacterProfile | null>(null);
     const [characterTab, setCharacterTab] = useState<'overview' | 'combat' | 'skills' | 'equipment' | 'spells' | 'notes'>('overview');
@@ -71,8 +72,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCrea
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [activeGames, setActiveGames] = useState<GameSession[]>([]);
     const [gameHistory, setGameHistory] = useState<GameSession[]>([]);
+    const [previousPage, setPreviousPage] = useState<string | null>(null);  // Track previous page
 
     useEffect(() => {
+        // Get previous page from localStorage or referrer
+        const prevPage = localStorage.getItem('previousPage') || document.referrer;
+        setPreviousPage(prevPage);
+        
         loadUserProfile();
         loadCharacters();
         loadActiveGames();
@@ -237,7 +243,40 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCrea
     return (
         <div className="profile-page">
             <div className="profile-header">
-                <button className="btn-back" onClick={onBack}>← Back to Home</button>
+                <div className="profile-header-nav">
+                    {/* Back button - returns to previous page */}
+                    <button 
+                        className="btn-back-nav" 
+                        onClick={() => {
+                            if (previousPage) {
+                                window.history.back();
+                            } else {
+                                onBack();
+                            }
+                        }}
+                        title={previousPage ? `Вернуться на ${previousPage}` : 'Назад'}
+                    >
+                        ← Назад
+                    </button>
+                    
+                    {/* Home button - always returns to home page */}
+                    <button 
+                        className="btn-home" 
+                        onClick={() => {
+                            if (onGoHome) {
+                                onGoHome();
+                            } else {
+                                // Fallback: navigate to home
+                                localStorage.setItem('previousPage', window.location.pathname);
+                                window.location.href = '/home';
+                            }
+                        }}
+                        title="Вернуться на главную"
+                    >
+                        🏠 Домой
+                    </button>
+                </div>
+                
                 <div className="profile-header-info">
                     <h1>{userProfile?.username || 'Player'}'s Profile</h1>
                     {userProfile && (
@@ -895,13 +934,21 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onCrea
 
                         <div className="settings-section">
                             <h3>Session</h3>
-                            <button 
+                            <button
                                 className="btn-logout"
                                 onClick={() => {
+                                    // Clear all auth data
                                     localStorage.removeItem('access_token');
                                     localStorage.removeItem('username');
                                     localStorage.removeItem('userId');
-                                    window.location.reload();
+                                    localStorage.removeItem('currentSessionId');
+                                    localStorage.removeItem('currentPlayerId');
+                                    localStorage.removeItem('gameStatus');
+                                    localStorage.removeItem('is_guest');
+                                    localStorage.removeItem('remember_me');
+                                    
+                                    // Redirect to landing page
+                                    window.location.href = '/';
                                 }}
                             >
                                 🚪 Logout

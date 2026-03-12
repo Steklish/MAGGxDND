@@ -13,6 +13,8 @@
     justify-content: center;
     z-index: 2000;
     animation: fadeIn 0.3s ease;
+    /* Prevent text selection on overlay */
+    user-select: none;
 }
 
 @keyframes fadeIn {
@@ -128,6 +130,26 @@
 .auth-subtitle {
     font-size: 14px;
     color: var(--text-secondary);
+}
+
+.auth-submit-error {
+    background: rgba(255, 107, 53, 0.1);
+    border: 1px solid var(--accent-red);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--accent-red);
+    font-size: 14px;
+    margin-bottom: 20px;
+    animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
 }
 
 .auth-form {
@@ -296,6 +318,7 @@
 
 .social-auth {
     display: flex;
+    flex-direction: column;
     gap: 12px;
     margin-bottom: 28px;
 }
@@ -331,6 +354,30 @@
 .social-btn.google:hover {
     border-color: #DB4437;
     background: rgba(219, 68, 55, 0.1);
+}
+
+.social-icon-svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Guest button styling */
+.social-btn.guest {
+    background: linear-gradient(135deg, rgba(100, 100, 100, 0.3) 0%, rgba(80, 80, 80, 0.3) 100%);
+    border-color: var(--border-light);
+}
+
+.social-btn.guest:hover {
+    border-color: var(--accent-yellow);
+    background: linear-gradient(135deg, rgba(233, 196, 106, 0.15) 0%, rgba(233, 196, 106, 0.1) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(233, 196, 106, 0.2);
+}
+
+.social-btn.guest:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }
 
 .social-icon {

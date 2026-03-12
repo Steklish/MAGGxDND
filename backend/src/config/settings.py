@@ -85,6 +85,22 @@ class Settings:
     SESSION_MAX_PLAYERS: int = int(os.getenv("SESSION_MAX_PLAYERS", "5"))
     SESSION_TIMEOUT_MINUTES: int = int(os.getenv("SESSION_TIMEOUT_MINUTES", "120"))
 
+    # ===================================================================
+    # OAUTH SETTINGS
+    # ===================================================================
+    # Google OAuth
+    GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
+    GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
+    GOOGLE_REDIRECT_URI: str = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/api/v1/oauth/google/callback")
+    
+    # Discord OAuth
+    DISCORD_CLIENT_ID: str = os.getenv("DISCORD_CLIENT_ID", "")
+    DISCORD_CLIENT_SECRET: str = os.getenv("DISCORD_CLIENT_SECRET", "")
+    DISCORD_REDIRECT_URI: str = os.getenv("DISCORD_REDIRECT_URI", "http://localhost:8000/api/v1/oauth/discord/callback")
+    
+    # Frontend URL for OAuth callbacks
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
     def is_production(self) -> bool:
         """Check if running in production mode."""
         return not self.DEBUG

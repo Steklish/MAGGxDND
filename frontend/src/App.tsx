@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GameLayout } from './components/GameLayout';
 import { LandingPage } from './components/LandingPage';
+import { HomePage } from './components/HomePage';
 import { ProfilePage } from './components/ProfilePage';
 import { CharacterCreation } from './components/CharacterCreation';
 import { SessionCreation } from './components/SessionCreation';
@@ -10,7 +11,7 @@ import { useGameStore } from './store/gameStore';
 import './App.css';
 
 function App() {
-    const { isAuthenticated, userId, characters, loadCharacters, setAuthenticated, loadSessions } = useGameStore();
+    const { isAuthenticated, userId, characters, loadCharacters, setAuthenticated, loadSessions, checkAuthPersistence } = useGameStore();
     const [showProfile, setShowProfile] = useState(false);
     const [showCharacterCreation, setShowCharacterCreation] = useState(false);
     const [showSessionCreation, setShowSessionCreation] = useState(false);
@@ -21,17 +22,20 @@ function App() {
 
     // Initialize from localStorage on mount
     useEffect(() => {
+        // Check for persisted authentication (including guest tokens and remember me)
+        checkAuthPersistence();
+        
         const storedUserId = localStorage.getItem('userId');
         const storedUsername = localStorage.getItem('username');
         const token = localStorage.getItem('access_token');
-        
+
         if (storedUserId && token && storedUsername) {
             const id = parseInt(storedUserId);
             setLocalUserId(id);
             loadCharacters(id);
         }
         setIsInitialized(true);
-    }, []);
+    }, [checkAuthPersistence]);
 
     // Listen for show-profile event from GameLayout
     useEffect(() => {
@@ -217,6 +221,10 @@ function App() {
             <ProfilePage
                 userId={localUserId}
                 onBack={handleBackFromProfile}
+                onGoHome={() => {
+                    setShowProfile(false);
+                    // Navigate to home page
+                }}
                 onCreateCharacter={handleShowCharacterCreation}
                 onCreateSession={handleShowSessionCreation}
                 onViewSession={handleShowSessionDetail}
@@ -225,10 +233,16 @@ function App() {
         );
     }
 
-    // Show game layout if authenticated OR if already in active session
+    // Show game layout if in active session (playing state)
     const hasActiveSession = typeof window !== 'undefined' && localStorage.getItem('currentSessionId') && localStorage.getItem('currentPlayerId');
-    
-    if (isAuthenticated || hasActiveSession) {
+
+    // Show HomePage for authenticated users (not in active session)
+    if (isAuthenticated && !hasActiveSession) {
+        return <HomePage />;
+    }
+
+    // Show GameLayout if in active session
+    if (hasActiveSession) {
         return <GameLayout onCreateSession={handleShowSessionCreation} onViewSession={handleShowSessionDetail} onJoinSession={handleJoinSession} />;
     }
 

@@ -28,8 +28,24 @@ interface GameLayoutProps {
 }
 
 export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewSession: _onViewSession, onJoinSession }) => {
-    const { session, currentSession, currentScene, activeCharacter, loadSessions, activeSessions, setCurrentSession, setCurrentScene, setActiveCharacter, isGenerating, generationStatus, setIsGenerating, setGenerationStatus, addMessage, logout } = useGameStore();
-    
+    const { session, currentSession, currentScene, activeCharacter, loadSessions, activeSessions, setCurrentSession, setCurrentScene, setActiveCharacter, isGenerating, generationStatus, setIsGenerating, setGenerationStatus, addMessage, isAuthenticated, logout } = useGameStore();
+
+    // Read session info from localStorage directly (not from store) - MUST be before useEffect
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+    const sessionId = typeof window !== 'undefined' ? localStorage.getItem('currentSessionId') : null;
+    const playerId = typeof window !== 'undefined' ? localStorage.getItem('currentPlayerId') : null;
+    const gameStatus = typeof window !== 'undefined' ? localStorage.getItem('gameStatus') : null;
+
+    // Check if user is authenticated - redirect to landing page if not
+    useEffect(() => {
+        const isAuth = isAuthenticated || localStorage.getItem('access_token');
+        if (!isAuth && !sessionId) {
+            // Not authenticated and no active session - redirect to landing
+            console.log('⚠️ User not authenticated - redirecting to landing page');
+            window.location.href = '/';
+        }
+    }, [isAuthenticated, sessionId]);
+
     // ALL HOOKS MUST BE AT THE TOP - before any conditional returns
     const [showProfile, setShowProfile] = useState(false);
     const [showCreateSession, setShowCreateSession] = useState(false);
@@ -57,12 +73,6 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     const prevActionPanelHeight = useRef(70);
     const containerWidth = useRef(0);
     const containerHeight = useRef(0);
-    
-    // Read session info from localStorage directly (not from store)
-    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
-    const sessionId = typeof window !== 'undefined' ? localStorage.getItem('currentSessionId') : null;
-    const playerId = typeof window !== 'undefined' ? localStorage.getItem('currentPlayerId') : null;
-    const gameStatus = typeof window !== 'undefined' ? localStorage.getItem('gameStatus') : null;
 
     // ALL useEffect MUST BE BEFORE ANY CONDITIONAL RETURNS
     useEffect(() => {
@@ -793,30 +803,9 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                 </div>
 
                 <div className="header-right">
-                    <button className="btn-create-session-header" onClick={() => setShowCreateSession(true)}>
-                        ➕ Create Session
-                    </button>
                     <button className="profile-btn" title="Profile" onClick={() => setShowProfile(true)}>
                         <span className="profile-icon">👤</span>
                     </button>
-                    <button 
-                        className="btn-logout-header" 
-                        title="Logout" 
-                        onClick={() => {
-                            if (confirm('Вы уверены, что хотите выйти?')) {
-                                logout();
-                                window.location.href = '/';
-                            }
-                        }}
-                    >
-                        🚪 Выйти
-                    </button>
-                    {sessionId && playerId && (
-                        <div className="session-status">
-                            <span className="status-dot">🟢</span>
-                            <span className="session-id" title={sessionId}>{sessionId.substring(0, 8)}...</span>
-                        </div>
-                    )}
                 </div>
 
                 {/* Header resize handle */}

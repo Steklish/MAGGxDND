@@ -8,7 +8,9 @@ interface GameState {
     userId: number | null;
     username: string | null;
     accessToken: string | null;
-    
+    isGuest: boolean;  // Track if user is a guest
+    rememberMe: boolean;  // Track if remember me is enabled
+
     // Character state
     characters: Character[];
     selectedCharacter: Character | null;
@@ -44,7 +46,10 @@ interface GameState {
     setUserId: (id: number) => void;
     setUsername: (name: string) => void;
     setAccessToken: (token: string) => void;
+    setIsGuest: (isGuest: boolean) => void;
+    setRememberMe: (remember: boolean) => void;
     logout: () => void;
+    checkAuthPersistence: () => void;  // Check localStorage on app start
     
     // Actions - Characters
     loadCharacters: (userId: number) => Promise<void>;
@@ -83,6 +88,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     userId: null,
     username: null,
     accessToken: null,
+    isGuest: false,
+    rememberMe: false,
 
     characters: [],
     selectedCharacter: null,
@@ -106,6 +113,27 @@ export const useGameStore = create<GameState>((set, get) => ({
     currentScene: null,
     
     // Auth actions
+    checkAuthPersistence: () => {
+        // Check localStorage for persisted auth on app start
+        const token = localStorage.getItem('access_token');
+        const userId = localStorage.getItem('userId');
+        const username = localStorage.getItem('username');
+        const isGuest = localStorage.getItem('is_guest') === 'true';
+        const rememberMe = localStorage.getItem('remember_me') === 'true';
+        
+        if (token) {
+            set({
+                isAuthenticated: true,
+                accessToken: token,
+                userId: userId ? parseInt(userId) : null,
+                username: username || null,
+                isGuest,
+                rememberMe,
+            });
+            console.log('✅ Auth restored from localStorage:', { username, isGuest, rememberMe });
+        }
+    },
+
     setAuthenticated: (value) => set({ isAuthenticated: value }),
 
     setUserId: (id) => {
@@ -123,15 +151,29 @@ export const useGameStore = create<GameState>((set, get) => ({
         set({ accessToken: token });
     },
 
+    setIsGuest: (isGuest) => {
+        localStorage.setItem('is_guest', isGuest.toString());
+        set({ isGuest });
+    },
+
+    setRememberMe: (remember) => {
+        localStorage.setItem('remember_me', remember.toString());
+        set({ rememberMe: remember });
+    },
+
     logout: () => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('username');
         localStorage.removeItem('userId');
+        localStorage.removeItem('is_guest');
+        localStorage.removeItem('remember_me');
         set({
             isAuthenticated: false,
             userId: null,
             username: null,
             accessToken: null,
+            isGuest: false,
+            rememberMe: false,
             characters: [],
             selectedCharacter: null,
             activeSessions: [],
