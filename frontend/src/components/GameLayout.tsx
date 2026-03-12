@@ -38,13 +38,35 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
 
     // Check if user is authenticated - redirect to landing page if not
     useEffect(() => {
-        const isAuth = isAuthenticated || localStorage.getItem('access_token');
-        if (!isAuth && !sessionId) {
-            // Not authenticated and no active session - redirect to landing
-            console.log('⚠️ User not authenticated - redirecting to landing page');
+        const token = localStorage.getItem('access_token');
+        const isGuest = localStorage.getItem('is_guest') === 'true';
+        const hasValidSession = sessionId && playerId;
+        
+        // If no token AND no active game session - redirect to landing
+        if (!token && !hasValidSession) {
+            console.log('⚠️ No auth token and no active session - redirecting to landing page');
+            // Clear any stale session data
+            localStorage.removeItem('currentSessionId');
+            localStorage.removeItem('currentPlayerId');
+            localStorage.removeItem('gameStatus');
             window.location.href = '/';
+            return;
         }
-    }, [isAuthenticated, sessionId]);
+        
+        // If guest token expired - redirect to landing
+        if (isGuest) {
+            try {
+                // Guest tokens expire in 24 hours - check if still valid
+                const guestToken = localStorage.getItem('guest_token');
+                if (!guestToken) {
+                    console.log('⚠️ Guest token missing - redirecting to landing page');
+                    window.location.href = '/';
+                }
+            } catch (e) {
+                console.warn('⚠️ Error checking guest token:', e);
+            }
+        }
+    }, [sessionId, playerId]);
 
     // ALL HOOKS MUST BE AT THE TOP - before any conditional returns
     const [showProfile, setShowProfile] = useState(false);
@@ -76,6 +98,14 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
 
     // ALL useEffect MUST BE BEFORE ANY CONDITIONAL RETURNS
     useEffect(() => {
+        // Check authentication before loading anything
+        const token = localStorage.getItem('access_token');
+        if (!token && !(sessionId && playerId)) {
+            console.log('⚠️ Not authenticated on mount - redirecting to landing page');
+            window.location.href = '/';
+            return;
+        }
+        
         loadSessions();
         console.log('🔍 GameLayout mounted:', { sessionId, playerId, currentSession, isGenerating });
         
