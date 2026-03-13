@@ -287,20 +287,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
                     <form className="auth-form" onSubmit={handleSubmit}>
                         <div className="form-group">
                             <label htmlFor="username">Username</label>
-                            <div className="input-wrapper">
-                                <span className="input-icon">👤</span>
-                                <input
-                                    type="text"
-                                    id="username"
-                                    name="username"
-                                    value={formData.username}
-                                    onChange={handleChange}
-                                    placeholder={isLogin ? "Enter your username" : "Choose a username"}
-                                    className={errors.username ? 'error' : ''}
-                                    required
-                                    autoComplete="username"
-                                />
-                            </div>
+                            <input
+                                type="text"
+                                id="username"
+                                name="username"
+                                value={formData.username}
+                                onChange={handleChange}
+                                placeholder={isLogin ? "Enter your username" : "Choose a username"}
+                                className={errors.username ? 'error' : ''}
+                                required
+                                autoComplete="username"
+                            />
                             {errors.username && (
                                 <span className="error-message">{errors.username}</span>
                             )}
@@ -308,20 +305,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
 
                         <div className="form-group">
                             <label htmlFor="password">Password</label>
-                            <div className="input-wrapper">
-                                <span className="input-icon">🔒</span>
-                                <input
-                                    type="password"
-                                    id="password"
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    placeholder="Enter your password"
-                                    className={errors.password ? 'error' : ''}
-                                    required
-                                    autoComplete={isLogin ? "current-password" : "new-password"}
-                                />
-                            </div>
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                placeholder="Enter your password"
+                                className={errors.password ? 'error' : ''}
+                                required
+                                autoComplete={isLogin ? "current-password" : "new-password"}
+                            />
                             {errors.password && (
                                 <span className="error-message">{errors.password}</span>
                             )}
@@ -330,19 +324,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
                         {!isLogin && (
                             <div className="form-group">
                                 <label htmlFor="confirmPassword">Confirm Password</label>
-                                <div className="input-wrapper">
-                                    <span className="input-icon">🔐</span>
-                                    <input
-                                        type="password"
-                                        id="confirmPassword"
-                                        name="confirmPassword"
-                                        value={formData.confirmPassword}
-                                        onChange={handleChange}
-                                        placeholder="Confirm your password"
-                                        className={errors.confirmPassword ? 'error' : ''}
-                                        autoComplete="new-password"
-                                    />
-                                </div>
+                                <input
+                                    type="password"
+                                    id="confirmPassword"
+                                    name="confirmPassword"
+                                    value={formData.confirmPassword}
+                                    onChange={handleChange}
+                                    placeholder="Confirm your password"
+                                    className={errors.confirmPassword ? 'error' : ''}
+                                    autoComplete="new-password"
+                                />
                                 {errors.confirmPassword && (
                                     <span className="error-message">{errors.confirmPassword}</span>
                                 )}
