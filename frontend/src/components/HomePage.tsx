@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { CharacterPanel } from './CharacterPanel';
 import { SessionCreation } from './SessionCreation';
-import { ProfilePage } from './ProfilePage';
 import './HomePage.css';
 
 export const HomePage: React.FC = () => {
@@ -20,7 +19,6 @@ export const HomePage: React.FC = () => {
     } = useGameStore();
     
     const [showSessionCreation, setShowSessionCreation] = useState(false);
-    const [showProfile, setShowProfile] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [activeTab, setActiveTab] = useState<'overview' | 'characters' | 'sessions'>('overview');
 
@@ -54,6 +52,11 @@ export const HomePage: React.FC = () => {
     const handleSessionJoin = (sessionId: string) => {
         console.log('Joining session:', sessionId);
         // Navigate to session
+    };
+
+    const handleProfileClick = () => {
+        // Navigate to profile page instead of showing modal
+        navigate('/profile');
     };
 
     return (
@@ -102,7 +105,7 @@ export const HomePage: React.FC = () => {
                         
                         <button
                             className="btn-profile"
-                            onClick={() => setShowProfile(true)}
+                            onClick={handleProfileClick}
                         >
                             <span className="profile-avatar">👤</span>
                             <span className="profile-name">{username || 'Adventurer'}</span>
@@ -392,18 +395,6 @@ export const HomePage: React.FC = () => {
                         setShowSessionCreation(false);
                         // Handle session created
                         console.log('Session created:', sessionId);
-                    }}
-                />
-            )}
-
-            {/* Profile Modal */}
-            {showProfile && (
-                <ProfilePage
-                    userId={userId || 0}
-                    onBack={() => setShowProfile(false)}
-                    onGoHome={() => {
-                        setShowProfile(false);
-                        // Already on home page, just close profile
                     }}
                 />
             )}

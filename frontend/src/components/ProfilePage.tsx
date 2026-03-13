@@ -54,7 +54,7 @@ interface UserProfile {
 interface ProfilePageProps {
     userId: number;
     onBack: () => void;
-    onGoHome?: () => void;  // New callback for home button
+    onGoHome: () => void;
     onCreateCharacter?: () => void;
     onCreateSession?: () => void;
     onViewSession?: (sessionId: string) => void;

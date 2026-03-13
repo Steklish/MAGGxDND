@@ -13,7 +13,23 @@ export const LoadingPage: React.FC<LoadingPageProps> = ({
     const [diceRoll, setDiceRoll] = useState<number>(20);
     const [isRolling, setIsRolling] = useState(true);
     const [rollHistory, setRollHistory] = useState<number[]>([]);
+    const [currentTipIndex, setCurrentTipIndex] = useState(0);
+    const [isTipFading, setIsTipFading] = useState(false);
 
+    // Change tip every 4 seconds with smooth fade
+    useEffect(() => {
+        const tipInterval = setInterval(() => {
+            setIsTipFading(true);
+            setTimeout(() => {
+                setCurrentTipIndex(prev => (prev + 1) % tips.length);
+                setIsTipFading(false);
+            }, 400);
+        }, 4000);
+
+        return () => clearInterval(tipInterval);
+    }, []);
+
+    // Animate dice rolls
     useEffect(() => {
         if (showDice && isRolling) {
             // Animate dice rolls
@@ -153,8 +169,8 @@ export const LoadingPage: React.FC<LoadingPageProps> = ({
                 {/* Tips section */}
                 <div className="loading-tips">
                     <div className="tip-icon">💡</div>
-                    <p className="tip-text">
-                        {getRandomTip()}
+                    <p className={`tip-text ${isTipFading ? 'tip-fading' : 'tip-visible'}`}>
+                        {tips[currentTipIndex]}
                     </p>
                 </div>
             </div>

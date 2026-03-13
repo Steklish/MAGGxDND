@@ -353,6 +353,8 @@
     gap: 16px;
     align-items: flex-start;
     max-width: 500px;
+    min-height: 80px;
+    transition: all 0.3s ease;
 }
 
 .tip-icon {
@@ -365,6 +367,17 @@
     font-size: 14px;
     color: var(--text-secondary);
     line-height: 1.6;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.tip-text.tip-fading {
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+.tip-text.tip-visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 /* Responsive */
