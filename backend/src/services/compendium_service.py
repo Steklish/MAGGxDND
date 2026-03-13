@@ -161,7 +161,7 @@ class CompendiumService:
                 'name': entry.name,
                 'type': entry.type,
                 'description': entry.description[:200] + '...' if len(entry.description) > 200 else entry.description,
-                'metadata': entry.metadata,
+                'properties': entry.properties,
                 'source': entry.source
             }
             for entry in entries
@@ -202,7 +202,7 @@ class CompendiumService:
             'type': entry.type,
             'description': entry.description,
             'content': entry.content,
-            'metadata': entry.metadata,
+            'properties': entry.properties,
             'category': {
                 'id': entry.category.id,
                 'name': entry.category.name
@@ -237,7 +237,7 @@ class CompendiumService:
                 'name': entry.name,
                 'type': entry.type,
                 'description': entry.description[:200],
-                'metadata': entry.metadata
+                'properties': entry.properties
             }
             for entry in entries
         ]

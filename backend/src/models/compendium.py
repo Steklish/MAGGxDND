@@ -25,7 +25,6 @@ class CompendiumCategory(Base):
         back_populates="parent"
     )
     parent: Mapped[Optional["CompendiumCategory"]] = relationship(
-        remote_side="CompendiumCategory.id",
         back_populates="subcategories"
     )
     
@@ -48,10 +47,10 @@ class CompendiumEntry(Base):
     description: Mapped[str] = mapped_column(Text)
     content: Mapped[str] = mapped_column(Text)  # Full HTML/Markdown content
     
-    # Metadata (stored as JSON for flexibility)
-    metadata: Mapped[str] = mapped_column(JSON, default={})
+    # Properties (stored as JSON for flexibility)
+    properties: Mapped[str] = mapped_column(JSON, default={})
     
-    # Example metadata structures:
+    # Example properties structures:
     # For spells:
     # {
     #     "level": 3,
@@ -169,8 +168,8 @@ class UserHomebrew(Base):
     description: Mapped[str] = mapped_column(Text)
     content: Mapped[str] = mapped_column(Text)
     
-    # Metadata
-    metadata: Mapped[str] = mapped_column(JSON, default={})
+    # Properties
+    properties: Mapped[str] = mapped_column(JSON, default={})
     
     # Publishing
     is_public: Mapped[bool] = mapped_column(Boolean, default=False)

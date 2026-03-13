@@ -164,14 +164,19 @@ def register_user(response: Response, request: RegisterRequest, db: Session = De
             detail="Username already taken"
         )
     
-    # Create new user
-    hashed_password = security.get_password_hash(request.password)
-    new_user = user_repo.create_user(
-        db=db,
+    # Create new user directly
+    from backend.src.models.user import User
+    from backend.src.utils.security import get_password_hash
+    
+    hashed_password = get_password_hash(request.password)
+    new_user = User(
         username=request.username,
         hashed_password=hashed_password,
         group_id=None
     )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
     
     # Create token with remember_me option (30 days for new users)
     access_token, expire = security.create_access_token_with_remember(

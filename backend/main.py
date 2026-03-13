@@ -4,7 +4,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
-from backend.src.api.routers import dev, login, user, access_group, oauth, compendium
+from backend.src.api.routers import dev, login, user, access_group, oauth  # , compendium
 from backend.src.api.routers.session_router import router as session_router
 from backend.src.api.routers.websocket_game import router as websocket_router
 from backend.src.api.routers import character, profile
@@ -53,7 +53,7 @@ sub_app.include_router(session_router)
 sub_app.include_router(character.router)
 sub_app.include_router(profile.router)
 sub_app.include_router(oauth.router)
-sub_app.include_router(compendium.router)
+# sub_app.include_router(compendium.router)  # Temporarily disabled
 
 # Apply rate limiting to auth endpoints
 login.router.dependencies.insert(0, limiter.limit(settings.RATE_LIMIT_AUTH))

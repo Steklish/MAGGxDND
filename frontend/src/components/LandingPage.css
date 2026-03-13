@@ -270,6 +270,23 @@ html::-webkit-scrollbar-thumb:hover {
     box-shadow: 0 0 10px rgba(157, 78, 221, 0.3);
 }
 
+.btn-go-home {
+    background: var(--gradient-primary);
+    border: none;
+    color: var(--text-primary);
+    padding: 12px 24px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.btn-go-home:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+}
+
 .profile-icon {
     font-size: 18px;
 }

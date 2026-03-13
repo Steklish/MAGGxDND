@@ -142,27 +142,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onShowProfile }) => {
                     </nav>
                     <div className="header-actions">
                         {useGameStore.getState().isAuthenticated ? (
-                            <>
-                                <button
-                                    className="btn-profile"
-                                    onClick={() => setShowProfile(true)}
-                                >
-                                    <span className="profile-icon">👤</span>
-                                    <span className="profile-name">{localStorage.getItem('username') || 'Profile'}</span>
-                                </button>
-                                <button
-                                    className="btn-logout"
-                                    onClick={() => {
-                                        localStorage.removeItem('access_token');
-                                        localStorage.removeItem('username');
-                                        localStorage.removeItem('userId');
-                                        setAuthenticated(false);
-                                        window.location.reload();
-                                    }}
-                                >
-                                    Logout
-                                </button>
-                            </>
+                            <button
+                                className="btn-go-home"
+                                onClick={() => {
+                                    window.location.href = '/home';
+                                }}
+                            >
+                                Go to Home
+                            </button>
                         ) : (
                             <>
                                 <button

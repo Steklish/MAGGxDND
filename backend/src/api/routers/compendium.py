@@ -8,7 +8,8 @@ from typing import List, Optional, Dict, Any
 
 from backend.src.database.session import get_db
 from backend.src.services.compendium_service import CompendiumService
-from backend.src.auth.dependencies import get_current_user
+from backend.src.auth.dependencies import get_current_user_from_cookie
+from backend.src.models.user import User
 from backend.src.logging import get_logger
 
 logger = get_logger('api.compendium')
@@ -123,7 +124,7 @@ async def rate_entry(
     rating: int = Query(..., ge=1, le=5),
     comment: str = Query("", max_length=500),
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_from_cookie)
 ):
     """
     Rate a compendium entry (1-5 stars)
@@ -133,9 +134,7 @@ async def rate_entry(
     """
     service = CompendiumService(db)
     
-    user_id = current_user.get('user_id')
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_id = current_user.id
     
     return service.add_rating(
         entry_id=entry_id,
@@ -153,7 +152,7 @@ async def add_comment(
     content: str,
     parent_id: Optional[int] = None,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_from_cookie)
 ):
     """
     Add a comment to a compendium entry
@@ -162,9 +161,7 @@ async def add_comment(
     """
     service = CompendiumService(db)
     
-    user_id = current_user.get('user_id')
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_id = current_user.id
     
     if len(content) < 1 or len(content) > 2000:
         raise HTTPException(
@@ -186,7 +183,7 @@ async def add_comment(
 async def create_homebrew(
     homebrew_data: Dict[str, Any],
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_from_cookie)
 ):
     """
     Create homebrew content
@@ -196,9 +193,7 @@ async def create_homebrew(
     """
     service = CompendiumService(db)
     
-    user_id = current_user.get('user_id')
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_id = current_user.id
     
     # Validate required fields
     if 'name' not in homebrew_data or 'type' not in homebrew_data:
@@ -214,16 +209,14 @@ async def create_homebrew(
 async def get_my_homebrew(
     include_public: bool = Query(True),
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_from_cookie)
 ):
     """
     Get your homebrew content
     """
     service = CompendiumService(db)
     
-    user_id = current_user.get('user_id')
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_id = current_user.id
     
     return service.get_user_homebrew(user_id=user_id, include_public=include_public)
 
