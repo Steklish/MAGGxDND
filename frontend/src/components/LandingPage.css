@@ -679,11 +679,9 @@ html::-webkit-scrollbar-thumb:hover {
 }
 
 .section-header {
-    text-align: center;
+    text-align: left;
     margin-bottom: 60px;
     max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 .section-tag {
@@ -704,14 +702,16 @@ html::-webkit-scrollbar-thumb:hover {
     font-weight: 700;
     margin-bottom: 16px;
     line-height: 1.3;
+    text-align: left;
 }
 
 .section-subtitle {
     font-size: 18px;
     color: var(--text-secondary);
     max-width: 700px;
-    margin: 0 auto;
+    margin: 0 0 40px 0;
     line-height: 1.6;
+    text-align: left;
 }
 
 .features-grid {
@@ -995,6 +995,7 @@ html::-webkit-scrollbar-thumb:hover {
     position: relative;
     width: 300px;
     height: 300px;
+    perspective: 1000px;
 }
 
 .dice {
@@ -1008,7 +1009,8 @@ html::-webkit-scrollbar-thumb:hover {
     font-size: 20px;
     color: var(--bg-primary);
     box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
-    animation: float-dice infinite ease-in-out;
+    animation: rotate-and-expand 6s ease-in-out infinite;
+    transform-style: preserve-3d;
 }
 
 .d20 {
@@ -1020,53 +1022,150 @@ html::-webkit-scrollbar-thumb:hover {
     transform: translate(-50%, -50%);
     font-size: 32px;
     z-index: 5;
+    animation-delay: 0s;
 }
 
 .d12 {
     width: 80px;
     height: 80px;
-    top: 20%;
-    left: 20%;
-    animation-delay: -1s;
+    top: 50%;
+    left: 50%;
+    animation-delay: 0.5s;
     z-index: 3;
+    border-radius: 8px;
 }
 
 .d8 {
     width: 70px;
     height: 70px;
-    top: 20%;
-    right: 20%;
-    animation-delay: -2s;
+    top: 50%;
+    left: 50%;
+    animation-delay: 1s;
     z-index: 2;
+    border-radius: 6px;
 }
 
 .d6 {
     width: 60px;
     height: 60px;
-    bottom: 20%;
-    left: 20%;
-    animation-delay: -3s;
+    top: 50%;
+    left: 50%;
+    animation-delay: 1.5s;
     z-index: 1;
+    border-radius: 4px;
 }
 
 .d4 {
     width: 50px;
     height: 50px;
-    bottom: 20%;
-    right: 20%;
-    animation-delay: -4s;
+    top: 50%;
+    left: 50%;
+    animation-delay: 2s;
     z-index: 4;
+    border-radius: 3px;
 }
 
-@keyframes float-dice {
+@keyframes rotate-and-expand {
     0%, 100% {
-        transform: translate(0, 0) rotate(0deg);
+        transform: translate(-50%, -50%) rotate(0deg) scale(1);
+        opacity: 0.3;
     }
-    33% {
-        transform: translate(10px, -10px) rotate(5deg);
+    20% {
+        transform: translate(-50%, -50%) rotate(90deg) scale(1.1);
+        opacity: 0.6;
     }
-    66% {
-        transform: translate(-10px, 10px) rotate(-5deg);
+    40% {
+        transform: translate(-50%, -50%) rotate(180deg) scale(1.2);
+        opacity: 1;
+    }
+    60% {
+        transform: translate(-50%, -50%) rotate(270deg) scale(1.1);
+        opacity: 0.8;
+    }
+    80% {
+        transform: translate(-50%, -50%) rotate(360deg) scale(1);
+        opacity: 0.5;
+    }
+}
+
+/* Specific animations for each dice - they expand from center */
+.d12 {
+    animation: expand-top-left 6s ease-in-out infinite;
+    animation-delay: 0.5s;
+}
+
+.d8 {
+    animation: expand-top-right 6s ease-in-out infinite;
+    animation-delay: 1s;
+}
+
+.d6 {
+    animation: expand-bottom-left 6s ease-in-out infinite;
+    animation-delay: 1.5s;
+}
+
+.d4 {
+    animation: expand-bottom-right 6s ease-in-out infinite;
+    animation-delay: 2s;
+}
+
+@keyframes expand-top-left {
+    0%, 100% {
+        transform: translate(-50%, -50%) rotate(0deg) scale(0);
+        opacity: 0;
+    }
+    30% {
+        transform: translate(-150%, -150%) rotate(180deg) scale(1);
+        opacity: 0.8;
+    }
+    70% {
+        transform: translate(-150%, -150%) rotate(360deg) scale(1);
+        opacity: 0.8;
+    }
+}
+
+@keyframes expand-top-right {
+    0%, 100% {
+        transform: translate(-50%, -50%) rotate(0deg) scale(0);
+        opacity: 0;
+    }
+    30% {
+        transform: translate(50%, -150%) rotate(-180deg) scale(1);
+        opacity: 0.7;
+    }
+    70% {
+        transform: translate(50%, -150%) rotate(-360deg) scale(1);
+        opacity: 0.7;
+    }
+}
+
+@keyframes expand-bottom-left {
+    0%, 100% {
+        transform: translate(-50%, -50%) rotate(0deg) scale(0);
+        opacity: 0;
+    }
+    30% {
+        transform: translate(-150%, 50%) rotate(180deg) scale(1);
+        opacity: 0.6;
+    }
+    70% {
+        transform: translate(-150%, 50%) rotate(360deg) scale(1);
+        opacity: 0.6;
+    }
+}
+
+@keyframes expand-bottom-right {
+    0%, 100% {
+        transform: translate(-50%, -50%) rotate(0deg) scale(0);
+        opacity: 0;
+    }
+    30% {
+        transform: translate(50%, 50%) rotate(-180deg) scale(1);
+        opacity: 0.9;
+    }
+    70% {
+        transform: translate(50%, 50%) rotate(-360deg) scale(1);
+        opacity: 0.9;
     }
 }
 
