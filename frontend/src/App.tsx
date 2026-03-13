@@ -44,12 +44,20 @@ function App() {
     const transitionToPage = (callback: () => void, message: string = 'Загрузка...') => {
         setIsLoading(true);
         setLoadingMessage(message);
+        // Minimum loading time for smooth animation (at least 800ms)
+        const minLoadingTime = 800;
+        const startTime = Date.now();
+        
         setTimeout(() => {
             callback();
+            // Ensure minimum loading time even if callback is fast
+            const elapsedTime = Date.now() - startTime;
+            const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+            
             setTimeout(() => {
                 setIsLoading(false);
-            }, 500);
-        }, 1500);
+            }, remainingTime);
+        }, 500);
     };
 
     // Listen for show-profile event from GameLayout
