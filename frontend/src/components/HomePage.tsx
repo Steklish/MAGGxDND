@@ -249,15 +249,30 @@ export const HomePage: React.FC = () => {
                                     <span className="action-icon">⚔️</span>
                                     <span>Create Session</span>
                                 </button>
-                                <button className="action-btn">
+                                <button 
+                                    className="action-btn" 
+                                    onClick={() => {
+                                        alert('Character creation coming soon!');
+                                    }}
+                                >
                                     <span className="action-icon">📝</span>
                                     <span>New Character</span>
                                 </button>
-                                <button className="action-btn">
+                                <button 
+                                    className="action-btn"
+                                    onClick={() => {
+                                        alert('Quick Play coming soon!');
+                                    }}
+                                >
                                     <span className="action-icon">🎲</span>
                                     <span>Quick Play</span>
                                 </button>
-                                <button className="action-btn">
+                                <button 
+                                    className="action-btn"
+                                    onClick={() => {
+                                        alert('Rulebook coming soon!');
+                                    }}
+                                >
                                     <span className="action-icon">📚</span>
                                     <span>Rulebook</span>
                                 </button>
@@ -270,7 +285,13 @@ export const HomePage: React.FC = () => {
                     <div className="characters-section">
                         <div className="section-header">
                             <h2>Your Characters</h2>
-                            <button className="btn-primary">
+                            <button 
+                                className="btn-primary"
+                                onClick={() => {
+                                    // Navigate to character creation or open modal
+                                    alert('Character creation coming soon!');
+                                }}
+                            >
                                 + Create Character
                             </button>
                         </div>
@@ -297,7 +318,12 @@ export const HomePage: React.FC = () => {
                                 <span className="empty-icon">⚔️</span>
                                 <h3>No characters yet</h3>
                                 <p>Create your first character and start your adventure!</p>
-                                <button className="btn-primary btn-large">
+                                <button 
+                                    className="btn-primary btn-large"
+                                    onClick={() => {
+                                        alert('Character creation coming soon!');
+                                    }}
+                                >
                                     Create Character
                                 </button>
                             </div>

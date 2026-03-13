@@ -831,7 +831,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onGoHo
                                                 </button>
                                                 <button
                                                     className="btn-join-game"
-                                                    onClick={() => onJoinSession && onJoinSession(game.session_id)}
+                                                    onClick={() => handleJoinGame(game.session_id)}
                                                 >
                                                     🚪 Join Session
                                                 </button>
