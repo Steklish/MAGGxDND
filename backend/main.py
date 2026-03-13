@@ -4,16 +4,27 @@ from fastapi.responses import FileResponse, JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
-from backend.src.api.routers import dev, login, user, access_group, oauth
+from backend.src.api.routers import dev, login, user, access_group, oauth, compendium
 from backend.src.api.routers.session_router import router as session_router
 from backend.src.api.routers.websocket_game import router as websocket_router
 from backend.src.api.routers import character, profile
+from backend.src.api.middleware import APILoggingMiddleware, SlowRequestMiddleware
 from backend.src.config import settings
 from backend.src.database import init_db, engine
-from logging import getLogger
+from backend.src.logging import setup_logging, get_logger
 import os
+import sys
+import logging
 
-logger = getLogger(__name__)
+# Setup comprehensive logging
+setup_logging(
+    log_dir='./logs',
+    console_level=logging.INFO,
+    file_level=logging.DEBUG,
+    enable_json_logs=True
+)
+
+logger = get_logger('main')
 
 app = FastAPI(
     title="MAGGxDND - AI-Powered D&D Game Engine",
@@ -42,11 +53,16 @@ sub_app.include_router(session_router)
 sub_app.include_router(character.router)
 sub_app.include_router(profile.router)
 sub_app.include_router(oauth.router)
+sub_app.include_router(compendium.router)
 
 # Apply rate limiting to auth endpoints
 login.router.dependencies.insert(0, limiter.limit(settings.RATE_LIMIT_AUTH))
 
 app.mount("/api/v1", sub_app)
+
+# Add logging middleware
+app.add_middleware(APILoggingMiddleware, log_request_body=True, log_response_body=False)
+app.add_middleware(SlowRequestMiddleware, threshold_seconds=2.0)
 
 # WebSocket router (не поддерживает префиксы, монтируем отдельно)
 app.include_router(websocket_router)
@@ -76,6 +92,10 @@ async def global_exception_handler(request: Request, exc: Exception):
 @app.on_event("startup")
 async def on_startup():
     """Initialize application on startup."""
+    logger.info("="*80)
+    logger.info("MAGGxDND Server Starting")
+    logger.info("="*80)
+    
     # Validate settings in production
     if settings.is_production():
         try:
@@ -91,6 +111,7 @@ async def on_startup():
     logger.info(f"✓ CORS origins configured: {settings.CORS_ORIGINS}")
     logger.info(f"✓ Rate limiting: {settings.RATE_LIMIT_ENABLED} ({settings.RATE_LIMIT_DEFAULT})")
     logger.info(f"✓ Server running on {settings.SERVER_HOST}:{settings.SERVER_PORT}")
+    logger.info("="*80)
 
 
 # ===================================================================

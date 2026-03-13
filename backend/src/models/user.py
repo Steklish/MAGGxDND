@@ -30,3 +30,9 @@ class User(Base):
     
     # Relationship to Characters (One-to-Many)
     characters: Mapped[List["CharacterModel"]] = relationship("CharacterModel", back_populates="user", cascade="all, delete-orphan")
+    
+    # Relationships to Compendium (added for D&D Beyond features)
+    compendium_entries: Mapped[List["CompendiumEntry"]] = relationship("CompendiumEntry", back_populates="creator")
+    compendium_ratings: Mapped[List["CompendiumRating"]] = relationship("CompendiumRating", back_populates="user")
+    compendium_comments: Mapped[List["CompendiumComment"]] = relationship("CompendiumComment", back_populates="user")
+    homebrew_content: Mapped[List["UserHomebrew"]] = relationship("UserHomebrew", back_populates="user")
