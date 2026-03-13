@@ -346,44 +346,53 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onShowProfile }) => {
                 </div>
                 <div className="steps-container">
                     <div className="step-card" id="step-1">
-                        <div className="step-number">01</div>
+                        <div className="step-indicator">
+                            <svg viewBox="0 0 100 100" className="step-circle">
+                                <circle className="step-circle-bg" cx="50" cy="50" r="45" />
+                                <circle className="step-circle-fill" cx="50" cy="50" r="45" />
+                            </svg>
+                            <span className="step-icon">📝</span>
+                        </div>
                         <div className="step-content">
                             <h3>Create Your Account</h3>
                             <p>
-                                Sign up in seconds and start building your adventurer. 
+                                Sign up in seconds and start building your adventurer.
                                 Choose your class, background, and destiny.
                             </p>
-                            <div className="step-visual">
-                                <span className="visual-icon">📝</span>
-                            </div>
                         </div>
                     </div>
                     <div className="step-connector"></div>
                     <div className="step-card" id="step-2">
-                        <div className="step-number">02</div>
+                        <div className="step-indicator">
+                            <svg viewBox="0 0 100 100" className="step-circle">
+                                <circle className="step-circle-bg" cx="50" cy="50" r="45" />
+                                <circle className="step-circle-fill" cx="50" cy="50" r="45" />
+                            </svg>
+                            <span className="step-icon">🎮</span>
+                        </div>
                         <div className="step-content">
                             <h3>Join or Create a Session</h3>
                             <p>
-                                Jump into an ongoing campaign or start your own. 
+                                Jump into an ongoing campaign or start your own.
                                 Play solo or gather your party.
                             </p>
-                            <div className="step-visual">
-                                <span className="visual-icon">🎮</span>
-                            </div>
                         </div>
                     </div>
                     <div className="step-connector"></div>
                     <div className="step-card" id="step-3">
-                        <div className="step-number">03</div>
+                        <div className="step-indicator">
+                            <svg viewBox="0 0 100 100" className="step-circle">
+                                <circle className="step-circle-bg" cx="50" cy="50" r="45" />
+                                <circle className="step-circle-fill" cx="50" cy="50" r="45" />
+                            </svg>
+                            <span className="step-icon">🎲</span>
+                        </div>
                         <div className="step-content">
                             <h3>Play & Immerse</h3>
                             <p>
-                                Make choices, roll dice, fight monsters, and weave 
+                                Make choices, roll dice, fight monsters, and weave
                                 your legend. The AI responds to everything.
                             </p>
-                            <div className="step-visual">
-                                <span className="visual-icon">🎲</span>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -487,6 +496,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onShowProfile }) => {
                     onComplete={handleCharacterComplete}
                 />
             )}
+
+            {/* SVG Gradient Definition (for step circles) */}
+            <svg style={{ display: 'none' }}>
+                <defs>
+                    <linearGradient id="step-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#FF8A5C" />
+                        <stop offset="50%" stopColor="#FFB347" />
+                        <stop offset="100%" stopColor="#FFD93D" />
+                    </linearGradient>
+                </defs>
+            </svg>
         </div>
     );
 };

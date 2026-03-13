@@ -681,6 +681,9 @@ html::-webkit-scrollbar-thumb:hover {
 .section-header {
     text-align: center;
     margin-bottom: 60px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .section-tag {
@@ -700,13 +703,15 @@ html::-webkit-scrollbar-thumb:hover {
     font-size: 42px;
     font-weight: 700;
     margin-bottom: 16px;
+    line-height: 1.3;
 }
 
 .section-subtitle {
     font-size: 18px;
     color: var(--text-secondary);
-    max-width: 600px;
+    max-width: 700px;
     margin: 0 auto;
+    line-height: 1.6;
 }
 
 .features-grid {
@@ -792,6 +797,7 @@ html::-webkit-scrollbar-thumb:hover {
 
 .step-card {
     display: flex;
+    align-items: flex-start;
     gap: 40px;
     padding: 40px;
     background: var(--bg-secondary);
@@ -812,14 +818,63 @@ html::-webkit-scrollbar-thumb:hover {
     transform: translateX(10px);
 }
 
-.step-number {
-    font-size: 48px;
-    font-weight: 700;
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1;
+.step-indicator {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.step-circle {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.step-circle-bg {
+    fill: none;
+    stroke: var(--bg-tertiary);
+    stroke-width: 8;
+}
+
+.step-circle-fill {
+    fill: none;
+    stroke: url(#step-gradient);
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 0.6s ease;
+}
+
+.step-card.visible .step-circle-fill {
+    stroke-dashoffset: 0;
+}
+
+.step-card:hover .step-circle-fill {
+    stroke-dashoffset: 0;
+    filter: drop-shadow(0 0 8px rgba(255, 107, 53, 0.5));
+}
+
+.step-icon {
+    position: absolute;
+    font-size: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: iconFloat 3s ease-in-out infinite;
+}
+
+@keyframes iconFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
 }
 
 .step-content {

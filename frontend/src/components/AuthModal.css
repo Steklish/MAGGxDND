@@ -181,14 +181,19 @@
 .input-icon {
     position: absolute;
     left: 16px;
-    font-size: 16px;
+    font-size: 18px;
     color: var(--text-muted);
     pointer-events: none;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
 }
 
 .input-wrapper input {
     width: 100%;
-    padding: 14px 16px 14px 48px;
+    padding: 14px 16px 14px 50px;
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
