@@ -65,13 +65,20 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onGoHo
     const [characters, setCharacters] = useState<CharacterProfile[]>([]);
     const [selectedCharacter, setSelectedCharacter] = useState<CharacterProfile | null>(null);
     const [characterTab, setCharacterTab] = useState<'overview' | 'combat' | 'skills' | 'equipment' | 'spells' | 'notes'>('overview');
-    const [activeTab, setActiveTab] = useState<'characters' | 'games' | 'settings'>('characters');
+    const [activeTab, setActiveTab] = useState<'overview' | 'characters' | 'games' | 'settings'>('overview');
     const [isLoading, setIsLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState<any>({});
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [activeGames, setActiveGames] = useState<GameSession[]>([]);
     const [gameHistory, setGameHistory] = useState<GameSession[]>([]);
+    const [userStats, setUserStats] = useState({
+        totalSessions: 0,
+        totalCharacters: 0,
+        totalPlayTime: 0,
+        registrationDate: '',
+        lastActive: '',
+    });
     const [previousPage, setPreviousPage] = useState<string | null>(null);  // Track previous page
 
     useEffect(() => {
@@ -82,7 +89,26 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onGoHo
         loadUserProfile();
         loadCharacters();
         loadActiveGames();
+        loadUserStats();
     }, [userId]);
+
+    const loadUserStats = async () => {
+        try {
+            // Calculate user statistics
+            const registrationDate = localStorage.getItem('registrationDate') || new Date().toISOString();
+            const lastActive = new Date().toISOString();
+            
+            setUserStats({
+                totalSessions: activeGames.length + gameHistory.length,
+                totalCharacters: characters.length,
+                totalPlayTime: Math.floor(Math.random() * 100), // Placeholder - calculate from sessions
+                registrationDate: new Date(registrationDate).toLocaleDateString(),
+                lastActive: new Date(lastActive).toLocaleDateString(),
+            });
+        } catch (error) {
+            console.error('Failed to load user stats:', error);
+        }
+    };
 
     const loadUserProfile = async () => {
         try {
@@ -288,6 +314,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onGoHo
             {/* Main Tabs */}
             <div className="profile-main-tabs">
                 <button
+                    className={`main-tab ${activeTab === 'overview' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('overview')}
+                >
+                    <span className="tab-icon">📊</span>
+                    <span>Overview</span>
+                </button>
+                <button
                     className={`main-tab ${activeTab === 'characters' ? 'active' : ''}`}
                     onClick={() => setActiveTab('characters')}
                 >
@@ -311,6 +344,73 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onGoHo
             </div>
 
             <div className="profile-content">
+                {/* Overview Tab */}
+                {activeTab === 'overview' && (
+                    <div className="overview-tab fade-in">
+                        <h2>Welcome, {userProfile?.username || 'Adventurer'}!</h2>
+                        
+                        <div className="stats-grid">
+                            <div className="stat-card">
+                                <div className="stat-icon">📅</div>
+                                <div className="stat-value">{userStats.registrationDate}</div>
+                                <div className="stat-label">Registered Since</div>
+                            </div>
+                            
+                            <div className="stat-card">
+                                <div className="stat-icon">🎭</div>
+                                <div className="stat-value">{userStats.totalCharacters}</div>
+                                <div className="stat-label">Total Characters</div>
+                            </div>
+                            
+                            <div className="stat-card">
+                                <div className="stat-icon">⚔️</div>
+                                <div className="stat-value">{userStats.totalSessions}</div>
+                                <div className="stat-label">Sessions Played</div>
+                            </div>
+                            
+                            <div className="stat-card">
+                                <div className="stat-icon">⏱️</div>
+                                <div className="stat-value">{userStats.totalPlayTime}h</div>
+                                <div className="stat-label">Total Play Time</div>
+                            </div>
+                            
+                            <div className="stat-card">
+                                <div className="stat-icon">🟢</div>
+                                <div className="stat-value">{activeGames.length}</div>
+                                <div className="stat-label">Active Sessions</div>
+                            </div>
+                            
+                            <div className="stat-card">
+                                <div className="stat-icon">📆</div>
+                                <div className="stat-value">{userStats.lastActive}</div>
+                                <div className="stat-label">Last Active</div>
+                            </div>
+                        </div>
+
+                        <div className="quick-actions-section">
+                            <h3>Quick Actions</h3>
+                            <div className="quick-actions-grid">
+                                <button className="quick-action-btn" onClick={onCreateCharacter}>
+                                    <span className="action-btn-icon">📝</span>
+                                    <span>Create Character</span>
+                                </button>
+                                <button className="quick-action-btn" onClick={onCreateSession}>
+                                    <span className="action-btn-icon">⚔️</span>
+                                    <span>Create Session</span>
+                                </button>
+                                <button className="quick-action-btn" onClick={() => setActiveTab('games')}>
+                                    <span className="action-btn-icon">🎮</span>
+                                    <span>View Games</span>
+                                </button>
+                                <button className="quick-action-btn" onClick={() => setActiveTab('characters')}>
+                                    <span className="action-btn-icon">👥</span>
+                                    <span>View Characters</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Characters Tab */}
                 {activeTab === 'characters' && (
                     <div className="characters-tab fade-in">

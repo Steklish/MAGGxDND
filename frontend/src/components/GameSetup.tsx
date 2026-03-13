@@ -1,0 +1,236 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './GameSetup.css';
+
+interface GameSetupProps {
+    sessionId: string;
+    onComplete: () => void;
+    onBack: () => void;
+}
+
+export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onBack }) => {
+    const [step, setStep] = useState<1 | 2 | 3>(1);
+    const [wishes, setWishes] = useState('');
+    const [characterChoice, setCharacterChoice] = useState<'existing' | 'ai-create' | 'ai-random'>('existing');
+    const [characterDescription, setCharacterDescription] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
+
+    const handleContinue = () => {
+        if (step < 3) {
+            setStep(step as 2 | 3);
+        }
+    };
+
+    const handleBack = () => {
+        if (step > 1) {
+            setStep(step as 1 | 2);
+        } else {
+            onBack();
+        }
+    };
+
+    const handleStartGame = async () => {
+        setIsGenerating(true);
+        
+        try {
+            // Prepare prompt for AI
+            const gameSetup = {
+                sessionId,
+                wishes: wishes || 'Create an exciting adventure',
+                characterChoice,
+                characterDescription: characterChoice === 'ai-create' ? characterDescription : null,
+            };
+
+            // Call backend API to initialize game
+            const response = await fetch(`/api/v1/sessions/${sessionId}/start`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(gameSetup),
+            });
+
+            if (response.ok) {
+                onComplete();
+            }
+        } catch (error) {
+            console.error('Failed to start game:', error);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const handleUseAI = () => {
+        setWishes('Create an exciting adventure with interesting NPCs and challenging encounters');
+        setCharacterChoice('ai-random');
+    };
+
+    return (
+        <div className="game-setup">
+            <div className="setup-header">
+                <button className="btn-back" onClick={handleBack}>← Back</button>
+                <h2>Game Setup</h2>
+                <div className="setup-progress">
+                    <div className={`step ${step >= 1 ? 'active' : ''}`}>1</div>
+                    <div className={`step ${step >= 2 ? 'active' : ''}`}>2</div>
+                    <div className={`step ${step >= 3 ? 'active' : ''}`}>3</div>
+                </div>
+            </div>
+
+            <div className="setup-content">
+                {step === 1 && (
+                    <div className="setup-step fade-in">
+                        <h3>🎭 What kind of adventure do you want?</h3>
+                        <p className="step-description">
+                            Tell us what you're looking for in this gaming session. 
+                            The AI will use your preferences to create an unforgettable experience.
+                        </p>
+                        
+                        <textarea
+                            className="wishes-input"
+                            placeholder="Describe your desired adventure... (e.g., 'A dark mystery in a haunted castle', 'Epic dragon battle', 'Political intrigue in the capital')"
+                            value={wishes}
+                            onChange={(e) => setWishes(e.target.value)}
+                            maxLength={1000}
+                        />
+                        
+                        <div className="char-count">{wishes.length}/1000</div>
+
+                        <div className="quick-options">
+                            <button 
+                                className="quick-btn"
+                                onClick={() => setWishes('A mysterious dungeon with ancient treasures and dangerous monsters')}
+                            >
+                                🏰 Dungeon Crawl
+                            </button>
+                            <button 
+                                className="quick-btn"
+                                onClick={() => setWishes('Political intrigue and social encounters in a bustling city')}
+                            >
+                                👑 Political Intrigue
+                            </button>
+                            <button 
+                                className="quick-btn"
+                                onClick={() => setWishes('Wilderness exploration with survival challenges')}
+                            >
+                                🌲 Wilderness Adventure
+                            </button>
+                            <button 
+                                className="quick-btn"
+                                onClick={() => setWishes('Horror and mystery in a haunted location')}
+                            >
+                                👻 Horror Mystery
+                            </button>
+                        </div>
+
+                        <button className="btn-ai-fill" onClick={handleUseAI}>
+                            ✨ Let AI Decide
+                        </button>
+                    </div>
+                )}
+
+                {step === 2 && (
+                    <div className="setup-step fade-in">
+                        <h3>🧙 Character Selection</h3>
+                        <p className="step-description">
+                            How would you like to play?
+                        </p>
+
+                        <div className="character-options">
+                            <div 
+                                className={`option-card ${characterChoice === 'existing' ? 'selected' : ''}`}
+                                onClick={() => setCharacterChoice('existing')}
+                            >
+                                <div className="option-icon">📋</div>
+                                <h4>Use Existing Character</h4>
+                                <p>Select from your created characters</p>
+                            </div>
+
+                            <div 
+                                className={`option-card ${characterChoice === 'ai-create' ? 'selected' : ''}`}
+                                onClick={() => setCharacterChoice('ai-create')}
+                            >
+                                <div className="option-icon">🎨</div>
+                                <h4>AI Create Character</h4>
+                                <p>Describe your ideal character and AI will create it</p>
+                                {characterChoice === 'ai-create' && (
+                                    <textarea
+                                        className="char-desc-input"
+                                        placeholder="Describe your character... (e.g., 'A wise old wizard who seeks ancient knowledge')"
+                                        value={characterDescription}
+                                        onChange={(e) => setCharacterDescription(e.target.value)}
+                                        onClick={(e) => e.stopPropagation()}
+                                    />
+                                )}
+                            </div>
+
+                            <div 
+                                className={`option-card ${characterChoice === 'ai-random' ? 'selected' : ''}`}
+                                onClick={() => setCharacterChoice('ai-random')}
+                            >
+                                <div className="option-icon">🎲</div>
+                                <h4>Random Character</h4>
+                                <p>Let AI create a completely random character for you</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {step === 3 && (
+                    <div className="setup-step fade-in">
+                        <h3>✅ Ready to Begin</h3>
+                        <p className="step-description">
+                            Review your choices and start the adventure!
+                        </p>
+
+                        <div className="setup-summary">
+                            <div className="summary-card">
+                                <h4>🎭 Adventure Preferences</h4>
+                                <p>{wishes || 'AI will create an exciting adventure'}</p>
+                            </div>
+
+                            <div className="summary-card">
+                                <h4>🧙 Character</h4>
+                                <p>
+                                    {characterChoice === 'existing' && 'Use your existing character'}
+                                    {characterChoice === 'ai-create' && 'AI will create character based on your description'}
+                                    {characterChoice === 'ai-random' && 'AI will create a random character'}
+                                </p>
+                            </div>
+                        </div>
+
+                        <button 
+                            className="btn-start-game"
+                            onClick={handleStartGame}
+                            disabled={isGenerating}
+                        >
+                            {isGenerating ? (
+                                <>
+                                    <span className="loading-spinner"></span>
+                                    Generating Adventure...
+                                </>
+                            ) : (
+                                <>
+                                    🚀 Start Adventure
+                                </>
+                            )}
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {step < 3 && (
+                <div className="setup-footer">
+                    <button className="btn-secondary" onClick={handleBack}>
+                        Back
+                    </button>
+                    <button 
+                        className="btn-primary" 
+                        onClick={handleContinue}
+                        disabled={step === 1 && !wishes}
+                    >
+                        Continue →
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+};
