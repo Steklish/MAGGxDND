@@ -190,7 +190,7 @@
 /* Hero Section */
 .home-hero {
     padding: 140px 32px 60px;
-    background: linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(42, 157, 143, 0.1) 100%);
+    background: transparent;
     border-bottom: 1px solid var(--border-color);
 }
 

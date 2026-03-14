@@ -449,7 +449,8 @@ export const HomePage: React.FC<HomePageProps> = ({
                     onBack={() => setShowSessionCreation(false)}
                     onComplete={(sessionId: string) => {
                         setShowSessionCreation(false);
-                        // Handle session created
+                        // Reload sessions to show newly created one
+                        loadSessions();
                         console.log('Session created:', sessionId);
                     }}
                 />
