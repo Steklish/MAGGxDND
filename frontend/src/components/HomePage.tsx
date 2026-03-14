@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { CharacterPanel } from './CharacterPanel';
 import { SessionCreation } from './SessionCreation';
+import { QuickPlay } from './QuickPlay';
+import { Rulebook } from './Rulebook';
 import './HomePage.css';
 
 export const HomePage: React.FC = () => {
@@ -19,6 +21,8 @@ export const HomePage: React.FC = () => {
     } = useGameStore();
     
     const [showSessionCreation, setShowSessionCreation] = useState(false);
+    const [showQuickPlay, setShowQuickPlay] = useState(false);
+    const [showRulebook, setShowRulebook] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [activeTab, setActiveTab] = useState<'overview' | 'characters' | 'sessions'>('overview');
 
@@ -57,6 +61,35 @@ export const HomePage: React.FC = () => {
     const handleProfileClick = () => {
         // Navigate to profile page instead of showing modal
         navigate('/profile');
+    };
+
+    const handleQuickPlayClick = () => {
+        setShowQuickPlay(true);
+    };
+
+    const handleRulebookClick = () => {
+        setShowRulebook(true);
+    };
+
+    const handleQuickJoin = async (sessionId: string) => {
+        try {
+            const username = localStorage.getItem('username') || 'Player';
+            const response = await fetch(`/api/v1/sessions/${sessionId}/players`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ player_name: username }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem('currentSessionId', sessionId);
+                localStorage.setItem('currentPlayerId', data.player_id);
+                setShowQuickPlay(false);
+                // Could navigate to game or session detail
+            }
+        } catch (error) {
+            console.error('Failed to join session:', error);
+        }
     };
 
     return (
@@ -255,7 +288,8 @@ export const HomePage: React.FC = () => {
                                 <button 
                                     className="action-btn" 
                                     onClick={() => {
-                                        alert('Character creation coming soon!');
+                                        navigate('/profile');
+                                        // Profile page will handle character creation
                                     }}
                                 >
                                     <span className="action-icon">📝</span>
@@ -263,18 +297,14 @@ export const HomePage: React.FC = () => {
                                 </button>
                                 <button 
                                     className="action-btn"
-                                    onClick={() => {
-                                        alert('Quick Play coming soon!');
-                                    }}
+                                    onClick={handleQuickPlayClick}
                                 >
                                     <span className="action-icon">🎲</span>
                                     <span>Quick Play</span>
                                 </button>
                                 <button 
                                     className="action-btn"
-                                    onClick={() => {
-                                        alert('Rulebook coming soon!');
-                                    }}
+                                    onClick={handleRulebookClick}
                                 >
                                     <span className="action-icon">📚</span>
                                     <span>Rulebook</span>
@@ -396,6 +426,22 @@ export const HomePage: React.FC = () => {
                         // Handle session created
                         console.log('Session created:', sessionId);
                     }}
+                />
+            )}
+
+            {/* Quick Play Modal */}
+            {showQuickPlay && (
+                <QuickPlay
+                    onJoinGame={handleQuickJoin}
+                    onCreateGame={() => setShowSessionCreation(true)}
+                    onClose={() => setShowQuickPlay(false)}
+                />
+            )}
+
+            {/* Rulebook Modal */}
+            {showRulebook && (
+                <Rulebook
+                    onClose={() => setShowRulebook(false)}
                 />
             )}
         </div>

@@ -1,0 +1,243 @@
+/* Rulebook Modal */
+
+.rulebook-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    animation: fadeIn 0.3s ease;
+}
+
+.rulebook-modal {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    width: 100%;
+    max-width: 1000px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.4s ease;
+}
+
+.rulebook-header {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.rulebook-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.rb-close {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    border-radius: var(--radius-md);
+}
+
+.rb-close:hover {
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+}
+
+.rulebook-search {
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.rb-search-input {
+    width: 100%;
+    padding: 14px 20px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    color: var(--text-primary);
+    font-size: 15px;
+    transition: all 0.3s ease;
+}
+
+.rb-search-input:focus {
+    outline: none;
+    border-color: var(--accent-orange);
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.rulebook-content {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.rb-sidebar {
+    width: 220px;
+    border-right: 1px solid var(--border-color);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+}
+
+.rb-category-btn {
+    padding: 14px 18px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.rb-category-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.rb-category-btn.active {
+    background: rgba(255, 107, 53, 0.1);
+    border-color: var(--accent-orange);
+    color: var(--accent-orange);
+}
+
+.rb-main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px;
+}
+
+.rb-section-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: var(--text-primary);
+}
+
+.rb-rules-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.rb-rule-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    transition: all 0.3s ease;
+}
+
+.rb-rule-card:hover {
+    border-color: var(--accent-orange);
+    transform: translateX(4px);
+}
+
+.rb-rule-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: var(--accent-orange);
+}
+
+.rb-rule-content {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin: 0;
+}
+
+.rb-empty {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.rb-empty-icon {
+    font-size: 64px;
+    display: block;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.rb-empty p {
+    font-size: 16px;
+    color: var(--text-muted);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .rulebook-modal {
+        max-width: calc(100% - 40px);
+        max-height: calc(100vh - 40px);
+    }
+
+    .rulebook-header,
+    .rulebook-search,
+    .rb-main-content {
+        padding: 20px;
+    }
+
+    .rulebook-content {
+        flex-direction: column;
+    }
+
+    .rb-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 12px;
+    }
+
+    .rb-category-btn {
+        white-space: nowrap;
+    }
+}
