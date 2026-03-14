@@ -3,7 +3,7 @@ import { FooterPages } from './FooterPages';
 import './Footer.css';
 
 export const Footer: React.FC = () => {
-    const [isVisible, setIsVisible] = useState(false);
+    const [isVisible, setIsVisible] = useState(true); // Changed to true so footer is visible by default
     const [currentPage, setCurrentPage] = useState<'what-is-dnd' | 'about' | 'how-to-play' | 'faq' | 'contact' | null>(null);
 
     useEffect(() => {
