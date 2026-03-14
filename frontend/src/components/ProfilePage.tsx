@@ -58,10 +58,9 @@ interface ProfilePageProps {
     onCreateCharacter?: () => void;
     onCreateSession?: () => void;
     onViewSession?: (sessionId: string) => void;
-    onJoinSession?: (sessionId: string) => void;
 }
 
-export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onGoHome, onCreateCharacter, onCreateSession, onViewSession, onJoinSession }) => {
+export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onGoHome, onCreateCharacter, onCreateSession, onViewSession }) => {
     const [characters, setCharacters] = useState<CharacterProfile[]>([]);
     const [selectedCharacter, setSelectedCharacter] = useState<CharacterProfile | null>(null);
     const [characterTab, setCharacterTab] = useState<'overview' | 'combat' | 'skills' | 'equipment' | 'spells' | 'notes'>('overview');
@@ -227,19 +226,17 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onGoHo
             const response = await axios.post(`/api/v1/sessions/${sessionId}/players`, {
                 player_name: username,
             });
-            
+
             const playerId = response.data.player_id;
             console.log('Joined session with player ID:', playerId);
-            
+
             // Store connection info
             localStorage.setItem('currentSessionId', sessionId);
             localStorage.setItem('currentPlayerId', playerId);
-            
-            alert(`Successfully joined session!\nPlayer ID: ${playerId}\n\nRedirecting to game...`);
-            
-            // Redirect to game - call onJoinSession callback if provided
-            if (onJoinSession) {
-                onJoinSession(sessionId);
+
+            // Redirect to session detail page instead of alert
+            if (onViewSession) {
+                onViewSession(sessionId);
             }
         } catch (error) {
             console.error('Failed to join game:', error);

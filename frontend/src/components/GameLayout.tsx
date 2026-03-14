@@ -507,14 +507,13 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     // Show profile page
     if (showProfile && userId) {
         return (
-            <ProfilePage 
-                userId={parseInt(userId)} 
-                onBack={() => setShowProfile(false)} 
+            <ProfilePage
+                userId={parseInt(userId)}
+                onBack={() => setShowProfile(false)}
                 onGoHome={() => {
                     setShowProfile(false);
                     // Navigate to home page
                 }}
-                onJoinSession={onJoinSession} 
             />
         );
     }

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { FooterPages } from './FooterPages';
 import './Footer.css';
 
 export const Footer: React.FC = () => {
     const [isVisible, setIsVisible] = useState(false);
+    const [currentPage, setCurrentPage] = useState<'what-is-dnd' | 'about' | 'how-to-play' | 'faq' | 'contact' | null>(null);
 
     useEffect(() => {
         // Click outside footer to close
@@ -11,7 +13,7 @@ export const Footer: React.FC = () => {
             // Don't close if clicking inside footer or on drag handle
             if (target.closest('.footer') || target.closest('.footer::before')) return;
 
-            if (isVisible) {
+            if (isVisible && !currentPage) {
                 setIsVisible(false);
             }
         };
@@ -21,10 +23,14 @@ export const Footer: React.FC = () => {
         return () => {
             document.removeEventListener('click', handleClick);
         };
-    }, [isVisible]);
+    }, [isVisible, currentPage]);
 
     const toggleFooter = () => {
         setIsVisible(!isVisible);
+    };
+
+    const handlePageClick = (page: 'what-is-dnd' | 'about' | 'how-to-play' | 'faq' | 'contact') => {
+        setCurrentPage(page);
     };
 
     return (
@@ -102,19 +108,29 @@ export const Footer: React.FC = () => {
                     <h4 className="footer-title">🐉 About</h4>
                     <ul className="footer-links">
                         <li>
-                            <a href="#what-is-dnd">What is D&D?</a>
+                            <button className="footer-link-btn" onClick={() => handlePageClick('what-is-dnd')}>
+                                What is D&D?
+                            </button>
                         </li>
                         <li>
-                            <a href="#about-project">About Project</a>
+                            <button className="footer-link-btn" onClick={() => handlePageClick('about')}>
+                                About Project
+                            </button>
                         </li>
                         <li>
-                            <a href="#how-to-play">How to Play</a>
+                            <button className="footer-link-btn" onClick={() => handlePageClick('how-to-play')}>
+                                How to Play
+                            </button>
                         </li>
                         <li>
-                            <a href="#faq">FAQ</a>
+                            <button className="footer-link-btn" onClick={() => handlePageClick('faq')}>
+                                FAQ
+                            </button>
                         </li>
                         <li>
-                            <a href="#contact">Contact</a>
+                            <button className="footer-link-btn" onClick={() => handlePageClick('contact')}>
+                                Contact
+                            </button>
                         </li>
                     </ul>
                 </div>
@@ -127,6 +143,14 @@ export const Footer: React.FC = () => {
                 </p>
             </div>
             </footer>
+
+            {/* Footer Pages Modal */}
+            {currentPage && (
+                <FooterPages
+                    page={currentPage}
+                    onClose={() => setCurrentPage(null)}
+                />
+            )}
         </>
     );
 };
