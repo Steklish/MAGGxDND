@@ -181,7 +181,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             <section className="home-hero">
                 <div className="hero-content">
                     <h1 className="hero-title">
-                        Welcome back, <span className="highlight">{username || 'Adventurer'}</span>!
+                        <span className="welcome-text">Welcome back,</span> <span className="username-highlight">{username || 'Adventurer'}</span>!
                     </h1>
                     <p className="hero-subtitle">
                         Your epic journey continues. Pick up where you left off or start a new adventure.

@@ -13,6 +13,11 @@
     justify-content: center;
     z-index: 2000;
     animation: fadeIn 0.3s ease;
+    /* Login background image */
+    background-image: url('/arts/backgrounds/bg-login.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     /* Prevent text selection on overlay */
     user-select: none;
 }
