@@ -254,11 +254,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onShowProfile }) => {
             {/* Features Section */}
             <section id="features" className="features-section">
                 <div className="section-header">
-                    <span className="section-tag">Features</span>
-                    <h2 className="section-title">Everything You Need for Epic Adventures</h2>
-                    <p className="section-subtitle">
-                        Powered by cutting-edge AI, built for legendary storytelling
-                    </p>
+                    <div className="section-text-content">
+                        <span className="section-tag">Features</span>
+                        <h2 className="section-title">Everything You Need for Epic Adventures</h2>
+                        <p className="section-subtitle">
+                            Powered by cutting-edge AI, built for legendary storytelling
+                        </p>
+                    </div>
                 </div>
                 <div className="features-grid">
                     <div className="feature-card" id="feature-1">
@@ -345,8 +347,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onShowProfile }) => {
             {/* How It Works Section */}
             <section id="how-it-works" className="how-it-works-section">
                 <div className="section-header">
-                    <span className="section-tag">How It Works</span>
-                    <h2 className="section-title">Begin Your Journey in Three Steps</h2>
+                    <div className="section-text-content">
+                        <span className="section-tag">How It Works</span>
+                        <h2 className="section-title">Begin Your Journey in Three Steps</h2>
+                    </div>
                 </div>
                 <div className="steps-container">
                     <div className="step-card" id="step-1">
