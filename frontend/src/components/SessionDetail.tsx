@@ -24,6 +24,7 @@ interface SessionDetailProps {
     sessionId: string;
     onBack: () => void;
     onLeave: () => void;
+    onStartGame?: (sessionId: string) => void;
 }
 
 export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack, onLeave }) => {

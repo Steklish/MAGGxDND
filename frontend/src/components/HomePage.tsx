@@ -7,7 +7,21 @@ import { QuickPlay } from './QuickPlay';
 import { Rulebook } from './Rulebook';
 import './HomePage.css';
 
-export const HomePage: React.FC = () => {
+interface HomePageProps {
+    onShowProfile: () => void;
+    onCreateCharacter: () => void;
+    onCreateSession: () => void;
+    onViewSession: (sessionId: string) => void;
+    onViewCharacter: (characterId: number) => void;
+    onJoinSession: (sessionId: string) => void;
+    onStartGameSetup: (sessionId: string) => void;
+}
+
+export const HomePage: React.FC<HomePageProps> = ({
+    onViewSession,
+    onViewCharacter,
+    onJoinSession
+}) => {
     const navigate = useNavigate();
     const { 
         isAuthenticated, 
@@ -49,13 +63,21 @@ export const HomePage: React.FC = () => {
     };
 
     const handleCharacterSelect = (characterId: number) => {
-        console.log('Selected character:', characterId);
-        // Navigate to game or character detail
+        if (onViewCharacter) {
+            onViewCharacter(characterId);
+        }
     };
 
     const handleSessionJoin = (sessionId: string) => {
-        console.log('Joining session:', sessionId);
-        // Navigate to session
+        if (onJoinSession) {
+            onJoinSession(sessionId);
+        }
+    };
+
+    const handleSessionView = (sessionId: string) => {
+        if (onViewSession) {
+            onViewSession(sessionId);
+        }
     };
 
     const handleProfileClick = () => {
@@ -331,7 +353,11 @@ export const HomePage: React.FC = () => {
                         {characters.length > 0 ? (
                             <div className="characters-grid-full">
                                 {characters.map((char) => (
-                                    <div key={char.id} className="character-card-placeholder">
+                                    <div 
+                                        key={char.id} 
+                                        className="character-card-placeholder"
+                                        onClick={() => handleCharacterSelect(char.id)}
+                                    >
                                         <div className="char-card-inner">
                                             <div className="char-avatar-large">
                                                 {char.race === 'Human' ? '🧙' : char.race === 'Elf' ? '🧝' : '🧌'}
@@ -378,10 +404,10 @@ export const HomePage: React.FC = () => {
                         {activeSessions.length > 0 ? (
                             <div className="sessions-list">
                                 {activeSessions.map((session) => (
-                                    <div 
-                                        key={session.session_id} 
+                                    <div
+                                        key={session.session_id}
                                         className="session-card-full"
-                                        onClick={() => handleSessionJoin(session.session_id)}
+                                        onClick={() => handleSessionView(session.session_id)}
                                     >
                                         <div className="session-header">
                                             <h3>{session.session_name}</h3>
