@@ -40,15 +40,16 @@ html::-webkit-scrollbar-thumb:hover {
 
 /* Animated Background */
 .landing-background {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     z-index: 0;
     pointer-events: none;
-    background: url('/arts/backgrounds/bg-main.png') no-repeat center center fixed;
+    background: url('/arts/backgrounds/bg-main.png') no-repeat center center;
     background-size: cover;
+    background-attachment: scroll;
 }
 
 .landing-background::before {
