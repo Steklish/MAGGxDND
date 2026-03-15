@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Dict, Any
 import uuid
 import os
+from datetime import datetime
 
 from backend.src.config import settings
 from backend.src.utils import validate_safe_text, sanitize_string
@@ -36,7 +37,47 @@ from skls_generator.gen_backends.google_gen import GoogleGenAI
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
 # Store for active players (temporary, until DB integration)
+# Key: player_id, Value: {session_id, player_name, character_name, connected}
 active_players: Dict[str, Dict[str, any]] = {}
+
+
+# === Helper Functions ===
+
+def get_session_players(session_id: str) -> List[PlayerResponse]:
+    """Get all players for a specific session."""
+    players = []
+    for player_id, player_data in active_players.items():
+        if player_data.get("session_id") == session_id:
+            players.append(PlayerResponse(
+                player_id=player_id,
+                player_name=player_data.get("player_name", "Unknown"),
+                character_name=player_data.get("character_name"),
+                connected=player_data.get("connected", False)
+            ))
+    return players
+
+
+def add_player_to_session(
+    session_id: str,
+    player_id: str,
+    player_name: str,
+    character_name: Optional[str] = None
+) -> None:
+    """Add a player to a session."""
+    active_players[player_id] = {
+        "session_id": session_id,
+        "player_name": player_name,
+        "character_name": character_name,
+        "connected": True,
+        "joined_at": datetime.now().isoformat()
+    }
+
+
+def remove_player_from_session(session_id: str, player_id: str) -> None:
+    """Remove a player from a session."""
+    if player_id in active_players:
+        if active_players[player_id].get("session_id") == session_id:
+            active_players[player_id]["connected"] = False
 
 
 # === Schemas ===
@@ -278,28 +319,20 @@ async def list_sessions():
 
 @router.get("/{session_id}/info", response_model=SessionInfoResponse)
 async def get_session_info(session_id: str):
-    """Получить расширенную информацию о сессии."""
+    """Get extended session information."""
     session = session_manager.get_session(session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    
-    # Получаем игроков сессии
-    players = []
-    for player_id, player_data in active_players.items():
-        if player_data["session_id"] == session_id:
-            players.append(PlayerResponse(
-                player_id=player_id,
-                player_name=player_data["player_name"],
-                character_name=player_data["character_name"],
-                connected=player_data["connected"]
-            ))
+
+    # Get session players using helper function
+    players = get_session_players(session_id)
 
     return SessionInfoResponse(
         session_id=session_id,
         session_name=session.session_name,
         game_mode=session.game_mode,
         player_count=len(players),
-        max_players=settings.SESSION_MAX_PLAYERS,  # Use settings instead of hardcoded value
+        max_players=settings.SESSION_MAX_PLAYERS,
         status="active",
         description=None,
         players=players
@@ -505,22 +538,24 @@ active_players: Dict[str, Dict[str, any]] = {}
 @router.post("/{session_id}/players", response_model=PlayerResponse)
 async def join_session(session_id: str, request: PlayerJoinRequest):
     """
-    Добавить игрока в сессию.
-    Возвращает player_id для подключения через WebSocket.
+    Join a session as a player.
+    Returns player_id for WebSocket connection.
     """
-    # For now, just create a player entry without checking session
-    # Session existence check requires game engine integration
-    
+    # Validate session exists
+    session = session_manager.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
     # Generate player ID
     player_id = str(uuid.uuid4())
 
-    # Store player
-    active_players[player_id] = {
-        "session_id": session_id,
-        "player_name": request.player_name,
-        "character_name": request.character_name,
-        "connected": True
-    }
+    # Add player to session using helper function
+    add_player_to_session(
+        session_id=session_id,
+        player_id=player_id,
+        player_name=request.player_name,
+        character_name=request.character_name
+    )
 
     return PlayerResponse(
         player_id=player_id,
@@ -532,43 +567,25 @@ async def join_session(session_id: str, request: PlayerJoinRequest):
 
 @router.delete("/{session_id}/players/{player_id}", status_code=204)
 async def leave_session(session_id: str, player_id: str):
-    """Удалить игрока из сессии."""
-    if not session_manager.session_exists(session_id):
-        raise HTTPException(status_code=404, detail="Session not found")
+    """Remove a player from a session."""
+    # Remove player using helper function
+    remove_player_from_session(session_id, player_id)
 
-    # Отключаем WebSocket если подключен
+    # Unregister WebSocket if connected
     session_manager.unregister_player_websocket(session_id, player_id)
     session_manager.unsubscribe_player_from_events(session_id, player_id)
-
-    # Удаляем игрока из active_players
-    if player_id in active_players:
-        del active_players[player_id]
-
-    # Удаляем игрока из session.players если сессия активна
-    session = session_manager.get_session(session_id)
-    if session:
-        session.players = [p for p in session.players if p.character.name != player_id]
 
     return None
 
 
 @router.get("/{session_id}/players", response_model=List[PlayerResponse])
-async def get_session_players(session_id: str):
-    """Получить список всех игроков в сессии."""
+async def get_session_players_endpoint(session_id: str):
+    """Get all players in a session."""
     if not session_manager.session_exists(session_id):
         raise HTTPException(status_code=404, detail="Session not found")
 
-    # Возвращаем игроков для этой сессии
-    players = []
-    for player_id, player_data in active_players.items():
-        if player_data["session_id"] == session_id:
-            players.append(PlayerResponse(
-                player_id=player_id,
-                player_name=player_data["player_name"],
-                character_name=player_data["character_name"],
-                connected=player_data["connected"]
-            ))
-
+    # Return players for this session using helper function
+    players = get_session_players(session_id)
     return players
 
 

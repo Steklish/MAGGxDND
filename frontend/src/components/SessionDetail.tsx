@@ -41,17 +41,22 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
 
     useEffect(() => {
         loadSessionDetail();
-        // Refresh every 5 seconds
-        const interval = setInterval(loadSessionDetail, 5000);
+        loadPlayers();
         
+        // Refresh session data every 5 seconds
+        const sessionInterval = setInterval(loadSessionDetail, 5000);
+        // Refresh players every 2 seconds for real-time updates
+        const playersInterval = setInterval(loadPlayers, 2000);
+
         // Scroll handler for header
         const handleScroll = () => {
             setScrolled(window.scrollY > 50);
         };
         window.addEventListener('scroll', handleScroll);
-        
+
         return () => {
-            clearInterval(interval);
+            clearInterval(sessionInterval);
+            clearInterval(playersInterval);
             window.removeEventListener('scroll', handleScroll);
         };
     }, [sessionId]);
@@ -61,12 +66,11 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
             // Get session list and find our session
             const response = await axios.get('/api/v1/sessions');
             const foundSession = response.data.sessions.find((s: any) => s.session_id === sessionId);
-            
+
             if (foundSession) {
-                // Mock players data since endpoint not implemented
                 setSession({
                     ...foundSession,
-                    players: [] // TODO: Implement players endpoint
+                    players: [] // Will be populated by loadPlayers
                 });
             } else {
                 setError('Session not found');
@@ -77,6 +81,21 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
             setError('Failed to load session information');
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const loadPlayers = async () => {
+        try {
+            const response = await axios.get(`/api/v1/sessions/${sessionId}/players`);
+            if (response.data && Array.isArray(response.data)) {
+                setSession((prev: any) => ({
+                    ...prev,
+                    players: response.data,
+                    player_count: response.data.length
+                }));
+            }
+        } catch (err: any) {
+            console.warn('Failed to load players:', err.message);
         }
     };
 
