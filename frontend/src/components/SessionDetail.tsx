@@ -190,9 +190,6 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                                         🚀 Start Session
                                     </button>
                                 )}
-                                <button className="btn-back" onClick={onBack}>
-                                    ← Back to Home
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -259,6 +256,13 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                                 </div>
                             )}
                         </div>
+                    </div>
+
+                    {/* Back Button at Bottom */}
+                    <div className="session-back-container">
+                        <button className="btn-back-large" onClick={onBack}>
+                            ← Back to Home
+                        </button>
                     </div>
                 </div>
             </div>

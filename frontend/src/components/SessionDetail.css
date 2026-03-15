@@ -486,6 +486,36 @@
     font-size: 14px;
 }
 
+/* Back Button at Bottom */
+.session-back-container {
+    margin-top: 40px;
+    padding-top: 40px;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.btn-back-large {
+    padding: 16px 48px;
+    background: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-yellow) 100%);
+    border: none;
+    border-radius: 12px;
+    color: var(--bg-primary);
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+}
+
+.btn-back-large:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.5);
+}
+
+.btn-back-large:active {
+    transform: translateY(-1px);
+}
+
 /* Loading & Error States */
 .session-detail.loading,
 .session-detail.error {
