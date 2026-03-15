@@ -14,6 +14,54 @@ interface State {
     errorInfo: ErrorInfo | null;
 }
 
+// Error code mappings
+const ERROR_CODE_MAP: Record<string, string> = {
+    'Network Error': 'CONNECTION_LOST',
+    'Failed to fetch': 'SERVER_UNREACHABLE',
+    'timeout': 'REQUEST_TIMEOUT',
+    '404': 'NOT_FOUND',
+    '403': 'ACCESS_DENIED',
+    '401': 'UNAUTHORIZED',
+    '500': 'SERVER_ERROR',
+    '503': 'SERVICE_UNAVAILABLE',
+};
+
+const ERROR_DESCRIPTIONS: Record<string, string> = {
+    'CONNECTION_LOST': 'The connection to the server was lost. Check your internet connection.',
+    'SERVER_UNREACHABLE': 'Unable to reach the server. The server may be down or unreachable.',
+    'REQUEST_TIMEOUT': 'The request took too long to complete. Please try again.',
+    'NOT_FOUND': 'The requested resource could not be found.',
+    'ACCESS_DENIED': 'You do not have permission to access this resource.',
+    'UNAUTHORIZED': 'Authentication required. Please log in to continue.',
+    'SERVER_ERROR': 'An internal server error occurred. Please try again later.',
+    'SERVICE_UNAVAILABLE': 'The service is temporarily unavailable. Please try again later.',
+    'DEFAULT': 'An unexpected error occurred. Please try refreshing the page.',
+};
+
+const getErrorCode = (error: Error | null): string => {
+    if (!error) return 'UNKNOWN_ERROR';
+    
+    const errorMessage = error.message;
+    
+    for (const [key, code] of Object.entries(ERROR_CODE_MAP)) {
+        if (errorMessage.toLowerCase().includes(key.toLowerCase())) {
+            return code;
+        }
+    }
+    
+    // Check for HTTP status codes in message
+    const statusMatch = errorMessage.match(/\b([0-9]{3})\b/);
+    if (statusMatch && ERROR_CODE_MAP[statusMatch[1]]) {
+        return ERROR_CODE_MAP[statusMatch[1]];
+    }
+    
+    return 'UNKNOWN_ERROR';
+};
+
+const getErrorDescription = (errorCode: string): string => {
+    return ERROR_DESCRIPTIONS[errorCode] || ERROR_DESCRIPTIONS['DEFAULT'];
+};
+
 export class ErrorBoundary extends Component<Props, State> {
     public state: State = {
         hasError: false,
@@ -51,17 +99,17 @@ export class ErrorBoundary extends Component<Props, State> {
                 return fallback;
             }
 
+            const errorCode = getErrorCode(error);
+            const errorDescription = getErrorDescription(errorCode);
+
             return (
                 <div className="error-boundary">
                     <div className="error-content">
-                        <div className="error-icon" role="img" aria-label="error">⚠️</div>
-                        <h2 className="error-title">Something went wrong</h2>
-                        <p className="error-message">
-                            {error?.message || 'An unexpected error occurred'}
-                        </p>
+                        <div className="error-code">{errorCode}</div>
+                        <div className="error-description">{errorDescription}</div>
                         {import.meta.env.DEV && error && (
                             <details className="error-details">
-                                <summary>Error Details</summary>
+                                <summary>Technical Details</summary>
                                 <pre className="error-stack">
                                     {error.stack}
                                 </pre>
@@ -80,7 +128,7 @@ export class ErrorBoundary extends Component<Props, State> {
                                 className="error-home-btn"
                                 onClick={() => window.location.href = '/'}
                             >
-                                🏠 Go Home
+                                🏠 Go to Login
                             </button>
                         </div>
                     </div>
