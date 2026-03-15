@@ -65,6 +65,7 @@ interface GameState {
     joinSession: (sessionId: string, playerName: string) => Promise<void>;
     leaveSession: (sessionId: string, playerId: string) => Promise<void>;
     setCurrentSession: (session: GameSession | null) => void;
+    setActiveSessions: (sessions: GameSession[]) => void;
     
     // Actions - UI
     setMode: (mode: 'menu' | 'connecting' | 'playing' | 'error' | null) => void;
@@ -293,6 +294,9 @@ export const useGameStore = create<GameState>((set, get) => ({
                 (sess, index, self) => index === self.findIndex(s => s.session_id === sess.session_id)
             );
             set({ activeSessions: uniqueSessions });
+            // Also persist session IDs to localStorage for recovery
+            const sessionIds = uniqueSessions.map(s => s.session_id);
+            localStorage.setItem('activeSessionIds', JSON.stringify(sessionIds));
         } catch (error: any) {
             console.warn('Failed to load sessions (using empty list):', error.message);
             set({ activeSessions: [] });
@@ -347,6 +351,10 @@ export const useGameStore = create<GameState>((set, get) => ({
             session: session, // Also update alias
             sessionId: session?.session_id || null,
         });
+    },
+
+    setActiveSessions: (sessions) => {
+        set({ activeSessions: sessions });
     },
 
     // Actions - UI

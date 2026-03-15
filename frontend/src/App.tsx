@@ -32,7 +32,8 @@ function App() {
         loadCharacters,
         loadSessions,
         checkAuthPersistence,
-        isGuest
+        isGuest,
+        setActiveSessions
     } = useGameStore();
 
     const [currentPage, setCurrentPage] = useState<Page>('landing');
@@ -44,33 +45,37 @@ function App() {
     // Initialize auth on mount
     useEffect(() => {
         checkAuthPersistence();
-        
+
         const storedUserId = localStorage.getItem('userId');
         const token = localStorage.getItem('access_token');
-        
+
         if (storedUserId && token) {
             const id = parseInt(storedUserId);
             setLocalUserId(id);
             loadCharacters(id);
             loadSessions();
-            
+
             // If authenticated, go to home page
             setCurrentPage('home');
         } else {
             // If not authenticated, show landing page
             setCurrentPage('landing');
         }
-        
+
         setIsInitialized(true);
     }, [checkAuthPersistence]);
 
-    // Handle authentication state changes
+    // Handle authentication state changes - reload sessions on auth change
     useEffect(() => {
         if (isInitialized) {
             if (isAuthenticated && localUserId) {
                 setCurrentPage('home');
+                // Reload sessions when auth state changes
+                loadSessions();
             } else if (!isAuthenticated) {
                 setCurrentPage('landing');
+                // Clear sessions on logout
+                setActiveSessions([]);
             }
         }
     }, [isAuthenticated, localUserId, isInitialized]);
