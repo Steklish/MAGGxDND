@@ -6,6 +6,7 @@ interface Props {
     fallback?: ReactNode;
     onError?: (error: Error, errorInfo: ErrorInfo) => void;
     onRetry?: () => void;
+    errorType?: 'general' | 'no-session' | 'connection';
 }
 
 interface State {
@@ -92,7 +93,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
     public render() {
         const { hasError, error, errorInfo } = this.state;
-        const { children, fallback } = this.props;
+        const { fallback, errorType = 'general', children } = this.props;
 
         if (hasError) {
             if (fallback) {
@@ -102,8 +103,11 @@ export class ErrorBoundary extends Component<Props, State> {
             const errorCode = getErrorCode(error);
             const errorDescription = getErrorDescription(errorCode);
 
+            // Determine CSS class based on error type
+            const boundaryClass = `error-boundary ${errorType === 'no-session' ? 'no-session' : errorType === 'connection' ? 'connection-error' : ''}`;
+
             return (
-                <div className="error-boundary">
+                <div className={boundaryClass}>
                     <div className="error-content">
                         <div className="error-code">{errorCode}</div>
                         <div className="error-description">{errorDescription}</div>
