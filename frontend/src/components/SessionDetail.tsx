@@ -31,11 +31,14 @@ interface SessionDetailProps {
 
 export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack, onLeave, onStartGame }) => {
     const navigate = useNavigate();
-    const { username, logout } = useGameStore();
+    const { username, logout, activeSessions, loadSessions } = useGameStore();
     const [session, setSession] = useState<any | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [scrolled, setScrolled] = useState(false);
+    const [isJoining, setIsJoining] = useState(false);
+    const [joinSessionId, setJoinSessionId] = useState('');
+    const [joinError, setJoinError] = useState<string | null>(null);
 
     useEffect(() => {
         loadSessionDetail();
@@ -95,6 +98,51 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
     const handleLogout = () => {
         logout();
         navigate('/');
+    };
+
+    const handleJoinSession = async () => {
+        if (!joinSessionId.trim()) {
+            setJoinError('Please enter a session ID');
+            return;
+        }
+
+        setIsJoining(true);
+        setJoinError(null);
+
+        try {
+            const playerName = username || localStorage.getItem('username') || 'Player';
+            const response = await fetch(`/api/v1/sessions/${joinSessionId}/players`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ player_name: playerName }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                alert(`Successfully joined session! Player ID: ${data.player_id}`);
+                setJoinSessionId('');
+                // Reload sessions list
+                loadSessions();
+                // Navigate to the joined session
+                navigate(`/session/${joinSessionId}`);
+                window.location.reload();
+            } else {
+                const errorData = await response.json();
+                setJoinError(errorData.detail || 'Failed to join session');
+            }
+        } catch (err: any) {
+            console.error('Failed to join session:', err);
+            setJoinError('Network error. Please try again.');
+        } finally {
+            setIsJoining(false);
+        }
+    };
+
+    const handleCopySessionId = () => {
+        if (session?.session_id) {
+            navigator.clipboard.writeText(session.session_id);
+            alert('Session ID copied to clipboard!');
+        }
     };
 
     if (isLoading) {
@@ -200,6 +248,15 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                         <div className="session-info-card">
                             <h2>📋 Session Information</h2>
                             <div className="info-grid">
+                                <div className="info-item full-width">
+                                    <span className="info-label">Session ID</span>
+                                    <div className="session-id-container">
+                                        <span className="info-value mono">{session.session_id}</span>
+                                        <button className="btn-copy" onClick={handleCopySessionId} title="Copy Session ID">
+                                            📋 Copy
+                                        </button>
+                                    </div>
+                                </div>
                                 <div className="info-item">
                                     <span className="info-label">Game Mode</span>
                                     <span className="info-value">{session.game_mode}</span>
@@ -212,10 +269,6 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                                     <span className="info-label">Status</span>
                                     <span className="info-value">{session.status}</span>
                                 </div>
-                                <div className="info-item">
-                                    <span className="info-label">Session ID</span>
-                                    <span className="info-value mono">{session.session_id.slice(0, 8)}...</span>
-                                </div>
                             </div>
                             {session.description && (
                                 <div className="info-description">
@@ -225,8 +278,41 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                             )}
                         </div>
 
+                        {/* Join Session Card */}
+                        <div className="join-session-card">
+                            <h2>🔗 Join Another Session</h2>
+                            <p className="join-description">
+                                Enter a session ID to connect to another player's game
+                            </p>
+                            <div className="join-form">
+                                <input
+                                    type="text"
+                                    className="join-input"
+                                    placeholder="Paste session ID here..."
+                                    value={joinSessionId}
+                                    onChange={(e) => setJoinSessionId(e.target.value)}
+                                    disabled={isJoining}
+                                />
+                                <button
+                                    className="btn-join"
+                                    onClick={handleJoinSession}
+                                    disabled={isJoining || !joinSessionId.trim()}
+                                >
+                                    {isJoining ? '⏳ Joining...' : '🚀 Join Session'}
+                                </button>
+                            </div>
+                            {joinError && (
+                                <div className="join-error">
+                                    ⚠️ {joinError}
+                                </div>
+                            )}
+                            <div className="join-hint">
+                                💡 Share your session ID with friends so they can join!
+                            </div>
+                        </div>
+
                         {/* Players List */}
-                        <div className="players-card">
+                        <div className="players-card full-width">
                             <h2>👥 Connected Players ({session.players?.length || 0})</h2>
                             {session.players && session.players.length > 0 ? (
                                 <div className="players-list">
@@ -253,6 +339,7 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                                 <div className="empty-players">
                                     <div className="empty-icon">👥</div>
                                     <p>No players connected yet</p>
+                                    <p className="empty-hint">Share your session ID or use the join form to connect!</p>
                                 </div>
                             )}
                         </div>
