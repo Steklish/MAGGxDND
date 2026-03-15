@@ -268,7 +268,7 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                         </div>
 
                         {/* Players List */}
-                        <div className="players-card full-width">
+                        <div className="players-card">
                             <div className="players-card-header">
                                 <h2>👥 Connected Players ({session.players?.length || 0})</h2>
                                 {!playerId && session.player_count < session.max_players && (
@@ -277,13 +277,13 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                                         onClick={handleJoinThisSession}
                                         disabled={isJoining}
                                     >
-                                        {isJoining ? '⏳ Connecting...' : '🔗 Connect to Session'}
+                                        {isJoining ? '⏳ Connecting...' : '🔗 Connect'}
                                     </button>
                                 )}
                             </div>
                             {playerId && (
                                 <div className="connected-notice">
-                                    ✅ Connected as Player ID: <strong>{playerId}</strong>
+                                    ✅ Connected: <strong>{playerId}</strong>
                                 </div>
                             )}
                             {session.players && session.players.length > 0 ? (
@@ -311,7 +311,9 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                                 <div className="empty-players">
                                     <div className="empty-icon">👥</div>
                                     <p>No players connected yet</p>
-                                    <p className="empty-hint">Be the first to connect! Share session ID with friends.</p>
+                                    {!playerId && (
+                                        <p className="empty-hint">Click "Connect" to join this session!</p>
+                                    )}
                                 </div>
                             )}
                         </div>
