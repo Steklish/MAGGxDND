@@ -288,7 +288,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     // Session actions
     loadSessions: async () => {
         try {
-            const { sessions } = await sessionAPI.listSessions();
+            const { userId } = get();
+            // Pass userId to filter sessions by owner
+            const { sessions } = await sessionAPI.listSessions(userId || undefined);
             // Filter out duplicates by session_id
             const uniqueSessions = sessions.filter(
                 (sess, index, self) => index === self.findIndex(s => s.session_id === sess.session_id)
@@ -306,8 +308,15 @@ export const useGameStore = create<GameState>((set, get) => ({
     createSession: async (data: any): Promise<GameSession> => {
         set({ isLoading: true });
         try {
-            const session = await sessionAPI.createSession(data);
-            set({ 
+            const { userId, username } = get();
+            // Add owner info to session
+            const sessionData = {
+                ...data,
+                owner_id: userId,
+                owner_name: username
+            };
+            const session = await sessionAPI.createSession(sessionData);
+            set({
                 currentSession: session,
                 sessionId: session.session_id,
                 isLoading: false,
@@ -316,9 +325,9 @@ export const useGameStore = create<GameState>((set, get) => ({
             return session;
         } catch (error: any) {
             console.error('Failed to create session:', error);
-            set({ 
+            set({
                 error: error.response?.data?.detail || 'Failed to create session',
-                isLoading: false 
+                isLoading: false
             });
             throw error;
         }

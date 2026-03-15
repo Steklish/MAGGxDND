@@ -11,6 +11,8 @@ export interface GameSession {
     max_players: number;
     created_at?: string;
     updated_at?: string;
+    owner_id?: number;
+    owner_name?: string;
     // Extended fields for game state
     players?: any[];
     npcs?: any[];
@@ -57,6 +59,8 @@ export interface SessionCreateRequest {
     npc_prompts?: string[];
     gemini_api_key?: string;
     gemini_model?: string;
+    owner_id?: number;
+    owner_name?: string;
 }
 
 export interface SessionStartRequest {
@@ -83,8 +87,9 @@ export const sessionAPI = {
     /**
      * Get list of all active sessions
      */
-    listSessions: async (): Promise<{ sessions: GameSession[]; total: number }> => {
-        const response = await api.get<{ sessions: GameSession[]; total: number }>('/sessions');
+    listSessions: async (userId?: number): Promise<{ sessions: GameSession[]; total: number }> => {
+        const params = userId ? `?user_id=${userId}` : '';
+        const response = await api.get<{ sessions: GameSession[]; total: number }>(`/sessions${params}`);
         return response.data;
     },
 

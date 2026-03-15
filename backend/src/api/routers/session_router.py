@@ -36,6 +36,10 @@ from skls_generator.gen_backends.google_gen import GoogleGenAI
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
+# Store for active sessions with owner info
+# Key: session_id, Value: {session_name, owner_id, owner_name, created_at, ...}
+active_sessions: Dict[str, Dict[str, any]] = {}
+
 # Store for active players (temporary, until DB integration)
 # Key: player_id, Value: {session_id, player_name, character_name, connected}
 active_players: Dict[str, Dict[str, any]] = {}
@@ -53,6 +57,8 @@ class SessionCreateRequest(BaseModel):
     scene_prompt: Optional[str] = Field(None, description="Описание начальной сцены", max_length=2000)
     character_prompts: List[str] = Field(default=[], description="Описания персонажей игроков")
     npc_prompts: List[str] = Field(default=[], description="Описания NPC")
+    owner_id: Optional[int] = Field(None, description="ID пользователя создателя")
+    owner_name: Optional[str] = Field(None, description="Имя пользователя создателя")
 
     # Настройки AI (опционально)
     gemini_api_key: Optional[str] = Field(None, description="API ключ Gemini")
@@ -92,6 +98,9 @@ class SessionResponse(BaseModel):
     player_count: int
     status: str
     description: Optional[str] = None
+    owner_id: Optional[int] = None
+    owner_name: Optional[str] = None
+    created_at: Optional[str] = None
 
 
 class SessionListResponse(BaseModel):
@@ -238,21 +247,25 @@ def remove_player_from_session(session_id: str, player_id: str) -> None:
 async def create_session(request: SessionCreateRequest):
     """
     Создать новую игровую сессию со всеми зависимостями.
-
-    Создаёт:
-    - Session с ChromaClient, Generator, Logger
-    - EventPool для событий
-    - Manipulator для обработки действий
-    - Orchestrator для координации
-
-    Returns:
-        Информация о созданной сессии
     """
     import logging
     logger = logging.getLogger(__name__)
-    
+
     session_id = str(uuid.uuid4())
     logger.info(f"🟢 Creating session: {session_id} - {request.session_name}")
+
+    # Store session with owner info
+    active_sessions[session_id] = {
+        "session_id": session_id,
+        "session_name": request.session_name,
+        "owner_id": request.owner_id,
+        "owner_name": request.owner_name,
+        "game_mode": request.game_mode,
+        "max_players": request.max_players,
+        "description": request.description,
+        "created_at": datetime.now().isoformat(),
+        "status": "created"
+    }
 
     # Создаём конфигурацию
     config = SessionConfig(
@@ -266,7 +279,6 @@ async def create_session(request: SessionCreateRequest):
     )
 
     try:
-        # Создаём сессию со всеми зависимостями
         session = _create_session_internal(session_id, config)
         logger.info(f"✅ Session created successfully: {session_id}")
 
@@ -276,30 +288,38 @@ async def create_session(request: SessionCreateRequest):
             game_mode=request.game_mode,
             player_count=0,
             status="created",
-            description=request.description
+            description=request.description,
+            owner_id=request.owner_id,
+            owner_name=request.owner_name,
+            created_at=active_sessions[session_id]["created_at"]
         )
 
     except ImportError as e:
         logger.error(f"❌ ImportError: {e}")
-        raise HTTPException(
-            status_code=503,
-            detail=f"SKLS зависимости не установлены: {str(e)}"
-        )
+        raise HTTPException(status_code=503, detail=f"SKLS dependencies not installed: {str(e)}")
     except Exception as e:
         logger.error(f"❌ Exception: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Ошибка при создании сессии: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error creating session: {str(e)}")
 
 
 @router.get("", response_model=SessionListResponse)
-async def list_sessions():
-    """Получить список всех активных сессий."""
+async def list_sessions(user_id: Optional[int] = None):
+    """
+    Получить список всех активных сессий.
+    Если указан user_id, возвращает только сессии этого пользователя.
+    """
     sessions = session_manager.get_all_sessions()
-    
+
     session_list = []
     for session_id, session in sessions.items():
+        # Get session info from active_sessions store
+        session_data = active_sessions.get(session_id, {})
+        
+        # Filter by user_id if provided (only show user's own sessions)
+        if user_id is not None:
+            if session_data.get("owner_id") != user_id:
+                continue
+        
         info = session_manager.get_session_info(session_id)
         if info:
             session_list.append(SessionResponse(
@@ -308,9 +328,12 @@ async def list_sessions():
                 game_mode=info["game_mode"],
                 player_count=info["player_count"],
                 status="active",
-                description=None
+                description=session_data.get("description"),
+                owner_id=session_data.get("owner_id"),
+                owner_name=session_data.get("owner_name"),
+                created_at=session_data.get("created_at")
             ))
-    
+
     return SessionListResponse(
         sessions=session_list,
         total=len(session_list)
