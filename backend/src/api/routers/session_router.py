@@ -21,6 +21,7 @@ from backend.src.config import settings
 from backend.src.utils import validate_safe_text, sanitize_string
 from backend.src.game.session_manager import session_manager
 from backend.src.game.session_factory import session_factory, SessionConfig
+from backend.src.services.ai_game_service import ai_game_service
 from core.game.engine import Session
 from core.game.event_pool import EventPool
 from backend.src.delivery.game_delivery import GameDelivery
@@ -697,28 +698,53 @@ async def start_real_game(request: SessionInitRequest, background_tasks: Backgro
     """
     Start a REAL game session with the actual game engine running.
     This creates characters, NPCs, scene, and starts the game loop.
+    
+    Uses AI service for proper core integration with fallback handling.
     """
     import logging
     logger = logging.getLogger(__name__)
-    logger.info(f"Starting REAL game session: {request.session_name}")
+    logger.info(f"🎮 Starting REAL game session: {request.session_name}")
 
     try:
         session_id = str(uuid.uuid4())
+        gemini_key = request.gemini_api_key or os.getenv("GEMINI_API_KEY", "NO_KEY")
+        
+        # Validate API key
+        if not gemini_key or gemini_key == "NO_KEY":
+            logger.warning("⚠️ GEMINI_API_KEY not set. AI features will use fallback.")
 
         # Create event pool
         event_pool = EventPool()
         game_event_pools[session_id] = event_pool
         logger.info(f"[{session_id}] EventPool created")
 
-        # Setup components
-        generator = Generator(
-            GoogleGenAI(
-                api_key=request.gemini_api_key or os.getenv("GEMINI_API_KEY", "NO_KEY"),
-                logger=logger,
-                model_name="gemini-2.0-flash"
-            ),
-            logger_instance=logger
-        )
+        # Initialize AI generator through service (with error handling)
+        generator = None
+        if gemini_key and gemini_key != "NO_KEY":
+            try:
+                generator = ai_game_service.create_generator(
+                    session_id=session_id,
+                    gemini_api_key=gemini_key,
+                    gemini_model="gemini-2.0-flash",
+                    logger_instance=logger
+                )
+                logger.info(f"[{session_id}] ✅ AI Generator initialized")
+            except Exception as e:
+                logger.warning(f"[{session_id}] AI Generator failed: {e}. Using fallback mode.")
+        
+        # Fallback: create generator anyway (will fail gracefully on AI calls)
+        if not generator:
+            try:
+                generator = Generator(
+                    GoogleGenAI(
+                        api_key="NO_KEY",
+                        logger=logger,
+                        model_name="gemini-2.0-flash"
+                    ),
+                    logger_instance=logger
+                )
+            except Exception:
+                pass  # Generator will be None, all AI will use fallbacks
 
         # Create session
         session = Session(
@@ -731,15 +757,12 @@ async def start_real_game(request: SessionInitRequest, background_tasks: Backgro
         )
 
         # Set game mode
-        if request.game_mode.upper() == "COMBAT":
-            session.game_mode = GameModes.COMBAT
-        else:
-            session.game_mode = GameModes.STORY
+        session.game_mode = GameModes.COMBAT if request.game_mode.upper() == "COMBAT" else GameModes.STORY
 
         # Create delivery (REST API compatible)
         delivery_queue = event_pool.subscribe(f"delivery_{session_id}")
         delivery = RESTAPIDelivery(delivery_queue, logger, session_id)
-        delivery.set_session(session)  # Set session reference
+        delivery.set_session(session)
         session.delivery = delivery
         game_deliveries[session_id] = delivery
         logger.info(f"[{session_id}] RESTAPIDelivery created")
@@ -751,66 +774,51 @@ async def start_real_game(request: SessionInitRequest, background_tasks: Backgro
         )
         orchestrator.add_state(session)
         session._init_orchestrator(orchestrator)
+        logger.info(f"[{session_id}] Orchestrator initialized")
 
-        # Generate scene (with fallback if AI fails)
+        # Generate scene with AI (fallback on error)
         logger.info(f"[{session_id}] Generating scene...")
-        try:
-            scene = generator.generate_one_shot(
-                pydantic_model=SceneNode,
-                prompt=request.scene_prompt or "A medieval tavern"
-            )
-        except Exception as e:
-            logger.warning(f"AI scene generation failed: {e}, using fallback")
-            from core.schemas.in_game import Coordinate2D, UnifiedObject
-            scene = SceneNode(
-                name="Default Tavern",
-                description="A cozy medieval tavern with warm fire and wooden tables.",
-                objects=[],
-                center_position=Coordinate2D(x=10, y=10),
-                dimensions=Coordinate2D(x=20, y=20),
-                scale_unit="meters"
-            )
+        if generator:
+            try:
+                scene = await ai_game_service.generate_scene(
+                    generator=generator,
+                    prompt=request.scene_prompt or "A medieval tavern",
+                    session=session
+                )
+                logger.info(f"[{session_id}] ✅ Scene generated: {scene.name}")
+            except Exception as e:
+                logger.warning(f"[{session_id}] AI scene generation failed, using fallback")
+                scene = _create_fallback_scene()
+        else:
+            scene = _create_fallback_scene()
+        
         session.current_scene = scene
         session.current_location_name = scene.name
-        logger.info(f"[{session_id}] Scene: {scene.name}")
+        session.all_locations[scene.name] = scene
+        session.location_graph[scene.name] = set()
 
-        # Generate player characters (with fallback if AI fails)
+        # Generate player characters with AI (fallback on error)
         character_prompts = request.character_prompts or ["A brave hero"]
         if not character_prompts:
             character_prompts = ["A brave hero"]
+        
         for i, prompt in enumerate(character_prompts):
-            try:
-                char = generator.generate_one_shot(
-                    pydantic_model=Character,
-                    prompt=prompt
-                )
-            except Exception as e:
-                logger.warning(f"AI character generation failed: {e}, using fallback")
-                from core.schemas.in_game import AbilityScores
-                char = Character(
-                    name=f"Hero{i+1}",
-                    race="Human",
-                    char_class="Fighter",
-                    level=1,
-                    backstory_summary="A brave adventurer",
-                    personality_traits=["Brave", "Kind"],
-                    max_hp=10,
-                    current_hp=10,
-                    temp_hp=0,
-                    armor_class=12,
-                    speed=30,
-                    stats=AbilityScores(strength=10, dexterity=10, constitution=10, intelligence=10, wisdom=10, charisma=10),
-                    inventory=[],
-                    active_conditions_list=[],
-                    resources={},
-                    position=Coordinate2D(x=10, y=10),
-                    abilities=[],
-                    active_conditions="",
-                    proficiency_bonus=2,
-                    is_alive=True,
-                    initiative_bonus=0,
-                    short_summary="A brave hero"
-                )
+            char = None
+            if generator:
+                try:
+                    char = await ai_game_service.generate_character(
+                        generator=generator,
+                        prompt=prompt,
+                        session=session
+                    )
+                    logger.info(f"[{session_id}] ✅ Character generated: {char.name}")
+                except Exception as e:
+                    logger.warning(f"[{session_id}] AI character generation failed, using fallback")
+            
+            if not char:
+                char = _create_fallback_character(i)
+                logger.info(f"[{session_id}] Fallback character created: {char.name}")
+            
             player_queue = event_pool.subscribe(f"player_{char.name}")
             player = Player(
                 character=char,
@@ -819,58 +827,32 @@ async def start_real_game(request: SessionInitRequest, background_tasks: Backgro
                 orchestrator=orchestrator
             )
             session.players.append(player)
-            logger.info(f"[{session_id}] Player: {char.name}")
+            logger.info(f"[{session_id}] ✅ Player added: {char.name}")
 
-        # Generate NPCs (with fallback if AI fails)
+        # Generate NPCs with AI (fallback on error)
         npc_prompts = request.npc_prompts or ["A mysterious stranger"]
         if not npc_prompts:
             npc_prompts = ["A mysterious stranger"]
+        
         for i, prompt in enumerate(npc_prompts):
-            try:
-                npc_char = generator.generate_one_shot(
-                    pydantic_model=NPCCharacter,
-                    prompt=prompt
-                )
-            except Exception as e:
-                logger.warning(f"AI NPC generation failed: {e}, using fallback")
-                from core.schemas.in_game import AbilityScores
-                npc_char = NPCCharacter(
-                    name=f"NPC{i+1}",
-                    race="Human",
-                    char_class="Commoner",
-                    level=1,
-                    backstory_summary="A local villager",
-                    personality_traits=["Friendly"],
-                    max_hp=8,
-                    current_hp=8,
-                    temp_hp=0,
-                    armor_class=10,
-                    speed=30,
-                    stats=AbilityScores(strength=10, dexterity=10, constitution=10, intelligence=10, wisdom=10, charisma=10),
-                    inventory=[],
-                    active_conditions_list=[],
-                    resources={},
-                    position=Coordinate2D(x=10, y=10),
-                    abilities=[],
-                    active_conditions="",
-                    proficiency_bonus=2,
-                    is_alive=True,
-                    initiative_bonus=0,
-                    short_summary="A villager",
-                    motivation="To live peacefully",
-                    alignment="Neutral Good",
-                    memory="",
-                    current_scene=scene.name
-                )
-            npc_char.current_scene = scene.name
-            npc_queue = event_pool.subscribe(f"npc_{npc_char.name}")
-            npc = NPC(
-                character=npc_char,
-                event_queuee=npc_queue,
-                logger=logger.getChild("npc")
-            )
-            session.npcs.append(npc)
-            logger.info(f"[{session_id}] NPC: {npc_char.name}")
+            npc_char = None
+            if generator:
+                try:
+                    npc_char = await ai_game_service.generate_npc(
+                        generator=generator,
+                        prompt=prompt,
+                        session=session
+                    )
+                    logger.info(f"[{session_id}] ✅ NPC generated: {npc_char.name}")
+                except Exception as e:
+                    logger.warning(f"[{session_id}] AI NPC generation failed, using fallback")
+            
+            if not npc_char:
+                npc_char = _create_fallback_npc(i)
+                logger.info(f"[{session_id}] Fallback NPC created: {npc_char.name}")
+            
+            session._init_npc(npc_char)
+            logger.info(f"[{session_id}] ✅ NPC added: {npc_char.name}")
 
         # Store session
         active_game_sessions[session_id] = {
@@ -880,7 +862,7 @@ async def start_real_game(request: SessionInitRequest, background_tasks: Backgro
         }
         game_session_managers[session_id] = session
 
-        logger.info(f"[{session_id}] REAL GAME STARTED!")
+        logger.info(f"[{session_id}] 🎮 REAL GAME STARTED!")
 
         return {
             "status": "running",
@@ -898,6 +880,79 @@ async def start_real_game(request: SessionInitRequest, background_tasks: Backgro
         raise HTTPException(status_code=500, detail=f"Failed to start game: {str(e)}")
 
 
+# === Helper Functions ===
+
+def _create_fallback_scene():
+    """Create a fallback scene when AI generation fails."""
+    from core.schemas.in_game import Coordinate2D
+    return SceneNode(
+        name="Default Tavern",
+        description="A cozy medieval tavern with warm fire and wooden tables.",
+        objects=[],
+        center_position=Coordinate2D(x=10, y=10),
+        dimensions=Coordinate2D(x=20, y=20),
+        scale_unit="meters"
+    )
+
+
+def _create_fallback_character(index: int = 0):
+    """Create a fallback character when AI generation fails."""
+    from core.schemas.in_game import AbilityScores, Coordinate2D
+    return Character(
+        name=f"Hero{index+1}",
+        race="Human",
+        char_class="Fighter",
+        level=1,
+        backstory_summary="A brave adventurer",
+        personality_traits=["Brave", "Kind"],
+        max_hp=10,
+        current_hp=10,
+        temp_hp=0,
+        armor_class=12,
+        speed=30,
+        stats=AbilityScores(strength=10, dexterity=10, constitution=10, intelligence=10, wisdom=10, charisma=10),
+        inventory=[],
+        active_conditions_list=[],
+        resources={},
+        position=Coordinate2D(x=10, y=10),
+        abilities=[],
+        active_conditions="",
+        proficiency_bonus=2,
+        is_alive=True,
+        initiative_bonus=0,
+        short_summary="A brave hero"
+    )
+
+
+def _create_fallback_npc(index: int = 0):
+    """Create a fallback NPC when AI generation fails."""
+    from core.schemas.in_game import AbilityScores, Coordinate2D
+    return NPCCharacter(
+        name=f"NPC{index+1}",
+        race="Human",
+        char_class="Commoner",
+        level=1,
+        backstory_summary="A local villager",
+        personality_traits=["Friendly"],
+        max_hp=8,
+        current_hp=8,
+        temp_hp=0,
+        armor_class=10,
+        speed=30,
+        stats=AbilityScores(strength=10, dexterity=10, constitution=10, intelligence=10, wisdom=10, charisma=10),
+        inventory=[],
+        active_conditions_list=[],
+        resources={},
+        position=Coordinate2D(x=10, y=10),
+        abilities=[],
+        active_conditions="",
+        proficiency_bonus=2,
+        is_alive=True,
+        initiative_bonus=0,
+        short_summary="A friendly local"
+    )
+
+
 class PlayerActionRequest(BaseModel):
     character_name: str
     action: str
@@ -911,29 +966,29 @@ async def process_player_action(session_id: str, request: PlayerActionRequest):
     """
     import logging
     logger = logging.getLogger(__name__)
-    
+
     # Get active session
     session = game_session_managers.get(session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Active game session not found")
-    
+
     try:
         logger.info(f"[{session_id}] Processing action for {request.character_name}: {request.action}")
-        
+
         # Use session's delivery to process action
         if not session.delivery:
             raise ValueError("Session has no delivery")
-        
+
         # Process through delivery
         result = session.delivery.process_player_action(
             character_name=request.character_name,
             action_text=request.action
         )
-        
+
         logger.info(f"[{session_id}] Action result: {result}")
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(f"[{session_id}] Failed to process action: {e}", exc_info=True)
         return {
