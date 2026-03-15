@@ -44,25 +44,32 @@ function App() {
 
     // Initialize auth on mount
     useEffect(() => {
-        checkAuthPersistence();
+        const initAuth = async () => {
+            checkAuthPersistence();
 
-        const storedUserId = localStorage.getItem('userId');
-        const token = localStorage.getItem('access_token');
+            const storedUserId = localStorage.getItem('userId');
+            const token = localStorage.getItem('access_token');
 
-        if (storedUserId && token) {
-            const id = parseInt(storedUserId);
-            setLocalUserId(id);
-            loadCharacters(id);
-            loadSessions();
+            if (storedUserId && token) {
+                const id = parseInt(storedUserId);
+                setLocalUserId(id);
+                // Wait for characters and sessions to load before navigating
+                await Promise.all([
+                    loadCharacters(id).catch(console.warn),
+                    loadSessions().catch(console.warn)
+                ]);
 
-            // If authenticated, go to home page
-            setCurrentPage('home');
-        } else {
-            // If not authenticated, show landing page
-            setCurrentPage('landing');
-        }
+                // If authenticated, go to home page
+                setCurrentPage('home');
+            } else {
+                // If not authenticated, show landing page
+                setCurrentPage('landing');
+            }
 
-        setIsInitialized(true);
+            setIsInitialized(true);
+        };
+
+        initAuth();
     }, [checkAuthPersistence]);
 
     // Handle authentication state changes - reload sessions on auth change

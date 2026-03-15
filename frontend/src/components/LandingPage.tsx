@@ -26,15 +26,23 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
     // Handle registration success - skip character creation, go to home
     const handleRegisterSuccess = (newUserId: number) => {
         setUserId(newUserId);
-        // Don't show character creation, just close modal and let App.tsx handle redirect to home
+        // Close modal and force reload to trigger auth redirect
         setAuthModalOpen(null);
+        // Force page reload to reinitialize auth
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
     };
 
     // Handle login success - go directly to home
     const handleLoginSuccess = (newUserId: number) => {
         setUserId(newUserId);
-        // Close modal and let App.tsx handle redirect to home
+        // Close modal and force reload to trigger auth redirect
         setAuthModalOpen(null);
+        // Force page reload to reinitialize auth
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
     };
 
     // Handle character creation complete
