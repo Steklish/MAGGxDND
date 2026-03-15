@@ -41,45 +41,6 @@ router = APIRouter(prefix="/sessions", tags=["sessions"])
 active_players: Dict[str, Dict[str, any]] = {}
 
 
-# === Helper Functions ===
-
-def get_session_players(session_id: str) -> List[PlayerResponse]:
-    """Get all players for a specific session."""
-    players = []
-    for player_id, player_data in active_players.items():
-        if player_data.get("session_id") == session_id:
-            players.append(PlayerResponse(
-                player_id=player_id,
-                player_name=player_data.get("player_name", "Unknown"),
-                character_name=player_data.get("character_name"),
-                connected=player_data.get("connected", False)
-            ))
-    return players
-
-
-def add_player_to_session(
-    session_id: str,
-    player_id: str,
-    player_name: str,
-    character_name: Optional[str] = None
-) -> None:
-    """Add a player to a session."""
-    active_players[player_id] = {
-        "session_id": session_id,
-        "player_name": player_name,
-        "character_name": character_name,
-        "connected": True,
-        "joined_at": datetime.now().isoformat()
-    }
-
-
-def remove_player_from_session(session_id: str, player_id: str) -> None:
-    """Remove a player from a session."""
-    if player_id in active_players:
-        if active_players[player_id].get("session_id") == session_id:
-            active_players[player_id]["connected"] = False
-
-
 # === Schemas ===
 
 class SessionCreateRequest(BaseModel):
@@ -230,6 +191,45 @@ def _create_session_internal(
     session = session_factory.create_session(config)
 
     return session
+
+
+# === Helper Functions ===
+
+def get_session_players(session_id: str) -> List[PlayerResponse]:
+    """Get all players for a specific session."""
+    players = []
+    for player_id, player_data in active_players.items():
+        if player_data.get("session_id") == session_id:
+            players.append(PlayerResponse(
+                player_id=player_id,
+                player_name=player_data.get("player_name", "Unknown"),
+                character_name=player_data.get("character_name"),
+                connected=player_data.get("connected", False)
+            ))
+    return players
+
+
+def add_player_to_session(
+    session_id: str,
+    player_id: str,
+    player_name: str,
+    character_name: Optional[str] = None
+) -> None:
+    """Add a player to a session."""
+    active_players[player_id] = {
+        "session_id": session_id,
+        "player_name": player_name,
+        "character_name": character_name,
+        "connected": True,
+        "joined_at": datetime.now().isoformat()
+    }
+
+
+def remove_player_from_session(session_id: str, player_id: str) -> None:
+    """Remove a player from a session."""
+    if player_id in active_players:
+        if active_players[player_id].get("session_id") == session_id:
+            active_players[player_id]["connected"] = False
 
 
 # === Endpoints ===
