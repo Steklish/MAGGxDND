@@ -271,7 +271,7 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                         <div className="players-card">
                             <div className="players-card-header">
                                 <h2>👥 Connected Players ({session.players?.length || 0})</h2>
-                                {!playerId && session.player_count < session.max_players && (
+                                {!playerId && (
                                     <button
                                         className="btn-join-this"
                                         onClick={handleJoinThisSession}
