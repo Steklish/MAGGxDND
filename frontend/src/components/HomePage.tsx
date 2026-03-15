@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { CharacterPanel } from './CharacterPanel';
 import { SessionCreation } from './SessionCreation';
@@ -39,6 +39,7 @@ export const HomePage: React.FC<HomePageProps> = ({
     const [showRulebook, setShowRulebook] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [activeTab, setActiveTab] = useState<'overview' | 'characters' | 'sessions'>('overview');
+    const backgroundRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (!isAuthenticated || !userId) {
@@ -53,8 +54,16 @@ export const HomePage: React.FC<HomePageProps> = ({
         // Add class to body for background override
         document.body.classList.add('has-home-bg');
 
+        // Parallax background scroll (20% faster than page scroll)
         const handleScroll = () => {
-            setScrolled(window.scrollY > 50);
+            const scrollTop = window.scrollY;
+            
+            setScrolled(scrollTop > 50);
+            
+            // Move background at -0.2x scroll speed (appears 20% faster in same direction)
+            if (backgroundRef.current) {
+                backgroundRef.current.style.transform = `translateY(-${scrollTop * 0.2}px)`;
+            }
         };
 
         window.addEventListener('scroll', handleScroll);

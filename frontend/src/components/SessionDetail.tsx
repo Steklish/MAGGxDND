@@ -38,8 +38,16 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
     const [scrolled, setScrolled] = useState(false);
     const [isJoining, setIsJoining] = useState(false);
     const [playerId, setPlayerId] = useState<string | null>(null);
+    const [hasJoinedSession, setHasJoinedSession] = useState(false);
 
     useEffect(() => {
+        // Check if we already have a player ID for this session in localStorage
+        const storedPlayerId = localStorage.getItem(`playerId_${sessionId}`);
+        if (storedPlayerId) {
+            setPlayerId(storedPlayerId);
+            setHasJoinedSession(true);
+        }
+        
         loadSessionDetail();
         loadPlayers();
         
@@ -119,6 +127,11 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
     };
 
     const handleJoinThisSession = async () => {
+        if (hasJoinedSession || playerId) {
+            alert('You are already connected to this session!');
+            return;
+        }
+        
         setIsJoining(true);
 
         try {
@@ -132,8 +145,12 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
             if (response.ok) {
                 const data = await response.json();
                 setPlayerId(data.player_id);
+                setHasJoinedSession(true);
+                // Store player ID in localStorage to persist across page reloads
+                localStorage.setItem(`playerId_${sessionId}`, data.player_id);
                 // Reload session data to show updated player list
                 await loadSessionDetail();
+                await loadPlayers();
             } else {
                 const errorData = await response.json();
                 alert(`Failed to join: ${errorData.detail || 'Unknown error'}`);
@@ -290,7 +307,7 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                         <div className="players-card">
                             <div className="players-card-header">
                                 <h2>👥 Connected Players ({session.players?.length || 0})</h2>
-                                {!playerId && (
+                                {!hasJoinedSession && !playerId && (
                                     <button
                                         className="btn-join-this"
                                         onClick={handleJoinThisSession}
