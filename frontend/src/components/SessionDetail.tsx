@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
+import { ErrorBoundary } from './common/ErrorBoundary';
 import './SessionDetail.css';
 
 interface Player {
@@ -185,11 +186,22 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
 
     if (error || !session) {
         return (
-            <div className="session-detail error">
-                <h2>Error Loading Session</h2>
-                <p>{error || 'Session not found'}</p>
-                <button className="btn-back" onClick={onBack}>← Back</button>
-            </div>
+            <ErrorBoundary errorType="no-session">
+                <div className="error-content">
+                    <div className="error-code">SESSION NOT FOUND</div>
+                    <div className="error-description">
+                        {error || 'The session you are looking for does not exist or has been closed.'}
+                    </div>
+                    <div className="error-actions">
+                        <button className="error-retry-btn" onClick={() => window.location.reload()}>
+                            🔄 Retry
+                        </button>
+                        <button className="error-home-btn" onClick={onBack}>
+                            🏠 Back to Home
+                        </button>
+                    </div>
+                </div>
+            </ErrorBoundary>
         );
     }
 
