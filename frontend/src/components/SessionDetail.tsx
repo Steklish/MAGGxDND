@@ -37,8 +37,7 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
     const [error, setError] = useState<string | null>(null);
     const [scrolled, setScrolled] = useState(false);
     const [isJoining, setIsJoining] = useState(false);
-    const [joinSessionId, setJoinSessionId] = useState('');
-    const [joinError, setJoinError] = useState<string | null>(null);
+    const [playerId, setPlayerId] = useState<string | null>(null);
 
     useEffect(() => {
         loadSessionDetail();
@@ -100,18 +99,12 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
         navigate('/');
     };
 
-    const handleJoinSession = async () => {
-        if (!joinSessionId.trim()) {
-            setJoinError('Please enter a session ID');
-            return;
-        }
-
+    const handleJoinThisSession = async () => {
         setIsJoining(true);
-        setJoinError(null);
 
         try {
             const playerName = username || localStorage.getItem('username') || 'Player';
-            const response = await fetch(`/api/v1/sessions/${joinSessionId}/players`, {
+            const response = await fetch(`/api/v1/sessions/${sessionId}/players`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ player_name: playerName }),
@@ -119,20 +112,16 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
 
             if (response.ok) {
                 const data = await response.json();
-                alert(`Successfully joined session! Player ID: ${data.player_id}`);
-                setJoinSessionId('');
-                // Reload sessions list
-                loadSessions();
-                // Navigate to the joined session
-                navigate(`/session/${joinSessionId}`);
-                window.location.reload();
+                setPlayerId(data.player_id);
+                // Reload session data to show updated player list
+                await loadSessionDetail();
             } else {
                 const errorData = await response.json();
-                setJoinError(errorData.detail || 'Failed to join session');
+                alert(`Failed to join: ${errorData.detail || 'Unknown error'}`);
             }
         } catch (err: any) {
             console.error('Failed to join session:', err);
-            setJoinError('Network error. Please try again.');
+            alert('Network error. Please try again.');
         } finally {
             setIsJoining(false);
         }
@@ -278,42 +267,25 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                             )}
                         </div>
 
-                        {/* Join Session Card */}
-                        <div className="join-session-card">
-                            <h2>🔗 Join Another Session</h2>
-                            <p className="join-description">
-                                Enter a session ID to connect to another player's game
-                            </p>
-                            <div className="join-form">
-                                <input
-                                    type="text"
-                                    className="join-input"
-                                    placeholder="Paste session ID here..."
-                                    value={joinSessionId}
-                                    onChange={(e) => setJoinSessionId(e.target.value)}
-                                    disabled={isJoining}
-                                />
-                                <button
-                                    className="btn-join"
-                                    onClick={handleJoinSession}
-                                    disabled={isJoining || !joinSessionId.trim()}
-                                >
-                                    {isJoining ? '⏳ Joining...' : '🚀 Join Session'}
-                                </button>
-                            </div>
-                            {joinError && (
-                                <div className="join-error">
-                                    ⚠️ {joinError}
-                                </div>
-                            )}
-                            <div className="join-hint">
-                                💡 Share your session ID with friends so they can join!
-                            </div>
-                        </div>
-
                         {/* Players List */}
                         <div className="players-card full-width">
-                            <h2>👥 Connected Players ({session.players?.length || 0})</h2>
+                            <div className="players-card-header">
+                                <h2>👥 Connected Players ({session.players?.length || 0})</h2>
+                                {!playerId && session.player_count < session.max_players && (
+                                    <button
+                                        className="btn-join-this"
+                                        onClick={handleJoinThisSession}
+                                        disabled={isJoining}
+                                    >
+                                        {isJoining ? '⏳ Connecting...' : '🔗 Connect to Session'}
+                                    </button>
+                                )}
+                            </div>
+                            {playerId && (
+                                <div className="connected-notice">
+                                    ✅ Connected as Player ID: <strong>{playerId}</strong>
+                                </div>
+                            )}
                             {session.players && session.players.length > 0 ? (
                                 <div className="players-list">
                                     {session.players.map((player: any) => (
@@ -339,7 +311,7 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                                 <div className="empty-players">
                                     <div className="empty-icon">👥</div>
                                     <p>No players connected yet</p>
-                                    <p className="empty-hint">Share your session ID or use the join form to connect!</p>
+                                    <p className="empty-hint">Be the first to connect! Share session ID with friends.</p>
                                 </div>
                             )}
                         </div>

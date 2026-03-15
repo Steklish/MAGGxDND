@@ -429,63 +429,25 @@
     word-break: break-all;
 }
 
-/* Join Session Card */
-.join-session-card {
-    background: rgba(20, 20, 20, 0.8);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
-    padding: 24px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
-
-.join-session-card h2 {
-    margin: 0 0 16px;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text-primary);
+/* Players Card Header */
+.players-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
     padding-bottom: 16px;
     border-bottom: 1px solid var(--border-color);
 }
 
-.join-description {
-    color: var(--text-secondary);
-    font-size: 14px;
-    margin-bottom: 20px;
-    line-height: 1.6;
-}
-
-.join-form {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.join-input {
-    flex: 1;
-    padding: 12px 16px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+.players-card-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
     color: var(--text-primary);
-    font-size: 14px;
-    font-family: 'Courier New', monospace;
-    outline: none;
-    transition: all 0.2s ease;
 }
 
-.join-input:focus {
-    border-color: var(--accent-orange);
-    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
-}
-
-.join-input:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.btn-join {
-    padding: 12px 28px;
+.btn-join-this {
+    padding: 10px 24px;
     background: linear-gradient(135deg, var(--accent-green) 0%, #2ECC71 100%);
     border: none;
     border-radius: 8px;
@@ -497,35 +459,29 @@
     white-space: nowrap;
 }
 
-.btn-join:hover:not(:disabled) {
+.btn-join-this:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(42, 157, 143, 0.4);
 }
 
-.btn-join:disabled {
+.btn-join-this:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
 }
 
-.join-error {
+.connected-notice {
     padding: 12px 16px;
-    background: rgba(230, 57, 70, 0.1);
-    border: 1px solid var(--accent-red);
+    background: rgba(42, 157, 143, 0.1);
+    border: 1px solid var(--accent-green);
     border-radius: 8px;
-    color: var(--accent-red);
+    color: var(--accent-green);
     font-size: 14px;
     margin-bottom: 16px;
 }
 
-.join-hint {
-    padding: 12px 16px;
-    background: rgba(42, 157, 143, 0.1);
-    border: 1px solid rgba(42, 157, 143, 0.3);
-    border-radius: 8px;
-    color: var(--accent-green);
-    font-size: 13px;
-    text-align: center;
+.connected-notice strong {
+    font-family: 'Courier New', monospace;
 }
 
 /* Players List */
