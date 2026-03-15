@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { CharacterPanel } from './CharacterPanel';
 import { SessionCreation } from './SessionCreation';
@@ -18,22 +17,23 @@ interface HomePageProps {
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
+    onShowProfile,
     onViewSession,
     onViewCharacter,
     onJoinSession
 }) => {
-    const navigate = useNavigate();
-    const { 
-        isAuthenticated, 
-        userId, 
-        username, 
-        characters, 
+    const {
+        isAuthenticated,
+        userId,
+        username,
+        characters,
         loadCharacters,
         activeSessions,
         loadSessions,
-        logout 
+        logout,
+        setAuthenticated
     } = useGameStore();
-    
+
     const [showSessionCreation, setShowSessionCreation] = useState(false);
     const [showQuickPlay, setShowQuickPlay] = useState(false);
     const [showRulebook, setShowRulebook] = useState(false);
@@ -42,24 +42,30 @@ export const HomePage: React.FC<HomePageProps> = ({
 
     useEffect(() => {
         if (!isAuthenticated || !userId) {
-            navigate('/');
+            // Force logout and redirect to landing by clearing auth state
+            setAuthenticated(false);
             return;
         }
 
         loadCharacters(userId);
         loadSessions();
 
+        // Add class to body for background override
+        document.body.classList.add('has-home-bg');
+
         const handleScroll = () => {
             setScrolled(window.scrollY > 50);
         };
 
         window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, [isAuthenticated, userId, navigate]);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            document.body.classList.remove('has-home-bg');
+        };
+    }, [isAuthenticated, userId]);
 
     const handleLogout = () => {
         logout();
-        navigate('/');
     };
 
     const handleCharacterSelect = (characterId: number) => {
@@ -82,7 +88,7 @@ export const HomePage: React.FC<HomePageProps> = ({
 
     const handleProfileClick = () => {
         // Navigate to profile page instead of showing modal
-        navigate('/profile');
+        onShowProfile();
     };
 
     const handleQuickPlayClick = () => {
@@ -116,10 +122,13 @@ export const HomePage: React.FC<HomePageProps> = ({
 
     return (
         <div className="home-page">
+            {/* Background */}
+            <div className="home-bg"></div>
+            
             {/* Navigation Header */}
             <header className={`home-header ${scrolled ? 'scrolled' : ''}`}>
                 <div className="header-content">
-                    <div className="logo" onClick={() => navigate('/home')}>
+                    <div className="logo" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                         <span className="logo-icon">🐉</span>
                         <span className="logo-text">
                             <span className="logo-magg">MAGG</span>
@@ -307,12 +316,9 @@ export const HomePage: React.FC<HomePageProps> = ({
                                     <span className="action-icon">⚔️</span>
                                     <span>Create Session</span>
                                 </button>
-                                <button 
-                                    className="action-btn" 
-                                    onClick={() => {
-                                        navigate('/profile');
-                                        // Profile page will handle character creation
-                                    }}
+                                <button
+                                    className="action-btn"
+                                    onClick={onShowProfile}
                                 >
                                     <span className="action-icon">📝</span>
                                     <span>New Character</span>

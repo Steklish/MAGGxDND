@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import './ProfilePage.css';
 
@@ -10,7 +9,6 @@ interface ProfilePageProps {
 }
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onGoHome }) => {
-    const navigate = useNavigate();
     const { username, logout, characters, activeSessions } = useGameStore();
     const [userStats, setUserStats] = useState({
         totalSessions: 0,
@@ -54,7 +52,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onGoHo
 
     const handleLogout = () => {
         logout();
-        navigate('/');
     };
 
     if (isLoading) {

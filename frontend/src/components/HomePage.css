@@ -1,16 +1,21 @@
 /* HomePage Styles - D&D Beyond Inspired */
 
+/* Override global background for home page */
+.home-page-wrapper {
+    min-height: 100vh;
+    position: relative;
+}
+
 .home-page {
     min-height: 100vh;
-    background: var(--bg-primary);
+    background: transparent;
     color: var(--text-primary);
     position: relative;
     overflow-x: hidden;
 }
 
-.home-page::before {
-    content: '';
-    position: fixed;
+.home-bg {
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
@@ -19,7 +24,15 @@
     background-size: cover;
     background-attachment: scroll;
     z-index: -1;
-    opacity: 0.15;
+}
+
+/* Override body background when on home page */
+body.has-home-bg {
+    background: transparent !important;
+}
+
+body.has-home-bg #root {
+    background: transparent !important;
 }
 
 /* Header */
@@ -204,24 +217,21 @@
     font-size: 48px;
     font-weight: 700;
     margin-bottom: 16px;
-    background: var(--gradient-text);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #ffffff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .hero-title .welcome-text {
     color: #ffffff;
-    -webkit-text-fill-color: #ffffff;
-    text-shadow: none;
-    background: none;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .hero-title .username-highlight {
-    background: var(--gradient-text);
+    background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    text-shadow: 0 0 20px rgba(255, 107, 53, 0.5);
 }
 
 .hero-subtitle {

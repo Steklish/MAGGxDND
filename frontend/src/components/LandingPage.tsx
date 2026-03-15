@@ -10,7 +10,7 @@ interface LandingPageProps {
     onShowProfile?: (userId: string) => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onShowProfile }) => {
+export const LandingPage: React.FC<LandingPageProps> = () => {
     const { setAuthenticated } = useGameStore();
     const [authModalOpen, setAuthModalOpen] = useState<'login' | 'register' | null>(null);
     const [showCharacterCreation, setShowCharacterCreation] = useState(false);
@@ -23,20 +23,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onShowProfile }) => {
         setAuthenticated(true);
     };
 
-    // Handle registration success
+    // Handle registration success - skip character creation, go to home
     const handleRegisterSuccess = (newUserId: number) => {
         setUserId(newUserId);
-        setShowCharacterCreation(true);
+        // Don't show character creation, just close modal and let App.tsx handle redirect to home
+        setAuthModalOpen(null);
     };
 
-    // Handle login success
+    // Handle login success - go directly to home
     const handleLoginSuccess = (newUserId: number) => {
         setUserId(newUserId);
-        if (onShowProfile) {
-            onShowProfile(newUserId.toString());
-        } else {
-            setShowProfile(true);
-        }
+        // Close modal and let App.tsx handle redirect to home
+        setAuthModalOpen(null);
     };
 
     // Handle character creation complete
@@ -145,31 +143,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onShowProfile }) => {
                         <button onClick={() => scrollToSection('about')}>About</button>
                     </nav>
                     <div className="header-actions">
-                        {useGameStore.getState().isAuthenticated ? (
-                            <button
-                                className="btn-go-home"
-                                onClick={() => {
-                                    window.location.href = '/home';
-                                }}
-                            >
-                                Go to Home
-                            </button>
-                        ) : (
-                            <>
-                                <button
-                                    className="btn-login"
-                                    onClick={() => setAuthModalOpen('login')}
-                                >
-                                    Sign In
-                                </button>
-                                <button
-                                    className="btn-register"
-                                    onClick={() => setAuthModalOpen('register')}
-                                >
-                                    Get Started
-                                </button>
-                            </>
-                        )}
+                        <button
+                            className="btn-login"
+                            onClick={() => setAuthModalOpen('login')}
+                        >
+                            Sign In
+                        </button>
+                        <button
+                            className="btn-register"
+                            onClick={() => setAuthModalOpen('register')}
+                        >
+                            Get Started
+                        </button>
                         <button
                             className="btn-quick-start"
                             onClick={handleQuickStart}

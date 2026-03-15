@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import './OAuthCallback.css';
 
 export const OAuthCallback: React.FC = () => {
-    const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { setAuthenticated, setUserId, setUsername, setAccessToken } = useGameStore();
-    
+    const { setAuthenticated, setUserId, setUsername, setAccessToken, setRememberMe } = useGameStore();
+
     const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
     const [message, setMessage] = useState('');
 
@@ -76,7 +75,7 @@ export const OAuthCallback: React.FC = () => {
 
                 // Redirect to home page after short delay
                 setTimeout(() => {
-                    navigate('/home');
+                    window.location.href = '/';
                 }, 2000);
 
             } catch (error) {
@@ -87,7 +86,7 @@ export const OAuthCallback: React.FC = () => {
         };
 
         handleOAuthCallback();
-    }, [searchParams, navigate]);
+    }, [searchParams]);
 
     return (
         <div className="oauth-callback">
@@ -118,11 +117,14 @@ export const OAuthCallback: React.FC = () => {
                         <div className="oauth-error-icon">✕</div>
                         <h2>Login Failed</h2>
                         <p>{message}</p>
-                        <button 
+                        <button
                             className="btn-primary"
-                            onClick={() => navigate('/')}
+                            onClick={() => {
+                                setAuthenticated(false);
+                                window.location.href = '/';
+                            }}
                         >
-                            Return to Home
+                            Return to Login
                         </button>
                     </>
                 )}

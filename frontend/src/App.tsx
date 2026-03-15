@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useGameStore } from './store/gameStore';
 import { LandingPage } from './components/LandingPage';
 import { HomePage } from './components/HomePage';
@@ -25,18 +24,17 @@ type Page =
   | 'game';
 
 function App() {
-    const navigate = useNavigate();
-    const { 
-        isAuthenticated, 
-        userId, 
-        username, 
-        characters, 
-        loadCharacters, 
+    const {
+        isAuthenticated,
+        userId,
+        username,
+        characters,
+        loadCharacters,
         loadSessions,
         checkAuthPersistence,
-        isGuest 
+        isGuest
     } = useGameStore();
-    
+
     const [currentPage, setCurrentPage] = useState<Page>('landing');
     const [localUserId, setLocalUserId] = useState<number | null>(null);
     const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
