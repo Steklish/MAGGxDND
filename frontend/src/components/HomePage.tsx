@@ -54,15 +54,15 @@ export const HomePage: React.FC<HomePageProps> = ({
         // Add class to body for background override
         document.body.classList.add('has-home-bg');
 
-        // Parallax background scroll (20% faster than page scroll)
+        // Parallax background scroll (10% faster than page scroll)
         const handleScroll = () => {
             const scrollTop = window.scrollY;
-            
+
             setScrolled(scrollTop > 50);
-            
-            // Move background at -0.2x scroll speed (appears 20% faster in same direction)
+
+            // Move background at 1.1x scroll speed (10% faster than page)
             if (backgroundRef.current) {
-                backgroundRef.current.style.transform = `translateY(-${scrollTop * 0.2}px)`;
+                backgroundRef.current.style.transform = `translateY(-${scrollTop * 1.1}px)`;
             }
         };
 
@@ -464,6 +464,11 @@ export const HomePage: React.FC<HomePageProps> = ({
                     onBack={() => setShowSessionCreation(false)}
                     onComplete={(sessionId: string) => {
                         setShowSessionCreation(false);
+                        // Persist session ID to localStorage immediately
+                        if (sessionId) {
+                            localStorage.setItem('currentSessionId', sessionId);
+                            console.log('✓ Session persisted to localStorage:', sessionId);
+                        }
                         // Reload sessions to show newly created one
                         loadSessions();
                         console.log('Session created:', sessionId);
