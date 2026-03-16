@@ -15,12 +15,11 @@
 }
 
 .home-bg {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
-    min-height: 100vh;
+    height: 100vh;
     background: url('/arts/backgrounds/bg-home.png') no-repeat center center;
     background-size: cover;
     z-index: -1;
