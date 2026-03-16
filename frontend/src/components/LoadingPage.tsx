@@ -52,10 +52,14 @@ export const LoadingPage: React.FC<LoadingPageProps> = ({
     useEffect(() => {
         if (isLoadingComplete && isAuthenticated) {
             const timer = setTimeout(() => {
-                // Force a full page reload to reinitialize App.tsx auth flow
-                window.location.reload();
+                // Set localUserId in App to trigger navigation to home
+                const storedUserId = localStorage.getItem('userId');
+                if (storedUserId) {
+                    // This will trigger App.tsx to switch to home page
+                    window.dispatchEvent(new CustomEvent('auth-loading-complete'));
+                }
             }, redirectDelay);
-            
+
             return () => clearTimeout(timer);
         }
     }, [isLoadingComplete, isAuthenticated, redirectDelay]);

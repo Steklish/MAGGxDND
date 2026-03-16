@@ -1,47 +1,46 @@
 """
-REST API router для управления игровыми сессиями.
+REST API router для управления игровыми сессиями с поддержкой БД и владения.
 
 Эндпоинты:
-- POST /sessions - Создать сессию
-- GET /sessions - Список сессий
+- POST /sessions - Создать сессию (требуется аутентификация)
+- GET /sessions - Список сессий пользователя (требуется аутентификация)
 - GET /sessions/{session_id} - Информация о сессии
-- DELETE /sessions/{session_id} - Удалить сессию
+- PUT /sessions/{session_id} - Обновить сессию (только владелец)
+- DELETE /sessions/{session_id} - Удалить сессию (только владелец)
 - POST /sessions/{session_id}/players - Добавить игрока
 - DELETE /sessions/{session_id}/players/{player_id} - Удалить игрока
-- POST /sessions/start_real_game - Запустить игру с AI генерацией
+- POST /sessions/{session_id}/start - Запустить игру
 - GET /sessions/{session_id}/game_info - Получить данные игры
 """
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, status
+from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Dict, Any
 import uuid
 import os
 from datetime import datetime
 
+from sqlalchemy.orm import Session
+
 from backend.src.config import settings
+from backend.src.database.session import get_db
+from backend.src.auth.dependencies import get_current_user_from_cookie
+from backend.src.models.user import User
+from backend.src.models.session import GameSession, SessionStatusEnum
+from backend.src.repositories.session_repository import SessionRepository
 from backend.src.utils import validate_safe_text, sanitize_string
 from backend.src.game.session_manager import session_manager
 from backend.src.game.session_factory import session_factory, SessionConfig
-from backend.src.services.ai_game_service import ai_game_service
 from core.game.engine import Session
-from core.game.event_pool import EventPool
-from backend.src.delivery.game_delivery import GameDelivery
-from backend.src.delivery.rest_api_delivery import RESTAPIDelivery
-from core.schemas.in_game import Character, NPCCharacter, GameModes, SceneNode
-from core.entity.orchestrator import Orchestrator
-from core.entity.player import Player
-from core.entity.npc import NPC
-from skls_generator.generator import Generator
-from skls_generator.gen_backends.google_gen import GoogleGenAI
+from core.schemas.in_game import GameModes
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
-# Store for active sessions with owner info
-# Key: session_id, Value: {session_name, owner_id, owner_name, created_at, ...}
-active_sessions: Dict[str, Dict[str, any]] = {}
+# Store for active game sessions (in-memory engine sessions)
+# Key: session_uuid, Value: Session engine object
+active_game_sessions: Dict[str, Session] = {}
 
-# Store for active players (temporary, until DB integration)
-# Key: player_id, Value: {session_id, player_name, character_name, connected}
+# Store for active players (temporary, until full WebSocket integration)
 active_players: Dict[str, Dict[str, any]] = {}
 
 
@@ -54,14 +53,9 @@ class SessionCreateRequest(BaseModel):
     max_players: int = Field(default=5, description="Максимум игроков", ge=1, le=20)
     description: Optional[str] = Field(None, description="Описание сессии", max_length=500)
     guide: Optional[str] = Field(None, description="Сюжетная подсказка для AI", max_length=2000)
-    scene_prompt: Optional[str] = Field(None, description="Описание начальной сцены", max_length=2000)
-    character_prompts: List[str] = Field(default=[], description="Описания персонажей игроков")
-    npc_prompts: List[str] = Field(default=[], description="Описания NPC")
-    owner_id: Optional[int] = Field(None, description="ID пользователя создателя")
-    owner_name: Optional[str] = Field(None, description="Имя пользователя создателя")
-
+    is_public: bool = Field(default=False, description="Публичная сессия")
+    
     # Настройки AI (опционально)
-    gemini_api_key: Optional[str] = Field(None, description="API ключ Gemini")
     gemini_model: str = Field(default="gemini-2.0-flash", description="Модель Gemini")
 
     @validator('session_name')
@@ -83,24 +77,19 @@ class SessionCreateRequest(BaseModel):
             return validate_safe_text(v, "Guide")
         return v
 
-    @validator('scene_prompt')
-    def validate_scene_prompt(cls, v):
-        if v:
-            return validate_safe_text(v, "Scene prompt")
-        return v
-
 
 class SessionResponse(BaseModel):
     """Ответ с информацией о сессии."""
-    session_id: str
+    session_id: str  # UUID
     session_name: str
     game_mode: str
     player_count: int
     status: str
     description: Optional[str] = None
-    owner_id: Optional[int] = None
+    owner_id: int
     owner_name: Optional[str] = None
-    created_at: Optional[str] = None
+    created_at: str
+    is_owner: bool = False  # True if current user is the owner
 
 
 class SessionListResponse(BaseModel):
@@ -109,29 +98,33 @@ class SessionListResponse(BaseModel):
     total: int
 
 
+class SessionUpdateRequest(BaseModel):
+    """Запрос на обновление сессии."""
+    session_name: Optional[str] = Field(None, max_length=100)
+    description: Optional[str] = Field(None, max_length=500)
+    guide: Optional[str] = Field(None, max_length=2000)
+    max_players: Optional[int] = Field(None, ge=1, le=20)
+    is_public: Optional[bool] = None
+    
+    @validator('session_name')
+    def validate_session_name(cls, v):
+        if v:
+            v = sanitize_string(v, max_length=100)
+            if len(v) < 2:
+                raise ValueError("Session name must be at least 2 characters")
+        return v
+
+
 class PlayerJoinRequest(BaseModel):
     """Запрос на присоединение игрока."""
     player_name: str = Field(..., description="Имя игрока", min_length=2, max_length=100)
     character_name: Optional[str] = Field(None, description="Имя персонажа", max_length=100)
-    character_prompt: Optional[str] = Field(None, description="Описание персонажа для генерации", max_length=1000)
 
     @validator('player_name')
     def validate_player_name(cls, v):
         v = sanitize_string(v, max_length=100)
         if len(v) < 2:
             raise ValueError("Player name must be at least 2 characters")
-        return v
-
-    @validator('character_name')
-    def validate_character_name(cls, v):
-        if v:
-            return sanitize_string(v, max_length=100)
-        return v
-
-    @validator('character_prompt')
-    def validate_character_prompt(cls, v):
-        if v:
-            return validate_safe_text(v, "Character prompt")
         return v
 
 
@@ -141,6 +134,7 @@ class PlayerResponse(BaseModel):
     player_name: str
     character_name: Optional[str]
     connected: bool
+    role: str = "player"
 
 
 class SessionStartRequest(BaseModel):
@@ -156,14 +150,6 @@ class SessionStartRequest(BaseModel):
             raise ValueError("Scene prompt must be at least 10 characters")
         return validate_safe_text(v, "Scene prompt")
 
-    @validator('character_prompts')
-    def validate_character_prompts(cls, v):
-        return [validate_safe_text(prompt, "Character prompt") for prompt in v if prompt]
-
-    @validator('npc_prompts')
-    def validate_npc_prompts(cls, v):
-        return [validate_safe_text(prompt, "NPC prompt") for prompt in v if prompt]
-
 
 class SessionInfoResponse(BaseModel):
     """Расширенная информация о сессии."""
@@ -174,215 +160,326 @@ class SessionInfoResponse(BaseModel):
     max_players: int
     status: str
     description: Optional[str] = None
+    owner_id: int
+    owner_name: str
+    is_owner: bool
     players: List[PlayerResponse] = []
-
-
-# === Helpers ===
-
-def _create_session_internal(
-    session_id: str,
-    config: SessionConfig
-) -> Session:
-    """
-    Внутренняя функция для создания сессии через SessionFactory.
-
-    Создаёт Session со всеми зависимостями:
-    - ChromaClient
-    - Generator
-    - Logger
-    - EventPool
-    - Delivery
-    - Manipulator
-    - Orchestrator
-    """
-    # Используем SessionFactory для создания полноценной сессии
-    # SessionFactory автоматически регистрирует сессию в SessionManager
-    session = session_factory.create_session(config)
-
-    return session
 
 
 # === Helper Functions ===
 
-def get_session_players(session_id: str) -> List[PlayerResponse]:
-    """Get all players for a specific session."""
-    players = []
-    for player_id, player_data in active_players.items():
-        if player_data.get("session_id") == session_id:
-            players.append(PlayerResponse(
-                player_id=player_id,
-                player_name=player_data.get("player_name", "Unknown"),
-                character_name=player_data.get("character_name"),
-                connected=player_data.get("connected", False)
-            ))
-    return players
+def get_session_repository(db: Session) -> SessionRepository:
+    """Get session repository instance."""
+    return SessionRepository(db)
 
 
-def add_player_to_session(
-    session_id: str,
-    player_id: str,
-    player_name: str,
-    character_name: Optional[str] = None
+def get_session_by_uuid_or_404(
+    session_uuid: str,
+    repository: SessionRepository
+) -> GameSession:
+    """Get session by UUID or raise 404."""
+    session = repository.get_session_by_uuid(session_uuid)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return session
+
+
+def verify_session_owner(
+    session: GameSession,
+    current_user: User
 ) -> None:
-    """Add a player to a session."""
-    active_players[player_id] = {
-        "session_id": session_id,
-        "player_name": player_name,
-        "character_name": character_name,
-        "connected": True,
-        "joined_at": datetime.now().isoformat()
-    }
-
-
-def remove_player_from_session(session_id: str, player_id: str) -> None:
-    """Remove a player from a session."""
-    if player_id in active_players:
-        if active_players[player_id].get("session_id") == session_id:
-            active_players[player_id]["connected"] = False
+    """Verify that current user is the session owner."""
+    if session.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized: Only the session owner can perform this action"
+        )
 
 
 # === Endpoints ===
 
 @router.post("", response_model=SessionResponse, status_code=201)
-async def create_session(request: SessionCreateRequest):
+async def create_session(
+    request: SessionCreateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_cookie)
+):
     """
-    Создать новую игровую сессию со всеми зависимостями.
+    Создать новую игровую сессию.
+    
+    Требуется аутентификация. Сессия будет закреплена за создателем.
     """
     import logging
     logger = logging.getLogger(__name__)
 
-    session_id = str(uuid.uuid4())
-    logger.info(f"🟢 Creating session: {session_id} - {request.session_name}")
+    session_uuid = str(uuid.uuid4())
+    logger.info(f"Creating session: {session_uuid} - {request.session_name} for user {current_user.id}")
 
-    # Store session with owner info
-    active_sessions[session_id] = {
-        "session_id": session_id,
-        "session_name": request.session_name,
-        "owner_id": request.owner_id,
-        "owner_name": request.owner_name,
-        "game_mode": request.game_mode,
-        "max_players": request.max_players,
-        "description": request.description,
-        "created_at": datetime.now().isoformat(),
-        "status": "created"
-    }
-
-    # Создаём конфигурацию
-    config = SessionConfig(
-        session_name=request.session_name,
-        game_mode=request.game_mode,
-        max_players=request.max_players,
-        description=request.description,
-        guide=request.guide,
-        gemini_api_key=request.gemini_api_key,
-        gemini_model=request.gemini_model
-    )
+    repository = get_session_repository(db)
 
     try:
-        session = _create_session_internal(session_id, config)
-        logger.info(f"✅ Session created successfully: {session_id}")
+        # Step 1: Create session in database FIRST
+        db_session = repository.create_session(
+            session_uuid=session_uuid,
+            session_name=request.session_name,
+            owner_id=current_user.id,
+            game_mode=request.game_mode,
+            max_players=request.max_players,
+            description=request.description,
+            guide=request.guide,
+            gemini_model=request.gemini_model
+        )
 
-        return SessionResponse(
-            session_id=session_id,
+        logger.info(f"Database session created: {db_session.id} (UUID: {db_session.session_uuid}, owner_id={db_session.owner_id})")
+
+        # Step 2: Create in-memory game session with the SAME UUID
+        config = SessionConfig(
             session_name=request.session_name,
             game_mode=request.game_mode,
-            player_count=0,
-            status="created",
+            max_players=request.max_players,
             description=request.description,
-            owner_id=request.owner_id,
-            owner_name=request.owner_name,
-            created_at=active_sessions[session_id]["created_at"]
+            guide=request.guide,
+            gemini_model=request.gemini_model
+        )
+
+        # Pass the session_uuid to factory so it uses the same ID
+        game_session = session_factory.create_session(config, session_id=session_uuid)
+        active_game_sessions[session_uuid] = game_session
+
+        logger.info(f"Game session created in memory: {session_uuid}")
+
+        # Step 3: Add owner as participant in database
+        participant = repository.add_participant(
+            session_uuid=session_uuid,
+            player_uuid=str(uuid.uuid4()),
+            player_name=current_user.username,
+            user_id=current_user.id,
+            role="owner"
+        )
+
+        logger.info(f"Owner added as participant: {participant.id if participant else 'FAILED'}")
+
+        # Step 4: Verify session is in database
+        verify_session = repository.get_session_by_uuid(session_uuid)
+        if not verify_session:
+            logger.error(f"VERIFICATION FAILED: Session not found in database after creation!")
+        else:
+            logger.info(f"VERIFIED: Session exists in database with owner_id={verify_session.owner_id}")
+
+        return SessionResponse(
+            session_id=db_session.session_uuid,
+            session_name=db_session.session_name,
+            game_mode=db_session.game_mode.value,
+            player_count=1,
+            status=db_session.status.value,
+            description=db_session.description,
+            owner_id=db_session.owner_id,
+            owner_name=current_user.username,
+            created_at=db_session.created_at.isoformat(),
+            is_owner=True
         )
 
     except ImportError as e:
-        logger.error(f"❌ ImportError: {e}")
+        logger.error(f"ImportError: {e}")
         raise HTTPException(status_code=503, detail=f"SKLS dependencies not installed: {str(e)}")
     except Exception as e:
-        logger.error(f"❌ Exception: {e}")
+        logger.error(f"Exception: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error creating session: {str(e)}")
 
 
 @router.get("", response_model=SessionListResponse)
-async def list_sessions(user_id: Optional[int] = None):
+async def list_sessions(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_cookie)
+):
     """
-    Получить список всех активных сессий.
-    Если указан user_id, возвращает только сессии этого пользователя.
+    Получить список сессий пользователя.
+    
+    Возвращает только сессии, принадлежащие текущему пользователю.
     """
-    sessions = session_manager.get_all_sessions()
-
+    repository = get_session_repository(db)
+    
+    # Get only user's own sessions
+    db_sessions = repository.get_owner_sessions(owner_id=current_user.id, active_only=True)
+    
     session_list = []
-    for session_id, session in sessions.items():
-        # Get session info from active_sessions store
-        session_data = active_sessions.get(session_id, {})
+    for db_session in db_sessions:
+        # Check if session has active game engine
+        game_session = active_game_sessions.get(db_session.session_uuid)
+        player_count = 0
         
-        # Filter by user_id if provided (only show user's own sessions)
-        if user_id is not None:
-            if session_data.get("owner_id") != user_id:
-                continue
+        if game_session:
+            player_count = len(game_session.players)
+        else:
+            # Get from DB
+            participants = repository.get_session_participants(db_session.session_uuid)
+            player_count = len([p for p in participants if p.is_connected])
         
-        info = session_manager.get_session_info(session_id)
-        if info:
-            session_list.append(SessionResponse(
-                session_id=session_id,
-                session_name=info["session_name"],
-                game_mode=info["game_mode"],
-                player_count=info["player_count"],
-                status="active",
-                description=session_data.get("description"),
-                owner_id=session_data.get("owner_id"),
-                owner_name=session_data.get("owner_name"),
-                created_at=session_data.get("created_at")
-            ))
-
+        session_list.append(SessionResponse(
+            session_id=db_session.session_uuid,
+            session_name=db_session.session_name,
+            game_mode=db_session.game_mode.value,
+            player_count=player_count,
+            status=db_session.status.value,
+            description=db_session.description,
+            owner_id=db_session.owner_id,
+            owner_name=current_user.username,
+            created_at=db_session.created_at.isoformat(),
+            is_owner=True
+        ))
+    
     return SessionListResponse(
         sessions=session_list,
         total=len(session_list)
     )
 
 
-@router.get("/{session_id}/info", response_model=SessionInfoResponse)
-async def get_session_info(session_id: str):
-    """Get extended session information."""
-    session = session_manager.get_session(session_id)
-    if not session:
-        raise HTTPException(status_code=404, detail="Session not found")
-
-    # Get session players using helper function
-    players = get_session_players(session_id)
-
-    return SessionInfoResponse(
-        session_id=session_id,
-        session_name=session.session_name,
-        game_mode=session.game_mode,
-        player_count=len(players),
-        max_players=settings.SESSION_MAX_PLAYERS,
-        status="active",
-        description=None,
-        players=players
+@router.get("/{session_id}", response_model=SessionResponse)
+async def get_session(
+    session_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_cookie)
+):
+    """Получить информацию о конкретной сессии."""
+    repository = get_session_repository(db)
+    
+    db_session = get_session_by_uuid_or_404(session_id, repository)
+    
+    # Get player count
+    game_session = active_game_sessions.get(session_id)
+    player_count = 0
+    
+    if game_session:
+        player_count = len(game_session.players)
+    else:
+        participants = repository.get_session_participants(session_id)
+        player_count = len([p for p in participants if p.is_connected])
+    
+    return SessionResponse(
+        session_id=db_session.session_uuid,
+        session_name=db_session.session_name,
+        game_mode=db_session.game_mode.value,
+        player_count=player_count,
+        status=db_session.status.value,
+        description=db_session.description,
+        owner_id=db_session.owner_id,
+        owner_name=current_user.username if db_session.owner_id == current_user.id else None,
+        created_at=db_session.created_at.isoformat(),
+        is_owner=(db_session.owner_id == current_user.id)
     )
 
 
+@router.put("/{session_id}", response_model=SessionResponse)
+async def update_session(
+    session_id: str,
+    request: SessionUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_cookie)
+):
+    """
+    Обновить сессию.
+    
+    Только владелец может обновлять сессию.
+    """
+    repository = get_session_repository(db)
+    
+    db_session = get_session_by_uuid_or_404(session_id, repository)
+    verify_session_owner(db_session, current_user)
+    
+    # Update fields
+    if request.session_name is not None:
+        db_session.session_name = request.session_name
+    if request.description is not None:
+        db_session.description = request.description
+    if request.guide is not None:
+        db_session.guide = request.guide
+    if request.max_players is not None:
+        db_session.max_players = request.max_players
+    if request.is_public is not None:
+        db_session.is_public = request.is_public
+        
+    db_session.updated_at = datetime.now()
+    db.commit()
+    db.refresh(db_session)
+    
+    # Get player count
+    participants = repository.get_session_participants(session_id)
+    player_count = len([p for p in participants if p.is_connected])
+    
+    return SessionResponse(
+        session_id=db_session.session_uuid,
+        session_name=db_session.session_name,
+        game_mode=db_session.game_mode.value,
+        player_count=player_count,
+        status=db_session.status.value,
+        description=db_session.description,
+        owner_id=db_session.owner_id,
+        owner_name=current_user.username,
+        created_at=db_session.created_at.isoformat(),
+        is_owner=True
+    )
+
+
+@router.delete("/{session_id}", status_code=204)
+async def delete_session(
+    session_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_cookie)
+):
+    """
+    Удалить сессию.
+    
+    Только владелец может удалить сессию. Это действие необратимо!
+    """
+    repository = get_session_repository(db)
+    
+    db_session = get_session_by_uuid_or_404(session_id, repository)
+    verify_session_owner(db_session, current_user)
+    
+    # Remove from active game sessions
+    game_session = active_game_sessions.get(session_id)
+    if game_session:
+        await session_manager.remove_session(session_id)
+        del active_game_sessions[session_id]
+    
+    # Delete from database
+    repository.delete_session(session_id, owner_id=current_user.id)
+
+
 @router.post("/{session_id}/start", response_model=SessionResponse)
-async def start_session(session_id: str, request: SessionStartRequest):
+async def start_session(
+    session_id: str,
+    request: SessionStartRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_cookie)
+):
     """
     Запустить игровую сессию с инициализацией сцены и персонажей.
-
-    Инициализирует:
-    - Начальную сцену
-    - Персонажей игроков
-    - NPC
-
-    Returns:
-        Информация о запущенной сессии
+    
+    Только владелец может запустить сессию.
     """
-    session = session_manager.get_session(session_id)
-    if not session:
-        raise HTTPException(status_code=404, detail="Session not found")
-
+    repository = get_session_repository(db)
+    
+    db_session = get_session_by_uuid_or_404(session_id, repository)
+    verify_session_owner(db_session, current_user)
+    
+    # Get or create game session
+    game_session = active_game_sessions.get(session_id)
+    
+    if not game_session:
+        raise HTTPException(
+            status_code=400,
+            detail="Session not initialized. Please recreate the session."
+        )
+    
     try:
-        # Создаём тестовую сцену без AI генерации
+        # Initialize scene and characters
         from core.schemas.in_game import SceneNode, Coordinate2D, UnifiedObject, ObjectType
+        from core.entity.player import Player
+        from core.schemas.in_game import Character, CharacterClass, AbilityScores
+        from core.entity.orchestrator import Orchestrator
         
+        # Create scene
         scene = SceneNode(
             name="The Drunken Dragon",
             description="A dimly lit tavern with worn wooden tables and the smell of ale.",
@@ -400,14 +497,14 @@ async def start_session(session_id: str, request: SessionStartRequest):
             dimensions=Coordinate2D(x=20.0, y=20.0),
             scale_unit="feet"
         )
-        session.current_scene = scene
+        game_session.current_scene = scene
         
-        # Генерируем и добавляем персонажей игроков (без AI, создаём напрямую)
-        from core.entity.player import Player
-        from core.schemas.in_game import Character, CharacterClass, AbilityScores, SpellAbility, Condition
+        # Update DB
+        repository.update_session_scene(session_id, scene.name, owner_id=current_user.id)
+        repository.update_session_status(session_id, "running", owner_id=current_user.id)
         
+        # Initialize player characters from prompts
         for i, prompt in enumerate(request.character_prompts):
-            # Создаём простого персонажа
             character = Character(
                 name=f"Character{i+1}",
                 race="Human",
@@ -421,12 +518,8 @@ async def start_session(session_id: str, request: SessionStartRequest):
                 armor_class=12,
                 speed=30,
                 stats=AbilityScores(
-                    strength=15,
-                    dexterity=12,
-                    constitution=14,
-                    intelligence=10,
-                    wisdom=10,
-                    charisma=10
+                    strength=15, dexterity=12, constitution=14,
+                    intelligence=10, wisdom=10, charisma=10
                 ),
                 inventory=[],
                 active_conditions_list=[],
@@ -439,26 +532,27 @@ async def start_session(session_id: str, request: SessionStartRequest):
                 initiative_bonus=11,
                 short_summary=f"Character{i+1} the Fighter"
             )
-
+            
             player_orchestrator = Orchestrator(
-                generator=session.generator,
-                logger=session.logger.getChild("player_orchestrator")
+                generator=game_session.generator,
+                logger=game_session.logger.getChild("player_orchestrator")
             )
-            player_orchestrator.add_state(session)
-
-            event_queue = session.event_pool.subscribe(character.name)
-
+            player_orchestrator.add_state(game_session)
+            
+            event_queue = game_session.event_pool.subscribe(character.name)
+            
             player = Player(
                 character=character,
                 event_queuee=event_queue,
-                logger=session.logger.getChild("player"),
+                logger=game_session.logger.getChild("player"),
                 orchestrator=player_orchestrator
             )
-            player.inject_state(session)
-            session.players.append(player)
-
-        # Генерируем и добавляем NPC
+            player.inject_state(game_session)
+            game_session.players.append(player)
+        
+        # Initialize NPCs
         for i, prompt in enumerate(request.npc_prompts):
+            from core.schemas.in_game import NPCCharacter
             npc_character = NPCCharacter(
                 name=f"NPC{i+1}",
                 race="Human",
@@ -472,12 +566,8 @@ async def start_session(session_id: str, request: SessionStartRequest):
                 armor_class=10,
                 speed=30,
                 stats=AbilityScores(
-                    strength=10,
-                    dexterity=10,
-                    constitution=10,
-                    intelligence=10,
-                    wisdom=10,
-                    charisma=10
+                    strength=10, dexterity=10, constitution=10,
+                    intelligence=10, wisdom=10, charisma=10
                 ),
                 inventory=[],
                 active_conditions_list=[],
@@ -494,149 +584,222 @@ async def start_session(session_id: str, request: SessionStartRequest):
                 memory="",
                 current_scene=scene.name
             )
-            session._init_npc(npc_character)
-
-        session.logger.info(
-            f"Сессия запущена: {len(session.players)} игроков, {len(session.npcs)} NPC"
+            game_session._init_npc(npc_character)
+        
+        game_session.logger.info(
+            f"Сессия запущена: {len(game_session.players)} игроков, {len(game_session.npcs)} NPC"
         )
-
-        # Отправляем сообщение всем игрокам через Delivery
-        session.delivery.master_message(
+        
+        # Send welcome message
+        game_session.delivery.master_message(
             f"Welcome to {scene.name}! {scene.description}"
         )
-        session.delivery.session_updated(session)
-
+        game_session.delivery.session_updated(game_session)
+        
         return SessionResponse(
             session_id=session_id,
-            session_name=session.session_name,
-            game_mode=session.game_mode.value,
-            player_count=len(session.players),
+            session_name=db_session.session_name,
+            game_mode=db_session.game_mode.value,
+            player_count=len(game_session.players),
             status="running",
-            description=None
+            description=db_session.description,
+            owner_id=db_session.owner_id,
+            owner_name=current_user.username,
+            created_at=db_session.created_at.isoformat(),
+            is_owner=True
         )
-
+        
     except Exception as e:
-        session.logger.error(f"Ошибка при запуске сессии: {e}")
+        game_session.logger.error(f"Ошибка при запуске сессии: {e}")
         raise HTTPException(
             status_code=500,
             detail=f"Ошибка при запуске сессии: {str(e)}"
         )
 
 
-@router.get("/{session_id}", response_model=SessionResponse)
-async def get_session(session_id: str):
-    """Получить информацию о конкретной сессии."""
-    info = session_manager.get_session_info(session_id)
+@router.get("/{session_id}/info", response_model=SessionInfoResponse)
+async def get_session_info(
+    session_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_cookie)
+):
+    """Get extended session information."""
+    repository = get_session_repository(db)
     
-    if not info:
-        raise HTTPException(status_code=404, detail="Session not found")
+    db_session = get_session_by_uuid_or_404(session_id, repository)
     
-    return SessionResponse(
-        session_id=session_id,
-        session_name=info["session_name"],
-        game_mode=info["game_mode"],
-        player_count=info["player_count"],
-        status="active",
-        description=None
+    # Get game session
+    game_session = active_game_sessions.get(session_id)
+    
+    # Get players
+    players = []
+    player_count = 0
+    
+    if game_session:
+        player_count = len(game_session.players)
+        # Get from active game session
+        for i, player in enumerate(game_session.players):
+            if hasattr(player, 'character'):
+                char = player.character
+                players.append(PlayerResponse(
+                    player_id=f"player_{i}",
+                    player_name=getattr(char, 'name', 'Unknown'),
+                    character_name=getattr(char, 'name', None),
+                    connected=True,
+                    role="player"
+                ))
+    else:
+        # Get from DB
+        participants = repository.get_session_participants(session_id)
+        player_count = len(participants)
+        for p in participants:
+            players.append(PlayerResponse(
+                player_id=p.player_uuid,
+                player_name=p.player_name,
+                character_name=p.character_name,
+                connected=p.is_connected,
+                role=p.role
+            ))
+    
+    return SessionInfoResponse(
+        session_id=db_session.session_uuid,
+        session_name=db_session.session_name,
+        game_mode=db_session.game_mode.value,
+        player_count=player_count,
+        max_players=db_session.max_players,
+        status=db_session.status.value,
+        description=db_session.description,
+        owner_id=db_session.owner_id,
+        owner_name=current_user.username if db_session.owner_id == current_user.id else "Unknown",
+        is_owner=(db_session.owner_id == current_user.id),
+        players=players
     )
 
-
-@router.delete("/{session_id}", status_code=204)
-async def delete_session(session_id: str):
-    """
-    Удалить сессию и отключить всех игроков.
-    
-    Внимание: Это действие необратимо!
-    """
-    if not session_manager.session_exists(session_id):
-        raise HTTPException(status_code=404, detail="Session not found")
-    
-    await session_manager.remove_session(session_id)
-    return None
-
-
-# Store for active players (temporary, until DB integration)
-active_players: Dict[str, Dict[str, any]] = {}
 
 @router.post("/{session_id}/players", response_model=PlayerResponse)
-async def join_session(session_id: str, request: PlayerJoinRequest):
+async def join_session(
+    session_id: str,
+    request: PlayerJoinRequest,
+    db: Session = Depends(get_db)
+):
     """
     Join a session as a player.
+    
     Returns player_id for WebSocket connection.
     """
+    repository = get_session_repository(db)
+    
     # Validate session exists
-    session = session_manager.get_session(session_id)
-    if not session:
-        raise HTTPException(status_code=404, detail="Session not found")
-
+    db_session = get_session_by_uuid_or_404(session_id, repository)
+    
+    # Check if session is active
+    if db_session.status != SessionStatusEnum.RUNNING and db_session.status != SessionStatusEnum.CREATED:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Session is not accepting players (status: {db_session.status.value})"
+        )
+    
     # Generate player ID
     player_id = str(uuid.uuid4())
-
-    # Add player to session using helper function
-    add_player_to_session(
-        session_id=session_id,
-        player_id=player_id,
+    
+    # Add player to session
+    participant = repository.add_participant(
+        session_uuid=session_id,
+        player_uuid=player_id,
         player_name=request.player_name,
-        character_name=request.character_name
+        character_name=request.character_name,
+        role="player"
     )
-
+    
+    if not participant:
+        raise HTTPException(status_code=500, detail="Failed to add player to session")
+    
     return PlayerResponse(
         player_id=player_id,
         player_name=request.player_name,
         character_name=request.character_name,
-        connected=True
+        connected=True,
+        role="player"
     )
 
 
 @router.delete("/{session_id}/players/{player_id}", status_code=204)
-async def leave_session(session_id: str, player_id: str):
+async def leave_session(
+    session_id: str,
+    player_id: str,
+    db: Session = Depends(get_db)
+):
     """Remove a player from a session."""
-    # Remove player using helper function
-    remove_player_from_session(session_id, player_id)
-
-    # Unregister WebSocket if connected
+    repository = get_session_repository(db)
+    
+    # Remove from DB
+    repository.remove_participant(session_id, player_id)
+    
+    # Unsubscribe from events
     session_manager.unregister_player_websocket(session_id, player_id)
     session_manager.unsubscribe_player_from_events(session_id, player_id)
-
+    
     return None
 
 
 @router.get("/{session_id}/players", response_model=List[PlayerResponse])
-async def get_session_players_endpoint(session_id: str):
+async def get_session_players_endpoint(
+    session_id: str,
+    db: Session = Depends(get_db)
+):
     """Get all players in a session."""
-    if not session_manager.session_exists(session_id):
-        raise HTTPException(status_code=404, detail="Session not found")
-
-    # Return players for this session using helper function
-    players = get_session_players(session_id)
-    return players
+    repository = get_session_repository(db)
+    
+    db_session = get_session_by_uuid_or_404(session_id, repository)
+    
+    participants = repository.get_session_participants(session_id)
+    
+    return [
+        PlayerResponse(
+            player_id=p.player_uuid,
+            player_name=p.player_name,
+            character_name=p.character_name,
+            connected=p.is_connected,
+            role=p.role
+        )
+        for p in participants
+    ]
 
 
 @router.get("/{session_id}/game_info", response_model=dict)
-async def get_session_game_info(session_id: str):
+async def get_session_game_info(
+    session_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_cookie)
+):
     """
     Get detailed game session info including players, NPCs, and scene.
     For active game sessions with full engine integration.
     """
-    # Try to get from active game sessions first
-    session = game_session_managers.get(session_id)
-    if not session:
-        # Fallback to session manager
-        session = session_manager.get_session(session_id)
-    if not session:
-        raise HTTPException(status_code=404, detail="Session not found")
-
+    repository = get_session_repository(db)
+    
+    db_session = get_session_by_uuid_or_404(session_id, repository)
+    
+    # Try to get from active game sessions
+    game_session = active_game_sessions.get(session_id)
+    
+    if not game_session:
+        raise HTTPException(
+            status_code=400,
+            detail="Session is not an active game session"
+        )
+    
     try:
         # Build players data
         players_data = []
-        for player in session.players:
+        for player in game_session.players:
             if hasattr(player, 'character'):
                 char = player.character
                 stats = getattr(char, 'stats', None)
                 players_data.append({
                     "name": getattr(char, 'name', 'Unknown'),
                     "race": getattr(char, 'race', 'Human'),
-                    "char_class": getattr(char, 'char_class', 'Fighter'),
+                    "char_class": str(getattr(char, 'char_class', 'Fighter')),
                     "level": getattr(char, 'level', 1),
                     "current_hp": getattr(char, 'current_hp', 10),
                     "max_hp": getattr(char, 'max_hp', 10),
@@ -657,384 +820,48 @@ async def get_session_game_info(session_id: str):
                         "intelligence": 10, "wisdom": 10, "charisma": 10,
                     },
                 })
-
+        
         # Build NPCs data
         npcs_data = []
-        for npc in session.npcs:
+        for npc in game_session.npcs:
             if hasattr(npc, 'character'):
                 char = npc.character
                 stats = getattr(char, 'stats', None)
                 npcs_data.append({
                     "name": getattr(char, 'name', 'Unknown'),
                     "race": getattr(char, 'race', 'Human'),
-                    "char_class": getattr(char, 'char_class', 'Commoner'),
+                    "char_class": str(getattr(char, 'char_class', 'Commoner')),
                     "alignment": getattr(char, 'alignment', 'Neutral'),
                     "current_hp": getattr(char, 'current_hp', 10),
                     "max_hp": getattr(char, 'max_hp', 10),
                     "armor_class": getattr(char, 'armor_class', 10),
                     "speed": getattr(char, 'speed', 30),
-                    "proficiency_bonus": getattr(char, 'proficiency_bonus', 2),
-                    "initiative_bonus": getattr(char, 'initiative_bonus', 0),
                     "is_alive": getattr(char, 'is_alive', True),
-                    "stats": {
-                        "strength": getattr(stats, 'strength', 10) if stats else 10,
-                        "dexterity": getattr(stats, 'dexterity', 10) if stats else 10,
-                        "constitution": getattr(stats, 'constitution', 10) if stats else 10,
-                        "intelligence": getattr(stats, 'intelligence', 10) if stats else 10,
-                        "wisdom": getattr(stats, 'wisdom', 10) if stats else 10,
-                        "charisma": getattr(stats, 'charisma', 10) if stats else 10,
-                    } if stats else {
-                        "strength": 10, "dexterity": 10, "constitution": 10,
-                        "intelligence": 10, "wisdom": 10, "charisma": 10,
-                    },
                 })
-
+        
         # Build scene data
         scene_data = None
-        if hasattr(session, 'current_scene') and session.current_scene:
-            scene = session.current_scene
+        if game_session.current_scene:
+            scene = game_session.current_scene
             scene_data = {
                 "name": getattr(scene, 'name', 'Unknown'),
                 "description": getattr(scene, 'description', ''),
             }
-
+        
         return {
             "session_id": session_id,
-            "session_name": session.session_name,
-            "game_mode": session.game_mode.value if hasattr(session.game_mode, 'value') else str(session.game_mode),
-            "status": "running",
+            "session_name": db_session.session_name,
+            "game_mode": db_session.game_mode.value,
+            "status": db_session.status.value,
+            "owner_id": db_session.owner_id,
             "players": players_data,
             "npcs": npcs_data,
-            "scene": scene_data,
+            "current_scene": scene_data,
         }
-
+        
     except Exception as e:
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Failed to get game info: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Failed to get game info: {str(e)}")
-
-
-# === Real Game Endpoints ===
-
-class SessionInitRequest(BaseModel):
-    session_name: str
-    game_mode: str = "STORY"
-    scene_prompt: Optional[str] = None
-    character_prompts: List[str] = []
-    npc_prompts: List[str] = []
-    gemini_api_key: Optional[str] = None
-
-
-# Global stores for active game sessions
-active_game_sessions: Dict[str, Dict[str, Any]] = {}
-game_session_managers: Dict[str, Session] = {}
-game_event_pools: Dict[str, EventPool] = {}
-game_deliveries: Dict[str, Any] = {}
-
-
-@router.post("/start_real_game", response_model=dict)
-async def start_real_game(request: SessionInitRequest, background_tasks: BackgroundTasks):
-    """
-    Start a REAL game session with the actual game engine running.
-    This creates characters, NPCs, scene, and starts the game loop.
-    
-    Uses AI service for proper core integration with fallback handling.
-    """
-    import logging
-    logger = logging.getLogger(__name__)
-    logger.info(f"🎮 Starting REAL game session: {request.session_name}")
-
-    try:
-        session_id = str(uuid.uuid4())
-        gemini_key = request.gemini_api_key or os.getenv("GEMINI_API_KEY", "NO_KEY")
-        
-        # Validate API key
-        if not gemini_key or gemini_key == "NO_KEY":
-            logger.warning("⚠️ GEMINI_API_KEY not set. AI features will use fallback.")
-
-        # Create event pool
-        event_pool = EventPool()
-        game_event_pools[session_id] = event_pool
-        logger.info(f"[{session_id}] EventPool created")
-
-        # Initialize AI generator through service (with error handling)
-        generator = None
-        if gemini_key and gemini_key != "NO_KEY":
-            try:
-                generator = ai_game_service.create_generator(
-                    session_id=session_id,
-                    gemini_api_key=gemini_key,
-                    gemini_model="gemini-2.0-flash",
-                    logger_instance=logger
-                )
-                logger.info(f"[{session_id}] ✅ AI Generator initialized")
-            except Exception as e:
-                logger.warning(f"[{session_id}] AI Generator failed: {e}. Using fallback mode.")
-        
-        # Fallback: create generator anyway (will fail gracefully on AI calls)
-        if not generator:
-            try:
-                generator = Generator(
-                    GoogleGenAI(
-                        api_key="NO_KEY",
-                        logger=logger,
-                        model_name="gemini-2.0-flash"
-                    ),
-                    logger_instance=logger
-                )
-            except Exception:
-                pass  # Generator will be None, all AI will use fallbacks
-
-        # Create session
-        session = Session(
-            session_name=request.session_name,
-            chroma_client=None,  # Simplified mode without chroma
-            logger=logger.getChild("session"),
-            generator=generator,
-            event_pool=event_pool,
-            delivery=None  # Will be set after creation
+        game_session.logger.error(f"Error getting game info: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error getting game info: {str(e)}"
         )
-
-        # Set game mode
-        session.game_mode = GameModes.COMBAT if request.game_mode.upper() == "COMBAT" else GameModes.STORY
-
-        # Create delivery (REST API compatible)
-        delivery_queue = event_pool.subscribe(f"delivery_{session_id}")
-        delivery = RESTAPIDelivery(delivery_queue, logger, session_id)
-        delivery.set_session(session)
-        session.delivery = delivery
-        game_deliveries[session_id] = delivery
-        logger.info(f"[{session_id}] RESTAPIDelivery created")
-
-        # Create and set orchestrator
-        orchestrator = Orchestrator(
-            generator=generator,
-            logger=logger.getChild("orchestrator")
-        )
-        orchestrator.add_state(session)
-        session._init_orchestrator(orchestrator)
-        logger.info(f"[{session_id}] Orchestrator initialized")
-
-        # Generate scene with AI (fallback on error)
-        logger.info(f"[{session_id}] Generating scene...")
-        if generator:
-            try:
-                scene = await ai_game_service.generate_scene(
-                    generator=generator,
-                    prompt=request.scene_prompt or "A medieval tavern",
-                    session=session
-                )
-                logger.info(f"[{session_id}] ✅ Scene generated: {scene.name}")
-            except Exception as e:
-                logger.warning(f"[{session_id}] AI scene generation failed, using fallback")
-                scene = _create_fallback_scene()
-        else:
-            scene = _create_fallback_scene()
-        
-        session.current_scene = scene
-        session.current_location_name = scene.name
-        session.all_locations[scene.name] = scene
-        session.location_graph[scene.name] = set()
-
-        # Generate player characters with AI (fallback on error)
-        character_prompts = request.character_prompts or ["A brave hero"]
-        if not character_prompts:
-            character_prompts = ["A brave hero"]
-        
-        for i, prompt in enumerate(character_prompts):
-            char = None
-            if generator:
-                try:
-                    char = await ai_game_service.generate_character(
-                        generator=generator,
-                        prompt=prompt,
-                        session=session
-                    )
-                    logger.info(f"[{session_id}] ✅ Character generated: {char.name}")
-                except Exception as e:
-                    logger.warning(f"[{session_id}] AI character generation failed, using fallback")
-            
-            if not char:
-                char = _create_fallback_character(i)
-                logger.info(f"[{session_id}] Fallback character created: {char.name}")
-            
-            player_queue = event_pool.subscribe(f"player_{char.name}")
-            player = Player(
-                character=char,
-                event_queuee=player_queue,
-                logger=logger.getChild("player"),
-                orchestrator=orchestrator
-            )
-            session.players.append(player)
-            logger.info(f"[{session_id}] ✅ Player added: {char.name}")
-
-        # Generate NPCs with AI (fallback on error)
-        npc_prompts = request.npc_prompts or ["A mysterious stranger"]
-        if not npc_prompts:
-            npc_prompts = ["A mysterious stranger"]
-        
-        for i, prompt in enumerate(npc_prompts):
-            npc_char = None
-            if generator:
-                try:
-                    npc_char = await ai_game_service.generate_npc(
-                        generator=generator,
-                        prompt=prompt,
-                        session=session
-                    )
-                    logger.info(f"[{session_id}] ✅ NPC generated: {npc_char.name}")
-                except Exception as e:
-                    logger.warning(f"[{session_id}] AI NPC generation failed, using fallback")
-            
-            if not npc_char:
-                npc_char = _create_fallback_npc(i)
-                logger.info(f"[{session_id}] Fallback NPC created: {npc_char.name}")
-            
-            session._init_npc(npc_char)
-            logger.info(f"[{session_id}] ✅ NPC added: {npc_char.name}")
-
-        # Store session
-        active_game_sessions[session_id] = {
-            "delivery": delivery,
-            "players": {p.character.name: p for p in session.players},
-            "session_object": session
-        }
-        game_session_managers[session_id] = session
-
-        logger.info(f"[{session_id}] 🎮 REAL GAME STARTED!")
-
-        return {
-            "status": "running",
-            "session_id": session_id,
-            "session_name": request.session_name,
-            "game_mode": request.game_mode,
-            "scene": scene.name,
-            "players": [p.character.name for p in session.players],
-            "npcs": [n.character.name for n in session.npcs],
-            "message": "Real game session started with AI!"
-        }
-
-    except Exception as e:
-        logger.error(f"Failed to start real game: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Failed to start game: {str(e)}")
-
-
-# === Helper Functions ===
-
-def _create_fallback_scene():
-    """Create a fallback scene when AI generation fails."""
-    from core.schemas.in_game import Coordinate2D
-    return SceneNode(
-        name="Default Tavern",
-        description="A cozy medieval tavern with warm fire and wooden tables.",
-        objects=[],
-        center_position=Coordinate2D(x=10, y=10),
-        dimensions=Coordinate2D(x=20, y=20),
-        scale_unit="meters"
-    )
-
-
-def _create_fallback_character(index: int = 0):
-    """Create a fallback character when AI generation fails."""
-    from core.schemas.in_game import AbilityScores, Coordinate2D
-    return Character(
-        name=f"Hero{index+1}",
-        race="Human",
-        char_class="Fighter",
-        level=1,
-        backstory_summary="A brave adventurer",
-        personality_traits=["Brave", "Kind"],
-        max_hp=10,
-        current_hp=10,
-        temp_hp=0,
-        armor_class=12,
-        speed=30,
-        stats=AbilityScores(strength=10, dexterity=10, constitution=10, intelligence=10, wisdom=10, charisma=10),
-        inventory=[],
-        active_conditions_list=[],
-        resources={},
-        position=Coordinate2D(x=10, y=10),
-        abilities=[],
-        active_conditions="",
-        proficiency_bonus=2,
-        is_alive=True,
-        initiative_bonus=0,
-        short_summary="A brave hero"
-    )
-
-
-def _create_fallback_npc(index: int = 0):
-    """Create a fallback NPC when AI generation fails."""
-    from core.schemas.in_game import AbilityScores, Coordinate2D
-    return NPCCharacter(
-        name=f"NPC{index+1}",
-        race="Human",
-        char_class="Commoner",
-        level=1,
-        backstory_summary="A local villager",
-        personality_traits=["Friendly"],
-        max_hp=8,
-        current_hp=8,
-        temp_hp=0,
-        armor_class=10,
-        speed=30,
-        stats=AbilityScores(strength=10, dexterity=10, constitution=10, intelligence=10, wisdom=10, charisma=10),
-        inventory=[],
-        active_conditions_list=[],
-        resources={},
-        position=Coordinate2D(x=10, y=10),
-        abilities=[],
-        active_conditions="",
-        proficiency_bonus=2,
-        is_alive=True,
-        initiative_bonus=0,
-        short_summary="A friendly local"
-    )
-
-
-class PlayerActionRequest(BaseModel):
-    character_name: str
-    action: str
-
-
-@router.post("/{session_id}/player_action", response_model=dict)
-async def process_player_action(session_id: str, request: PlayerActionRequest):
-    """
-    Process player action through the game engine.
-    Uses session's Delivery for proper interaction.
-    """
-    import logging
-    logger = logging.getLogger(__name__)
-
-    # Get active session
-    session = game_session_managers.get(session_id)
-    if not session:
-        raise HTTPException(status_code=404, detail="Active game session not found")
-
-    try:
-        logger.info(f"[{session_id}] Processing action for {request.character_name}: {request.action}")
-
-        # Use session's delivery to process action
-        if not session.delivery:
-            raise ValueError("Session has no delivery")
-
-        # Process through delivery
-        result = session.delivery.process_player_action(
-            character_name=request.character_name,
-            action_text=request.action
-        )
-
-        logger.info(f"[{session_id}] Action result: {result}")
-
-        return result
-
-    except Exception as e:
-        logger.error(f"[{session_id}] Failed to process action: {e}", exc_info=True)
-        return {
-            "session_id": session_id,
-            "character": request.character_name,
-            "action": request.action,
-            "response": f"Error processing action: {str(e)}",
-            "status": "error"
-        }

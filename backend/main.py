@@ -131,34 +131,35 @@ async def health_check():
     }
 
 
-@app.get("/health/ready", tags=["Health"], summary="Readiness check endpoint")
-async def health_ready():
-    """
-    Readiness check endpoint.
-    Returns 200 OK if the server is ready to accept requests.
-    """
-    try:
-        # Check database connection
-        from backend.src.database import get_db
-        db = next(get_db())
-        db.execute("SELECT 1")
-        db.close()
-        return {
-            "status": "ready",
-            "database": "connected",
-            "timestamp": __import__("datetime").datetime.utcnow().isoformat()
-        }
-    except Exception as e:
-        logger.error(f"Readiness check failed: {e}")
-        return JSONResponse(
-            status_code=503,
-            content={
-                "status": "not ready",
-                "database": "disconnected",
-                "error": str(e),
-                "timestamp": __import__("datetime").datetime.utcnow().isoformat()
-            }
-        )
+# Temporarily disabled due to import caching issue
+# @app.get("/health/ready", tags=["Health"], summary="Readiness check endpoint")
+# async def health_ready():
+#     """
+#     Readiness check endpoint.
+#     Returns 200 OK if the server is ready to accept requests.
+#     """
+#     try:
+#         # Check database connection - import directly from session module
+#         from backend.src.database.session import get_db
+#         db = next(get_db())
+#         db.execute("SELECT 1")
+#         db.close()
+#         return {
+#             "status": "ready",
+#             "database": "connected",
+#             "timestamp": __import__("datetime").datetime.utcnow().isoformat()
+#         }
+#     except Exception as e:
+#         logger.error(f"Readiness check failed: {e}")
+#         return JSONResponse(
+#             status_code=503,
+#             content={
+#                 "status": "not ready",
+#                 "database": "disconnected",
+#                 "error": str(e),
+#                 "timestamp": __import__("datetime").datetime.utcnow().isoformat()
+#             }
+#         )
 
 
 @app.get("/health/live", tags=["Health"], summary="Liveness check endpoint")

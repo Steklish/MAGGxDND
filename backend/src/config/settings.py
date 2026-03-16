@@ -1,10 +1,18 @@
 import os
 from typing import List
 from dotenv import load_dotenv
+from pathlib import Path
 
-# Load environment variables from .env file
-load_dotenv()
+# Get project root directory using absolute path from this file's location
+# __file__ = backend/src/config/settings.py
+# Path hierarchy: settings.py -> config -> src -> backend -> project root
+CURRENT_FILE = Path(__file__).resolve()
+PROJECT_ROOT = CURRENT_FILE.parents[3]  # config(0) -> src(1) -> backend(2) -> project root(3)
 
+# Load environment variables from .env file in project root
+# Use absolute path to ensure .env is loaded from project root regardless of cwd
+env_file_path = PROJECT_ROOT / ".env"
+load_dotenv(dotenv_path=env_file_path, override=True)
 
 class Settings:
     """Application settings with secure defaults for production."""
@@ -12,7 +20,20 @@ class Settings:
     # ===================================================================
     # DATABASE SETTINGS
     # ===================================================================
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./maggxdnd.db")
+    # Use absolute path for database to avoid working directory issues
+    _db_url = os.getenv("DATABASE_URL")
+    if _db_url:
+        # If DATABASE_URL is provided, use it as-is but ensure it's absolute
+        DATABASE_URL: str = _db_url
+    else:
+        # Default: absolute path from project root
+        db_path = PROJECT_ROOT / "maggxdnd.db"
+        DATABASE_URL: str = f"sqlite:///{str(db_path).replace('\\', '/')}"
+    
+    # Log database path for debugging
+    import logging
+    _db_logger = logging.getLogger(__name__)
+    _db_logger.info(f"Database URL configured: {DATABASE_URL}")
 
     # ===================================================================
     # SECURITY SETTINGS

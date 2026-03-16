@@ -9,6 +9,7 @@ import { SessionDetail } from './components/SessionDetail';
 import { CharacterDetail } from './components/CharacterDetail';
 import { GameSetup } from './components/GameSetup';
 import { GameLayout } from './components/GameLayout';
+import { LoadingPage } from './components/LoadingPage';
 import { ToastProvider } from './components/common/Toast';
 import './App.css';
 
@@ -41,6 +42,7 @@ function App() {
     const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
     const [selectedCharacterId, setSelectedCharacterId] = useState<number | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
+    const [isLoadingAfterAuth, setIsLoadingAfterAuth] = useState(false);
 
     // Initialize auth on mount
     useEffect(() => {
@@ -74,7 +76,7 @@ function App() {
 
     // Handle authentication state changes - reload sessions on auth change
     useEffect(() => {
-        if (isInitialized) {
+        if (isInitialized && !isLoadingAfterAuth) {
             if (isAuthenticated && localUserId) {
                 setCurrentPage('home');
                 // Reload sessions when auth state changes
@@ -85,7 +87,33 @@ function App() {
                 setActiveSessions([]);
             }
         }
-    }, [isAuthenticated, localUserId, isInitialized]);
+    }, [isAuthenticated, localUserId, isInitialized, isLoadingAfterAuth]);
+
+    // Watch for auth changes during landing page to show loading state
+    useEffect(() => {
+        if (isAuthenticated && currentPage === 'landing' && !localUserId) {
+            setIsLoadingAfterAuth(true);
+        }
+        if (isLoadingAfterAuth && localUserId) {
+            setIsLoadingAfterAuth(false);
+        }
+    }, [isAuthenticated, currentPage, localUserId, isLoadingAfterAuth]);
+
+    // Listen for loading complete event from LoadingPage
+    useEffect(() => {
+        const handleLoadingComplete = () => {
+            const storedUserId = localStorage.getItem('userId');
+            if (storedUserId) {
+                const id = parseInt(storedUserId);
+                setLocalUserId(id);
+                setIsLoadingAfterAuth(false);
+                setCurrentPage('home');
+            }
+        };
+
+        window.addEventListener('auth-loading-complete', handleLoadingComplete);
+        return () => window.removeEventListener('auth-loading-complete', handleLoadingComplete);
+    }, []);
 
     // Navigation handlers
     const handleShowProfile = () => {
@@ -151,7 +179,12 @@ function App() {
         }
     };
 
-    const handleSessionComplete = () => {
+    const handleSessionComplete = (sessionId: string) => {
+        // Persist session ID to localStorage immediately
+        if (sessionId) {
+            localStorage.setItem('currentSessionId', sessionId);
+            console.log('✓ Session persisted to localStorage:', sessionId);
+        }
         setCurrentPage('home');
         loadSessions();
     };
@@ -263,6 +296,11 @@ function App() {
                 <p>Loading...</p>
             </div>
         );
+    }
+
+    // Show loading page after authentication during data load
+    if (isLoadingAfterAuth) {
+        return <LoadingPage message="Preparing your adventure..." showDice={true} />;
     }
 
     return (

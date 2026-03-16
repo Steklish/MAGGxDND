@@ -168,6 +168,11 @@ export const useGameStore = create<GameState>((set, get) => ({
         localStorage.removeItem('userId');
         localStorage.removeItem('is_guest');
         localStorage.removeItem('remember_me');
+        localStorage.removeItem('currentSessionId');
+        localStorage.removeItem('currentSessionName');
+        localStorage.removeItem('currentPlayerId');
+        localStorage.removeItem('activeSessionIds');
+        localStorage.removeItem('selectedCharacterId');
         set({
             isAuthenticated: false,
             userId: null,
@@ -179,6 +184,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             selectedCharacter: null,
             activeSessions: [],
             currentSession: null,
+            session: null,
             sessionId: null,
             mode: 'menu',
         });
@@ -299,6 +305,19 @@ export const useGameStore = create<GameState>((set, get) => ({
             // Also persist session IDs to localStorage for recovery
             const sessionIds = uniqueSessions.map(s => s.session_id);
             localStorage.setItem('activeSessionIds', JSON.stringify(sessionIds));
+            
+            // Restore current session if it matches one from localStorage
+            const storedSessionId = localStorage.getItem('currentSessionId');
+            if (storedSessionId) {
+                const matchingSession = uniqueSessions.find(s => s.session_id === storedSessionId);
+                if (matchingSession) {
+                    set({
+                        currentSession: matchingSession,
+                        session: matchingSession,
+                        sessionId: storedSessionId,
+                    });
+                }
+            }
         } catch (error: any) {
             console.warn('Failed to load sessions (using empty list):', error.message);
             set({ activeSessions: [] });
@@ -321,6 +340,12 @@ export const useGameStore = create<GameState>((set, get) => ({
                 sessionId: session.session_id,
                 isLoading: false,
             });
+            
+            // Persist to localStorage immediately for recovery
+            localStorage.setItem('currentSessionId', session.session_id);
+            localStorage.setItem('currentSessionName', session.session_name);
+            
+            // Refresh sessions list
             await get().loadSessions();
             return session;
         } catch (error: any) {
@@ -360,6 +385,14 @@ export const useGameStore = create<GameState>((set, get) => ({
             session: session, // Also update alias
             sessionId: session?.session_id || null,
         });
+        // Persist to localStorage
+        if (session?.session_id) {
+            localStorage.setItem('currentSessionId', session.session_id);
+            localStorage.setItem('currentSessionName', session.session_name);
+        } else {
+            localStorage.removeItem('currentSessionId');
+            localStorage.removeItem('currentSessionName');
+        }
     },
 
     setActiveSessions: (sessions) => {
@@ -469,8 +502,10 @@ const initStore = () => {
     const userId = localStorage.getItem('userId');
     const username = localStorage.getItem('username');
     const sessionId = localStorage.getItem('currentSessionId');
+    const sessionName = localStorage.getItem('currentSessionName');
     const playerId = localStorage.getItem('currentPlayerId');
     const gameStatus = localStorage.getItem('gameStatus');
+    const activeSessionIds = localStorage.getItem('activeSessionIds');
 
     if (token && userId && username) {
         useGameStore.setState({
@@ -481,11 +516,33 @@ const initStore = () => {
         });
     }
 
-    // Restore session if already joined
+    // Restore active session IDs
+    if (activeSessionIds) {
+        try {
+            const ids = JSON.parse(activeSessionIds);
+            // Create placeholder sessions that will be refreshed by loadSessions
+            const placeholderSessions = ids.map((id: string) => ({
+                session_id: id,
+                session_name: 'Loading...',
+                game_mode: 'STORY',
+                player_count: 0,
+                max_players: 5,
+                status: 'created',
+                description: undefined,
+            }));
+            useGameStore.setState({
+                activeSessions: placeholderSessions,
+            });
+        } catch (e) {
+            console.warn('Failed to parse activeSessionIds from localStorage');
+        }
+    }
+
+    // Restore current session if already joined
     if (sessionId && playerId) {
         const sessionData = {
             session_id: sessionId,
-            session_name: 'Active Session',
+            session_name: sessionName || 'Active Session',
             game_mode: 'STORY',
             player_count: 1,
             max_players: 5,
