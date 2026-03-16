@@ -8,9 +8,10 @@ interface AuthModalProps {
     onClose: () => void;
     onRegisterSuccess?: (userId: number, username: string) => void;
     onLoginSuccess?: (userId: number, username: string) => void;
+    onGuestSuccess?: () => void;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterSuccess, onLoginSuccess }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterSuccess, onLoginSuccess, onGuestSuccess }) => {
     const [isLogin, setIsLogin] = useState(mode === 'login');
     const [isLoading, setIsLoading] = useState(false);
     const [oauthConfigured, setOauthConfigured] = useState({ google: false, discord: false });
@@ -182,7 +183,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
             }
 
             setAuthenticated(true);
-            onClose();
         } catch (error: any) {
             console.error('Auth error:', error);
             const errorMessage = error.response?.data?.detail || 'Authentication failed. Please try again.';
@@ -229,7 +229,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
             localStorage.setItem('is_guest', 'true');
 
             console.log('✅ Guest login successful');
-            onClose();
+            
+            // Call success callback to trigger loading page
+            if (onGuestSuccess) {
+                onGuestSuccess();
+            }
         } catch (error: any) {
             console.error('Guest login error:', error);
             setErrors({ submit: 'Failed to enter as guest. Please try again.' });

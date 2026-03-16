@@ -1,33 +1,64 @@
 import React, { useState, useEffect } from 'react';
+import { useGameStore } from '../store/gameStore';
 import './LoadingPage.css';
 
 interface LoadingPageProps {
     message?: string;
     showDice?: boolean;
+    redirectDelay?: number;
 }
 
-export const LoadingPage: React.FC<LoadingPageProps> = ({ 
-    message = 'Загрузка...', 
-    showDice = true 
+export const LoadingPage: React.FC<LoadingPageProps> = ({
+    message = 'Загрузка...',
+    showDice = true,
+    redirectDelay = 2500
 }) => {
+    const { isAuthenticated, checkAuthPersistence, loadCharacters, loadSessions } = useGameStore();
     const [diceRoll, setDiceRoll] = useState<number>(20);
     const [isRolling, setIsRolling] = useState(true);
     const [rollHistory, setRollHistory] = useState<number[]>([]);
     const [currentTipIndex, setCurrentTipIndex] = useState(0);
     const [isTipFading, setIsTipFading] = useState(false);
+    const [isLoadingComplete, setIsLoadingComplete] = useState(false);
 
-    // Change tip every 4 seconds with smooth fade
+    // Initialize auth and load data
     useEffect(() => {
-        const tipInterval = setInterval(() => {
-            setIsTipFading(true);
-            setTimeout(() => {
-                setCurrentTipIndex(prev => (prev + 1) % tips.length);
-                setIsTipFading(false);
-            }, 400);
-        }, 4000);
-
-        return () => clearInterval(tipInterval);
+        const initializeSession = async () => {
+            // Check auth persistence
+            checkAuthPersistence();
+            
+            // Get user ID and load data
+            const storedUserId = localStorage.getItem('userId');
+            if (storedUserId) {
+                const id = parseInt(storedUserId);
+                try {
+                    await Promise.all([
+                        loadCharacters(id).catch(console.warn),
+                        loadSessions().catch(console.warn)
+                    ]);
+                } catch (error) {
+                    console.warn('Failed to load initial data:', error);
+                }
+            }
+            
+            // Mark loading as complete
+            setIsLoadingComplete(true);
+        };
+        
+        initializeSession();
     }, []);
+
+    // Redirect after loading completes
+    useEffect(() => {
+        if (isLoadingComplete && isAuthenticated) {
+            const timer = setTimeout(() => {
+                // Force a full page reload to reinitialize App.tsx auth flow
+                window.location.reload();
+            }, redirectDelay);
+            
+            return () => clearTimeout(timer);
+        }
+    }, [isLoadingComplete, isAuthenticated, redirectDelay]);
 
     // Animate dice rolls
     useEffect(() => {
@@ -54,6 +85,19 @@ export const LoadingPage: React.FC<LoadingPageProps> = ({
             };
         }
     }, [showDice, isRolling]);
+
+    // Change tip every 4 seconds with smooth fade
+    useEffect(() => {
+        const tipInterval = setInterval(() => {
+            setIsTipFading(true);
+            setTimeout(() => {
+                setCurrentTipIndex(prev => (prev + 1) % tips.length);
+                setIsTipFading(false);
+            }, 400);
+        }, 4000);
+
+        return () => clearInterval(tipInterval);
+    }, []);
 
     return (
         <div className="loading-page">

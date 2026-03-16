@@ -3,6 +3,7 @@ import { LandingFooter } from './LandingFooter';
 import { AuthModal } from './AuthModal';
 import { CharacterCreation } from './CharacterCreation';
 import { ProfilePage } from './ProfilePage';
+import { LoadingPage } from './LoadingPage';
 import { useGameStore } from '../store/gameStore';
 import './LandingPage.css';
 
@@ -17,32 +18,33 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
     const [showProfile, setShowProfile] = useState(false);
     const [userId, setUserId] = useState<number | null>(null);
     const [scrolled, setScrolled] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     // Handle quick start (demo mode)
     const handleQuickStart = () => {
         setAuthenticated(true);
+        setIsAuthenticated(true);
     };
 
-    // Handle registration success - skip character creation, go to home
+    // Handle registration success - show loading page then redirect
     const handleRegisterSuccess = (newUserId: number) => {
         setUserId(newUserId);
-        // Close modal and force reload to trigger auth redirect
+        // Close modal and show loading page
         setAuthModalOpen(null);
-        // Force page reload to reinitialize auth
-        setTimeout(() => {
-            window.location.reload();
-        }, 500);
+        setIsAuthenticated(true);
     };
 
-    // Handle login success - go directly to home
+    // Handle login success - show loading page then redirect
     const handleLoginSuccess = (newUserId: number) => {
         setUserId(newUserId);
-        // Close modal and force reload to trigger auth redirect
+        // Close modal and show loading page
         setAuthModalOpen(null);
-        // Force page reload to reinitialize auth
-        setTimeout(() => {
-            window.location.reload();
-        }, 500);
+        setIsAuthenticated(true);
+    };
+
+    // Handle guest login success
+    const handleGuestSuccess = () => {
+        setIsAuthenticated(true);
     };
 
     // Handle character creation complete
@@ -487,6 +489,15 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
                     onClose={() => setAuthModalOpen(null)}
                     onRegisterSuccess={handleRegisterSuccess}
                     onLoginSuccess={handleLoginSuccess}
+                    onGuestSuccess={handleGuestSuccess}
+                />
+            )}
+
+            {/* Loading Page - Show after authentication */}
+            {isAuthenticated && (
+                <LoadingPage
+                    message="Preparing your adventure..."
+                    showDice={true}
                 />
             )}
 
