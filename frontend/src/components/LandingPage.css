@@ -59,7 +59,7 @@ html::-webkit-scrollbar-thumb:hover {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.2);
     pointer-events: none;
     z-index: 1;
 }
@@ -70,7 +70,7 @@ html::-webkit-scrollbar-thumb:hover {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.2);
     z-index: 2;
 }
 
@@ -87,7 +87,7 @@ html::-webkit-scrollbar-thumb:hover {
     position: absolute;
     border-radius: 50%;
     filter: blur(120px);
-    opacity: 0.3;
+    opacity: 0.5;
     animation: float-orb infinite ease-in-out;
 }
 
@@ -139,7 +139,7 @@ html::-webkit-scrollbar-thumb:hover {
     left: -150px;
     animation-delay: -20s;
     animation-duration: 24s;
-    opacity: 0.25;
+    opacity: 0.4;
 }
 
 .orb-6 {
@@ -150,7 +150,7 @@ html::-webkit-scrollbar-thumb:hover {
     right: -180px;
     animation-delay: -8s;
     animation-duration: 26s;
-    opacity: 0.25;
+    opacity: 0.4;
 }
 
 .orb-7 {
@@ -161,7 +161,7 @@ html::-webkit-scrollbar-thumb:hover {
     right: 30%;
     animation-delay: -12s;
     animation-duration: 23s;
-    opacity: 0.28;
+    opacity: 0.4;
 }
 
 .orb-8 {
@@ -172,7 +172,7 @@ html::-webkit-scrollbar-thumb:hover {
     left: 30%;
     animation-delay: -18s;
     animation-duration: 21s;
-    opacity: 0.22;
+    opacity: 0.4;
 }
 
 @keyframes float-orb {
