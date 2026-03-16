@@ -67,6 +67,8 @@ export const HomePage: React.FC<HomePageProps> = ({
         };
 
         window.addEventListener('scroll', handleScroll);
+        handleScroll(); // Initialize on mount
+
         return () => {
             window.removeEventListener('scroll', handleScroll);
             document.body.classList.remove('has-home-bg');
