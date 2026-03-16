@@ -52,7 +52,7 @@ html::-webkit-scrollbar-thumb:hover {
     background-attachment: scroll;
 }
 
-.landing-background::after {
+.landing-background::before {
     content: '';
     position: absolute;
     top: 0;
@@ -61,6 +61,7 @@ html::-webkit-scrollbar-thumb:hover {
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
     pointer-events: none;
+    z-index: 1;
 }
 
 .bg-overlay {
@@ -69,7 +70,8 @@ html::-webkit-scrollbar-thumb:hover {
     left: 0;
     width: 100%;
     height: 100%;
-    background: transparent;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2;
 }
 
 .bg-gradient-orbs {

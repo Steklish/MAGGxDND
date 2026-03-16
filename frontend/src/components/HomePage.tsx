@@ -132,7 +132,7 @@ export const HomePage: React.FC<HomePageProps> = ({
     return (
         <div className="home-page">
             {/* Background */}
-            <div className="home-bg"></div>
+            <div className="home-bg" ref={backgroundRef}></div>
             
             {/* Navigation Header */}
             <header className={`home-header ${scrolled ? 'scrolled' : ''}`}>
