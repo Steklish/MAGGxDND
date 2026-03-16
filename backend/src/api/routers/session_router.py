@@ -680,46 +680,80 @@ async def get_session_info(
 async def join_session(
     session_id: str,
     request: PlayerJoinRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_cookie)
 ):
     """
     Join a session as a player.
-    
+
     Returns player_id for WebSocket connection.
+    Each player can only join once per session.
     """
     repository = get_session_repository(db)
-    
+
     # Validate session exists
     db_session = get_session_by_uuid_or_404(session_id, repository)
-    
+
     # Check if session is active
     if db_session.status != SessionStatusEnum.RUNNING and db_session.status != SessionStatusEnum.CREATED:
         raise HTTPException(
             status_code=400,
             detail=f"Session is not accepting players (status: {db_session.status.value})"
         )
+
+    # Check if player already joined (by user_id or player_name)
+    existing_participants = repository.get_session_participants(session_id)
     
+    # Check if current user already joined
+    for participant in existing_participants:
+        if participant.user_id == current_user.id:
+            # User already joined - return existing player_id
+            return PlayerResponse(
+                player_id=participant.player_uuid,
+                player_name=participant.player_name,
+                character_name=participant.character_name,
+                connected=participant.is_connected,
+                role=participant.role
+            )
+        # Also check by player_name for guest users
+        if participant.player_name == request.player_name and participant.user_id is None:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Player '{request.player_name}' is already in this session"
+            )
+
+    # Check max players
+    if len(existing_participants) >= db_session.max_players:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Session is full (max {db_session.max_players} players)"
+        )
+
+    # Determine role - owner gets 'owner' role
+    role = "owner" if db_session.owner_id == current_user.id else "player"
+
     # Generate player ID
     player_id = str(uuid.uuid4())
-    
+
     # Add player to session
     participant = repository.add_participant(
         session_uuid=session_id,
         player_uuid=player_id,
         player_name=request.player_name,
+        user_id=current_user.id,
         character_name=request.character_name,
-        role="player"
+        role=role
     )
-    
+
     if not participant:
         raise HTTPException(status_code=500, detail="Failed to add player to session")
-    
+
     return PlayerResponse(
         player_id=player_id,
         player_name=request.player_name,
         character_name=request.character_name,
         connected=True,
-        role="player"
+        role=role
     )
 
 
@@ -727,33 +761,107 @@ async def join_session(
 async def leave_session(
     session_id: str,
     player_id: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_cookie)
 ):
-    """Remove a player from a session."""
-    repository = get_session_repository(db)
+    """
+    Remove a player from a session.
     
+    Players can remove themselves, or the session owner can kick any player.
+    """
+    repository = get_session_repository(db)
+
+    # Get session to check ownership
+    db_session = get_session_by_uuid_or_404(session_id, repository)
+    
+    # Get participant to check if it's the current user
+    participants = repository.get_session_participants(session_id)
+    participant = next((p for p in participants if p.player_uuid == player_id), None)
+    
+    if not participant:
+        raise HTTPException(status_code=404, detail="Player not found in session")
+    
+    # Check if current user is the player being removed or the session owner
+    is_own_action = participant.user_id == current_user.id
+    is_owner = db_session.owner_id == current_user.id
+    
+    if not is_own_action and not is_owner:
+        raise HTTPException(
+            status_code=403,
+            detail="Only the player themselves or the session owner can remove this player"
+        )
+
     # Remove from DB
     repository.remove_participant(session_id, player_id)
-    
+
     # Unsubscribe from events
     session_manager.unregister_player_websocket(session_id, player_id)
     session_manager.unsubscribe_player_from_events(session_id, player_id)
+
+    return None
+
+
+@router.post("/{session_id}/players/{player_id}/kick", status_code=204)
+async def kick_player(
+    session_id: str,
+    player_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_cookie)
+):
+    """
+    Kick a player from the session.
     
+    Only the session owner can kick players.
+    """
+    repository = get_session_repository(db)
+
+    # Get session to check ownership
+    db_session = get_session_by_uuid_or_404(session_id, repository)
+    
+    # Verify current user is the owner
+    if db_session.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Only the session owner can kick players"
+        )
+    
+    # Get participant
+    participants = repository.get_session_participants(session_id)
+    participant = next((p for p in participants if p.player_uuid == player_id), None)
+    
+    if not participant:
+        raise HTTPException(status_code=404, detail="Player not found in session")
+    
+    # Cannot kick the owner
+    if participant.role == "owner":
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot kick the session owner"
+        )
+
+    # Remove from DB
+    repository.remove_participant(session_id, player_id)
+
+    # Unsubscribe from events
+    session_manager.unregister_player_websocket(session_id, player_id)
+    session_manager.unsubscribe_player_from_events(session_id, player_id)
+
     return None
 
 
 @router.get("/{session_id}/players", response_model=List[PlayerResponse])
 async def get_session_players_endpoint(
     session_id: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_cookie)
 ):
     """Get all players in a session."""
     repository = get_session_repository(db)
-    
+
     db_session = get_session_by_uuid_or_404(session_id, repository)
-    
+
     participants = repository.get_session_participants(session_id)
-    
+
     return [
         PlayerResponse(
             player_id=p.player_uuid,

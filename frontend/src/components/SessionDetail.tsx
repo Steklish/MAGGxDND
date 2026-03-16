@@ -40,6 +40,7 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
     const [isJoining, setIsJoining] = useState(false);
     const [playerId, setPlayerId] = useState<string | null>(null);
     const [hasJoinedSession, setHasJoinedSession] = useState(false);
+    const [isOwner, setIsOwner] = useState(false);
 
     useEffect(() => {
         // Check if we already have a player ID for this session in localStorage
@@ -48,14 +49,14 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
             setPlayerId(storedPlayerId);
             setHasJoinedSession(true);
         }
-        
+
         loadSessionDetail();
         loadPlayers();
-        
+
         // Refresh session data every 5 seconds
         const sessionInterval = setInterval(loadSessionDetail, 5000);
-        // Refresh players every 2 seconds for real-time updates
-        const playersInterval = setInterval(loadPlayers, 2000);
+        // Refresh players every 3 seconds for real-time updates (reduced frequency)
+        const playersInterval = setInterval(loadPlayers, 3000);
 
         // Scroll handler for header
         const handleScroll = () => {
@@ -79,8 +80,10 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
             if (foundSession) {
                 setSession({
                     ...foundSession,
-                    players: [] // Will be populated by loadPlayers
+                    players: session?.players || [] // Keep existing players until loaded
                 });
+                // Check if current user is the owner
+                setIsOwner(foundSession.is_owner || false);
             } else {
                 setError('Session not found');
             }
@@ -97,10 +100,12 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
         try {
             const response = await axios.get(`/api/v1/sessions/${sessionId}/players`);
             if (response.data && Array.isArray(response.data)) {
+                // Only update player_count from the session detail, not from players array length
+                // This prevents jumping because player_count comes from DB with proper filtering
                 setSession((prev: any) => ({
                     ...prev,
-                    players: response.data,
-                    player_count: response.data.length
+                    players: response.data
+                    // Keep player_count from session detail endpoint
                 }));
             }
         } catch (err: any) {
@@ -168,6 +173,36 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
         if (session?.session_id) {
             navigator.clipboard.writeText(session.session_id);
             alert('Session ID copied to clipboard!');
+        }
+    };
+
+    const handleKickPlayer = async (playerIdToKick: string, playerName: string) => {
+        if (!isOwner) {
+            alert('Only the session owner can kick players');
+            return;
+        }
+
+        if (!confirm(`Are you sure you want to kick ${playerName} from the session?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/v1/sessions/${sessionId}/players/${playerIdToKick}/kick`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (response.ok) {
+                // Reload players list
+                await loadPlayers();
+                await loadSessionDetail();
+            } else {
+                const errorData = await response.json();
+                alert(`Failed to kick player: ${errorData.detail || 'Unknown error'}`);
+            }
+        } catch (err: any) {
+            console.error('Failed to kick player:', err);
+            alert('Network error. Please try again.');
         }
     };
 
@@ -318,7 +353,7 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                         {/* Players List */}
                         <div className="players-card">
                             <div className="players-card-header">
-                                <h2>👥 Connected Players ({session.players?.length || 0})</h2>
+                                <h2>👥 Players ({session.player_count || session.players?.length || 0})</h2>
                                 {!hasJoinedSession && !playerId && (
                                     <button
                                         className="btn-join-this"
@@ -347,10 +382,23 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                                                     {player.character_name && (
                                                         <span className="player-character">{player.character_name}</span>
                                                     )}
+                                                    {player.role === 'owner' && (
+                                                        <span className="player-role-badge">👑 Owner</span>
+                                                    )}
                                                 </div>
                                                 <span className={`player-status ${player.connected ? 'connected' : 'disconnected'}`}>
                                                     {player.connected ? '🟢 Connected' : '🔴 Disconnected'}
                                                 </span>
+                                                {/* Kick button - only for owner and not for other owners */}
+                                                {isOwner && player.role !== 'owner' && (
+                                                    <button
+                                                        className="btn-kick"
+                                                        onClick={() => handleKickPlayer(player.player_id, player.player_name)}
+                                                        title="Kick player"
+                                                    >
+                                                        ❌ Kick
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     ))}
