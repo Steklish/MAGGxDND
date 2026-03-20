@@ -143,8 +143,9 @@ body.has-home-bg #root {
 }
 
 .btn-create-session {
-    background: var(--gradient-primary);
-    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: var(--text-primary);
     padding: 12px 24px;
     font-family: var(--font-family);
@@ -156,6 +157,8 @@ body.has-home-bg #root {
     display: flex;
     align-items: center;
     gap: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .btn-create-session:hover {
@@ -165,7 +168,8 @@ body.has-home-bg #root {
 
 .btn-profile {
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     color: var(--text-primary);
     padding: 10px 16px;
     font-family: var(--font-family);
@@ -177,6 +181,8 @@ body.has-home-bg #root {
     display: flex;
     align-items: center;
     gap: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .btn-profile:hover {
@@ -190,7 +196,8 @@ body.has-home-bg #root {
 
 .btn-logout {
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     color: var(--text-secondary);
     padding: 10px;
     font-size: 18px;
@@ -200,6 +207,8 @@ body.has-home-bg #root {
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .btn-logout:hover {
@@ -324,7 +333,13 @@ body.has-home-bg #root {
 
 .stat-card {
     text-align: center;
-    background: transparent !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .stat-value {
@@ -376,12 +391,15 @@ body.has-home-bg #root {
 }
 
 .content-card {
-    background: transparent !important;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.03) !important;
+    backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-lg);
     padding: 24px;
     transition: all 0.3s ease;
     animation: cardFadeIn 0.5s ease-out;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 @keyframes cardFadeIn {
@@ -436,11 +454,14 @@ body.has-home-bg #root {
     align-items: center;
     gap: 16px;
     padding: 16px;
-    background: transparent !important;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .session-item:hover {
@@ -510,11 +531,14 @@ body.has-home-bg #root {
     align-items: center;
     gap: 16px;
     padding: 20px;
-    background: transparent !important;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .character-card-mini:hover {
@@ -557,8 +581,9 @@ body.has-home-bg #root {
     align-items: center;
     gap: 12px;
     padding: 24px;
-    background: transparent !important;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-md);
     color: var(--text-primary);
     font-family: var(--font-family);
@@ -566,6 +591,8 @@ body.has-home-bg #root {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .action-btn:hover {
@@ -645,11 +672,14 @@ body.has-home-bg #root {
 }
 
 .character-card-placeholder {
-    background: transparent !important;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-lg);
     padding: 24px;
     transition: all 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .character-card-placeholder:hover {
@@ -699,11 +729,14 @@ body.has-home-bg #root {
 
 .session-card-full {
     padding: 24px;
-    background: transparent !important;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-lg);
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .session-card-full:hover {
