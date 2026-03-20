@@ -1,3 +1,4 @@
+import os
 from logging import Logger
 from typing import TYPE_CHECKING, List, Optional
 
@@ -11,9 +12,12 @@ from skls_generator.generator import Generator
 from schemas.orchestration import Event, Message
 from game.manipulators.base_manipulation import Archive
 
+# Construct the absolute path to the prompts file
+_CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROMPTS_PATH = os.path.join(os.path.dirname(_CURRENT_DIR), "prompts", "DM_personality.md")
 
 class Magg:
-    with open("prompts/DM_personality.md", "r", encoding="utf-8") as f:
+    with open(_PROMPTS_PATH, "r", encoding="utf-8") as f:
         character_prompt = f.read()
     
     def __init__(self, generator : Generator, 
