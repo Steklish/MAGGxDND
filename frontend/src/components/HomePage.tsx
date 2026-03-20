@@ -4,6 +4,7 @@ import { CharacterPanel } from './CharacterPanel';
 import { SessionCreation } from './SessionCreation';
 import { QuickPlay } from './QuickPlay';
 import { Rulebook } from './Rulebook';
+import { LandingFooter } from './LandingFooter';
 import './HomePage.css';
 
 interface HomePageProps {
@@ -20,7 +21,8 @@ export const HomePage: React.FC<HomePageProps> = ({
     onShowProfile,
     onViewSession,
     onViewCharacter,
-    onJoinSession
+    onJoinSession,
+    onStartGameSetup
 }) => {
     const {
         isAuthenticated,
@@ -34,6 +36,9 @@ export const HomePage: React.FC<HomePageProps> = ({
         setAuthenticated
     } = useGameStore();
 
+    // Check if user has an active running session
+    const runningSession = activeSessions.find(s => s.status === 'running');
+
     const [showSessionCreation, setShowSessionCreation] = useState(false);
     const [showQuickPlay, setShowQuickPlay] = useState(false);
     const [showRulebook, setShowRulebook] = useState(false);
@@ -44,12 +49,24 @@ export const HomePage: React.FC<HomePageProps> = ({
     useEffect(() => {
         if (!isAuthenticated || !userId) {
             // Force logout and redirect to landing by clearing auth state
+            console.warn('⚠️ Not authenticated - redirecting to landing');
             setAuthenticated(false);
             return;
         }
 
-        loadCharacters(userId);
-        loadSessions();
+        // Load data with error handling
+        const loadData = async () => {
+            try {
+                await Promise.all([
+                    loadCharacters(userId),
+                    loadSessions()
+                ]);
+            } catch (error) {
+                console.error('Failed to load data:', error);
+            }
+        };
+        
+        loadData();
 
         // Add class to body for background override
         document.body.classList.add('has-home-bg');
@@ -57,12 +74,18 @@ export const HomePage: React.FC<HomePageProps> = ({
         // Parallax background scroll (10% faster than page scroll)
         const handleScroll = () => {
             const scrollTop = window.scrollY;
+            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollProgress = maxScroll > 0 ? scrollTop / maxScroll : 0;
 
             setScrolled(scrollTop > 50);
 
-            // Move background at 1.1x scroll speed (10% faster than page)
+            // Move background at 20% scroll speed with limit
+            // Background stops when it reaches the end of its extra 20% buffer
+            const maxBackgroundScroll = maxScroll * 0.2;
+            const backgroundScroll = Math.min(scrollTop * 0.2, maxBackgroundScroll);
+            
             if (backgroundRef.current) {
-                backgroundRef.current.style.transform = `translateY(-${scrollTop * 1.1}px)`;
+                backgroundRef.current.style.transform = `translateY(-${backgroundScroll}px)`;
             }
         };
 
@@ -207,6 +230,21 @@ export const HomePage: React.FC<HomePageProps> = ({
                         Your epic journey continues. Pick up where you left off or start a new adventure.
                     </p>
                 </div>
+                
+                {/* Continue Game Button - Show if there's a running session */}
+                {runningSession && (
+                    <div className="continue-game-section">
+                        <button className="btn-continue-game" onClick={() => onStartGameSetup(runningSession.session_id)}>
+                            <span className="btn-icon">🎮</span>
+                            <div className="btn-text">
+                                <span className="btn-title">Continue Adventure</span>
+                                <span className="btn-subtitle">{runningSession.session_name}</span>
+                            </div>
+                            <span className="btn-arrow">→</span>
+                        </button>
+                    </div>
+                )}
+                
                 <div className="hero-stats">
                     <div className="stat-card">
                         <span className="stat-value">{characters.length}</span>
@@ -493,6 +531,9 @@ export const HomePage: React.FC<HomePageProps> = ({
                     onClose={() => setShowRulebook(false)}
                 />
             )}
+
+            {/* Footer */}
+            <LandingFooter />
         </div>
     );
 };

@@ -56,14 +56,13 @@ class RESTAPIDelivery(Delivery):
         """
         self._last_dm_message = text
         self.logger.info(f"[{self.session_id}] DM: {text}")
-        
+
         # Also emit as event
         from core.schemas.orchestration import Event, EventTypes
         event = Event(
-            event_type=EventTypes.NARRATION,
-            source="DM",
-            text=text,
-            tags=[tag] if tag else []
+            event_type=EventTypes.SYSTEM,
+            event_initiator="DM",
+            description=text,
         )
         self.game_event_queue.put(event)
     

@@ -4,7 +4,7 @@ import './GameSetup.css';
 
 interface GameSetupProps {
     sessionId: string;
-    onComplete: () => void;
+    onComplete: (sessionId: string) => void;
     onBack: () => void;
 }
 
@@ -17,7 +17,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
 
     const handleContinue = () => {
         if (step < 3) {
-            setStep(step as 2 | 3);
+            setStep((prev) => (prev + 1) as 2 | 3);
         }
     };
 
@@ -31,28 +31,40 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
 
     const handleStartGame = async () => {
         setIsGenerating(true);
-        
+
         try {
-            // Prepare prompt for AI
+            // Prepare prompt for AI - use snake_case for backend compatibility
             const gameSetup = {
-                sessionId,
                 wishes: wishes || 'Create an exciting adventure',
-                characterChoice,
-                characterDescription: characterChoice === 'ai-create' ? characterDescription : null,
+                character_choice: characterChoice,
+                character_description: characterChoice === 'ai-create' ? characterDescription : null,
             };
+
+            console.log('[GameSetup] Starting session with:', gameSetup);
 
             // Call backend API to initialize game
             const response = await fetch(`/api/v1/sessions/${sessionId}/start`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                },
                 body: JSON.stringify(gameSetup),
             });
 
             if (response.ok) {
-                onComplete();
+                const data = await response.json();
+                console.log('[GameSetup] Session started successfully:', data);
+                // Pass session ID to parent for navigation
+                onComplete(sessionId);
+            } else {
+                const errorData = await response.json();
+                console.error('[GameSetup] Failed to start session:', errorData);
+                alert(`Failed to start: ${errorData.detail || 'Unknown error'}`);
             }
         } catch (error) {
-            console.error('Failed to start game:', error);
+            console.error('[GameSetup] Failed to start game:', error);
+            alert('Network error. Please try again.');
         } finally {
             setIsGenerating(false);
         }
@@ -66,12 +78,22 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
     return (
         <div className="game-setup">
             <div className="setup-header">
-                <button className="btn-back" onClick={handleBack}>← Back</button>
+                <div className="header-spacer"></div>
                 <h2>Game Setup</h2>
                 <div className="setup-progress">
-                    <div className={`step ${step >= 1 ? 'active' : ''}`}>1</div>
-                    <div className={`step ${step >= 2 ? 'active' : ''}`}>2</div>
-                    <div className={`step ${step >= 3 ? 'active' : ''}`}>3</div>
+                    <div className="progress-fill" style={{ width: step === 1 ? '0%' : step === 2 ? '50%' : '100%' }}></div>
+                    <div className={`step ${step >= 1 ? (step > 1 ? 'completed' : 'active') : ''}`}>
+                        <span className="step-number">1</span>
+                        <span className="step-label">Adventure</span>
+                    </div>
+                    <div className={`step ${step >= 2 ? (step > 2 ? 'completed' : 'active') : ''}`}>
+                        <span className="step-number">2</span>
+                        <span className="step-label">Character</span>
+                    </div>
+                    <div className={`step ${step >= 3 ? 'completed' : ''}`}>
+                        <span className="step-number">3</span>
+                        <span className="step-label">Ready</span>
+                    </div>
                 </div>
             </div>
 
@@ -95,25 +117,29 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
                         <div className="char-count">{wishes.length}/1000</div>
 
                         <div className="quick-options">
-                            <button 
+                            <button
+                                type="button"
                                 className="quick-btn"
                                 onClick={() => setWishes('A mysterious dungeon with ancient treasures and dangerous monsters')}
                             >
                                 🏰 Dungeon Crawl
                             </button>
-                            <button 
+                            <button
+                                type="button"
                                 className="quick-btn"
                                 onClick={() => setWishes('Political intrigue and social encounters in a bustling city')}
                             >
                                 👑 Political Intrigue
                             </button>
-                            <button 
+                            <button
+                                type="button"
                                 className="quick-btn"
                                 onClick={() => setWishes('Wilderness exploration with survival challenges')}
                             >
                                 🌲 Wilderness Adventure
                             </button>
-                            <button 
+                            <button
+                                type="button"
                                 className="quick-btn"
                                 onClick={() => setWishes('Horror and mystery in a haunted location')}
                             >
@@ -121,7 +147,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
                             </button>
                         </div>
 
-                        <button className="btn-ai-fill" onClick={handleUseAI}>
+                        <button type="button" className="btn-ai-fill" onClick={handleUseAI}>
                             ✨ Let AI Decide
                         </button>
                     </div>
@@ -135,16 +161,18 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
                         </p>
 
                         <div className="character-options">
-                            <div 
+                            <button
+                                type="button"
                                 className={`option-card ${characterChoice === 'existing' ? 'selected' : ''}`}
                                 onClick={() => setCharacterChoice('existing')}
                             >
                                 <div className="option-icon">📋</div>
                                 <h4>Use Existing Character</h4>
                                 <p>Select from your created characters</p>
-                            </div>
+                            </button>
 
-                            <div 
+                            <button
+                                type="button"
                                 className={`option-card ${characterChoice === 'ai-create' ? 'selected' : ''}`}
                                 onClick={() => setCharacterChoice('ai-create')}
                             >
@@ -160,16 +188,17 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
                                         onClick={(e) => e.stopPropagation()}
                                     />
                                 )}
-                            </div>
+                            </button>
 
-                            <div 
+                            <button
+                                type="button"
                                 className={`option-card ${characterChoice === 'ai-random' ? 'selected' : ''}`}
                                 onClick={() => setCharacterChoice('ai-random')}
                             >
                                 <div className="option-icon">🎲</div>
                                 <h4>Random Character</h4>
                                 <p>Let AI create a completely random character for you</p>
-                            </div>
+                            </button>
                         </div>
                     </div>
                 )}
@@ -197,7 +226,8 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
                             </div>
                         </div>
 
-                        <button 
+                        <button
+                            type="button"
                             className="btn-start-game"
                             onClick={handleStartGame}
                             disabled={isGenerating}
@@ -219,11 +249,16 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
 
             {step < 3 && (
                 <div className="setup-footer">
-                    <button className="btn-secondary" onClick={handleBack}>
-                        Back
+                    <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={handleBack}
+                    >
+                        ← Back
                     </button>
-                    <button 
-                        className="btn-primary" 
+                    <button
+                        type="button"
+                        className="btn-primary"
                         onClick={handleContinue}
                         disabled={step === 1 && !wishes}
                     >

@@ -15,6 +15,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
     const [isLogin, setIsLogin] = useState(mode === 'login');
     const [isLoading, setIsLoading] = useState(false);
     const [oauthConfigured, setOauthConfigured] = useState({ google: false, discord: false });
+    const [isClosing, setIsClosing] = useState(false);
     const setAuthenticated = useGameStore(state => state.setAuthenticated);
     const setUserId = useGameStore(state => state.setUserId);
     const setUsername = useGameStore(state => state.setUsername);
@@ -27,9 +28,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
         rememberMe: false,
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
-    
-    // Ref for the modal content to detect clicks inside
     const modalRef = useRef<HTMLDivElement>(null);
+    
+    const handleClose = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            onClose();
+        }, 300); // Match animation duration
+    };
 
     // Prevent modal close when clicking inside modal content (including text selection)
     useEffect(() => {
@@ -41,7 +47,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
                     // Check if the click is actually on the overlay and not due to text selection
                     const selection = window.getSelection();
                     if (selection && selection.toString().length === 0) {
-                        onClose();
+                        handleClose();
                     }
                 }
             }
@@ -51,7 +57,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
         return () => {
             document.removeEventListener('mousedown', handleMouseDown);
         };
-    }, [onClose]);
+    }, [handleClose]);
 
     // Check if OAuth is configured on mount
     useEffect(() => {
@@ -253,23 +259,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
     };
 
     return (
-        <div className="auth-modal-overlay">
-            <div className="auth-modal" ref={modalRef}>
-                <div className="auth-modal-header">
-                    <div className="auth-logo">
-                        <span className="auth-logo-icon">🐉</span>
-                        <span className="auth-logo-text">
-                            <span className="auth-magg">MAGG</span>
-                            <span className="auth-x">x</span>
-                            <span className="auth-dnd">DND</span>
-                        </span>
+        <div className={`auth-modal-overlay ${isClosing ? 'closing' : ''}`}>
+            <div className={`auth-modal ${isClosing ? 'closing' : ''}`} ref={modalRef}>
+                <div className="auth-modal-content-overlay">
+                    <div className="auth-modal-header">
+                        <div className="auth-logo">
+                            <span className="auth-logo-icon">🐉</span>
+                            <span className="auth-logo-text">
+                                <span className="auth-magg">MAGG</span>
+                                <span className="auth-x">x</span>
+                                <span className="auth-dnd">DND</span>
+                            </span>
+                        </div>
+                        <button className="auth-close" onClick={handleClose}>
+                            <span>✕</span>
+                        </button>
                     </div>
-                    <button className="auth-close" onClick={onClose}>
-                        <span>✕</span>
-                    </button>
-                </div>
 
-                <div className="auth-modal-body">
+                    <div className="auth-modal-body">
                     <div className="auth-title-section">
                         <h2 className="auth-title">
                             {isLogin ? 'Welcome Back, Adventurer!' : 'Begin Your Journey'}
@@ -430,6 +437,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
                             {isLogin ? 'Sign Up' : 'Sign In'}
                         </button>
                     </div>
+                </div>
                 </div>
             </div>
         </div>

@@ -72,9 +72,19 @@ export const SessionCreation: React.FC<SessionCreationProps> = ({ userId: _userI
             };
 
             const response = await axios.post('/api/v1/sessions', sessionData);
-            
+
             if (response.data.session_id) {
-                // Don't auto-join - backend endpoint not implemented yet
+                // Auto-join the session as owner
+                try {
+                    const username = localStorage.getItem('username') || 'Owner';
+                    await axios.post(`/api/v1/sessions/${response.data.session_id}/players`, {
+                        player_name: username
+                    });
+                    console.log('✓ Owner joined session:', response.data.session_id);
+                } catch (joinError) {
+                    console.warn('Failed to auto-join session:', joinError);
+                }
+                
                 onComplete(response.data.session_id);
             }
         } catch (error: any) {

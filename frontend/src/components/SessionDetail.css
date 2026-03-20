@@ -12,10 +12,20 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: url('/arts/backgrounds/bg-session.jpg') no-repeat center center;
+    background: url('/arts/backgrounds/bg-session.png') no-repeat center center;
     background-size: cover;
-    background-attachment: scroll;
+    background-attachment: fixed;
     z-index: -1;
+}
+
+.session-detail-bg::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
 }
 
 /* Header - Same as HomePage */
@@ -103,7 +113,7 @@
 
 .header-nav button:hover {
     color: var(--text-primary);
-    background: var(--bg-tertiary);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .header-nav button.active {
@@ -139,8 +149,8 @@
 }
 
 .btn-profile {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-primary);
     padding: 10px 16px;
     font-family: var(--font-family);
@@ -156,7 +166,7 @@
 
 .btn-profile:hover {
     border-color: var(--accent-orange);
-    background: var(--bg-accent);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .profile-avatar {
@@ -164,8 +174,8 @@
 }
 
 .btn-logout {
-    background: transparent;
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-secondary);
     padding: 10px;
     font-size: 18px;
@@ -197,13 +207,13 @@
 
 /* Title Card */
 .session-title-card {
-    background: rgba(20, 20, 20, 0.8);
-    backdrop-filter: blur(10px);
+    background: transparent !important;
+    backdrop-filter: blur(5px);
     border-radius: 16px;
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     padding: 32px;
     margin-bottom: 32px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .session-title-header {
@@ -242,18 +252,20 @@
 }
 
 .session-status.status-created {
-    background: var(--accent-yellow);
-    color: var(--bg-primary);
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.3);
 }
 
 .session-status.status-active {
-    background: var(--accent-green);
-    color: var(--bg-primary);
+    background: rgba(72, 199, 142, 0.2);
+    color: #48c78e;
+    border: 1px solid rgba(72, 199, 142, 0.3);
     animation: pulse 2s infinite;
 }
 
 .session-status.status-completed {
-    background: var(--bg-tertiary);
+    background: rgba(0, 0, 0, 0.2);
     color: var(--text-muted);
 }
 
@@ -278,6 +290,23 @@
 .btn-start:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(42, 157, 143, 0.4);
+}
+
+.btn-continue {
+    padding: 12px 28px;
+    background: linear-gradient(135deg, var(--accent-orange) 0%, #FF8C00 100%);
+    border: none;
+    border-radius: 8px;
+    color: var(--bg-primary);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+
+.btn-continue:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
 }
 
 .btn-back {
@@ -308,12 +337,12 @@
 /* Cards */
 .session-info-card,
 .players-card {
-    background: rgba(20, 20, 20, 0.8);
-    backdrop-filter: blur(10px);
+    background: transparent !important;
+    backdrop-filter: blur(5px);
     border-radius: 16px;
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     padding: 24px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .session-info-card h2,
@@ -337,9 +366,9 @@
     flex-direction: column;
     gap: 6px;
     padding: 14px;
-    background: var(--bg-tertiary);
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 8px;
-    border-left: 3px solid var(--accent-orange);
+    border-left: 3px solid rgba(255, 107, 53, 0.5);
 }
 
 .info-item.full-width {
@@ -362,21 +391,19 @@
 
 .btn-copy {
     padding: 8px 16px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
     color: var(--text-primary);
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    white-space: nowrap;
 }
 
 .btn-copy:hover {
-    background: var(--accent-orange);
-    border-color: var(--accent-orange);
-    color: var(--bg-primary);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .info-description {
@@ -461,10 +488,10 @@
 
 .connected-notice {
     padding: 12px 16px;
-    background: rgba(42, 157, 143, 0.1);
-    border: 1px solid var(--accent-green);
+    background: transparent !important;
+    border: 1px solid rgba(72, 199, 142, 0.3);
     border-radius: 8px;
-    color: var(--accent-green);
+    color: #48c78e;
     font-size: 14px;
     margin-bottom: 16px;
 }
@@ -474,29 +501,20 @@
 }
 
 /* Players List */
-.players-card {
-    background: rgba(20, 20, 20, 0.8);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
-    padding: 24px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
-
 .players-card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 16px;
     padding-bottom: 16px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .players-card-header h2 {
     margin: 0;
     font-size: 20px;
     font-weight: 700;
-    color: var(--text-primary);
+    color: #fff;
 }
 
 .players-list {
@@ -510,9 +528,9 @@
     align-items: center;
     gap: 12px;
     padding: 14px 16px;
-    background: var(--bg-tertiary);
+    background: transparent !important;
     border-radius: 8px;
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     transition: all 0.2s ease;
 }
 

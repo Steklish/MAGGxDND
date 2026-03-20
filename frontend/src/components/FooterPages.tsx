@@ -82,17 +82,20 @@ export const FooterPages: React.FC<FooterPagesProps> = ({ page, onClose }) => {
             title: '🚀 About Project',
             content: (
                 <>
-                    <section className="fp-section">
-                        <h3>MAGGxDND - AI-Powered D&D Experience</h3>
-                        <p>
-                            MAGGxDND is an innovative platform that combines the timeless appeal of Dungeons & 
-                            Dragons with cutting-edge artificial intelligence. Our mission is to make D&D 
-                            accessible to everyone while preserving the magic that makes tabletop RPGs special.
-                        </p>
+                    <section className="fp-section fp-hero-section">
+                        <div className="fp-hero-content">
+                            <div className="fp-hero-icon">🐉</div>
+                            <h3>MAGGxDND - AI-Powered D&D Experience</h3>
+                            <p className="fp-hero-description">
+                                MAGGxDND is an innovative platform that combines the timeless appeal of Dungeons &
+                                Dragons with cutting-edge artificial intelligence. Our mission is to make D&D
+                                accessible to everyone while preserving the magic that makes tabletop RPGs special.
+                            </p>
+                        </div>
                     </section>
 
                     <section className="fp-section">
-                        <h3>Features</h3>
+                        <h3>✨ Features</h3>
                         <div className="fp-features-grid">
                             <div className="fp-feature-card">
                                 <span className="fp-feature-icon">🤖</span>
@@ -118,22 +121,54 @@ export const FooterPages: React.FC<FooterPagesProps> = ({ page, onClose }) => {
                     </section>
 
                     <section className="fp-section">
-                        <h3>Our Mission</h3>
+                        <h3>🎯 Our Mission</h3>
                         <p>
-                            Whether you're a veteran player with decades of experience or curious about D&D 
-                            for the first time, our AI adapts to your level and creates the perfect adventure 
+                            Whether you're a veteran player with decades of experience or curious about D&D
+                            for the first time, our AI adapts to your level and creates the perfect adventure
                             for you. We believe everyone should have access to the magic of tabletop RPGs.
                         </p>
                     </section>
 
+                    <section className="fp-section fp-creator-section">
+                        <h3>👨‍💻 Created By</h3>
+                        <div className="fp-creator-card">
+                            <div className="fp-creator-avatar">👤</div>
+                            <div className="fp-creator-info">
+                                <h4>anton kozlov</h4>
+                                <p className="fp-creator-role">Developer & Creator</p>
+                                <p className="fp-creator-bio">
+                                    Built with passion for D&D and cutting-edge technology. 
+                                    This project represents a journey of learning and innovation, 
+                                    combining artificial intelligence with the timeless art of storytelling.
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
                     <section className="fp-section">
-                        <h3>Technology Stack</h3>
-                        <ul className="fp-tech-list">
-                            <li><strong>Frontend:</strong> React, TypeScript, Vite</li>
-                            <li><strong>Backend:</strong> Python, FastAPI</li>
-                            <li><strong>AI:</strong> Google Gemini AI, Custom ML models</li>
-                            <li><strong>Database:</strong> SQLite/PostgreSQL</li>
-                        </ul>
+                        <h3>🛠 Technology Stack</h3>
+                        <div className="fp-tech-stack">
+                            <div className="fp-tech-category">
+                                <span className="fp-tech-icon">⚛️</span>
+                                <strong>Frontend</strong>
+                                <p>React, TypeScript, Vite</p>
+                            </div>
+                            <div className="fp-tech-category">
+                                <span className="fp-tech-icon">🐍</span>
+                                <strong>Backend</strong>
+                                <p>Python, FastAPI</p>
+                            </div>
+                            <div className="fp-tech-category">
+                                <span className="fp-tech-icon">🧠</span>
+                                <strong>AI</strong>
+                                <p>Google Gemini AI, Custom ML models</p>
+                            </div>
+                            <div className="fp-tech-category">
+                                <span className="fp-tech-icon">💾</span>
+                                <strong>Database</strong>
+                                <p>SQLite/PostgreSQL</p>
+                            </div>
+                        </div>
                     </section>
                 </>
             ),

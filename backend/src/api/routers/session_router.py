@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 
 from backend.src.config import settings
 from backend.src.database.session import get_db
-from backend.src.auth.dependencies import get_current_user_from_cookie
+from backend.src.auth.dependencies import get_current_user
 from backend.src.models.user import User
 from backend.src.models.session import GameSession, SessionStatusEnum
 from backend.src.repositories.session_repository import SessionRepository
@@ -42,6 +42,10 @@ active_game_sessions: Dict[str, Session] = {}
 
 # Store for active players (temporary, until full WebSocket integration)
 active_players: Dict[str, Dict[str, any]] = {}
+
+# Store for player ready status in waiting room
+# Key: session_id, Value: Dict[user_id, is_ready] - track by user_id to prevent duplicates
+waiting_room_ready_status: Dict[str, Dict[int, bool]] = {}
 
 
 # === Schemas ===
@@ -135,20 +139,23 @@ class PlayerResponse(BaseModel):
     character_name: Optional[str]
     connected: bool
     role: str = "player"
+    is_ready: bool = False  # Ready status for waiting room
 
 
 class SessionStartRequest(BaseModel):
     """Запрос на запуск игровой сессии."""
-    scene_prompt: str = Field(..., description="Описание начальной сцены", min_length=10, max_length=2000)
-    character_prompts: List[str] = Field(default=[], description="Описания персонажей")
-    npc_prompts: List[str] = Field(default=[], description="Описания NPC")
-
-    @validator('scene_prompt')
-    def validate_scene_prompt(cls, v):
-        v = sanitize_string(v, max_length=2000)
-        if len(v) < 10:
-            raise ValueError("Scene prompt must be at least 10 characters")
-        return validate_safe_text(v, "Scene prompt")
+    scene_prompt: Optional[str] = Field(None, description="Описание начальной сцены", max_length=2000)
+    character_prompts: List[str] = Field(default_factory=list, description="Описания персонажей")
+    npc_prompts: List[str] = Field(default_factory=list, description="Описания NPC")
+    # Frontend GameSetup fields (alternative format)
+    wishes: Optional[str] = Field(None, description="Adventure preferences from GameSetup", max_length=1000)
+    character_choice: Optional[str] = Field(None, description="Character selection choice")
+    character_description: Optional[str] = Field(None, description="Character description for AI creation")
+    # Extra field from frontend (ignored)
+    sessionId: Optional[str] = Field(None, description="Session ID from frontend")
+    
+    class Config:
+        extra = "ignore"  # Ignore extra fields from frontend
 
 
 class SessionInfoResponse(BaseModel):
@@ -164,6 +171,26 @@ class SessionInfoResponse(BaseModel):
     owner_name: str
     is_owner: bool
     players: List[PlayerResponse] = []
+
+
+class WaitingRoomResponse(BaseModel):
+    """Waiting room information."""
+    session_id: str
+    session_name: str
+    game_mode: str
+    player_count: int
+    max_players: int
+    status: str
+    description: Optional[str] = None
+    owner_id: int
+    owner_name: str
+    is_owner: bool
+    players: List[PlayerResponse] = []
+
+
+class PlayerReadyRequest(BaseModel):
+    """Player ready status update."""
+    is_ready: bool
 
 
 # === Helper Functions ===
@@ -202,7 +229,7 @@ def verify_session_owner(
 async def create_session(
     request: SessionCreateRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_from_cookie)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Создать новую игровую сессию.
@@ -290,7 +317,7 @@ async def create_session(
 @router.get("", response_model=SessionListResponse)
 async def list_sessions(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_from_cookie)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Получить список сессий пользователя.
@@ -338,7 +365,7 @@ async def list_sessions(
 async def get_session(
     session_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_from_cookie)
+    current_user: User = Depends(get_current_user)
 ):
     """Получить информацию о конкретной сессии."""
     repository = get_session_repository(db)
@@ -374,7 +401,7 @@ async def update_session(
     session_id: str,
     request: SessionUpdateRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_from_cookie)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Обновить сессию.
@@ -424,7 +451,7 @@ async def update_session(
 async def delete_session(
     session_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_from_cookie)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Удалить сессию.
@@ -451,38 +478,66 @@ async def start_session(
     session_id: str,
     request: SessionStartRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_from_cookie)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Запустить игровую сессию с инициализацией сцены и персонажей.
-    
+
     Только владелец может запустить сессию.
     """
-    repository = get_session_repository(db)
+    import logging
+    logger = logging.getLogger(__name__)
     
+    logger.info(f"[START] Session {session_id} - Request data: {request.dict()}")
+    
+    repository = get_session_repository(db)
+
     db_session = get_session_by_uuid_or_404(session_id, repository)
     verify_session_owner(db_session, current_user)
-    
+
     # Get or create game session
     game_session = active_game_sessions.get(session_id)
-    
+
     if not game_session:
-        raise HTTPException(
-            status_code=400,
-            detail="Session not initialized. Please recreate the session."
-        )
-    
+        # Session exists in DB but not in memory - need to initialize it
+        logger.warning(f"[START] Session {session_id} found in DB but not in memory. Initializing...")
+        
+        # Initialize the game session from DB
+        try:
+            config = SessionConfig(
+                session_name=db_session.session_name,
+                game_mode=db_session.game_mode.value,
+                max_players=db_session.max_players,
+                description=db_session.description,
+                guide=db_session.guide,
+                gemini_model=db_session.gemini_model or "gemini-2.0-flash"
+            )
+            game_session = session_factory.create_session(config, session_id=session_id)
+            active_game_sessions[session_id] = game_session
+            logger.info(f"[START] Session {session_id} restored from DB")
+        except Exception as e:
+            logger.error(f"[START] Failed to restore session {session_id}: {e}")
+            raise HTTPException(
+                status_code=400,
+                detail="Session not initialized. Please recreate the session."
+            )
+
+    logger.info(f"[START] Game session found, starting with wishes={request.wishes}, character_description={request.character_description}")
+
     try:
         # Initialize scene and characters
         from core.schemas.in_game import SceneNode, Coordinate2D, UnifiedObject, ObjectType
         from core.entity.player import Player
         from core.schemas.in_game import Character, CharacterClass, AbilityScores
         from core.entity.orchestrator import Orchestrator
+
+        # Use wishes as scene prompt if provided, otherwise use default
+        scene_description = request.wishes or request.scene_prompt or "A dimly lit tavern with worn wooden tables and the smell of ale."
         
         # Create scene
         scene = SceneNode(
             name="The Drunken Dragon",
-            description="A dimly lit tavern with worn wooden tables and the smell of ale.",
+            description=scene_description,
             objects=[
                 UnifiedObject(
                     name="Wooden Table",
@@ -498,13 +553,18 @@ async def start_session(
             scale_unit="feet"
         )
         game_session.current_scene = scene
-        
+
         # Update DB
         repository.update_session_scene(session_id, scene.name, owner_id=current_user.id)
         repository.update_session_status(session_id, "running", owner_id=current_user.id)
-        
+
         # Initialize player characters from prompts
-        for i, prompt in enumerate(request.character_prompts):
+        # If character_description is provided (from GameSetup), use it
+        character_prompts_to_use = request.character_prompts
+        if request.character_description and not character_prompts_to_use:
+            character_prompts_to_use = [request.character_description]
+        
+        for i, prompt in enumerate(character_prompts_to_use):
             character = Character(
                 name=f"Character{i+1}",
                 race="Human",
@@ -621,7 +681,7 @@ async def start_session(
 async def get_session_info(
     session_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_from_cookie)
+    current_user: User = Depends(get_current_user)
 ):
     """Get extended session information."""
     repository = get_session_repository(db)
@@ -681,7 +741,7 @@ async def join_session(
     session_id: str,
     request: PlayerJoinRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_from_cookie)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Join a session as a player.
@@ -762,7 +822,7 @@ async def leave_session(
     session_id: str,
     player_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_from_cookie)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Remove a player from a session.
@@ -806,7 +866,7 @@ async def kick_player(
     session_id: str,
     player_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_from_cookie)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Kick a player from the session.
@@ -853,7 +913,7 @@ async def kick_player(
 async def get_session_players_endpoint(
     session_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_from_cookie)
+    current_user: User = Depends(get_current_user)
 ):
     """Get all players in a session."""
     repository = get_session_repository(db)
@@ -878,7 +938,7 @@ async def get_session_players_endpoint(
 async def get_session_game_info(
     session_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_from_cookie)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Get detailed game session info including players, NPCs, and scene.
@@ -972,4 +1032,300 @@ async def get_session_game_info(
         raise HTTPException(
             status_code=500,
             detail=f"Error getting game info: {str(e)}"
+        )
+
+
+@router.get("/{session_id}/waiting-room", response_model=WaitingRoomResponse)
+async def get_waiting_room(
+    session_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get waiting room information for a session.
+    
+    Returns session details with player ready status.
+    """
+    repository = get_session_repository(db)
+
+    db_session = get_session_by_uuid_or_404(session_id, repository)
+
+    # Get players from DB
+    participants = repository.get_session_participants(session_id)
+    player_count = len([p for p in participants if p.is_connected])
+    
+    # Get ready status for this session (tracked by user_id)
+    session_ready_status = waiting_room_ready_status.get(session_id, {})
+    
+    players = []
+    for p in participants:
+        # Get ready status by user_id (None for guest users without account)
+        user_id_key = p.user_id if p.user_id is not None else hash(p.player_uuid)
+        is_ready = session_ready_status.get(user_id_key, False)
+        players.append(PlayerResponse(
+            player_id=p.player_uuid,
+            player_name=p.player_name,
+            character_name=p.character_name,
+            connected=p.is_connected,
+            role=p.role,
+            is_ready=is_ready
+        ))
+
+    return WaitingRoomResponse(
+        session_id=db_session.session_uuid,
+        session_name=db_session.session_name,
+        game_mode=db_session.game_mode.value,
+        player_count=player_count,
+        max_players=db_session.max_players,
+        status=db_session.status.value,
+        description=db_session.description,
+        owner_id=db_session.owner_id,
+        owner_name=current_user.username if db_session.owner_id == current_user.id else "Unknown",
+        is_owner=(db_session.owner_id == current_user.id),
+        players=players
+    )
+
+
+@router.post("/{session_id}/ready", status_code=200)
+async def set_player_ready(
+    session_id: str,
+    request: PlayerReadyRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Set player ready status in waiting room.
+    
+    Players can toggle their ready status before game start.
+    Each user can only join once per session.
+    """
+    repository = get_session_repository(db)
+
+    # Validate session exists
+    db_session = get_session_by_uuid_or_404(session_id, repository)
+
+    # Verify player is in the session - check by user_id
+    participants = repository.get_session_participants(session_id)
+    participant = next((p for p in participants if p.user_id == current_user.id), None)
+    
+    if not participant:
+        raise HTTPException(
+            status_code=404,
+            detail="Player not found in session. Please join the session first."
+        )
+    
+    # Check if player is already connected (prevent double connection)
+    if participant.is_connected:
+        # Player already connected - this is fine, just update ready status
+        pass
+
+    # Initialize session ready status if not exists
+    if session_id not in waiting_room_ready_status:
+        waiting_room_ready_status[session_id] = {}
+    
+    # Set ready status using user_id as key (prevents duplicates)
+    waiting_room_ready_status[session_id][current_user.id] = request.is_ready
+
+    return {
+        "success": True,
+        "user_id": current_user.id,
+        "player_name": participant.player_name,
+        "is_ready": request.is_ready,
+        "session_id": session_id
+    }
+
+
+@router.post("/{session_id}/start-game", response_model=SessionResponse)
+async def start_game_from_waiting_room(
+    session_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Start the game from waiting room.
+    
+    Only the session owner can start the game.
+    ALL connected players must be ready before starting.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    repository = get_session_repository(db)
+
+    db_session = get_session_by_uuid_or_404(session_id, repository)
+    
+    # Verify current user is the owner
+    if db_session.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Only the session owner can start the game"
+        )
+
+    # Get all connected players
+    participants = repository.get_session_participants(session_id)
+    connected_players = [p for p in participants if p.is_connected]
+    
+    if not connected_players:
+        raise HTTPException(
+            status_code=400,
+            detail="No connected players. Wait for players to join before starting."
+        )
+    
+    # Check if ALL connected players are ready
+    session_ready_status = waiting_room_ready_status.get(session_id, {})
+    
+    not_ready_players = []
+    for player in connected_players:
+        user_id_key = player.user_id if player.user_id is not None else hash(player.player_uuid)
+        is_ready = session_ready_status.get(user_id_key, False)
+        if not is_ready:
+            not_ready_players.append(player.player_name)
+    
+    if not_ready_players:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Waiting for players to ready: {', '.join(not_ready_players)}"
+        )
+
+    logger.info(f"[START-GAME] Session {session_id} - Starting from waiting room with {len(connected_players)} ready players")
+
+    # Get or create game session
+    game_session = active_game_sessions.get(session_id)
+
+    if not game_session:
+        # Initialize the game session from DB
+        logger.warning(f"[START-GAME] Session {session_id} found in DB but not in memory. Initializing...")
+
+        try:
+            from backend.src.game.session_factory import SessionConfig
+            config = SessionConfig(
+                session_name=db_session.session_name,
+                game_mode=db_session.game_mode.value,
+                max_players=db_session.max_players,
+                description=db_session.description,
+                guide=db_session.guide,
+                gemini_model=db_session.gemini_model or "gemini-2.0-flash"
+            )
+            game_session = session_factory.create_session(config, session_id=session_id)
+            active_game_sessions[session_id] = game_session
+            logger.info(f"[START-GAME] Session {session_id} restored from DB")
+        except Exception as e:
+            logger.error(f"[START-GAME] Failed to restore session {session_id}: {e}")
+            raise HTTPException(
+                status_code=400,
+                detail="Session not initialized. Please recreate the session."
+            )
+
+    try:
+        # Initialize scene and characters
+        from core.schemas.in_game import SceneNode, Coordinate2D, UnifiedObject, ObjectType
+        from core.entity.player import Player
+        from core.schemas.in_game import Character, CharacterClass, AbilityScores
+        from core.entity.orchestrator import Orchestrator
+
+        # Create initial scene
+        scene_description = db_session.guide or "A dimly lit tavern with worn wooden tables and the smell of ale."
+
+        scene = SceneNode(
+            name="The Drunken Dragon",
+            description=scene_description,
+            objects=[
+                UnifiedObject(
+                    name="Wooden Table",
+                    obj_type=ObjectType.PROP,
+                    quantity=1,
+                    is_equipped=False,
+                    position=Coordinate2D(x=5.0, y=5.0),
+                    short_summary="A sturdy wooden table"
+                ),
+            ],
+            center_position=Coordinate2D(x=10.0, y=10.0),
+            dimensions=Coordinate2D(x=20.0, y=20.0),
+            scale_unit="feet"
+        )
+        game_session.current_scene = scene
+
+        # Update DB status
+        repository.update_session_scene(session_id, scene.name, owner_id=current_user.id)
+        repository.update_session_status(session_id, "running", owner_id=current_user.id)
+
+        # Initialize player characters from ALL connected players
+        for i, participant in enumerate(connected_players):
+            character = Character(
+                name=participant.character_name or participant.player_name,
+                race="Human",
+                char_class=CharacterClass.FIGHTER,
+                level=1,
+                backstory_summary=f"{participant.player_name}'s character",
+                personality_traits=["Brave"],
+                max_hp=30,
+                current_hp=30,
+                temp_hp=0,
+                armor_class=12,
+                speed=30,
+                stats=AbilityScores(
+                    strength=15, dexterity=12, constitution=14,
+                    intelligence=10, wisdom=10, charisma=10
+                ),
+                inventory=[],
+                active_conditions_list=[],
+                resources={},
+                position=Coordinate2D(x=float(i*2), y=float(i*2)),
+                abilities=[],
+                active_conditions="",
+                proficiency_bonus=2,
+                is_alive=True,
+                initiative_bonus=11,
+                short_summary=f"{participant.player_name}'s character"
+            )
+
+            player_orchestrator = Orchestrator(
+                generator=game_session.generator,
+                logger=game_session.logger.getChild("player_orchestrator")
+            )
+            player_orchestrator.add_state(game_session)
+
+            event_queue = game_session.event_pool.subscribe(character.name)
+
+            player = Player(
+                character=character,
+                event_queuee=event_queue,
+                logger=game_session.logger.getChild("player"),
+                orchestrator=player_orchestrator
+            )
+            player.inject_state(game_session)
+            game_session.players.append(player)
+
+        game_session.logger.info(
+            f"Сессия запущена: {len(game_session.players)} игроков"
+        )
+
+        # Send welcome message
+        game_session.delivery.master_message(
+            f"Welcome to {scene.name}! {scene.description}"
+        )
+        game_session.delivery.session_updated(game_session)
+
+        # Clear waiting room ready status
+        if session_id in waiting_room_ready_status:
+            del waiting_room_ready_status[session_id]
+
+        return SessionResponse(
+            session_id=session_id,
+            session_name=db_session.session_name,
+            game_mode=db_session.game_mode.value,
+            player_count=len(game_session.players),
+            status="running",
+            description=db_session.description,
+            owner_id=db_session.owner_id,
+            owner_name=current_user.username,
+            created_at=db_session.created_at.isoformat(),
+            is_owner=True
+        )
+
+    except Exception as e:
+        game_session.logger.error(f"Ошибка при запуске сессии: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ошибка при запуске сессии: {str(e)}"
         )

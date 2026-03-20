@@ -1,4 +1,4 @@
-from fastapi import Cookie, Depends, HTTPException, status
+from fastapi import Cookie, Depends, HTTPException, status, Header
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
@@ -9,7 +9,7 @@ from backend.src.models.user import User
 from backend.src.schema.token import TokenData
 from backend.src.repositories.user import user_repo
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
 
 def get_current_user_from_headers(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
@@ -28,7 +28,7 @@ def get_current_user_from_headers(token: str = Depends(oauth2_scheme), db: Sessi
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    
+
     # Get the user from the database
     user = user_repo.get_by_username(db, username)
     user = db.query(User).filter(User.username == token_data.username).first()
@@ -44,12 +44,12 @@ def get_token_from_cookie(access_token: str | None = Cookie(None)) -> str | None
     return access_token
 
 def get_current_user_from_cookie(
-    token: str | None = Depends(get_token_from_cookie), 
+    token: str | None = Depends(get_token_from_cookie),
     db: Session = Depends(get_db)
 ) -> User:
     """
     This is the dependency you will use in your protected endpoints.
-    
+
     1. It depends on `get_token_from_cookie` to get the raw token.
     2. If the token is missing, it raises a 401 Unauthorized error.
     3. It decodes and validates the token.
@@ -63,7 +63,7 @@ def get_current_user_from_cookie(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated: No token provided"
         )
-        
+
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -75,11 +75,104 @@ def get_current_user_from_cookie(
             raise credentials_exception
     except JWTError:
         raise credentials_exception
-    
-    user = user_repo.get_by_username(db, username=username) 
+
+    user = user_repo.get_by_username(db, username=username)
     if user is None:
         raise credentials_exception
-        
+
+    return user
+
+
+def get_current_user_optional_cookie(
+    db: Session = Depends(get_db),
+    access_token_cookie: str | None = Cookie(None),
+    authorization: str | None = Header(None),
+) -> User | None:
+    """
+    Flexible auth dependency that accepts token from either:
+    1. Cookie (access_token)
+    2. Authorization header (Bearer <token>)
+    
+    Returns None if no valid token is found (for optional auth endpoints).
+    """
+    token = None
+    
+    # Try cookie first
+    if access_token_cookie:
+        token = access_token_cookie
+    # Try Authorization header
+    elif authorization:
+        try:
+            scheme, token_value = authorization.split()
+            if scheme.lower() == 'bearer':
+                token = token_value
+        except ValueError:
+            pass
+    
+    if not token:
+        return None
+    
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        username: str = payload.get("sub")
+        if not username:
+            return None
+    except JWTError:
+        return None
+    
+    user = user_repo.get_by_username(db, username=username)
+    return user
+
+
+def get_current_user(
+    db: Session = Depends(get_db),
+    access_token_cookie: str | None = Cookie(None, alias="access_token"),
+    authorization: str | None = Header(None),
+) -> User:
+    """
+    Flexible auth dependency that accepts token from either:
+    1. Cookie (access_token) - preferred
+    2. Authorization header (Bearer <token>)
+    
+    Raises 401 if no valid token is found.
+    """
+    token = None
+    
+    # Try cookie first
+    if access_token_cookie:
+        token = access_token_cookie
+    # Try Authorization header
+    elif authorization:
+        try:
+            scheme, token_value = authorization.split()
+            if scheme.lower() == 'bearer':
+                token = token_value
+        except ValueError:
+            pass
+    
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated: No token provided"
+        )
+
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+    )
+    
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        username: str = payload.get("sub")
+        if not username:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    user = user_repo.get_by_username(db, username=username)
+    if user is None:
+        raise credentials_exception
+
     return user
 
 

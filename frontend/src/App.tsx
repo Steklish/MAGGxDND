@@ -8,12 +8,13 @@ import { SessionCreation } from './components/SessionCreation';
 import { SessionDetail } from './components/SessionDetail';
 import { CharacterDetail } from './components/CharacterDetail';
 import { GameSetup } from './components/GameSetup';
+import { WaitingRoom } from './components/WaitingRoom';
 import { GameLayout } from './components/GameLayout';
 import { LoadingPage } from './components/LoadingPage';
 import { ToastProvider } from './components/common/Toast';
 import './App.css';
 
-type Page = 
+type Page =
   | 'landing'
   | 'home'
   | 'profile'
@@ -22,6 +23,7 @@ type Page =
   | 'session-detail'
   | 'character-detail'
   | 'game-setup'
+  | 'waiting-room'
   | 'game';
 
 function App() {
@@ -43,6 +45,7 @@ function App() {
     const [selectedCharacterId, setSelectedCharacterId] = useState<number | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
     const [isLoadingAfterAuth, setIsLoadingAfterAuth] = useState(false);
+    const [isWaitingRoomReady, setIsWaitingRoomReady] = useState(false);
 
     // Initialize auth on mount
     useEffect(() => {
@@ -165,10 +168,15 @@ function App() {
 
     const handleStartGameSetup = (sessionId: string) => {
         setSelectedSessionId(sessionId);
-        setCurrentPage('game-setup');
+        setCurrentPage('waiting-room');
     };
 
-    const handleStartGame = () => {
+    const handleStartGame = (sessionId: string) => {
+        // Update localStorage
+        localStorage.setItem('currentSessionId', sessionId);
+        localStorage.setItem('gameStatus', 'running');
+        console.log('🎮 Game started, session:', sessionId);
+        // Navigate to game page
         setCurrentPage('game');
     };
 
@@ -276,7 +284,21 @@ function App() {
                         <button onClick={() => setCurrentPage('home')}>Back to Home</button>
                     </div>
                 );
-            
+
+            case 'waiting-room':
+                return selectedSessionId ? (
+                    <WaitingRoom
+                        sessionId={selectedSessionId}
+                        onGameStart={handleStartGame}
+                        onBack={() => setCurrentPage('home')}
+                    />
+                ) : (
+                    <div className="app-loading">
+                        <p>Session not found</p>
+                        <button onClick={() => setCurrentPage('home')}>Back to Home</button>
+                    </div>
+                );
+
             case 'game':
                 return <GameLayout />;
             

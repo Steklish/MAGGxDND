@@ -294,7 +294,15 @@ export const useGameStore = create<GameState>((set, get) => ({
     // Session actions
     loadSessions: async () => {
         try {
-            const { userId } = get();
+            const { userId, accessToken } = get();
+            
+            // Check if we have a valid token
+            if (!accessToken) {
+                console.warn('⚠️ No access token - skipping session load');
+                set({ activeSessions: [] });
+                return;
+            }
+            
             // Pass userId to filter sessions by owner
             const { sessions } = await sessionAPI.listSessions(userId || undefined);
             // Filter out duplicates by session_id
@@ -305,7 +313,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             // Also persist session IDs to localStorage for recovery
             const sessionIds = uniqueSessions.map(s => s.session_id);
             localStorage.setItem('activeSessionIds', JSON.stringify(sessionIds));
-            
+
             // Restore current session if it matches one from localStorage
             const storedSessionId = localStorage.getItem('currentSessionId');
             if (storedSessionId) {
@@ -319,7 +327,13 @@ export const useGameStore = create<GameState>((set, get) => ({
                 }
             }
         } catch (error: any) {
-            console.warn('Failed to load sessions (using empty list):', error.message);
+            // Handle 401 Unauthorized specifically
+            if (error.status === 401) {
+                console.warn('⚠️ 401 Unauthorized - token may be invalid');
+                // Don't clear storage here - let the api interceptor handle it
+            } else {
+                console.warn('Failed to load sessions (using empty list):', error.message);
+            }
             set({ activeSessions: [] });
         }
     },

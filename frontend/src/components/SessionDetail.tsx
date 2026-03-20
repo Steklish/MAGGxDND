@@ -42,6 +42,9 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
     const [hasJoinedSession, setHasJoinedSession] = useState(false);
     const [isOwner, setIsOwner] = useState(false);
 
+    // Check if session is already running
+    const isRunning = session?.status === 'running';
+
     useEffect(() => {
         // Check if we already have a player ID for this session in localStorage
         const storedPlayerId = localStorage.getItem(`playerId_${sessionId}`);
@@ -308,6 +311,11 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                                 {session.status === 'created' && (
                                     <button className="btn-start" onClick={handleStartSession}>
                                         🚀 Start Session
+                                    </button>
+                                )}
+                                {session.status === 'running' && (
+                                    <button className="btn-continue" onClick={() => onStartGame && onStartGame(sessionId)}>
+                                        🎮 Continue Game
                                     </button>
                                 )}
                             </div>

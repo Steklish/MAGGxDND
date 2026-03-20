@@ -4,46 +4,43 @@
 .home-page-wrapper {
     min-height: 100vh;
     position: relative;
+    width: 100%;
+    height: auto;
 }
 
 .home-page {
+    position: relative;
     min-height: 100vh;
+    height: auto;
     background: transparent;
     color: var(--text-primary);
-    position: relative;
-    overflow-x: hidden;
+    overflow: hidden;
+    width: 100%;
 }
 
 .home-bg {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    height: 100vh;
-    background: url('/arts/backgrounds/bg-home.png') no-repeat center center;
-    background-size: cover;
+    height: 120%;
+    background: url('/arts/backgrounds/bg-home.png') no-repeat center top;
+    background-size: 100% auto;
     z-index: -1;
+    will-change: transform;
 }
 
 /* Ensure background covers full page during scroll */
 body.has-home-bg {
     background: transparent !important;
+    height: auto;
+    min-height: 100vh;
 }
 
 body.has-home-bg #root {
     background: transparent !important;
-}
-
-body.has-home-bg::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;
-    background: url('/arts/backgrounds/bg-home.png') no-repeat center center;
-    background-size: cover;
-    z-index: -2;
+    height: auto;
+    min-height: 100vh;
 }
 
 /* Header */
@@ -131,7 +128,7 @@ body.has-home-bg::before {
 
 .header-nav button:hover {
     color: var(--text-primary);
-    background: var(--bg-tertiary);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .header-nav button.active {
@@ -167,8 +164,8 @@ body.has-home-bg::before {
 }
 
 .btn-profile {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-primary);
     padding: 10px 16px;
     font-family: var(--font-family);
@@ -184,7 +181,7 @@ body.has-home-bg::before {
 
 .btn-profile:hover {
     border-color: var(--accent-orange);
-    background: var(--bg-accent);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .profile-avatar {
@@ -192,8 +189,8 @@ body.has-home-bg::before {
 }
 
 .btn-logout {
-    background: transparent;
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-secondary);
     padding: 10px;
     font-size: 18px;
@@ -252,6 +249,66 @@ body.has-home-bg::before {
     margin: 0 auto 40px;
 }
 
+/* Continue Game Button */
+.continue-game-section {
+    max-width: 600px;
+    margin: 0 auto 32px;
+}
+
+.btn-continue-game {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, rgba(255, 140, 0, 0.2), rgba(255, 69, 0, 0.15));
+    border: 2px solid var(--accent-orange);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-primary);
+}
+
+.btn-continue-game:hover {
+    background: linear-gradient(135deg, rgba(255, 140, 0, 0.3), rgba(255, 69, 0, 0.25));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 140, 0, 0.3);
+}
+
+.btn-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.btn-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+}
+
+.btn-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent-orange);
+}
+
+.btn-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.btn-arrow {
+    font-size: 24px;
+    color: var(--accent-orange);
+    transition: transform 0.3s ease;
+}
+
+.btn-continue-game:hover .btn-arrow {
+    transform: translateX(4px);
+}
+
 .hero-stats {
     max-width: 800px;
     margin: 0 auto;
@@ -267,6 +324,7 @@ body.has-home-bg::before {
 
 .stat-card {
     text-align: center;
+    background: transparent !important;
 }
 
 .stat-value {
@@ -318,8 +376,8 @@ body.has-home-bg::before {
 }
 
 .content-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: var(--radius-lg);
     padding: 24px;
     transition: all 0.3s ease;
@@ -378,8 +436,8 @@ body.has-home-bg::before {
     align-items: center;
     gap: 16px;
     padding: 16px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: all 0.3s ease;
@@ -452,8 +510,8 @@ body.has-home-bg::before {
     align-items: center;
     gap: 16px;
     padding: 20px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: all 0.3s ease;
@@ -499,8 +557,8 @@ body.has-home-bg::before {
     align-items: center;
     gap: 12px;
     padding: 24px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: var(--radius-md);
     color: var(--text-primary);
     font-family: var(--font-family);
@@ -512,7 +570,7 @@ body.has-home-bg::before {
 
 .action-btn:hover {
     border-color: var(--accent-orange);
-    background: var(--bg-accent);
+    background: rgba(255, 255, 255, 0.1);
     transform: translateY(-4px);
 }
 
@@ -542,8 +600,8 @@ body.has-home-bg::before {
 .empty-state-large {
     text-align: center;
     padding: 80px 20px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: var(--radius-lg);
 }
 
@@ -587,8 +645,8 @@ body.has-home-bg::before {
 }
 
 .character-card-placeholder {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: var(--radius-lg);
     padding: 24px;
     transition: all 0.3s ease;
@@ -641,8 +699,8 @@ body.has-home-bg::before {
 
 .session-card-full {
     padding: 24px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: var(--radius-lg);
     cursor: pointer;
     transition: all 0.3s ease;

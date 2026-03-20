@@ -317,54 +317,59 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
             // Set generating state
             setIsGenerating(true);
             setGenerationStatus('🎲 Инициализация игрового мира...');
-            
-            const response = await fetch(`/api/v1/sessions/start_real_game`, {
+
+            const response = await fetch(`/api/v1/sessions/${sessionId}/start`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                },
                 body: JSON.stringify({
-                    session_name: 'Active Session',
-                    game_mode: 'STORY',
-                    scene_prompt: 'A medieval tavern with adventurers',
-                    character_prompts: ['A brave hero'],
-                    npc_prompts: ['A mysterious stranger']
+                    wishes: 'A medieval tavern with adventurers',
+                    character_choice: 'ai-random',
+                    character_description: null
                 }),
             });
             const data = await response.json();
-            
+
             if (response.ok) {
                 setGenerationStatus('✨ Генерация персонажа...');
                 await new Promise(resolve => setTimeout(resolve, 500));
-                
+
                 setGenerationStatus('🧙 Создание NPC...');
                 await new Promise(resolve => setTimeout(resolve, 500));
-                
+
                 // Update localStorage with new session ID and mark as running
-                localStorage.setItem('currentSessionId', data.session_id);
-                localStorage.setItem('currentPlayerId', data.players[0]);
+                localStorage.setItem('currentSessionId', sessionId);
                 localStorage.setItem('gameStatus', 'running');
                 console.log('🎮 Game started:', data);
-                
+
                 setGenerationStatus('🌍 Загрузка мира...');
                 await new Promise(resolve => setTimeout(resolve, 800));
-                
+
                 // Update store
                 setCurrentSession({
-                    session_id: data.session_id,
+                    session_id: sessionId,
                     session_name: data.session_name,
                     game_mode: data.game_mode,
                     status: 'running',
-                    player_count: data.players.length,
+                    player_count: data.player_count,
                     max_players: 5,
                     description: undefined,
-                    players: data.players.map((p: any) => ({ player_id: p, player_name: p, character_name: undefined })),
+                    players: [],
                 } as any);
-                
+
                 // Reset generating state
                 setIsGenerating(false);
                 setGenerationStatus('');
-                
-                // Reload to show game interface
-                window.location.reload();
+
+                // Pass session data to parent and navigate to game
+                if (onCreateSession) {
+                    onCreateSession(); // This will trigger the callback to navigate
+                } else {
+                    // Fallback: reload to update UI
+                    window.location.reload();
+                }
             } else {
                 console.error('Failed to start game:', data.detail);
                 setIsGenerating(false);

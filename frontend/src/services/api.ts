@@ -74,9 +74,17 @@ api.interceptors.response.use(
         // Handle specific status codes
         switch (status) {
             case 401:
-                // Clear invalid token
+                // Clear invalid token and redirect to landing page
+                console.warn('⚠️ 401 Unauthorized - clearing auth and redirecting');
                 localStorage.removeItem('access_token');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('username');
+                localStorage.removeItem('is_guest');
                 message = 'Session expired. Please log in again.';
+                // Only redirect if not already on landing page
+                if (window.location.pathname !== '/' && window.location.pathname !== '/home') {
+                    window.location.href = '/';
+                }
                 break;
             case 403:
                 message = 'You do not have permission to perform this action.';

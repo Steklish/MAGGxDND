@@ -279,7 +279,7 @@ html::-webkit-scrollbar-thumb:hover {
 
 .header-nav button:hover {
     color: var(--text-primary);
-    background: var(--bg-secondary);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .header-actions {
@@ -316,8 +316,8 @@ html::-webkit-scrollbar-thumb:hover {
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-md);
     color: var(--text-primary);
     cursor: pointer;
@@ -416,8 +416,8 @@ html::-webkit-scrollbar-thumb:hover {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     padding: 8px 16px;
     border-radius: 50px;
     font-size: 13px;
@@ -534,8 +534,8 @@ html::-webkit-scrollbar-thumb:hover {
 }
 
 .btn-secondary {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-primary);
     padding: 16px 32px;
     font-family: var(--font-family);
@@ -551,7 +551,7 @@ html::-webkit-scrollbar-thumb:hover {
 
 .btn-secondary:hover {
     border-color: var(--accent-orange);
-    background: var(--bg-tertiary);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .btn-icon {
@@ -601,8 +601,8 @@ html::-webkit-scrollbar-thumb:hover {
 
 .hero-card {
     position: relative;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: var(--radius-lg);
     padding: 24px;
     max-width: 400px;
@@ -681,12 +681,12 @@ html::-webkit-scrollbar-thumb:hover {
 }
 
 .action-tag {
-    background: var(--bg-tertiary);
+    background: rgba(0, 0, 0, 0.2);
     padding: 6px 12px;
     border-radius: 50px;
     font-size: 12px;
     color: var(--accent-orange);
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* Animations */
@@ -774,8 +774,8 @@ html::-webkit-scrollbar-thumb:hover {
 }
 
 .feature-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: var(--radius-lg);
     padding: 32px;
     transition: all 0.4s ease;
@@ -824,12 +824,12 @@ html::-webkit-scrollbar-thumb:hover {
 }
 
 .feature-tags span {
-    background: var(--bg-tertiary);
+    background: rgba(0, 0, 0, 0.2);
     padding: 6px 12px;
     border-radius: 50px;
     font-size: 12px;
     color: var(--accent-gold);
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* How It Works Section */
@@ -853,8 +853,8 @@ html::-webkit-scrollbar-thumb:hover {
     align-items: flex-start;
     gap: 40px;
     padding: 40px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: var(--radius-lg);
     transition: all 0.4s ease;
     opacity: 0;
@@ -953,9 +953,9 @@ html::-webkit-scrollbar-thumb:hover {
     justify-content: center;
     width: 80px;
     height: 80px;
-    background: var(--bg-tertiary);
+    background: rgba(0, 0, 0, 0.2);
     border-radius: var(--radius-lg);
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .visual-icon {

@@ -17,12 +17,25 @@
     user-select: none;
 }
 
+.auth-modal-overlay.closing {
+    animation: fadeOut 0.3s ease forwards;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
     }
     to {
         opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
     }
 }
 
@@ -45,7 +58,7 @@
     background-repeat: no-repeat;
 }
 
-/* Dark overlay inside modal for text readability */
+/* Dark shade overlay on background image */
 .auth-modal::before {
     content: '';
     position: absolute;
@@ -53,13 +66,47 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(15, 15, 20, 0.93);
-    border-radius: var(--radius-lg);
+    background: rgba(0, 0, 0, 0.3);
     pointer-events: none;
+    z-index: 0;
+}
+
+.auth-modal.closing {
+    animation: slideDown 0.3s ease forwards;
 }
 
 /* Content should be above the overlay */
 .auth-modal > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Dark overlay inside modal for text readability - covers full content */
+.auth-modal-content-overlay {
+    position: relative;
+    background: rgba(15, 15, 20, 0.93);
+    border-radius: var(--radius-lg);
+    min-height: 100%;
+    padding: 20px 0;
+    overflow: hidden;
+}
+
+/* Additional dark shade on background image - covers entire overlay */
+.auth-modal-content-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Content should be above the overlay */
+.auth-modal-content-overlay > * {
     position: relative;
     z-index: 1;
 }
@@ -72,6 +119,17 @@
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(30px);
     }
 }
 

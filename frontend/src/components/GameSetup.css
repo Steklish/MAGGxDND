@@ -10,11 +10,19 @@
 
 .setup-header {
     background: var(--bg-secondary);
-    padding: 20px 40px;
+    padding: 24px 40px;
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    position: relative;
+    gap: 40px;
+}
+
+.header-spacer {
+    position: absolute;
+    left: 40px;
+    width: 100px;
 }
 
 .setup-header h2 {
@@ -27,31 +35,236 @@
     background-clip: text;
 }
 
+/* Animated Progress Steps */
 .setup-progress {
     display: flex;
-    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    position: relative;
+    padding: 0 20px;
 }
 
-.setup-progress .step {
-    width: 40px;
-    height: 40px;
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    opacity: 0.5;
+}
+
+.step-number {
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background: var(--bg-tertiary);
-    border: 2px solid var(--border-color);
+    border: 3px solid var(--border-color);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 16px;
+    font-size: 18px;
     color: var(--text-secondary);
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-.setup-progress .step.active {
-    background: var(--gradient-primary);
-    border-color: var(--accent-orange);
-    color: var(--text-primary);
-    box-shadow: 0 0 20px rgba(255, 107, 53, 0.4);
+.step-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateY(-10px);
+    position: absolute;
+    top: 100%;
+    white-space: nowrap;
+}
+
+/* Active Step - Center, Large, Glowing */
+.step.active {
+    opacity: 1;
+    transform: scale(1.15);
+    z-index: 3;
+}
+
+.step.active .step-number {
+    width: 64px;
+    height: 64px;
+    font-size: 24px;
+    background: linear-gradient(135deg, #FF8A5C 0%, #FFB347 100%);
+    border-color: #FF8A5C;
+    color: #1a1a1a;
+    box-shadow: 
+        0 0 30px rgba(255, 138, 92, 0.5),
+        0 0 60px rgba(255, 138, 92, 0.3),
+        inset 0 0 20px rgba(255, 255, 255, 0.2);
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.step.active .step-label {
+    opacity: 1;
+    transform: translateY(14px);
+    color: var(--accent-orange);
+    font-size: 13px;
+}
+
+/* Completed Step - Left, Smaller, Filled */
+.step.completed {
+    opacity: 0.8;
+    transform: scale(0.85) translateX(-10px);
+}
+
+.step.completed .step-number {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+    background: linear-gradient(135deg, rgba(42, 157, 143, 0.3) 0%, rgba(42, 157, 143, 0.1) 100%);
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+    box-shadow: 0 2px 10px rgba(42, 157, 143, 0.3);
+}
+
+.step.completed .step-number::after {
+    content: '✓';
+    position: absolute;
+    font-size: 20px;
+    color: var(--accent-green);
+    animation: checkmark 0.3s ease-out;
+}
+
+.step.completed .step-number {
+    font-size: 0;
+}
+
+.step.completed .step-label {
+    opacity: 1;
+    transform: translateY(14px);
+    color: var(--accent-green);
+}
+
+/* Pending Step - Right, Empty */
+.step:not(.active):not(.completed) {
+    opacity: 0.4;
+    transform: scale(0.9) translateX(10px);
+}
+
+.step:not(.active):not(.completed) .step-number {
+    background: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-muted);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.step:not(.active):not(.completed) .step-label {
+    opacity: 0;
+}
+
+/* Connector Lines */
+.setup-progress::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--border-color);
+    transform: translateY(-50%);
+    z-index: 1;
+    border-radius: 3px;
+}
+
+.progress-fill {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-green) 0%, var(--accent-orange) 100%);
+    transform: translateY(-50%);
+    z-index: 2;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+}
+
+/* Animations */
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 
+            0 0 30px rgba(255, 138, 92, 0.5),
+            0 0 60px rgba(255, 138, 92, 0.3),
+            inset 0 0 20px rgba(255, 255, 255, 0.2);
+    }
+    50% {
+        box-shadow: 
+            0 0 40px rgba(255, 138, 92, 0.7),
+            0 0 80px rgba(255, 138, 92, 0.4),
+            inset 0 0 30px rgba(255, 255, 255, 0.3);
+    }
+}
+
+@keyframes checkmark {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .setup-header {
+        padding: 16px 20px;
+        gap: 20px;
+    }
+
+    .header-spacer {
+        left: 20px;
+        width: 80px;
+    }
+
+    .setup-header h2 {
+        font-size: 18px;
+    }
+
+    .setup-progress {
+        padding: 0 10px;
+    }
+
+    .step-number {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    .step.active .step-number {
+        width: 52px;
+        height: 52px;
+        font-size: 20px;
+    }
+
+    .step.completed .step-number {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+
+    .step-label {
+        display: none;
+    }
+
+    .step.active .step-label {
+        display: block;
+    }
 }
 
 .setup-content {

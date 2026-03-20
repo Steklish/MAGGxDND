@@ -46,6 +46,8 @@ export interface PlayerInfo {
     player_name: string;
     character_name?: string;
     connected: boolean;
+    is_ready?: boolean;  // Ready status for waiting room
+    role?: string;
 }
 
 export interface SessionCreateRequest {
@@ -75,6 +77,24 @@ export interface PlayerJoinRequest {
     character_prompt?: string;
 }
 
+export interface WaitingRoomInfo {
+    session_id: string;
+    session_name: string;
+    game_mode: string;
+    player_count: number;
+    max_players: number;
+    status: string;
+    description?: string;
+    owner_id: number;
+    owner_name: string;
+    is_owner: boolean;
+    players: PlayerInfo[];
+}
+
+export interface PlayerReadyRequest {
+    is_ready: boolean;
+}
+
 export const sessionAPI = {
     /**
      * Create a new game session
@@ -87,9 +107,9 @@ export const sessionAPI = {
     /**
      * Get list of all active sessions
      */
-    listSessions: async (userId?: number): Promise<{ sessions: GameSession[]; total: number }> => {
-        const params = userId ? `?user_id=${userId}` : '';
-        const response = await api.get<{ sessions: GameSession[]; total: number }>(`/sessions${params}`);
+    listSessions: async (_userId?: number): Promise<{ sessions: GameSession[]; total: number }> => {
+        // Backend gets user from auth token, not query param
+        const response = await api.get<{ sessions: GameSession[]; total: number }>('/sessions');
         return response.data;
     },
 
@@ -144,6 +164,30 @@ export const sessionAPI = {
      */
     getSessionInfo: async (sessionId: string): Promise<any> => {
         const response = await api.get(`/sessions/${sessionId}/info`);
+        return response.data;
+    },
+
+    /**
+     * Get waiting room info for a session
+     */
+    getWaitingRoom: async (sessionId: string): Promise<WaitingRoomInfo> => {
+        const response = await api.get<WaitingRoomInfo>(`/sessions/${sessionId}/waiting-room`);
+        return response.data;
+    },
+
+    /**
+     * Set player ready status in waiting room
+     */
+    setReadyStatus: async (sessionId: string, isReady: boolean): Promise<{ success: boolean; user_id: number; player_name: string; is_ready: boolean }> => {
+        const response = await api.post(`/sessions/${sessionId}/ready`, { is_ready: isReady });
+        return response.data;
+    },
+
+    /**
+     * Start game from waiting room
+     */
+    startGameFromWaitingRoom: async (sessionId: string): Promise<GameSession> => {
+        const response = await api.post<GameSession>(`/sessions/${sessionId}/start-game`);
         return response.data;
     },
 };
