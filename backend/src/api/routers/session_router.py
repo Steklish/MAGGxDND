@@ -953,6 +953,7 @@ async def start_session(
 
             # Create player with character
             try:
+                logger.info(f"[START] Creating player object for {character.name}...")
                 player_orchestrator = Orchestrator(
                     generator=game_session.generator,
                     logger=game_session.logger.getChild("player_orchestrator")
@@ -969,9 +970,10 @@ async def start_session(
                 )
                 player.inject_state(game_session)
                 game_session.players.append(player)
-                logger.info(f"[START] ✓ Character {character.name} added to session")
+                logger.info(f"[START] ✓ Character {character.name} added to session. Total players: {len(game_session.players)}")
             except Exception as e:
                 logger.error(f"[START] Failed to create player: {e}", exc_info=True)
+                # Continue anyway - we'll try procedural fallback for next character
 
         logger.info(f"[START] Session already has {len(game_session.players)} players")
 
@@ -980,19 +982,23 @@ async def start_session(
             'A mysterious stranger with important information',
             'A local merchant or shopkeeper'
         ]
-        
+
         logger.info(f"[START] Generating {len(npc_prompts_to_use)} NPCs...")
-        
+
         for i, prompt in enumerate(npc_prompts_to_use):
             try:
+                logger.info(f"[START] Generating NPC {i+1}: {prompt[:50]}...")
                 # Use procedural generator for NPCs
                 npc_character = procedural_gen.generate_npc(role=None, prompt=prompt)
                 npc_character.current_scene = scene.name
                 logger.info(f"[START] ✓ Procedural NPC generated: {npc_character.name} ({npc_character.occupation})")
+                
+                logger.info(f"[START] Adding NPC to session...")
                 game_session._init_npc(npc_character)
+                logger.info(f"[START] ✓ NPC {npc_character.name} added. Total NPCs: {len(game_session.npcs)}")
             except Exception as e:
                 logger.error(f"[START] NPC generation error: {e}", exc_info=True)
-        
+
         logger.info(f"[START] === Session initialized: {len(game_session.players)} players, {len(game_session.npcs)} NPCs ===")
         
         # Send welcome message
