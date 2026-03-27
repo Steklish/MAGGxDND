@@ -79,10 +79,20 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
                 const data = JSON.parse(responseText);
                 console.log('[GameSetup] Session started successfully:', data);
                 
-                // Save playerId from response if available
-                if (data.player_id) {
-                    localStorage.setItem('currentPlayerId', data.player_id);
-                    console.log('✓ PlayerId saved:', data.player_id);
+                // Save playerId from response - try multiple sources
+                let playerId = data.player_id;
+                
+                // If no player_id at root, try to get from players array (first player)
+                if (!playerId && data.players && data.players.length > 0) {
+                    playerId = data.players[0].player_id;
+                    console.log('✓ PlayerId extracted from players array:', playerId);
+                }
+                
+                if (playerId) {
+                    localStorage.setItem('currentPlayerId', playerId);
+                    console.log('✓ PlayerId saved:', playerId);
+                } else {
+                    console.warn('⚠️ No playerId found in response');
                 }
                 
                 // Pass session ID to parent for navigation
