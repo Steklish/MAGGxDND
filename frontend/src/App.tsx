@@ -177,10 +177,17 @@ function App() {
     };
 
     const handleStartGame = (sessionId: string) => {
-        // Update localStorage
+        // Update localStorage with ALL required fields
         localStorage.setItem('currentSessionId', sessionId);
         localStorage.setItem('gameStatus', 'running');
+        
         console.log('🎮 Game started, session:', sessionId);
+        console.log('📋 localStorage:', {
+            sessionId: localStorage.getItem('currentSessionId'),
+            playerId: localStorage.getItem('currentPlayerId'),
+            gameStatus: localStorage.getItem('gameStatus')
+        });
+        
         // Navigate to game page
         setCurrentPage('game');
     };

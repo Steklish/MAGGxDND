@@ -78,6 +78,13 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
             if (response.ok) {
                 const data = JSON.parse(responseText);
                 console.log('[GameSetup] Session started successfully:', data);
+                
+                // Save playerId from response if available
+                if (data.player_id) {
+                    localStorage.setItem('currentPlayerId', data.player_id);
+                    console.log('✓ PlayerId saved:', data.player_id);
+                }
+                
                 // Pass session ID to parent for navigation
                 onComplete(sessionId);
             } else {
