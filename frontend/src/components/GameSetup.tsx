@@ -33,12 +33,21 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
         setIsGenerating(true);
 
         try {
+            // Build character prompt based on selection
+            let characterPrompt = '';
+            if (characterChoice === 'ai-create' && characterDescription) {
+                characterPrompt = characterDescription;
+            } else if (characterChoice === 'ai-random') {
+                characterPrompt = 'Create a random D&D character with interesting backstory and abilities';
+            }
+
             // Use the existing /start endpoint which initializes the session
             const gameSetup = {
                 wishes: wishes || 'Create an exciting adventure with interesting NPCs and challenging encounters',
                 scene_prompt: undefined,
-                character_prompts: [],
-                npc_prompts: []
+                character_prompts: characterPrompt ? [characterPrompt] : [],
+                character_description: characterPrompt,
+                npc_prompts: ['A mysterious stranger with important information', 'A local merchant or shopkeeper']
             };
 
             console.log('[GameSetup] Starting session with:', gameSetup);
