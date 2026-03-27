@@ -10,6 +10,7 @@ interface Player {
     player_name: string;
     character_name?: string;
     connected: boolean;
+    is_ready?: boolean;
 }
 
 interface SessionDetail {
@@ -45,6 +46,13 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
     // Check if session is already running
     const isRunning = session?.status === 'running';
 
+    // Navigate to waiting room for game setup
+    const handleGoToWaitingRoom = () => {
+        if (onStartGame) {
+            onStartGame(sessionId);
+        }
+    };
+
     useEffect(() => {
         // Check if we already have a player ID for this session in localStorage
         const storedPlayerId = localStorage.getItem(`playerId_${sessionId}`);
@@ -76,9 +84,9 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
 
     const loadSessionDetail = async () => {
         try {
-            // Get session list and find our session
-            const response = await axios.get('/api/v1/sessions');
-            const foundSession = response.data.sessions.find((s: any) => s.session_id === sessionId);
+            // Get session detail from the specific endpoint
+            const response = await axios.get(`/api/v1/sessions/${sessionId}`);
+            const foundSession = response.data;
 
             if (foundSession) {
                 setSession({
@@ -86,7 +94,9 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                     players: session?.players || [] // Keep existing players until loaded
                 });
                 // Check if current user is the owner
-                setIsOwner(foundSession.is_owner || false);
+                const ownerStatus = foundSession.is_owner || false;
+                setIsOwner(ownerStatus);
+                console.log('[SessionDetail] is_owner:', ownerStatus, 'session:', foundSession);
             } else {
                 setError('Session not found');
             }
@@ -120,14 +130,6 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
         // TODO: Implement leave session endpoint
         alert('Leave session feature coming soon!');
         onLeave();
-    };
-
-    const handleStartSession = async () => {
-        if (onStartGame) {
-            onStartGame(sessionId);
-        } else {
-            alert('Start session feature coming soon! This requires backend implementation.');
-        }
     };
 
     const handleLogout = () => {
@@ -309,8 +311,11 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                             </div>
                             <div className="session-title-actions">
                                 {session.status === 'created' && (
-                                    <button className="btn-start" onClick={handleStartSession}>
-                                        🚀 Start Session
+                                    <button
+                                        className="btn-waiting-room"
+                                        onClick={handleGoToWaitingRoom}
+                                    >
+                                        🎲 Go to Waiting Room
                                     </button>
                                 )}
                                 {session.status === 'running' && (
@@ -394,9 +399,14 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                                                         <span className="player-role-badge">👑 Owner</span>
                                                     )}
                                                 </div>
-                                                <span className={`player-status ${player.connected ? 'connected' : 'disconnected'}`}>
-                                                    {player.connected ? '🟢 Connected' : '🔴 Disconnected'}
-                                                </span>
+                                                <div className="player-status-section">
+                                                    <span className={`player-status ${player.connected ? 'connected' : 'disconnected'}`}>
+                                                        {player.connected ? '🟢 Connected' : '🔴 Disconnected'}
+                                                    </span>
+                                                    <span className={`player-ready-badge ${player.is_ready ? 'ready' : ''}`}>
+                                                        {player.is_ready ? '✅ Ready' : '⏳ Not Ready'}
+                                                    </span>
+                                                </div>
                                                 {/* Kick button - only for owner and not for other owners */}
                                                 {isOwner && player.role !== 'owner' && (
                                                     <button

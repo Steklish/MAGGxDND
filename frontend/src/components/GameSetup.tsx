@@ -33,38 +33,49 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
         setIsGenerating(true);
 
         try {
-            // Prepare prompt for AI - use snake_case for backend compatibility
+            // Use the existing /start endpoint which initializes the session
             const gameSetup = {
-                wishes: wishes || 'Create an exciting adventure',
-                character_choice: characterChoice,
-                character_description: characterChoice === 'ai-create' ? characterDescription : null,
+                wishes: wishes || 'Create an exciting adventure with interesting NPCs and challenging encounters',
+                scene_prompt: undefined,
+                character_prompts: [],
+                npc_prompts: []
             };
 
             console.log('[GameSetup] Starting session with:', gameSetup);
 
-            // Call backend API to initialize game
+            // Call backend API to start session
             const response = await fetch(`/api/v1/sessions/${sessionId}/start`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                 },
                 body: JSON.stringify(gameSetup),
             });
 
+            // Get response text first
+            const responseText = await response.text();
+            console.log('[GameSetup] Response status:', response.status);
+            console.log('[GameSetup] Response text:', responseText);
+
             if (response.ok) {
-                const data = await response.json();
+                const data = JSON.parse(responseText);
                 console.log('[GameSetup] Session started successfully:', data);
                 // Pass session ID to parent for navigation
                 onComplete(sessionId);
             } else {
-                const errorData = await response.json();
+                let errorData;
+                try {
+                    errorData = JSON.parse(responseText);
+                } catch {
+                    errorData = { detail: responseText || 'Unknown error' };
+                }
                 console.error('[GameSetup] Failed to start session:', errorData);
                 alert(`Failed to start: ${errorData.detail || 'Unknown error'}`);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('[GameSetup] Failed to start game:', error);
-            alert('Network error. Please try again.');
+            alert(`Network error: ${error.message || 'Please try again'}`);
         } finally {
             setIsGenerating(false);
         }

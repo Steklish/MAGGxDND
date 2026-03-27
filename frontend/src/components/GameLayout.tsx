@@ -123,21 +123,22 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                         setGenerationStatus('');
                         setIsGenerating(false);
                         setSessionNotFound(true);
-                    } else if (data.players && data.players.length > 0) {
-                        console.log('🎭 Players loaded:', data.players.length);
+                    } else {
+                        // Handle both empty and populated player lists
+                        console.log('🎭 Players loaded:', data.players?.length || 0);
                         console.log('🎭 NPCs loaded:', data.npcs?.length || 0);
-                        console.log('🏰 Scene:', data.scene?.name);
-                        
+                        console.log('🏰 Scene:', data.current_scene?.name || data.scene?.name);
+
                         // Update session in store with game data
                         const gameSession = {
                             session_id: data.session_id,
                             session_name: data.session_name,
                             game_mode: data.game_mode,
                             status: data.status,
-                            player_count: data.players.length,
+                            player_count: data.players?.length || 0,
                             max_players: 5,
                             description: undefined,
-                            players: data.players.map((p: any) => ({
+                            players: (data.players || []).map((p: any) => ({
                                 character: {
                                     name: p.name,
                                     race: p.race,
@@ -166,45 +167,49 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                                     speed: n.speed,
                                     proficiency_bonus: n.proficiency_bonus,
                                     is_alive: n.is_alive,
-                                    stats: n.stats,
+                                    stats: n.stats || {
+                                        strength: 10, dexterity: 10, constitution: 10,
+                                        intelligence: 10, wisdom: 10, charisma: 10,
+                                    },
                                 }
                             })),
                         } as any;
                         setCurrentSession(gameSession);
-                        
+
                         // Add welcome message from DM
-                        console.log('🏰 Scene loaded:', data.scene.name);
-                        
+                        const sceneToUse = data.current_scene || data.scene;
+                        console.log('🏰 Scene loaded:', sceneToUse?.name);
+
                         // Add initial game messages
-                        const dmMessage = {
-                            sender_name: 'DM',
-                            text: `Welcome to ${data.scene.name}! ${data.scene.description}`,
-                            type: 'dm',
-                            timestamp: new Date().toISOString(),
-                        };
-                        const systemMessage = {
-                            sender_name: 'System',
-                            text: `Game started with ${data.players.length} player(s) and ${data.npcs?.length || 0} NPC(s).`,
-                            type: 'environment',
-                            timestamp: new Date().toISOString(),
-                        };
-                        
-                        // Add messages to store
-                        addMessage(dmMessage);
-                        addMessage(systemMessage);
-                        
-                        // Set current scene
-                        if (data.scene) {
+                        if (sceneToUse) {
+                            const dmMessage = {
+                                sender_name: 'DM',
+                                text: `Welcome to ${sceneToUse.name || 'the adventure'}! ${sceneToUse.description || ''}`,
+                                type: 'dm',
+                                timestamp: new Date().toISOString(),
+                            };
+                            const systemMessage = {
+                                sender_name: 'System',
+                                text: `Game started with ${data.players?.length || 0} player(s) and ${data.npcs?.length || 0} NPC(s).`,
+                                type: 'environment',
+                                timestamp: new Date().toISOString(),
+                            };
+
+                            // Add messages to store
+                            addMessage(dmMessage);
+                            addMessage(systemMessage);
+
+                            // Set current scene
                             setCurrentScene({
-                                name: data.scene.name,
-                                description: data.scene.description,
+                                name: sceneToUse.name || 'Unknown',
+                                description: sceneToUse.description || 'A mysterious place...',
                                 center_position: { x: 10, y: 10 },
                                 dimensions: { x: 20, y: 20 },
                                 objects: [],
                             });
-                            console.log('🏰 Scene loaded:', data.scene.name);
+                            console.log('🏰 Scene set:', sceneToUse.name);
                         }
-                        
+
                         // Set active character (first player)
                         if (data.players && data.players.length > 0) {
                             const firstPlayer = data.players[0];
@@ -225,9 +230,9 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                             setActiveCharacter(activeChar);
                             console.log('🎭 Active character:', activeChar.name);
                         }
-                        
-                        console.log('💬 DM Message:', dmMessage.text);
-                        console.log('💬 System:', systemMessage.text);
+
+                        console.log('💬 DM Message added');
+                        console.log('💬 System message added');
                     }
                 })
                 .catch(err => console.error('Failed to load game info:', err));
@@ -318,16 +323,25 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
             setIsGenerating(true);
             setGenerationStatus('🎲 Инициализация игрового мира...');
 
+            // Get username for character name
+            const username = localStorage.getItem('username') || 'Adventurer';
+
             const response = await fetch(`/api/v1/sessions/${sessionId}/start`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                 },
                 body: JSON.stringify({
                     wishes: 'A medieval tavern with adventurers',
-                    character_choice: 'ai-random',
-                    character_description: null
+                    scene_prompt: 'A bustling medieval tavern filled with adventurers, merchants, and mysterious strangers',
+                    character_prompts: [
+                        `A brave ${username}, level 1 adventurer ready for quests`,
+                    ],
+                    npc_prompts: [
+                        'A friendly tavern keeper who knows all the local rumors',
+                        'A mysterious hooded figure sitting in the corner',
+                    ],
                 }),
             });
             const data = await response.json();
@@ -347,7 +361,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                 setGenerationStatus('🌍 Загрузка мира...');
                 await new Promise(resolve => setTimeout(resolve, 800));
 
-                // Update store
+                // Update store with player data from response
                 setCurrentSession({
                     session_id: sessionId,
                     session_name: data.session_name,
@@ -356,7 +370,8 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                     player_count: data.player_count,
                     max_players: 5,
                     description: undefined,
-                    players: [],
+                    players: data.players || [],
+                    npcs: data.npcs || [],
                 } as any);
 
                 // Reset generating state

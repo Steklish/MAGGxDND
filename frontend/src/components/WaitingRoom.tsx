@@ -31,9 +31,10 @@ interface WaitingRoomProps {
     sessionId: string;
     onGameStart: (sessionId: string) => void;
     onBack: () => void;
+    onGoToSetup?: (sessionId: string) => void;
 }
 
-export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart, onBack }) => {
+export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart, onBack, onGoToSetup }) => {
     const navigate = useNavigate();
     const { username, logout, setCurrentSession } = useGameStore();
     const [session, setSession] = useState<SessionInfo | null>(null);
@@ -108,7 +109,8 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart
 
     const loadSessionInfo = async () => {
         try {
-            const response = await fetch(`/api/v1/sessions/${sessionId}/waiting-room`, {
+            // Use standard session endpoint instead of waiting-room
+            const response = await fetch(`/api/v1/sessions/${sessionId}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                 }
@@ -118,16 +120,17 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart
                 const data = await response.json();
                 console.log('[WaitingRoom] Session data loaded:', data);
                 console.log('[WaitingRoom] is_owner:', data.is_owner, 'username:', username);
+                console.log('[WaitingRoom] players:', data.players);
                 setSession(data);
                 setIsOwner(data.is_owner);
-                
+
                 // Check if current user is already ready
-                const currentPlayer = data.players.find((p: Player) => p.player_name === username);
+                const currentPlayer = data.players?.find((p: Player) => p.player_name === username);
                 if (currentPlayer) {
-                    setIsReady(currentPlayer.is_ready);
+                    setIsReady(currentPlayer.is_ready || false);
                     console.log('[WaitingRoom] Player ready status:', currentPlayer.is_ready);
                 }
-                
+
                 setError(null);
             } else {
                 const errorData = await response.json();
@@ -177,34 +180,12 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart
             return;
         }
 
-        setWaitingForPlayers(true);
-
-        try {
-            const response = await fetch(`/api/v1/sessions/${sessionId}/start-game`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                // Update session status
-                localStorage.setItem('gameStatus', 'running');
-                localStorage.setItem('currentSessionId', sessionId);
-                
-                // Navigate to game page
-                onGameStart(sessionId);
-            } else {
-                const errorData = await response.json();
-                alert(`Failed to start game: ${errorData.detail || 'Unknown error'}`);
-                setWaitingForPlayers(false);
-            }
-        } catch (err: any) {
-            console.error('Failed to start game:', err);
-            alert('Network error. Please try again.');
-            setWaitingForPlayers(false);
+        // Navigate to GameSetup for AI initialization
+        if (onGoToSetup) {
+            onGoToSetup(sessionId);
+        } else {
+            // Fallback: navigate directly
+            onGameStart(sessionId);
         }
     };
 
@@ -221,6 +202,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart
     };
 
     if (isLoading) {
+        console.log('[WaitingRoom] Still loading...');
         return (
             <div className="waiting-room loading">
                 <div className="loading-spinner">
@@ -234,6 +216,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart
     }
 
     if (error || !session) {
+        console.error('[WaitingRoom] Error or no session:', error, session);
         return (
             <ErrorBoundary errorType="no-session">
                 <div className="error-content">
@@ -311,29 +294,22 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart
                                 </span>
                             </div>
                             <div className="session-title-actions">
-                                {isOwner ? (
-                                    <button 
-                                        className={`btn-start-game ${!canStartGame ? 'disabled' : ''}`} 
+                                {/* Ready button for ALL players */}
+                                <button
+                                    className={`btn-ready ${isReady ? 'ready' : ''}`}
+                                    onClick={handleToggleReady}
+                                >
+                                    {isReady ? '✅ Ready!' : '🎯 Get Ready'}
+                                </button>
+                                
+                                {/* Start button for owner only (shown when ready) */}
+                                {isOwner && (
+                                    <button
+                                        className={`btn-start-game ${!canStartGame ? 'disabled' : ''}`}
                                         onClick={handleStartGame}
-                                        disabled={!canStartGame || waitingForPlayers}
+                                        disabled={!canStartGame}
                                     >
-                                        {waitingForPlayers ? (
-                                            <>
-                                                <span className="loading-spinner-small"></span>
-                                                Starting...
-                                            </>
-                                        ) : (
-                                            <>
-                                                🚀 Start Game
-                                            </>
-                                        )}
-                                    </button>
-                                ) : (
-                                    <button 
-                                        className={`btn-ready ${isReady ? 'ready' : ''}`} 
-                                        onClick={handleToggleReady}
-                                    >
-                                        {isReady ? '✅ Ready!' : '🎯 Get Ready'}
+                                        🚀 Start Game
                                     </button>
                                 )}
                             </div>

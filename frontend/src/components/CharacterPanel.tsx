@@ -165,9 +165,12 @@ const CharacterPreview: React.FC<CharacterPreviewProps> = ({ character, type = '
 };
 
 export const CharacterPanel: React.FC = () => {
-    const { session, activeCharacter, setActiveCharacter } = useGameStore();
+    const { session, currentSession, activeCharacter, setActiveCharacter } = useGameStore();
 
-    if (!session) {
+    // Use currentSession as primary, session as fallback
+    const activeSession = currentSession || session;
+
+    if (!activeSession) {
         return (
             <div className="character-panel">
                 <div className="no-session">No session</div>
@@ -175,13 +178,13 @@ export const CharacterPanel: React.FC = () => {
         );
     }
 
-    const players = session.players?.map(p => p.character) || [];
-    const npcs = session.npcs?.map(n => n.character) || [];
+    const players = activeSession.players?.map(p => p.character) || [];
+    const npcs = activeSession.npcs?.map(n => n.character) || [];
 
     // Get current turn character
     const getCurrentTurnCharacter = () => {
-        if (!session.turn_queue || session.turn_queue.length === 0) return null;
-        const sortedQueue = [...session.turn_queue].sort((a, b) => a[2] - b[2]);
+        if (!activeSession.turn_queue || activeSession.turn_queue.length === 0) return null;
+        const sortedQueue = [...activeSession.turn_queue].sort((a, b) => a[2] - b[2]);
         return sortedQueue[0]?.[0];
     };
 
@@ -206,7 +209,7 @@ export const CharacterPanel: React.FC = () => {
                     <h3 style={{ color: 'var(--accent-yellow)' }}>Players ({players.length})</h3>
                     {players.filter(Boolean).map(char => {
                         if (!char) return null;
-                        const charType = getCharacterType(char, session);
+                        const charType = getCharacterType(char, activeSession);
                         const typeColor = getTypeColor(charType);
                         const typeBg = getTypeBgGradient(charType);
                         return (
@@ -270,7 +273,7 @@ export const CharacterPanel: React.FC = () => {
                     <h3 style={{ color: 'var(--accent-yellow)' }}>NPCs ({npcs.length})</h3>
                     {npcs.filter(Boolean).map(char => {
                         if (!char) return null;
-                        const charType = getCharacterType(char, session);
+                        const charType = getCharacterType(char, activeSession);
                         const typeColor = getTypeColor(charType);
                         const typeBg = getTypeBgGradient(charType);
                         return (

@@ -1,330 +1,473 @@
 """
-AI Game Service - Bridge between FastAPI server and Core Game Engine
+AI Game Service
 
-This service handles all AI-related operations for the game engine:
-- AI generation for scenes, characters, NPCs
-- Plot generation and management
-- Action processing with AI interpretation
-- Event generation based on player actions
+Прослойка между backend API и core ядром для работы с AI (Google Gemini).
 
-Core Integration:
-- Uses core.game.engine.Session for game state
-- Uses core.magg.magg.Magg for AI dungeon master logic
-- Uses skls_generator for AI content generation
+Отвечает за:
+- Инициализацию сессии через Generator + Session
+- Обработку действий игроков через MAGG + Orchestrator
+- Получение описания сцены и состояния игры
 """
-import os
 import logging
-from typing import Optional, List, Dict, Any, Tuple
+from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 from core.game.engine import Session
-from core.game.event_pool import EventPool
-from core.schemas.in_game import Character, NPCCharacter, SceneNode, GameModes
-from core.schemas.orchestration import Event, EventTypes, Message
-from core.entity.player import Player
-from core.entity.npc import NPC
+from core.magg.magg import Magg
+from core.entity.orchestrator import Orchestrator
+from core.schemas.in_game import SceneNode, Character, NPCCharacter
+from core.schemas.orchestration import Event, Message
+from core.game.manipulator import Manipulator
 
-try:
-    from skls_generator.generator import Generator
-    from skls_generator.gen_backends.google_gen import GoogleGenAI
-    from skls_embeddings.chroma_client import ChromaClient
-    from skls_embeddings.embedding_client import EmbeddingClient
-    SKLS_AVAILABLE = True
-except ImportError:
-    SKLS_AVAILABLE = False
-    Generator = None  # type: ignore
-    GoogleGenAI = None  # type: ignore
-    ChromaClient = None  # type: ignore
-    EmbeddingClient = None  # type: ignore
+from backend.src.services.ai_game_exceptions import (
+    AIServiceError,
+    GenerationError,
+    SessionNotInitializedError,
+    APIError,
+    CharacterNotFoundError,
+    InvalidActionError
+)
 
 logger = logging.getLogger(__name__)
 
 
 class AIGameService:
     """
-    Service for handling AI operations in game sessions.
+    Сервис для работы с AI в игровых сессиях.
     
-    This service acts as a bridge between the FastAPI server
-    and the core game engine, ensuring proper AI integration.
+    Использует core ядро для:
+    - Генерации контента через Generator (Google Gemini)
+    - Обработки действий через Orchestrator + MAGG
+    - Управления состоянием через Session engine
     """
 
-    def __init__(self):
-        if not SKLS_AVAILABLE:
-            logger.warning("SKLS dependencies not available. AI features disabled.")
-        
-        self._generators: Dict[str, Generator] = {}
-        self._chroma_clients: Dict[str, ChromaClient] = {}
-
-    def create_generator(
-        self,
-        session_id: str,
-        gemini_api_key: str,
-        gemini_model: str = "gemini-2.0-flash",
-        logger_instance: Optional[logging.Logger] = None
-    ) -> Generator:
+    def __init__(self, session: Session):
         """
-        Create AI generator for a session.
+        Инициализация сервиса.
         
         Args:
-            session_id: Unique session identifier
-            gemini_api_key: Google Gemini API key
-            gemini_model: Model name to use
-            logger_instance: Optional logger instance
-            
-        Returns:
-            Configured Generator instance
+            session: Активная игровая сессия из core engine
         """
-        if not SKLS_AVAILABLE:
-            raise ImportError("SKLS dependencies not installed")
+        self.session = session
+        self.logger = logging.getLogger(f'ai_game_service.{session.session_name}')
         
-        if session_id in self._generators:
-            return self._generators[session_id]
-        
-        log = logger_instance or logger
-        
-        # Create Google GenAI backend
-        google_genai = GoogleGenAI(
-            api_key=gemini_api_key,
-            logger=log,
-            model_name=gemini_model
-        )
-        
-        # Create Generator
-        generator = Generator(
-            google_genai,
-            logger_instance=log
-        )
-        
-        self._generators[session_id] = generator
-        log.info(f"AI Generator created for session {session_id} using {gemini_model}")
-        
-        return generator
-
-    def create_chroma_client(
+    async def initialize_session(
         self,
-        session_id: str,
-        embed_base: str = "localhost:12345",
-        chroma_path: str = "./chroma_db/data.db",
-        logger_instance: Optional[logging.Logger] = None
-    ) -> ChromaClient:
+        scene_prompt: str,
+        character_prompts: List[str],
+        npc_prompts: List[str]
+    ) -> Dict[str, Any]:
         """
-        Create ChromaDB client for vector storage.
+        Инициализировать сессию через core Session engine.
+        
+        Генерирует сцену, персонажей и NPC через Google Gemini AI,
+        затем инициализирует игровую сессию.
         
         Args:
-            session_id: Unique session identifier
-            embed_base: Embedding service endpoint
-            chroma_path: Path to ChromaDB database
-            logger_instance: Optional logger instance
+            scene_prompt: Описание начальной сцены
+            character_prompts: Список описаний персонажей игроков
+            npc_prompts: Список описаний NPC
             
         Returns:
-            Configured ChromaClient instance
-        """
-        if not SKLS_AVAILABLE:
-            raise ImportError("SKLS dependencies not installed")
-        
-        if session_id in self._chroma_clients:
-            return self._chroma_clients[session_id]
-        
-        log = logger_instance or logger
-        
-        # Create embedding client
-        embedding_client = EmbeddingClient(embed_base)
-        
-        # Create ChromaClient
-        chroma_client = ChromaClient(
-            embedding_client,
-            path=chroma_path,
-            logger_instance=log
-        )
-        
-        self._chroma_clients[session_id] = chroma_client
-        log.info(f"ChromaClient created for session {session_id}")
-        
-        return chroma_client
-
-    async def generate_scene(
-        self,
-        generator: Generator,
-        prompt: str,
-        session: Optional[Session] = None
-    ) -> SceneNode:
-        """
-        Generate a scene using AI.
-        
-        Args:
-            generator: AI Generator instance
-            prompt: Scene description prompt
-            session: Optional session for context
+            dict с результатами инициализации:
+            - success: bool
+            - session_id: str
+            - scene: SceneNode
+            - characters: List[Character]
+            - npcs: List[NPCCharacter]
+            - message: str
             
-        Returns:
-            Generated SceneNode
+        Raises:
+            GenerationError: Если AI не смог сгенерировать контент
+            SessionNotInitializedError: Если сессия уже инициализирована
         """
         try:
-            logger.info(f"Generating scene with prompt: {prompt[:100]}...")
+            self.logger.info(f"Initializing session with scene: {scene_prompt[:100]}...")
             
+            # Проверяем, не инициализирована ли уже сессия
+            if self.session.scene and self.session.players:
+                self.logger.warning("Session already initialized")
+                raise SessionNotInitializedError("Session is already initialized")
+            
+            # Генерируем сцену
+            self.logger.info("Generating scene...")
+            scene = await self._generate_scene(scene_prompt)
+            self.logger.info(f"Scene generated: {scene.name}")
+            
+            # Генерируем персонажей
+            characters = []
+            for i, prompt in enumerate(character_prompts):
+                self.logger.info(f"Generating character {i+1}/{len(character_prompts)}...")
+                character = await self._generate_character(prompt)
+                characters.append(character)
+                self.logger.info(f"Character generated: {character.name}")
+            
+            # Генерируем NPC
+            npcs = []
+            for i, prompt in enumerate(npc_prompts):
+                self.logger.info(f"Generating NPC {i+1}/{len(npc_prompts)}...")
+                npc = await self._generate_npc(prompt)
+                npcs.append(npc)
+                self.logger.info(f"NPC generated: {npc.name}")
+            
+            # Инициализируем сессию
+            self.logger.info("Initializing session engine...")
+            self.session.init_new_session(
+                scene=scene,
+                player_characters=characters,
+                npcs=npcs,
+                npc_logger=self.logger,
+                player_logger=self.logger
+            )
+            
+            self.logger.info(f"Session initialized with {len(characters)} characters and {len(npcs)} NPCs")
+            
+            return {
+                "success": True,
+                "session_id": self.session.session_name,
+                "scene": scene.model_dump(),
+                "characters": [c.model_dump() for c in characters],
+                "npcs": [n.model_dump() for n in npcs],
+                "message": f"Session initialized: {scene.description or scene.name}"
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Failed to initialize session: {str(e)}", exc_info=True)
+            if isinstance(e, AIServiceError):
+                raise
+            raise GenerationError(f"Failed to initialize session: {str(e)}") from e
+    
+    async def _generate_scene(self, prompt: str) -> SceneNode:
+        """
+        Сгенерировать сцену из промпта.
+        
+        Args:
+            prompt: Описание сцены
+            
+        Returns:
+            SceneNode: Сгенерированная сцена
+        """
+        try:
+            generator = self.session.generator
             scene = generator.generate_one_shot(
                 pydantic_model=SceneNode,
                 prompt=prompt
             )
-            
-            logger.info(f"Scene generated: {scene.name}")
             return scene
-            
         except Exception as e:
-            logger.error(f"Failed to generate scene: {e}", exc_info=True)
-            raise
-
-    async def generate_character(
-        self,
-        generator: Generator,
-        prompt: str,
-        session: Optional[Session] = None
-    ) -> Character:
+            self.logger.error(f"Failed to generate scene: {str(e)}")
+            # Возвращаем дефолтную сцену при ошибке
+            return SceneNode(
+                name="Unknown Location",
+                description=prompt or "A mysterious place.",
+                objects=[],
+                exits=[]
+            )
+    
+    async def _generate_character(self, prompt: str) -> Character:
         """
-        Generate a player character using AI.
+        Сгенерировать персонажа из промпта.
         
         Args:
-            generator: AI Generator instance
-            prompt: Character description prompt
-            session: Optional session for context
+            prompt: Описание персонажа
             
         Returns:
-            Generated Character
+            Character: Сгенерированный персонаж
         """
         try:
-            logger.info(f"Generating character with prompt: {prompt[:100]}...")
-            
+            generator = self.session.generator
             character = generator.generate_one_shot(
                 pydantic_model=Character,
                 prompt=prompt
             )
-            
-            logger.info(f"Character generated: {character.name}")
             return character
-            
         except Exception as e:
-            logger.error(f"Failed to generate character: {e}", exc_info=True)
-            raise
-
-    async def generate_npc(
-        self,
-        generator: Generator,
-        prompt: str,
-        session: Optional[Session] = None
-    ) -> NPCCharacter:
+            self.logger.error(f"Failed to generate character: {str(e)}")
+            # Возвращаем дефолтного персонажа при ошибке
+            return Character(
+                name="Unknown Hero",
+                description=prompt or "A brave adventurer.",
+                health=100,
+                max_health=100,
+                armor_class=10,
+                level=1
+            )
+    
+    async def _generate_npc(self, prompt: str) -> NPCCharacter:
         """
-        Generate an NPC using AI.
+        Сгенерировать NPC из промпта.
         
         Args:
-            generator: AI Generator instance
-            prompt: NPC description prompt
-            session: Optional session for context
+            prompt: Описание NPC
             
         Returns:
-            Generated NPCCharacter
+            NPCCharacter: Сгенерированный NPC
         """
         try:
-            logger.info(f"Generating NPC with prompt: {prompt[:100]}...")
-            
+            generator = self.session.generator
             npc = generator.generate_one_shot(
                 pydantic_model=NPCCharacter,
                 prompt=prompt
             )
-            
-            logger.info(f"NPC generated: {npc.name}")
             return npc
-            
         except Exception as e:
-            logger.error(f"Failed to generate NPC: {e}", exc_info=True)
-            raise
-
+            self.logger.error(f"Failed to generate NPC: {str(e)}")
+            # Возвращаем дефолтного NPC при ошибке
+            return NPCCharacter(
+                name="Unknown NPC",
+                description=prompt or "A mysterious figure.",
+                health=50,
+                max_health=50,
+                armor_class=10,
+                level=1,
+                attitude="neutral"
+            )
+    
     async def process_player_action(
         self,
-        session: Session,
-        player_id: str,
-        action_text: str,
-        character_name: str
-    ) -> Tuple[bool, str, List[Event]]:
+        character_name: str,
+        action: str
+    ) -> Dict[str, Any]:
         """
-        Process a player action through the game engine.
+        Обработать действие игрока через core MAGG.
         
-        This is the main entry point for handling player actions.
-        It routes the action through the core engine's manipulator
-        and returns the results.
+        Использует Orchestrator для обработки действия и MAGG
+        для генерации нарративного ответа.
         
         Args:
-            session: Game session
-            player_id: ID of the player
-            action_text: Text description of the action
-            character_name: Name of the character performing action
+            character_name: Имя персонажа, выполняющего действие
+            action: Описание действия
             
         Returns:
-            Tuple of (success, result_message, generated_events)
+            dict с результатами:
+            - success: bool
+            - dm_response: текст ответа DM
+            - events: список событий
+            - game_state: текущее состояние игры
+            - error: ошибка (если есть)
+            
+        Raises:
+            CharacterNotFoundError: Если персонаж не найден
+            InvalidActionError: Если действие недопустимо
+            SessionNotInitializedError: Если сессия не инициализирована
         """
         try:
-            logger.info(f"Processing player action: {action_text[:100]}...")
+            self.logger.info(f"Processing action for {character_name}: {action}")
             
-            # Get the player from session
-            player = None
-            for p in session.players:
-                if p.character.name == character_name or str(p.id) == player_id:
-                    player = p
-                    break
+            # Проверяем инициализацию сессии
+            if not self.session.scene:
+                raise SessionNotInitializedError("Session not initialized")
             
-            if not player:
-                return False, "Player not found", []
+            # Ищем персонажа
+            character = self._find_character(character_name)
+            if not character:
+                raise CharacterNotFoundError(f"Character '{character_name}' not found")
             
-            # Use session's manipulator to process action
-            # This integrates with the core engine's action processing
-            manipulator = session.manipulator
+            # Проверяем действие
+            if not action or not action.strip():
+                raise InvalidActionError("Action cannot be empty")
             
-            # Create action event
-            action_event = Event(
-                event_type=EventTypes.PLAYER_ACTION,
-                data={
-                    "action": action_text,
-                    "character": character_name,
-                    "player_id": player_id
-                },
-                source=character_name
+            # Получаем orchestrator
+            orchestrator = self.session.orchestrator
+            if not orchestrator:
+                raise AIServiceError("Orchestrator not available")
+            
+            # Обрабатываем действие через orchestrator
+            self.logger.info("Processing action through orchestrator...")
+            result = await orchestrator.process_action(
+                character_uuid=character.uuid,
+                action_text=action
             )
             
-            # Publish to event pool
-            session.event_pool.publish(action_event)
+            # Получаем события из event pool
+            events = []
+            if self.session.event_pool:
+                events = self.session.event_pool.get_events()
             
-            # Process through manipulator
-            # The manipulator will use AI to interpret and resolve the action
-            result = await manipulator.process_action(
-                player=player,
-                action_text=action_text
-            )
+            # Генерируем нарративный ответ через MAGG
+            dm_response = await self._generate_dm_response(events, action)
             
-            # Get generated events
-            generated_events = []
+            self.logger.info(f"Action processed. DM response: {dm_response[:100]}...")
             
-            logger.info(f"Action processed successfully: {result}")
-            
-            return True, result, generated_events
+            return {
+                "success": True,
+                "dm_response": dm_response,
+                "events": [self._event_to_dict(e) for e in events],
+                "game_state": self.get_game_state(),
+                "character_updated": character.model_dump() if character else None
+            }
             
         except Exception as e:
-            logger.error(f"Failed to process player action: {e}", exc_info=True)
-            return False, str(e), []
-
-    def cleanup_session(self, session_id: str):
+            self.logger.error(f"Failed to process action: {str(e)}", exc_info=True)
+            if isinstance(e, AIServiceError):
+                raise
+            raise AIServiceError(f"Failed to process action: {str(e)}") from e
+    
+    def _find_character(self, character_name: str) -> Optional[Character]:
         """
-        Cleanup AI resources for a session.
+        Найти персонажа по имени.
         
         Args:
-            session_id: Session to cleanup
+            character_name: Имя персонажа
+            
+        Returns:
+            Character или None
         """
-        if session_id in self._generators:
-            del self._generators[session_id]
-            logger.info(f"Generator cleaned up for session {session_id}")
+        if not self.session.players:
+            return None
         
-        if session_id in self._chroma_clients:
-            del self._chroma_clients[session_id]
-            logger.info(f"ChromaClient cleaned up for session {session_id}")
-
-
-# Global service instance
-ai_game_service = AIGameService()
+        # Ищем по точному совпадению
+        for player in self.session.players:
+            if player.name.lower() == character_name.lower():
+                return player
+        
+        # Ищем по частичному совпадению
+        for player in self.session.players:
+            if character_name.lower() in player.name.lower():
+                return player
+        
+        return None
+    
+    async def _generate_dm_response(
+        self,
+        events: List[Event],
+        action: str
+    ) -> str:
+        """
+        Сгенерировать нарративный ответ DM через MAGG.
+        
+        Args:
+            events: Список событий
+            action: Действие игрока
+            
+        Returns:
+            str: Текст ответа DM
+        """
+        try:
+            magg = self.session.magg
+            if not magg:
+                return self._fallback_dm_response(events, action)
+            
+            # Используем MAGG для комментария к событиям
+            comment = magg.comment(events)
+            if comment:
+                return comment
+            
+            return self._fallback_dm_response(events, action)
+            
+        except Exception as e:
+            self.logger.error(f"Failed to generate DM response: {str(e)}")
+            return self._fallback_dm_response(events, action)
+    
+    def _fallback_dm_response(self, events: List[Event], action: str) -> str:
+        """
+        Резервный ответ DM при ошибке генерации.
+        
+        Args:
+            events: Список событий
+            action: Действие игрока
+            
+        Returns:
+            str: Базовый текст ответа
+        """
+        if not events:
+            return f"You attempt to {action}. The outcome is uncertain..."
+        
+        event_descriptions = []
+        for event in events:
+            event_type = event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type)
+            event_descriptions.append(f"{event_type}: {event.description}")
+        
+        return "\n".join(event_descriptions) if event_descriptions else f"You {action}."
+    
+    def _event_to_dict(self, event: Event) -> Dict[str, Any]:
+        """
+        Конвертировать Event в dict для JSON сериализации.
+        
+        Args:
+            event: Event объект
+            
+        Returns:
+            dict: Сериализованное событие
+        """
+        return {
+            "event_type": event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type),
+            "description": event.description,
+            "source": event.source,
+            "targets": [str(t) for t in event.targets] if event.targets else [],
+            "timestamp": event.timestamp.isoformat() if event.timestamp else None
+        }
+    
+    def get_game_state(self) -> Dict[str, Any]:
+        """
+        Получить текущее состояние игры.
+        
+        Returns:
+            dict с состоянием:
+            - scene: текущая сцена
+            - players: список игроков
+            - npcs: список NPC
+            - messages: последние сообщения
+            - turn_queue: очередь ходов
+        """
+        state = {
+            "scene": None,
+            "players": [],
+            "npcs": [],
+            "messages": [],
+            "turn_queue": []
+        }
+        
+        try:
+            # Сцена
+            if self.session.scene:
+                state["scene"] = self.session.scene.model_dump()
+            
+            # Игроки
+            if self.session.players:
+                state["players"] = [p.model_dump() for p in self.session.players]
+            
+            # NPC
+            if self.session.npcs:
+                state["npcs"] = [n.model_dump() for n in self.session.npcs]
+            
+            # Сообщения
+            if hasattr(self.session, 'get_messages_formatted'):
+                messages = self.session.get_messages_formatted()
+                state["messages"] = [
+                    {"role": m.role, "content": m.content, "timestamp": m.timestamp.isoformat()}
+                    for m in messages
+                ] if messages else []
+            
+            # Очередь ходов
+            if hasattr(self.session, 'turn_queue'):
+                state["turn_queue"] = list(self.session.turn_queue) if self.session.turn_queue else []
+            
+        except Exception as e:
+            self.logger.error(f"Failed to get game state: {str(e)}")
+        
+        return state
+    
+    async def get_scene_description(self) -> str:
+        """
+        Получить описание сцены через MAGG.
+        
+        Returns:
+            str: Описание сцены
+        """
+        try:
+            if not self.session.scene:
+                return "The scene is not initialized."
+            
+            magg = self.session.magg
+            if magg:
+                description = magg.get_simple_description()
+                if description:
+                    return description
+            
+            # Fallback
+            return self.session.scene.description or self.session.scene.name
+            
+        except Exception as e:
+            self.logger.error(f"Failed to get scene description: {str(e)}")
+            return "Unable to describe the scene."

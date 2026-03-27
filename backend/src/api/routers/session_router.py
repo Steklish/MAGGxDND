@@ -48,6 +48,278 @@ active_players: Dict[str, Dict[str, any]] = {}
 waiting_room_ready_status: Dict[str, Dict[int, bool]] = {}
 
 
+# === Procedural Generation Helpers (Fallback when AI unavailable) ===
+
+import random
+
+class ProceduralGenerator:
+    """Procedural content generator for fallback when AI is unavailable."""
+    
+    # Scene templates based on keywords
+    SCENE_TEMPLATES = {
+        "tavern": {
+            "names": ["The Silver Dragon", "The Broken Sword", "The Laughing Dragon", "The Rusty Anchor", "The Crimson Mug"],
+            "descriptions": [
+                "A cozy tavern with a roaring fireplace and the smell of roasted meat.",
+                "A dimly lit inn where travelers gather to share tales of adventure.",
+                "A bustling tavern filled with merchants, mercenaries, and mysterious strangers.",
+            ]
+        },
+        "cave": {
+            "names": ["The Whispering Caverns", "The Crystal Cave", "The Shadowed Depths", "The Dragon's Maw", "The Forgotten Mine"],
+            "descriptions": [
+                "A dark cave where crystals glow with an eerie blue light.",
+                "An ancient cavern echoing with the drip of water and distant whispers.",
+                "A vast underground chamber with stalactites hanging like swords.",
+            ]
+        },
+        "forest": {
+            "names": ["The Whispering Woods", "The Elder Grove", "The Shadowfen Forest", "The Moonlit Thicket", "The Ancient Wood"],
+            "descriptions": [
+                "A dense forest where sunlight filters through ancient trees.",
+                "A mystical woodland where magic lingers in the air.",
+                "A dark forest with twisted trees and watchful eyes in the shadows.",
+            ]
+        },
+        "castle": {
+            "names": ["Castle Ravenmoor", "The Iron Keep", "Palace of Dawn", "The Obsidian Fortress", "The Crystal Citadel"],
+            "descriptions": [
+                "A majestic castle with towering spires and fluttering banners.",
+                "An ancient fortress weathered by centuries of storms and sieges.",
+                "A grand palace of marble and gold, home to a noble court.",
+            ]
+        },
+        "default": {
+            "names": ["The Adventurer's Rest", "The Crossroads Inn", "The Traveler's Haven", "The Wayfarer's Lodge"],
+            "descriptions": [
+                "A welcoming place where adventurers gather before their quests.",
+                "A humble establishment offering warm beds and warm meals.",
+            ]
+        }
+    }
+    
+    CHARACTER_NAMES = ["Aldric", "Brynn", "Cedric", "Dara", "Eldrin", "Faye", "Gareth", "Hanna", "Ivan", "Jora", "Kael", "Lyra", "Magnus", "Nora", "Owen", "Pipa", "Quinn", "Rhea", "Stefan", "Tessa"]
+    CHARACTER_SURNAMES = ["Stormwind", "Ironfoot", "Shadowbane", "Lightbringer", "Fireheart", "Frostbeard", "Thunderstrike", "Moonwhisper", "Sunblade", "Nightshade"]
+    
+    NPC_ROLES = ["tavern keeper", "blacksmith", "merchant", "guard", "wizard", "healer", "thief", "bard", "hunter", "farmer"]
+    
+    @staticmethod
+    def _find_scene_type(prompt: str) -> str:
+        """Find scene type from prompt keywords."""
+        prompt_lower = prompt.lower()
+        if any(word in prompt_lower for word in ["tavern", "inn", "pub", "bar", "ale", "beer"]):
+            return "tavern"
+        if any(word in prompt_lower for word in ["cave", "cavern", "mine", "underground", "dungeon"]):
+            return "cave"
+        if any(word in prompt_lower for word in ["forest", "wood", "tree", "grove", "wilderness"]):
+            return "forest"
+        if any(word in prompt_lower for word in ["castle", "fortress", "palace", "keep", "tower"]):
+            return "castle"
+        return "default"
+    
+    @classmethod
+    def generate_scene(cls, prompt: str):
+        """Generate a scene procedurally."""
+        from core.schemas.in_game import SceneNode, Coordinate2D
+        
+        scene_type = cls._find_scene_type(prompt)
+        template = cls.SCENE_TEMPLATES.get(scene_type, cls.SCENE_TEMPLATES["default"])
+        
+        name = random.choice(template["names"])
+        description = random.choice(template["descriptions"])
+        
+        # Add prompt-specific details
+        if prompt:
+            description = f"{description} {prompt}"
+        
+        return SceneNode(
+            name=name,
+            description=description,
+            objects=[],
+            center_position=Coordinate2D(x=10.0, y=10.0),
+            dimensions=Coordinate2D(x=20.0, y=20.0),
+            scale_unit="feet"
+        )
+    
+    @classmethod
+    def generate_character(cls, name: str = None, prompt: str = ""):
+        """Generate a character procedurally."""
+        from core.schemas.in_game import Character, CharacterClass, AbilityScores
+        
+        char_name = name or f"{random.choice(cls.CHARACTER_NAMES)} {random.choice(cls.CHARACTER_SURNAMES)}"
+        
+        # Random stats with some variation
+        base_stats = 10 + random.randint(-2, 4)
+        stats = AbilityScores(
+            strength=base_stats + random.randint(-2, 4),
+            dexterity=base_stats + random.randint(-2, 4),
+            constitution=base_stats + random.randint(-2, 4),
+            intelligence=base_stats + random.randint(-2, 4),
+            wisdom=base_stats + random.randint(-2, 4),
+            charisma=base_stats + random.randint(-2, 4),
+        )
+        
+        # Random class
+        char_class = random.choice([CharacterClass.FIGHTER, CharacterClass.WIZARD, CharacterClass.ROGUE, CharacterClass.CLERIC])
+        
+        # Generate abilities based on class
+        abilities = cls._generate_abilities_for_class(char_class)
+        
+        # Generate inventory based on class
+        inventory = cls._generate_inventory_for_class(char_class)
+        
+        max_hp = 25 + stats.constitution + (4 if char_class == CharacterClass.FIGHTER else 0)
+        
+        return Character(
+            name=char_name,
+            race="Human",
+            char_class=char_class,
+            level=1,
+            backstory_summary=prompt or f"A young adventurer seeking fame and fortune.",
+            personality_traits=[random.choice(["Brave", "Cautious", "Curious", "Bold", "Thoughtful"])],
+            max_hp=max_hp,
+            current_hp=max_hp,
+            temp_hp=0,
+            armor_class=10 + max(0, (stats.dexterity - 10) // 2),
+            speed=30,
+            stats=stats,
+            inventory=inventory,
+            active_conditions_list=[],
+            resources={"hit_dice": 1},
+            position=Coordinate2D(x=0.0, y=0.0),
+            abilities=abilities,
+            active_conditions="",
+            proficiency_bonus=2,
+            is_alive=True,
+            initiative_bonus=10 + max(0, (stats.dexterity - 10) // 2),
+            short_summary=f"{char_name} the {char_class.value}",
+            alignment=random.choice(["Neutral Good", "Lawful Neutral", "Chaotic Good", "True Neutral"]),
+            appearance=f"A {random.choice(['tall', 'short', 'average'])} human with {random.choice(['bright', 'steady', 'keen'])} eyes.",
+            age=20 + random.randint(0, 20),
+        )
+    
+    @classmethod
+    def _generate_abilities_for_class(cls, char_class):
+        """Generate abilities based on character class."""
+        if char_class == CharacterClass.FIGHTER:
+            return [
+                {"name": "Attack", "short_summary": "Make a melee weapon attack dealing 1d8+3 slashing damage", "level": 0, "type": "action"},
+                {"name": "Second Wind", "short_summary": "Regain 1d10+1 HP as a bonus action (1/short rest)", "level": 0, "type": "bonus_action"},
+                {"name": "Action Surge", "short_summary": "Take one additional action on your turn (1/short rest)", "level": 0, "type": "special"},
+            ]
+        elif char_class == CharacterClass.WIZARD:
+            return [
+                {"name": "Fire Bolt", "short_summary": "Ranged spell attack dealing 1d10 fire damage", "level": 0, "type": "action"},
+                {"name": "Magic Missile", "short_summary": "Create 3 darts dealing 1d4+1 force damage each", "level": 1, "type": "action"},
+                {"name": "Shield", "short_summary": "+5 AC until next turn as a reaction", "level": 1, "type": "reaction"},
+            ]
+        elif char_class == CharacterClass.ROGUE:
+            return [
+                {"name": "Attack", "short_summary": "Make a melee weapon attack dealing 1d8+3 piercing damage", "level": 0, "type": "action"},
+                {"name": "Sneak Attack", "short_summary": "Deal extra 1d6 damage when you have advantage", "level": 0, "type": "passive"},
+                {"name": "Cunning Action", "short_summary": "Dash, Disengage, or Hide as a bonus action", "level": 0, "type": "bonus_action"},
+            ]
+        else:  # CLERIC
+            return [
+                {"name": "Attack", "short_summary": "Make a melee weapon attack dealing 1d6+3 bludgeoning damage", "level": 0, "type": "action"},
+                {"name": "Healing Word", "short_summary": "Heal a creature for 1d4+3 HP as a bonus action", "level": 1, "type": "bonus_action"},
+                {"name": "Guiding Bolt", "short_summary": "Ranged spell attack dealing 1d6 radiant damage", "level": 1, "type": "action"},
+            ]
+    
+    @classmethod
+    def _generate_inventory_for_class(cls, char_class):
+        """Generate starting inventory based on class."""
+        if char_class == CharacterClass.FIGHTER:
+            return [
+                {"name": "Longsword", "is_equipped": True, "type": "weapon", "damage": "1d8"},
+                {"name": "Shield", "is_equipped": True, "type": "armor", "ac_bonus": 2},
+                {"name": "Chain Mail", "is_equipped": True, "type": "armor", "ac": 16},
+                {"name": "Rations (3 days)", "is_equipped": False, "type": "consumable"},
+                {"name": "Health Potion", "is_equipped": False, "type": "consumable", "healing": "2d4+2"},
+            ]
+        elif char_class == CharacterClass.WIZARD:
+            return [
+                {"name": "Quarterstaff", "is_equipped": True, "type": "weapon", "damage": "1d6"},
+                {"name": "Spellbook", "is_equipped": True, "type": "tool"},
+                {"name": "Robes", "is_equipped": True, "type": "armor", "ac": 12},
+                {"name": "Component Pouch", "is_equipped": False, "type": "tool"},
+                {"name": "Scroll of Protection", "is_equipped": False, "type": "scroll"},
+            ]
+        elif char_class == CharacterClass.ROGUE:
+            return [
+                {"name": "Shortsword", "is_equipped": True, "type": "weapon", "damage": "1d6"},
+                {"name": "Dagger (2)", "is_equipped": False, "type": "weapon", "damage": "1d4"},
+                {"name": "Leather Armor", "is_equipped": True, "type": "armor", "ac": 11},
+                {"name": "Thieves' Tools", "is_equipped": True, "type": "tool"},
+                {"name": "Climbing Gear", "is_equipped": False, "type": "tool"},
+            ]
+        else:  # CLERIC
+            return [
+                {"name": "Mace", "is_equipped": True, "type": "weapon", "damage": "1d6"},
+                {"name": "Shield", "is_equipped": True, "type": "armor", "ac_bonus": 2},
+                {"name": "Scale Mail", "is_equipped": True, "type": "armor", "ac": 14},
+                {"name": "Holy Symbol", "is_equipped": True, "type": "focus"},
+                {"name": "Healing Potion", "is_equipped": False, "type": "consumable", "healing": "2d4+2"},
+            ]
+    
+    @classmethod
+    def generate_npc(cls, role: str = None, prompt: str = ""):
+        """Generate an NPC procedurally."""
+        from core.schemas.in_game import NPCCharacter, CharacterClass, AbilityScores
+        
+        npc_role = role or random.choice(cls.NPC_ROLES)
+        npc_name = f"{random.choice(cls.CHARACTER_NAMES)} the {npc_role.title()}"
+        
+        stats = AbilityScores(
+            strength=10 + random.randint(-2, 2),
+            dexterity=10 + random.randint(-2, 2),
+            constitution=10 + random.randint(-2, 2),
+            intelligence=10 + random.randint(-2, 2),
+            wisdom=10 + random.randint(-2, 2),
+            charisma=10 + random.randint(-2, 2),
+        )
+        
+        return NPCCharacter(
+            name=npc_name,
+            race="Human",
+            char_class=CharacterClass.COMMONER,
+            level=1,
+            backstory_summary=prompt or f"A local {npc_role} going about their daily business.",
+            personality_traits=[random.choice(["Friendly", "Reserved", "Talkative", "Suspicious"])],
+            max_hp=15 + stats.constitution,
+            current_hp=15 + stats.constitution,
+            temp_hp=0,
+            armor_class=10,
+            speed=30,
+            stats=stats,
+            inventory=[
+                {"name": "Common Clothes", "is_equipped": True, "type": "clothing"},
+                {"name": "Pouch with 5 gp", "is_equipped": False, "type": "container"},
+            ],
+            active_conditions_list=[],
+            resources={},
+            position=Coordinate2D(x=15.0, y=15.0),
+            abilities=[
+                {"name": "Help", "short_summary": "Give advantage to an ally's next ability check or attack", "level": 0, "type": "action"},
+            ],
+            active_conditions="",
+            proficiency_bonus=2,
+            is_alive=True,
+            initiative_bonus=10,
+            short_summary=f"{npc_name}",
+            motivation=random.choice(["To earn a living", "To protect their family", "To gain knowledge", "To survive"]),
+            alignment="Neutral",
+            memory="",
+            current_scene=None,  # Will be set by caller
+            occupation=npc_role.title(),
+            appearance=f"A {random.choice ['middle-aged', 'young', 'elderly']} human with a {random.choice(['warm', 'stern', 'tired'])} expression.",
+        )
+
+
+# === Procedural Generator Instance ===
+procedural_gen = ProceduralGenerator()
+
+
 # === Schemas ===
 
 class SessionCreateRequest(BaseModel):
@@ -82,6 +354,16 @@ class SessionCreateRequest(BaseModel):
         return v
 
 
+class PlayerResponse(BaseModel):
+    """Информация об игроке."""
+    player_id: str
+    player_name: str
+    character_name: Optional[str]
+    connected: bool
+    role: str = "player"
+    is_ready: bool = False  # Ready status for waiting room
+
+
 class SessionResponse(BaseModel):
     """Ответ с информацией о сессии."""
     session_id: str  # UUID
@@ -94,6 +376,7 @@ class SessionResponse(BaseModel):
     owner_name: Optional[str] = None
     created_at: str
     is_owner: bool = False  # True if current user is the owner
+    players: List[PlayerResponse] = Field(default_factory=list)  # Players in session
 
 
 class SessionListResponse(BaseModel):
@@ -130,16 +413,6 @@ class PlayerJoinRequest(BaseModel):
         if len(v) < 2:
             raise ValueError("Player name must be at least 2 characters")
         return v
-
-
-class PlayerResponse(BaseModel):
-    """Информация об игроке."""
-    player_id: str
-    player_name: str
-    character_name: Optional[str]
-    connected: bool
-    role: str = "player"
-    is_ready: bool = False  # Ready status for waiting room
 
 
 class SessionStartRequest(BaseModel):
@@ -191,6 +464,49 @@ class WaitingRoomResponse(BaseModel):
 class PlayerReadyRequest(BaseModel):
     """Player ready status update."""
     is_ready: bool
+
+
+class AIInitializeRequest(BaseModel):
+    """Запрос на AI инициализацию сессии."""
+    scene_prompt: Optional[str] = Field(None, description="Описание начальной сцены", max_length=2000)
+    character_prompts: List[str] = Field(default_factory=list, description="Описания персонажей")
+    npc_prompts: List[str] = Field(default_factory=list, description="Описания NPC")
+    wishes: Optional[str] = Field(None, description="Adventure preferences", max_length=2000)
+
+
+class AIInitializeResponse(BaseModel):
+    """Ответ AI инициализации."""
+    success: bool
+    session_id: str
+    scene_description: str
+    characters_count: int
+    npcs_count: int
+    message: str
+
+
+class PlayerActionRequest(BaseModel):
+    """Запрос действия игрока."""
+    character_name: str = Field(..., description="Имя персонажа", min_length=1, max_length=100)
+    action: str = Field(..., description="Описание действия", min_length=1, max_length=2000)
+
+
+class PlayerActionResponse(BaseModel):
+    """Ответ действия игрока."""
+    success: bool
+    dm_response: str
+    events: List[Dict[str, Any]]
+    game_state: Dict[str, Any]
+    error: Optional[str] = None
+
+
+class SessionStateResponse(BaseModel):
+    """Состояние сессии."""
+    success: bool
+    scene: Optional[Dict[str, Any]]
+    players: List[Dict[str, Any]]
+    npcs: List[Dict[str, Any]]
+    messages: List[Dict[str, Any]]
+    turn_queue: List[Any]
 
 
 # === Helper Functions ===
@@ -369,19 +685,37 @@ async def get_session(
 ):
     """Получить информацию о конкретной сессии."""
     repository = get_session_repository(db)
-    
+
     db_session = get_session_by_uuid_or_404(session_id, repository)
-    
+
     # Get player count
     game_session = active_game_sessions.get(session_id)
     player_count = 0
     
+    # Get players from DB
+    participants = repository.get_session_participants(session_id)
+    
+    # Get ready status for this session
+    session_ready_status = waiting_room_ready_status.get(session_id, {})
+    
+    players = []
     if game_session:
         player_count = len(game_session.players)
     else:
-        participants = repository.get_session_participants(session_id)
         player_count = len([p for p in participants if p.is_connected])
     
+    # Build players list with ready status
+    for p in participants:
+        is_ready = session_ready_status.get(p.user_id, False) if p.user_id else False
+        players.append(PlayerResponse(
+            player_id=p.player_uuid,
+            player_name=p.player_name,
+            character_name=p.character_name,
+            connected=p.is_connected,
+            role=p.role,
+            is_ready=is_ready
+        ))
+
     return SessionResponse(
         session_id=db_session.session_uuid,
         session_name=db_session.session_name,
@@ -392,7 +726,8 @@ async def get_session(
         owner_id=db_session.owner_id,
         owner_name=current_user.username if db_session.owner_id == current_user.id else None,
         created_at=db_session.created_at.isoformat(),
-        is_owner=(db_session.owner_id == current_user.id)
+        is_owner=(db_session.owner_id == current_user.id),
+        players=players
     )
 
 
@@ -497,11 +832,12 @@ async def start_session(
 
     # Get or create game session
     game_session = active_game_sessions.get(session_id)
+    logger.info(f"[START] active_game_sessions check: {session_id} - found: {game_session is not None}")
 
     if not game_session:
         # Session exists in DB but not in memory - need to initialize it
         logger.warning(f"[START] Session {session_id} found in DB but not in memory. Initializing...")
-        
+
         # Initialize the game session from DB
         try:
             config = SessionConfig(
@@ -512,138 +848,127 @@ async def start_session(
                 guide=db_session.guide,
                 gemini_model=db_session.gemini_model or "gemini-2.0-flash"
             )
+            logger.info(f"[START] Creating session factory config: {config.session_name}")
             game_session = session_factory.create_session(config, session_id=session_id)
             active_game_sessions[session_id] = game_session
-            logger.info(f"[START] Session {session_id} restored from DB")
+            logger.info(f"[START] Session {session_id} created with generator: {hasattr(game_session, 'generator')}")
         except Exception as e:
-            logger.error(f"[START] Failed to restore session {session_id}: {e}")
+            logger.error(f"[START] Failed to create session: {e}", exc_info=True)
             raise HTTPException(
                 status_code=400,
-                detail="Session not initialized. Please recreate the session."
+                detail=f"Session not initialized: {str(e)}. Please recreate the session."
             )
+    else:
+        logger.info(f"[START] Session {session_id} found in memory")
 
     logger.info(f"[START] Game session found, starting with wishes={request.wishes}, character_description={request.character_description}")
+    
+    # Always generate scene if it doesn't exist
+    has_scene = game_session.current_scene is not None
+    has_players = hasattr(game_session, 'players') and len(game_session.players) > 0
+    
+    if has_scene and has_players:
+        logger.info(f"[START] Session {session_id} already has content, skipping generation")
+    else:
+        logger.info(f"[START] Session {session_id} missing content - has_scene:{has_scene} has_players:{has_players}")
+        logger.info(f"[START] Generating missing content with AI...")
 
     try:
-        # Initialize scene and characters
+        # Initialize scene and characters using AI
         from core.schemas.in_game import SceneNode, Coordinate2D, UnifiedObject, ObjectType
         from core.entity.player import Player
         from core.schemas.in_game import Character, CharacterClass, AbilityScores
         from core.entity.orchestrator import Orchestrator
 
-        # Use wishes as scene prompt if provided, otherwise use default
-        scene_description = request.wishes or request.scene_prompt or "A dimly lit tavern with worn wooden tables and the smell of ale."
-        
-        # Create scene
-        scene = SceneNode(
-            name="The Drunken Dragon",
-            description=scene_description,
-            objects=[
-                UnifiedObject(
-                    name="Wooden Table",
-                    obj_type=ObjectType.PROP,
-                    quantity=1,
-                    is_equipped=False,
-                    position=Coordinate2D(x=5.0, y=5.0),
-                    short_summary="A sturdy wooden table"
-                ),
-            ],
-            center_position=Coordinate2D(x=10.0, y=10.0),
-            dimensions=Coordinate2D(x=20.0, y=20.0),
-            scale_unit="feet"
-        )
-        game_session.current_scene = scene
+        # Use wishes as scene prompt
+        scene_prompt = request.wishes or request.scene_prompt or "A dimly lit tavern with worn wooden tables and the smell of ale."
+
+        # ALWAYS generate scene if not set
+        if not has_scene:
+            logger.info(f"[START] Generating scene with AI: {scene_prompt[:100]}...")
+            try:
+                if hasattr(game_session, 'generator') and game_session.generator:
+                    scene = game_session.generator.generate_one_shot(
+                        pydantic_model=SceneNode,
+                        prompt=scene_prompt
+                    )
+                    logger.info(f"[START] Scene generated: {scene.name}")
+                    game_session.current_scene = scene
+                    logger.info(f"[START] Scene assigned to game_session")
+                else:
+                    logger.warning("[START] No generator available, using procedural fallback scene")
+                    # Procedural scene generation based on wishes
+                    scene = procedural_gen.generate_scene(scene_prompt)
+                    logger.info(f"[START] Procedural scene generated: {scene.name}")
+                    game_session.current_scene = scene
+            except Exception as e:
+                logger.error(f"[START] Scene generation error: {e}", exc_info=True)
+                scene = procedural_gen.generate_scene(scene_prompt)
+                logger.info(f"[START] Procedural scene generated (error fallback): {scene.name}")
+                game_session.current_scene = scene
+        else:
+            logger.info(f"[START] Scene already exists: {game_session.current_scene.name}")
+            scene = game_session.current_scene  # Use existing scene
 
         # Update DB
-        repository.update_session_scene(session_id, scene.name, owner_id=current_user.id)
+        repository.update_session_scene(session_id, game_session.current_scene.name, owner_id=current_user.id)
         repository.update_session_status(session_id, "running", owner_id=current_user.id)
 
-        # Initialize player characters from prompts
-        # If character_description is provided (from GameSetup), use it
-        character_prompts_to_use = request.character_prompts
-        if request.character_description and not character_prompts_to_use:
-            character_prompts_to_use = [request.character_description]
-        
-        for i, prompt in enumerate(character_prompts_to_use):
-            character = Character(
-                name=f"Character{i+1}",
-                race="Human",
-                char_class=CharacterClass.FIGHTER,
-                level=1,
-                backstory_summary=prompt,
-                personality_traits=["Brave"],
-                max_hp=30,
-                current_hp=30,
-                temp_hp=0,
-                armor_class=12,
-                speed=30,
-                stats=AbilityScores(
-                    strength=15, dexterity=12, constitution=14,
-                    intelligence=10, wisdom=10, charisma=10
-                ),
-                inventory=[],
-                active_conditions_list=[],
-                resources={},
-                position=Coordinate2D(x=float(i*2), y=float(i*2)),
-                abilities=[],
-                active_conditions="",
-                proficiency_bonus=2,
-                is_alive=True,
-                initiative_bonus=11,
-                short_summary=f"Character{i+1} the Fighter"
-            )
+        # Initialize player characters using AI if no players yet
+        if not game_session.players or len(game_session.players) == 0:
+            character_prompts_to_use = request.character_prompts
+            if request.character_description and not character_prompts_to_use:
+                character_prompts_to_use = [request.character_description]
+
+            logger.info(f"[START] Generating {len(character_prompts_to_use)} characters with AI...")
             
-            player_orchestrator = Orchestrator(
-                generator=game_session.generator,
-                logger=game_session.logger.getChild("player_orchestrator")
-            )
-            player_orchestrator.add_state(game_session)
-            
-            event_queue = game_session.event_pool.subscribe(character.name)
-            
-            player = Player(
-                character=character,
-                event_queuee=event_queue,
-                logger=game_session.logger.getChild("player"),
-                orchestrator=player_orchestrator
-            )
-            player.inject_state(game_session)
-            game_session.players.append(player)
-        
-        # Initialize NPCs
+            # Generate characters using AI if prompts provided
+            for i, prompt in enumerate(character_prompts_to_use):
+                logger.info(f"[START] Generating character {i+1} with AI: {prompt[:100]}...")
+                try:
+                    if hasattr(game_session, 'generator') and game_session.generator:
+                        character = game_session.generator.generate_one_shot(
+                            pydantic_model=Character,
+                            prompt=prompt
+                        )
+                        logger.info(f"[START] Character generated: {character.name}")
+                    else:
+                        logger.warning(f"[START] No generator, using procedural character {i+1}")
+                        character = None
+
+                    if not character:
+                        # Use procedural generator for fallback character
+                        character = procedural_gen.generate_character(name=None, prompt=prompt)
+                        logger.info(f"[START] Procedural character generated: {character.name} ({character.char_class.value})")
+
+                    player_orchestrator = Orchestrator(
+                        generator=game_session.generator,
+                        logger=game_session.logger.getChild("player_orchestrator")
+                    )
+                    player_orchestrator.add_state(game_session)
+
+                    event_queue = game_session.event_pool.subscribe(character.name)
+
+                    player = Player(
+                        character=character,
+                        event_queuee=event_queue,
+                        logger=game_session.logger.getChild("player"),
+                        orchestrator=player_orchestrator
+                    )
+                    player.inject_state(game_session)
+                    game_session.players.append(player)
+                    logger.info(f"[START] Character {character.name} added to session")
+                except Exception as e:
+                    logger.error(f"[START] Character generation error: {e}", exc_info=True)
+        else:
+            logger.info(f"[START] Session already has {len(game_session.players)} players")
+
+        # Initialize NPCs using procedural generation
         for i, prompt in enumerate(request.npc_prompts):
-            from core.schemas.in_game import NPCCharacter
-            npc_character = NPCCharacter(
-                name=f"NPC{i+1}",
-                race="Human",
-                char_class=CharacterClass.PEASANT,
-                level=1,
-                backstory_summary=prompt,
-                personality_traits=["Neutral"],
-                max_hp=20,
-                current_hp=20,
-                temp_hp=0,
-                armor_class=10,
-                speed=30,
-                stats=AbilityScores(
-                    strength=10, dexterity=10, constitution=10,
-                    intelligence=10, wisdom=10, charisma=10
-                ),
-                inventory=[],
-                active_conditions_list=[],
-                resources={},
-                position=Coordinate2D(x=15.0, y=15.0),
-                abilities=[],
-                active_conditions="",
-                proficiency_bonus=2,
-                is_alive=True,
-                initiative_bonus=10,
-                short_summary=f"NPC{i+1}",
-                motivation="Unknown",
-                alignment="True Neutral",
-                memory="",
-                current_scene=scene.name
-            )
+            # Use procedural generator for NPCs
+            npc_character = procedural_gen.generate_npc(role=None, prompt=prompt)
+            npc_character.current_scene = scene.name
+            logger.info(f"[START] Procedural NPC generated: {npc_character.name} ({npc_character.occupation})")
             game_session._init_npc(npc_character)
         
         game_session.logger.info(
@@ -921,6 +1246,9 @@ async def get_session_players_endpoint(
     db_session = get_session_by_uuid_or_404(session_id, repository)
 
     participants = repository.get_session_participants(session_id)
+    
+    # Get ready status for this session
+    session_ready_status = waiting_room_ready_status.get(session_id, {})
 
     return [
         PlayerResponse(
@@ -928,7 +1256,8 @@ async def get_session_players_endpoint(
             player_name=p.player_name,
             character_name=p.character_name,
             connected=p.is_connected,
-            role=p.role
+            role=p.role,
+            is_ready=session_ready_status.get(p.user_id, False) if p.user_id else False
         )
         for p in participants
     ]
@@ -943,22 +1272,28 @@ async def get_session_game_info(
     """
     Get detailed game session info including players, NPCs, and scene.
     For active game sessions with full engine integration.
+    
+    Returns data from both game engine (if active) and database.
     """
     repository = get_session_repository(db)
-    
+
     db_session = get_session_by_uuid_or_404(session_id, repository)
-    
+
     # Try to get from active game sessions
     game_session = active_game_sessions.get(session_id)
-    
+
     if not game_session:
         raise HTTPException(
             status_code=400,
             detail="Session is not an active game session"
         )
-    
+
     try:
-        # Build players data
+        # Get DB participants for complete player list
+        db_participants = repository.get_session_participants(session_id)
+        db_player_names = {p.player_name for p in db_participants}
+        
+        # Build players data from game engine
         players_data = []
         for player in game_session.players:
             if hasattr(player, 'character'):
@@ -989,6 +1324,29 @@ async def get_session_game_info(
                     },
                 })
         
+        # Add DB participants who don't have characters yet (waiting room players)
+        engine_player_names = {p.get('name') for p in players_data}
+        for participant in db_participants:
+            if participant.player_name not in engine_player_names:
+                # Player joined but doesn't have a character yet
+                players_data.append({
+                    "name": participant.player_name,
+                    "race": "Human",
+                    "char_class": "Adventurer",
+                    "level": 1,
+                    "current_hp": 10,
+                    "max_hp": 10,
+                    "armor_class": 10,
+                    "speed": 30,
+                    "proficiency_bonus": 2,
+                    "initiative_bonus": 0,
+                    "is_alive": True,
+                    "stats": {
+                        "strength": 10, "dexterity": 10, "constitution": 10,
+                        "intelligence": 10, "wisdom": 10, "charisma": 10,
+                    },
+                })
+
         # Build NPCs data
         npcs_data = []
         for npc in game_session.npcs:
@@ -1005,8 +1363,19 @@ async def get_session_game_info(
                     "armor_class": getattr(char, 'armor_class', 10),
                     "speed": getattr(char, 'speed', 30),
                     "is_alive": getattr(char, 'is_alive', True),
+                    "stats": {
+                        "strength": getattr(stats, 'strength', 10) if stats else 10,
+                        "dexterity": getattr(stats, 'dexterity', 10) if stats else 10,
+                        "constitution": getattr(stats, 'constitution', 10) if stats else 10,
+                        "intelligence": getattr(stats, 'intelligence', 10) if stats else 10,
+                        "wisdom": getattr(stats, 'wisdom', 10) if stats else 10,
+                        "charisma": getattr(stats, 'charisma', 10) if stats else 10,
+                    } if stats else {
+                        "strength": 10, "dexterity": 10, "constitution": 10,
+                        "intelligence": 10, "wisdom": 10, "charisma": 10,
+                    },
                 })
-        
+
         # Build scene data
         scene_data = None
         if game_session.current_scene:
@@ -1015,7 +1384,7 @@ async def get_session_game_info(
                 "name": getattr(scene, 'name', 'Unknown'),
                 "description": getattr(scene, 'description', ''),
             }
-        
+
         return {
             "session_id": session_id,
             "session_name": db_session.session_name,
@@ -1026,7 +1395,7 @@ async def get_session_game_info(
             "npcs": npcs_data,
             "current_scene": scene_data,
         }
-        
+
     except Exception as e:
         game_session.logger.error(f"Error getting game info: {e}")
         raise HTTPException(
@@ -1328,4 +1697,206 @@ async def start_game_from_waiting_room(
         raise HTTPException(
             status_code=500,
             detail=f"Ошибка при запуске сессии: {str(e)}"
+        )
+
+
+# === AI Game Service Endpoints ===
+
+@router.post("/{session_id}/ai-initialize", response_model=AIInitializeResponse)
+async def ai_initialize_session(
+    session_id: str,
+    request: AIInitializeRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Инициализировать сессию через AI (Google Gemini).
+    
+    Генерирует сцену, персонажей и NPC используя AI.
+    Только владелец сессии может инициализировать.
+    """
+    repository = get_session_repository(db)
+    db_session = get_session_by_uuid_or_404(session_id, repository)
+    
+    # Verify owner
+    if db_session.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Only the session owner can initialize the game"
+        )
+    
+    # Get or create game session
+    game_session = active_game_sessions.get(session_id)
+    
+    if not game_session:
+        # Initialize from DB
+        try:
+            from backend.src.game.session_factory import SessionConfig
+            config = SessionConfig(
+                session_name=db_session.session_name,
+                game_mode=db_session.game_mode.value,
+                max_players=db_session.max_players,
+                description=db_session.description,
+                guide=db_session.guide,
+                gemini_model=db_session.gemini_model or "gemini-2.0-flash"
+            )
+            game_session = session_factory.create_session(config, session_id=session_id)
+            active_game_sessions[session_id] = game_session
+            logger.info(f"[AI-INIT] Session {session_id} created")
+        except Exception as e:
+            logger.error(f"[AI-INIT] Failed to create session: {e}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Failed to create session: {str(e)}"
+            )
+    
+    try:
+        # Create AI service
+        from backend.src.services.ai_game_service import AIGameService
+        ai_service = AIGameService(game_session)
+        
+        # Prepare prompts
+        scene_prompt = request.scene_prompt or request.wishes or "A mysterious adventure begins..."
+        character_prompts = request.character_prompts or []
+        npc_prompts = request.npc_prompts or []
+        
+        # Initialize through AI
+        result = await ai_service.initialize_session(
+            scene_prompt=scene_prompt,
+            character_prompts=character_prompts,
+            npc_prompts=npc_prompts
+        )
+        
+        # Update DB status
+        repository.update_session_status(session_id, "running", owner_id=current_user.id)
+        
+        # Send welcome message
+        game_session.delivery.master_message(result['message'])
+        game_session.delivery.session_updated(game_session)
+        
+        return AIInitializeResponse(
+            success=result['success'],
+            session_id=result['session_id'],
+            scene_description=result['scene'].get('description', '') if result.get('scene') else '',
+            characters_count=len(result.get('characters', [])),
+            npcs_count=len(result.get('npcs', [])),
+            message=result['message']
+        )
+        
+    except Exception as e:
+        logger.error(f"[AI-INIT] Error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"AI initialization failed: {str(e)}"
+        )
+
+
+@router.post("/{session_id}/action", response_model=PlayerActionResponse)
+async def player_action(
+    session_id: str,
+    request: PlayerActionRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Обработать действие игрока через AI.
+    
+    Использует MAGG и Orchestrator для обработки действия
+    и генерации нарративного ответа.
+    """
+    # Get active game session
+    game_session = active_game_sessions.get(session_id)
+    
+    if not game_session:
+        raise HTTPException(
+            status_code=404,
+            detail="Game session not found or not initialized"
+        )
+    
+    try:
+        # Create AI service
+        from backend.src.services.ai_game_service import AIGameService
+        ai_service = AIGameService(game_session)
+        
+        # Process action
+        result = await ai_service.process_player_action(
+            character_name=request.character_name,
+            action=request.action
+        )
+        
+        # Send DM message to all players
+        if result.get('dm_response'):
+            game_session.delivery.master_message(result['dm_response'])
+        
+        game_session.delivery.session_updated(game_session)
+        
+        return PlayerActionResponse(
+            success=result['success'],
+            dm_response=result['dm_response'],
+            events=result.get('events', []),
+            game_state=result.get('game_state', {}),
+            error=None
+        )
+        
+    except Exception as e:
+        logger.error(f"[ACTION] Error: {e}", exc_info=True)
+        return PlayerActionResponse(
+            success=False,
+            dm_response="",
+            events=[],
+            game_state={},
+            error=str(e)
+        )
+
+
+@router.get("/{session_id}/state", response_model=SessionStateResponse)
+async def get_session_state(
+    session_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Получить текущее состояние сессии.
+    
+    Возвращает сцену, игроков, NPC, сообщения и очередь ходов.
+    """
+    # Get active game session
+    game_session = active_game_sessions.get(session_id)
+    
+    if not game_session:
+        return SessionStateResponse(
+            success=False,
+            scene=None,
+            players=[],
+            npcs=[],
+            messages=[],
+            turn_queue=[]
+        )
+    
+    try:
+        # Create AI service
+        from backend.src.services.ai_game_service import AIGameService
+        ai_service = AIGameService(game_session)
+        
+        # Get game state
+        state = ai_service.get_game_state()
+        
+        return SessionStateResponse(
+            success=True,
+            scene=state.get('scene'),
+            players=state.get('players', []),
+            npcs=state.get('npcs', []),
+            messages=state.get('messages', []),
+            turn_queue=state.get('turn_queue', [])
+        )
+        
+    except Exception as e:
+        logger.error(f"[STATE] Error: {e}", exc_info=True)
+        return SessionStateResponse(
+            success=False,
+            scene=None,
+            players=[],
+            npcs=[],
+            messages=[],
+            turn_queue=[],
         )

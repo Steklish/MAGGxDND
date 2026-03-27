@@ -3,9 +3,12 @@ import { useGameStore } from '../store/gameStore';
 import './SceneViewer.css';
 
 export const SceneViewer: React.FC = () => {
-    const { currentScene, session } = useGameStore();
+    const { currentScene, session, currentSession } = useGameStore();
 
-    console.log('🏰 SceneViewer render:', { currentScene });
+    // Use currentSession as primary, session as fallback
+    const activeSession = currentSession || session;
+
+    console.log('🏰 SceneViewer render:', { currentScene, activeSession });
 
     // Check for null, undefined, or invalid scene
     if (!currentScene || typeof currentScene !== 'object') {
@@ -20,9 +23,11 @@ export const SceneViewer: React.FC = () => {
     }
 
     // Safely access nested properties with defaults
+    const sceneName = currentScene.name || 'Unknown Location';
+    const sceneDescription = currentScene.description || 'The scene is shrouded in mystery...';
     const centerPos = currentScene.center_position || { x: 10, y: 10 };
     const dimensions = currentScene.dimensions || { x: 20, y: 20 };
-    
+
     // Ensure x and y exist
     const centerX = typeof centerPos.x === 'number' ? centerPos.x : 10;
     const centerY = typeof centerPos.y === 'number' ? centerPos.y : 10;
@@ -30,9 +35,21 @@ export const SceneViewer: React.FC = () => {
     const dimY = typeof dimensions.y === 'number' ? dimensions.y : 20;
 
     console.log('🏰 Scene dimensions:', { centerX, centerY, dimX, dimY });
+    console.log('🏰 Scene:', { name: sceneName, description: sceneDescription?.substring(0, 100) });
 
     return (
         <div className="scene-viewer">
+            {/* Scene Header */}
+            <div className="scene-header">
+                <h2 className="scene-title">{sceneName}</h2>
+            </div>
+            
+            {/* Scene Description */}
+            <div className="scene-description-container">
+                <p className="scene-description">{sceneDescription}</p>
+            </div>
+            
+            {/* Grid View */}
             <div className="scene-content">
                 <div className="grid-container">
                     <div className="grid">

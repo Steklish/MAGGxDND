@@ -171,6 +171,11 @@ function App() {
         setCurrentPage('waiting-room');
     };
 
+    const handleGoToGameSetup = (sessionId: string) => {
+        setSelectedSessionId(sessionId);
+        setCurrentPage('game-setup');
+    };
+
     const handleStartGame = (sessionId: string) => {
         // Update localStorage
         localStorage.setItem('currentSessionId', sessionId);
@@ -193,7 +198,9 @@ function App() {
             localStorage.setItem('currentSessionId', sessionId);
             console.log('✓ Session persisted to localStorage:', sessionId);
         }
-        setCurrentPage('home');
+        // Navigate to waiting room instead of home
+        setSelectedSessionId(sessionId);
+        setCurrentPage('waiting-room');
         loadSessions();
     };
 
@@ -291,6 +298,7 @@ function App() {
                         sessionId={selectedSessionId}
                         onGameStart={handleStartGame}
                         onBack={() => setCurrentPage('home')}
+                        onGoToSetup={handleGoToGameSetup}
                     />
                 ) : (
                     <div className="app-loading">
