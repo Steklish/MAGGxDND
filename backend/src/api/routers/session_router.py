@@ -1037,7 +1037,7 @@ async def start_session(
                 'A hermit druid who can speak with animals and plants',
                 'A retired adventurer with tales of legendary treasures',
                 'A cultist seeking redemption after leaving a dark order',
-                'A fairy queen's messenger with urgent news for the kingdom',
+                "A fairy queen's messenger with urgent news for the kingdom",
                 'A blacksmith who forges magical weapons in secret'
             ]
             # Pick 2 random NPCs
