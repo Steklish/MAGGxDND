@@ -1,0 +1,24 @@
+{
+  "name": "maggxdnd",
+  "version": "1.0.0",
+  "description": "AI-Powered D&D Game Engine",
+  "scripts": {
+    "test": "echo \"Running all tests...\" && .\\run_tests.bat",
+    "test:backend": "pytest backend/tests/ --cov=backend.src --cov-report=term-missing -v",
+    "test:frontend": "cd frontend && npm run test",
+    "test:coverage": "echo \"Running tests with coverage...\" && .\\run_tests.bat",
+    "dev": "python start.py",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "python start.py"
+  },
+  "keywords": [
+    "dnd",
+    "game",
+    "ai",
+    "fastapi",
+    "react"
+  ],
+  "author": "anton kozlov",
+  "license": "MIT"
+}
