@@ -930,8 +930,8 @@ async def start_session(
             logger.info(f"[START] Generating character {i+1}: {prompt[:100]}...")
             character = None
             
-            # Try AI generation first (if generator available)
-            if hasattr(game_session, 'generator') and game_session.generator and game_session.generator.api_key != "NO_KEY":
+            # Try AI generation first
+            if hasattr(game_session, 'generator') and game_session.generator:
                 try:
                     character = game_session.generator.generate_one_shot(
                         pydantic_model=Character,
