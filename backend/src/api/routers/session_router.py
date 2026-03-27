@@ -364,6 +364,26 @@ class PlayerResponse(BaseModel):
     is_ready: bool = False  # Ready status for waiting room
 
 
+class NPCResponse(BaseModel):
+    """Информация об NPC."""
+    name: str
+    race: str
+    char_class: str
+    alignment: Optional[str] = None
+    level: int = 1
+    current_hp: int = 10
+    max_hp: int = 10
+    armor_class: int = 10
+    speed: int = 30
+    is_alive: bool = True
+    stats: Dict[str, int] = Field(default_factory=lambda: {
+        "strength": 10, "dexterity": 10, "constitution": 10,
+        "intelligence": 10, "wisdom": 10, "charisma": 10,
+    })
+    abilities: List[Dict[str, Any]] = Field(default_factory=list)
+    inventory: List[Dict[str, Any]] = Field(default_factory=list)
+
+
 class SessionResponse(BaseModel):
     """Ответ с информацией о сессии."""
     session_id: str  # UUID
@@ -377,6 +397,7 @@ class SessionResponse(BaseModel):
     created_at: str
     is_owner: bool = False  # True if current user is the owner
     players: List[PlayerResponse] = Field(default_factory=list)  # Players in session
+    npcs: List[NPCResponse] = Field(default_factory=list)  # NPCs in session
 
 
 class SessionListResponse(BaseModel):
@@ -862,17 +883,15 @@ async def start_session(
         logger.info(f"[START] Session {session_id} found in memory")
 
     logger.info(f"[START] Game session found, starting with wishes={request.wishes}, character_description={request.character_description}")
-    
-    # Always generate scene if it doesn't exist
-    has_scene = game_session.current_scene is not None
-    has_players = hasattr(game_session, 'players') and len(game_session.players) > 0
-    
-    if has_scene and has_players:
-        logger.info(f"[START] Session {session_id} already has content, skipping generation")
-    else:
-        logger.info(f"[START] Session {session_id} missing content - has_scene:{has_scene} has_players:{has_players}")
-        logger.info(f"[START] Generating missing content with AI...")
 
+    # FORCE fresh generation - clear any existing session data
+    logger.info(f"[START] === FORCING FRESH GENERATION - Clearing old session data ===")
+    game_session.current_scene = None
+    if hasattr(game_session, 'players'):
+        game_session.players.clear()
+    if hasattr(game_session, 'npcs'):
+        game_session.npcs.clear()
+    
     try:
         # Initialize scene and characters using AI
         from core.schemas.in_game import SceneNode, Coordinate2D, UnifiedObject, ObjectType
@@ -880,48 +899,76 @@ async def start_session(
         from core.schemas.in_game import Character, CharacterClass, AbilityScores
         from core.entity.orchestrator import Orchestrator
 
-        # Use wishes as scene prompt
-        scene_prompt = request.wishes or request.scene_prompt or "A dimly lit tavern with worn wooden tables and the smell of ale."
+        # Use wishes as scene prompt - create diverse fantasy prompts if not provided
+        scene_prompt = request.wishes or request.scene_prompt
+        if not scene_prompt:
+            # Random fantasy scene prompts for variety
+            random_prompts = [
+                "A bustling medieval marketplace in a magical city where wizards sell potions alongside merchants",
+                "An ancient forest temple overgrown with glowing vines, sacred to forgotten nature gods",
+                "A pirate ship sailing through a stormy sea near a mysterious cursed island",
+                "A dwarven mining colony deep underground, illuminated by glowing crystals",
+                "A floating castle in the clouds, accessible only by giant birds or magic",
+                "A haunted swamp where will-o'-wisps guide travelers to hidden treasure or doom",
+                "A gladiator arena in a desert city, where champions fight for freedom and fame",
+                "An enchanted library where books come alive and knowledge is guarded by magical beasts",
+                "A volcanic fortress of a dark lord, surrounded by rivers of lava and obsidian towers",
+                "A peaceful elven village hidden in misty mountains, protected by ancient wards"
+            ]
+            scene_prompt = random.choice(random_prompts)
+            logger.info(f"[START] Using random scene prompt: {scene_prompt[:80]}...")
 
-        # ALWAYS generate scene if not set
-        if not has_scene:
-            logger.info(f"[START] Generating scene with AI: {scene_prompt[:100]}...")
-            try:
-                if hasattr(game_session, 'generator') and game_session.generator:
-                    scene = game_session.generator.generate_one_shot(
-                        pydantic_model=SceneNode,
-                        prompt=scene_prompt
-                    )
-                    logger.info(f"[START] Scene generated: {scene.name}")
-                    game_session.current_scene = scene
-                    logger.info(f"[START] Scene assigned to game_session")
-                else:
-                    logger.warning("[START] No generator available, using procedural fallback scene")
-                    # Procedural scene generation based on wishes
-                    scene = procedural_gen.generate_scene(scene_prompt)
-                    logger.info(f"[START] Procedural scene generated: {scene.name}")
-                    game_session.current_scene = scene
-            except Exception as e:
-                logger.error(f"[START] Scene generation error: {e}", exc_info=True)
-                scene = procedural_gen.generate_scene(scene_prompt)
-                logger.info(f"[START] Procedural scene generated (error fallback): {scene.name}")
+        # ALWAYS generate fresh scene
+        logger.info(f"[START] Generating fresh scene with AI: {scene_prompt[:100]}...")
+        try:
+            if hasattr(game_session, 'generator') and game_session.generator:
+                scene = game_session.generator.generate_one_shot(
+                    pydantic_model=SceneNode,
+                    prompt=scene_prompt
+                )
+                logger.info(f"[START] Scene generated: {scene.name}")
                 game_session.current_scene = scene
-        else:
-            logger.info(f"[START] Scene already exists: {game_session.current_scene.name}")
-            scene = game_session.current_scene  # Use existing scene
+                logger.info(f"[START] Scene assigned to game_session")
+            else:
+                logger.warning("[START] No generator available, using procedural fallback scene")
+                # Procedural scene generation based on wishes
+                scene = procedural_gen.generate_scene(scene_prompt)
+                logger.info(f"[START] Procedural scene generated: {scene.name}")
+                game_session.current_scene = scene
+        except Exception as e:
+            logger.error(f"[START] Scene generation error: {e}", exc_info=True)
+            scene = procedural_gen.generate_scene(scene_prompt)
+            logger.info(f"[START] Procedural scene generated (error fallback): {scene.name}")
+            game_session.current_scene = scene
+
+        scene = game_session.current_scene
 
         # Update DB
         repository.update_session_scene(session_id, game_session.current_scene.name, owner_id=current_user.id)
         repository.update_session_status(session_id, "running", owner_id=current_user.id)
 
-        # Initialize player characters - ALWAYS create at least one character
+        # Initialize player characters - ALWAYS create at least one character with random variety
         character_prompts_to_use = request.character_prompts
         if request.character_description and not character_prompts_to_use:
             character_prompts_to_use = [request.character_description]
-        
-        # If no character prompts, generate a random one
+
+        # If no character prompts, use a random diverse character prompt
         if not character_prompts_to_use or len(character_prompts_to_use) == 0:
-            character_prompts_to_use = ['Create a random D&D character with interesting backstory and abilities']
+            # Random D&D character prompts for variety
+            random_character_prompts = [
+                "A half-elf bard with a magical lute who knows secrets of the ancient dragons",
+                "A dwarf paladin sworn to protect the innocent, wielding a holy warhammer",
+                "A human wizard specializing in fire magic, seeking the lost spells of power",
+                "An elf ranger with a wolf companion, guardian of the mystical forests",
+                "A tiefling rogue with shadow powers, searching for redemption",
+                "A halfling cleric of the harvest god, spreading joy and healing wherever they go",
+                "A dragonborn sorcerer with lightning breath, destined for greatness",
+                "A gnome artificer with mechanical inventions and a clockwork companion",
+                "A half-orc barbarian with a heart of gold, protecting their adopted family",
+                "A human monk mastering the elements, seeking inner peace through adventure"
+            ]
+            character_prompts_to_use = [random.choice(random_character_prompts)]
+            logger.info(f"[START] Using random character prompt for variety")
 
         logger.info(f"[START] Generating {len(character_prompts_to_use)} characters...")
 
@@ -977,11 +1024,25 @@ async def start_session(
 
         logger.info(f"[START] Session already has {len(game_session.players)} players")
 
-        # Initialize NPCs using procedural generation (always generate some NPCs for gameplay)
-        npc_prompts_to_use = request.npc_prompts if request.npc_prompts else [
-            'A mysterious stranger with important information',
-            'A local merchant or shopkeeper'
-        ]
+        # Initialize NPCs using procedural generation with random variety
+        npc_prompts_to_use = request.npc_prompts
+        if not npc_prompts_to_use or len(npc_prompts_to_use) == 0:
+            # Random NPC prompts for variety
+            random_npc_prompts = [
+                'A mysterious hooded figure with glowing eyes who knows ancient secrets',
+                'A cheerful tavern keeper who hears all the local gossip and rumors',
+                'A battle-scarred mercenary captain looking for new recruits',
+                'A young apprentice wizard who lost their master to dark magic',
+                'A cunning merchant selling exotic goods from distant lands',
+                'A hermit druid who can speak with animals and plants',
+                'A retired adventurer with tales of legendary treasures',
+                'A cultist seeking redemption after leaving a dark order',
+                'A fairy queen's messenger with urgent news for the kingdom',
+                'A blacksmith who forges magical weapons in secret'
+            ]
+            # Pick 2 random NPCs
+            npc_prompts_to_use = random.sample(random_npc_prompts, 2)
+            logger.info(f"[START] Using random NPC prompts for variety")
 
         logger.info(f"[START] Generating {len(npc_prompts_to_use)} NPCs...")
 
@@ -1000,13 +1061,73 @@ async def start_session(
                 logger.error(f"[START] NPC generation error: {e}", exc_info=True)
 
         logger.info(f"[START] === Session initialized: {len(game_session.players)} players, {len(game_session.npcs)} NPCs ===")
-        
+
         # Send welcome message
         game_session.delivery.master_message(
             f"Welcome to {scene.name}! {scene.description}"
         )
         game_session.delivery.session_updated(game_session)
-        
+
+        # Build NPCs list for response
+        npcs_response = []
+        for npc in game_session.npcs:
+            if hasattr(npc, 'character'):
+                char = npc.character
+                stats = getattr(char, 'stats', None)
+                
+                # Convert abilities to dict format
+                abilities_data = []
+                if hasattr(char, 'abilities') and char.abilities:
+                    for ability in char.abilities:
+                        if isinstance(ability, dict):
+                            abilities_data.append(ability)
+                        else:
+                            abilities_data.append({
+                                "name": getattr(ability, 'name', 'Unknown'),
+                                "short_summary": getattr(ability, 'short_summary', ''),
+                                "level": getattr(ability, 'level', 0),
+                                "type": getattr(ability, 'type', 'action'),
+                            })
+                
+                # Convert inventory to dict format
+                inventory_data = []
+                if hasattr(char, 'inventory') and char.inventory:
+                    for item in char.inventory:
+                        if isinstance(item, dict):
+                            inventory_data.append(item)
+                        else:
+                            inventory_data.append({
+                                "name": getattr(item, 'name', 'Unknown'),
+                                "is_equipped": getattr(item, 'is_equipped', False),
+                                "type": getattr(item, 'type', 'item'),
+                            })
+                
+                npcs_response.append(NPCResponse(
+                    name=getattr(char, 'name', 'Unknown'),
+                    race=getattr(char, 'race', 'Human'),
+                    char_class=str(getattr(char, 'char_class', 'Commoner')),
+                    alignment=getattr(char, 'alignment', 'Neutral'),
+                    level=getattr(char, 'level', 1),
+                    current_hp=getattr(char, 'current_hp', 10),
+                    max_hp=getattr(char, 'max_hp', 10),
+                    armor_class=getattr(char, 'armor_class', 10),
+                    speed=getattr(char, 'speed', 30),
+                    is_alive=getattr(char, 'is_alive', True),
+                    stats={
+                        "strength": getattr(stats, 'strength', 10) if stats else 10,
+                        "dexterity": getattr(stats, 'dexterity', 10) if stats else 10,
+                        "constitution": getattr(stats, 'constitution', 10) if stats else 10,
+                        "intelligence": getattr(stats, 'intelligence', 10) if stats else 10,
+                        "wisdom": getattr(stats, 'wisdom', 10) if stats else 10,
+                        "charisma": getattr(stats, 'charisma', 10) if stats else 10,
+                    } if stats else {
+                        "strength": 10, "dexterity": 10, "constitution": 10,
+                        "intelligence": 10, "wisdom": 10, "charisma": 10,
+                    },
+                    abilities=abilities_data,
+                    inventory=inventory_data,
+                ))
+
         return SessionResponse(
             session_id=session_id,
             session_name=db_session.session_name,
@@ -1017,7 +1138,17 @@ async def start_session(
             owner_id=db_session.owner_id,
             owner_name=current_user.username,
             created_at=db_session.created_at.isoformat(),
-            is_owner=True
+            is_owner=True,
+            players=[
+                PlayerResponse(
+                    player_id=f"player_{i}",
+                    player_name=getattr(p.character, 'name', 'Unknown') if hasattr(p, 'character') else f"Player_{i}",
+                    character_name=getattr(p.character, 'name', None) if hasattr(p, 'character') else None,
+                    connected=True,
+                    role="player"
+                ) for i, p in enumerate(game_session.players)
+            ],
+            npcs=npcs_response
         )
         
     except Exception as e:
@@ -1325,6 +1456,41 @@ async def get_session_game_info(
             if hasattr(player, 'character'):
                 char = player.character
                 stats = getattr(char, 'stats', None)
+                
+                # Convert abilities to dict format
+                abilities_data = []
+                if hasattr(char, 'abilities') and char.abilities:
+                    for ability in char.abilities:
+                        if isinstance(ability, dict):
+                            abilities_data.append(ability)
+                        else:
+                            abilities_data.append({
+                                "name": getattr(ability, 'name', 'Unknown'),
+                                "short_summary": getattr(ability, 'short_summary', ''),
+                                "level": getattr(ability, 'level', 0),
+                                "type": getattr(ability, 'type', 'action'),
+                            })
+                
+                # Convert inventory to dict format
+                inventory_data = []
+                if hasattr(char, 'inventory') and char.inventory:
+                    for item in char.inventory:
+                        if isinstance(item, dict):
+                            inventory_data.append(item)
+                        else:
+                            inventory_data.append({
+                                "name": getattr(item, 'name', 'Unknown'),
+                                "is_equipped": getattr(item, 'is_equipped', False),
+                                "type": getattr(item, 'type', 'item'),
+                            })
+                
+                # Convert conditions to string
+                conditions_str = ""
+                if hasattr(char, 'active_conditions_list') and char.active_conditions_list:
+                    conditions_str = '\n'.join(char.active_conditions_list)
+                elif hasattr(char, 'active_conditions') and char.active_conditions:
+                    conditions_str = char.active_conditions
+                
                 players_data.append({
                     "name": getattr(char, 'name', 'Unknown'),
                     "race": getattr(char, 'race', 'Human'),
@@ -1348,6 +1514,9 @@ async def get_session_game_info(
                         "strength": 10, "dexterity": 10, "constitution": 10,
                         "intelligence": 10, "wisdom": 10, "charisma": 10,
                     },
+                    "abilities": abilities_data,
+                    "inventory": inventory_data,
+                    "active_conditions": conditions_str,
                 })
         
         # Add DB participants who don't have characters yet (waiting room players)
@@ -1379,6 +1548,34 @@ async def get_session_game_info(
             if hasattr(npc, 'character'):
                 char = npc.character
                 stats = getattr(char, 'stats', None)
+                
+                # Convert abilities to dict format
+                abilities_data = []
+                if hasattr(char, 'abilities') and char.abilities:
+                    for ability in char.abilities:
+                        if isinstance(ability, dict):
+                            abilities_data.append(ability)
+                        else:
+                            abilities_data.append({
+                                "name": getattr(ability, 'name', 'Unknown'),
+                                "short_summary": getattr(ability, 'short_summary', ''),
+                                "level": getattr(ability, 'level', 0),
+                                "type": getattr(ability, 'type', 'action'),
+                            })
+                
+                # Convert inventory to dict format
+                inventory_data = []
+                if hasattr(char, 'inventory') and char.inventory:
+                    for item in char.inventory:
+                        if isinstance(item, dict):
+                            inventory_data.append(item)
+                        else:
+                            inventory_data.append({
+                                "name": getattr(item, 'name', 'Unknown'),
+                                "is_equipped": getattr(item, 'is_equipped', False),
+                                "type": getattr(item, 'type', 'item'),
+                            })
+                
                 npcs_data.append({
                     "name": getattr(char, 'name', 'Unknown'),
                     "race": getattr(char, 'race', 'Human'),
@@ -1400,6 +1597,8 @@ async def get_session_game_info(
                         "strength": 10, "dexterity": 10, "constitution": 10,
                         "intelligence": 10, "wisdom": 10, "charisma": 10,
                     },
+                    "abilities": abilities_data,
+                    "inventory": inventory_data,
                 })
 
         # Build scene data

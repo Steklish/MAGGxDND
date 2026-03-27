@@ -33,6 +33,14 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
         setIsGenerating(true);
 
         try {
+            // Clear old session data from localStorage to ensure fresh start
+            localStorage.removeItem('currentSessionId');
+            localStorage.removeItem('currentPlayerId');
+            localStorage.removeItem('gameStatus');
+            localStorage.removeItem('currentSessionName');
+            localStorage.removeItem('activeSessionIds');
+            console.log('[GameSetup] Cleared old session data from localStorage');
+
             // Build character prompt based on selection
             let characterPrompt = '';
             if (characterChoice === 'ai-create' && characterDescription) {
@@ -47,7 +55,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
                 scene_prompt: undefined,
                 character_prompts: characterPrompt ? [characterPrompt] : [],
                 character_description: characterPrompt,
-                npc_prompts: ['A mysterious stranger with important information', 'A local merchant or shopkeeper']
+                npc_prompts: [] // Empty = backend will use random variety
             };
 
             console.log('[GameSetup] Starting session with:', gameSetup);
