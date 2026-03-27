@@ -914,77 +914,66 @@ async def start_session(
         repository.update_session_scene(session_id, game_session.current_scene.name, owner_id=current_user.id)
         repository.update_session_status(session_id, "running", owner_id=current_user.id)
 
-        # Initialize player characters using AI if no players yet
-        if not game_session.players or len(game_session.players) == 0:
-            character_prompts_to_use = request.character_prompts
-            if request.character_description and not character_prompts_to_use:
-                character_prompts_to_use = [request.character_description]
+        # Initialize player characters - ALWAYS create at least one character
+        character_prompts_to_use = request.character_prompts
+        if request.character_description and not character_prompts_to_use:
+            character_prompts_to_use = [request.character_description]
+        
+        # If no character prompts, generate a random one
+        if not character_prompts_to_use or len(character_prompts_to_use) == 0:
+            character_prompts_to_use = ['Create a random D&D character with interesting backstory and abilities']
+
+        logger.info(f"[START] Generating {len(character_prompts_to_use)} characters...")
+
+        # Generate characters using AI or procedural generation
+        for i, prompt in enumerate(character_prompts_to_use):
+            logger.info(f"[START] Generating character {i+1}: {prompt[:100]}...")
+            character = None
             
-            # If no character prompts, generate a random one
-            if not character_prompts_to_use or len(character_prompts_to_use) == 0:
-                character_prompts_to_use = ['Create a random D&D character with interesting backstory and abilities']
-
-            logger.info(f"[START] Generating {len(character_prompts_to_use)} characters with AI...")
-
-            # Generate characters using AI if prompts provided
-            for i, prompt in enumerate(character_prompts_to_use):
-                logger.info(f"[START] Generating character {i+1} with AI: {prompt[:100]}...")
-                character = None
+            # Try AI generation first (if generator available)
+            if hasattr(game_session, 'generator') and game_session.generator and game_session.generator.api_key != "NO_KEY":
                 try:
-                    if hasattr(game_session, 'generator') and game_session.generator:
-                        character = game_session.generator.generate_one_shot(
-                            pydantic_model=Character,
-                            prompt=prompt
-                        )
-                        logger.info(f"[START] Character generated: {character.name}")
-                    
-                    if not character:
-                        logger.warning(f"[START] No generator or generation failed, using procedural character {i+1}")
-                        # Use procedural generator for fallback character
-                        character = procedural_gen.generate_character(name=None, prompt=prompt)
-                        logger.info(f"[START] Procedural character generated: {character.name} ({character.char_class.value})")
-
-                    player_orchestrator = Orchestrator(
-                        generator=game_session.generator,
-                        logger=game_session.logger.getChild("player_orchestrator")
+                    character = game_session.generator.generate_one_shot(
+                        pydantic_model=Character,
+                        prompt=prompt
                     )
-                    player_orchestrator.add_state(game_session)
-
-                    event_queue = game_session.event_pool.subscribe(character.name)
-
-                    player = Player(
-                        character=character,
-                        event_queuee=event_queue,
-                        logger=game_session.logger.getChild("player"),
-                        orchestrator=player_orchestrator
-                    )
-                    player.inject_state(game_session)
-                    game_session.players.append(player)
-                    logger.info(f"[START] Character {character.name} added to session")
+                    logger.info(f"[START] ✓ AI Character generated: {character.name}")
                 except Exception as e:
-                    logger.error(f"[START] Character generation error: {e}", exc_info=True)
-                    # Last resort fallback - create minimal character
-                    try:
-                        character = procedural_gen.generate_character(name=None, prompt="A brave adventurer")
-                        player_orchestrator = Orchestrator(
-                            generator=game_session.generator,
-                            logger=game_session.logger.getChild("player_orchestrator")
-                        )
-                        player_orchestrator.add_state(game_session)
-                        event_queue = game_session.event_pool.subscribe(character.name)
-                        player = Player(
-                            character=character,
-                            event_queuee=event_queue,
-                            logger=game_session.logger.getChild("player"),
-                            orchestrator=player_orchestrator
-                        )
-                        player.inject_state(game_session)
-                        game_session.players.append(player)
-                        logger.info(f"[START] Fallback character added: {character.name}")
-                    except Exception as fallback_error:
-                        logger.error(f"[START] Fallback character creation failed: {fallback_error}")
-        else:
-            logger.info(f"[START] Session already has {len(game_session.players)} players")
+                    logger.warning(f"[START] AI generation failed: {e}, using procedural fallback")
+                    character = None
+            
+            # Use procedural generator if AI failed or unavailable
+            if not character:
+                try:
+                    character = procedural_gen.generate_character(name=None, prompt=prompt)
+                    logger.info(f"[START] ✓ Procedural character generated: {character.name} ({character.char_class.value})")
+                except Exception as e:
+                    logger.error(f"[START] Procedural generation failed: {e}")
+                    continue  # Skip this character
+
+            # Create player with character
+            try:
+                player_orchestrator = Orchestrator(
+                    generator=game_session.generator,
+                    logger=game_session.logger.getChild("player_orchestrator")
+                )
+                player_orchestrator.add_state(game_session)
+
+                event_queue = game_session.event_pool.subscribe(character.name)
+
+                player = Player(
+                    character=character,
+                    event_queuee=event_queue,
+                    logger=game_session.logger.getChild("player"),
+                    orchestrator=player_orchestrator
+                )
+                player.inject_state(game_session)
+                game_session.players.append(player)
+                logger.info(f"[START] ✓ Character {character.name} added to session")
+            except Exception as e:
+                logger.error(f"[START] Failed to create player: {e}", exc_info=True)
+
+        logger.info(f"[START] Session already has {len(game_session.players)} players")
 
         # Initialize NPCs using procedural generation (always generate some NPCs for gameplay)
         npc_prompts_to_use = request.npc_prompts if request.npc_prompts else [
@@ -992,19 +981,19 @@ async def start_session(
             'A local merchant or shopkeeper'
         ]
         
+        logger.info(f"[START] Generating {len(npc_prompts_to_use)} NPCs...")
+        
         for i, prompt in enumerate(npc_prompts_to_use):
             try:
                 # Use procedural generator for NPCs
                 npc_character = procedural_gen.generate_npc(role=None, prompt=prompt)
                 npc_character.current_scene = scene.name
-                logger.info(f"[START] Procedural NPC generated: {npc_character.name} ({npc_character.occupation})")
+                logger.info(f"[START] ✓ Procedural NPC generated: {npc_character.name} ({npc_character.occupation})")
                 game_session._init_npc(npc_character)
             except Exception as e:
                 logger.error(f"[START] NPC generation error: {e}", exc_info=True)
         
-        game_session.logger.info(
-            f"Сессия запущена: {len(game_session.players)} игроков, {len(game_session.npcs)} NPC"
-        )
+        logger.info(f"[START] === Session initialized: {len(game_session.players)} players, {len(game_session.npcs)} NPCs ===")
         
         # Send welcome message
         game_session.delivery.master_message(
