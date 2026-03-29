@@ -16,6 +16,10 @@ import os
 import sys
 import logging
 
+# Fix Unicode encoding for Windows console
+if sys.platform == 'win32':
+    sys.stdout.reconfigure(encoding='utf-8')
+
 # Setup comprehensive logging
 setup_logging(
     log_dir='./logs',
