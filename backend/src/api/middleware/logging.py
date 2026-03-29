@@ -1,6 +1,7 @@
 """
 API Request Logging Middleware
-Logs all API requests with detailed information
+Logs all API requests with detailed information including trace ID from frontend
+Tracks the complete journey: Frontend → Backend → Core Engine → Response
 """
 import time
 import json
@@ -13,6 +14,19 @@ from backend.src.logging import get_logger
 
 logger = get_logger('api')
 request_logger = get_logger('api.requests')
+core_logger = get_logger('core.tracing')
+
+
+# ANSI color codes for console
+class Colors:
+    CYAN = '\033[96m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    MAGENTA = '\033[95m'
+    RESET = '\033[0m'
+    BOLD = '\033[1m'
 
 
 class APILoggingMiddleware(BaseHTTPMiddleware):
@@ -39,29 +53,61 @@ class APILoggingMiddleware(BaseHTTPMiddleware):
         start_time = time.time()
         request_id = f"api_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{self.request_count}"
         self.request_count += 1
-        
+
+        # Extract trace ID from frontend if available
+        trace_id = request.headers.get('x-trace-id', None)
+        trace_info = f"{Colors.YELLOW}{trace_id}{Colors.RESET}" if trace_id else f"{Colors.MAGENTA}N/A{Colors.RESET}"
+
         # Extract request information
         method = request.method
         path = request.url.path
         query_params = dict(request.query_params)
         headers = dict(request.headers)
         client_host = request.client.host if request.client else "unknown"
-        
+
         # Get user info if authenticated
         user_info = await self._get_user_info(request)
-        
-        # Log request start
+
+        # Log request start with trace ID
         logger.info(
             f"📥 API Request [{request_id}]",
             extra={
                 'request_id': request_id,
+                'trace_id': trace_id,
                 'method': method,
                 'path': path,
                 'client_host': client_host,
                 'user': user_info,
-                'query_params': query_params if query_params else None
+                'query_params': query_params if query_params else None,
+                'journey_stage': '1/5: Frontend → Backend API'
             }
         )
+
+        # Track request journey
+        journey_start = time.time()
+        request.state.request_journey = {
+            'start_time': journey_start,
+            'trace_id': trace_id,
+            'request_id': request_id,
+            'stages': ['Frontend → Backend API']
+        }
+
+        # Console output with trace ID and journey info
+        print(f"\n{Colors.CYAN}┌{'─' * 90}{Colors.RESET}")
+        print(f"{Colors.CYAN}│{Colors.RESET} 🚀 {Colors.BOLD}REQUEST JOURNEY START{Colors.RESET}")
+        print(f"{Colors.CYAN}├{'─' * 90}{Colors.RESET}")
+        print(f"{Colors.CYAN}│{Colors.RESET}    Trace ID: {trace_info}")
+        print(f"{Colors.CYAN}│{Colors.RESET}    Request ID: {Colors.MAGENTA}{request_id}{Colors.RESET}")
+        print(f"{Colors.CYAN}│{Colors.RESET}    Method: {Colors.BLUE}{method}{Colors.RESET}")
+        print(f"{Colors.CYAN}│{Colors.RESET}    Path: {Colors.BLUE}{path}{Colors.RESET}")
+        print(f"{Colors.CYAN}│{Colors.RESET}    Client: {client_host}")
+        if user_info:
+            print(f"{Colors.CYAN}│{Colors.RESET}    User: {Colors.GREEN}{user_info}{Colors.RESET}")
+        if query_params:
+            print(f"{Colors.CYAN}│{Colors.RESET}    Query: {Colors.YELLOW}{query_params}{Colors.RESET}")
+        print(f"{Colors.CYAN}│{Colors.RESET}    Journey: {Colors.MAGENTA}Frontend → Backend API (START){Colors.RESET}")
+        print(f"{Colors.CYAN}│{Colors.RESET}    Stage: {Colors.GREEN}1/5{Colors.RESET}")
+        print(f"{Colors.CYAN}└{'─' * 90}{Colors.RESET}")
         
         # Read and log request body
         request_body = None
@@ -98,32 +144,37 @@ class APILoggingMiddleware(BaseHTTPMiddleware):
         }
         
         request_logger.info(json.dumps(request_data, ensure_ascii=False, indent=2))
-        
-        # Console output
-        print(f"📥 [{method}] {path}")
-        print(f"   ID: {request_id}")
-        print(f"   Client: {client_host}")
-        if user_info:
-            print(f"   User: {user_info}")
-        print()
-        
+
         try:
             # Process request
             response = await call_next(request)
-            
+
             # Calculate processing time
             processing_time = time.time() - start_time
-            
-            # Log response
+
+            # Get journey info if available
+            journey_info = getattr(request.state, 'request_journey', None)
+            journey_stages = journey_info.get('stages', []) if journey_info else []
+            journey_start = journey_info.get('start_time', start_time) if journey_info else start_time
+            total_journey_time = (time.time() - journey_start) * 1000
+
+            # Log response with trace ID
             logger.info(
                 f"📤 API Response [{request_id}]",
                 extra={
                     'request_id': request_id,
+                    'trace_id': trace_id,
                     'status_code': response.status_code,
-                    'processing_time_ms': round(processing_time * 1000, 2)
+                    'processing_time_ms': round(processing_time * 1000, 2),
+                    'journey_stages': journey_stages,
+                    'journey_stage': '5/5: Backend → Frontend'
                 }
             )
-            
+
+            # Add trace ID to response headers
+            if trace_id:
+                response.headers['X-Trace-ID'] = trace_id
+
             # Log errors
             if response.status_code >= 400:
                 self.error_count += 1
@@ -131,41 +182,74 @@ class APILoggingMiddleware(BaseHTTPMiddleware):
                     f"⚠️ API Error [{request_id}]",
                     extra={
                         'request_id': request_id,
+                        'trace_id': trace_id,
                         'status_code': response.status_code,
-                        'processing_time_ms': round(processing_time * 1000, 2)
+                        'processing_time_ms': round(processing_time * 1000, 2),
+                        'journey_stage': '5/5: Backend → Frontend (ERROR)'
                     }
                 )
-            
-            # Console output
-            status_color = "✅" if response.status_code < 400 else "❌"
-            print(f"{status_color} [{response.status_code}] {method} {path}")
-            print(f"   Time: {processing_time*1000:.2f}ms")
-            print()
-            
+
+            # Console output with trace ID and journey info
+            status_color = f"{Colors.GREEN}✅{Colors.RESET}" if response.status_code < 400 else f"{Colors.RED}❌{Colors.RESET}"
+            journey_log = ""
+            if journey_stages:
+                journey_log = f"\n{Colors.CYAN}│{Colors.RESET}    Journey Path: {Colors.YELLOW}{' → '.join(journey_stages)}{Colors.RESET}"
+
+            print(f"\n{Colors.GREEN}┌{'─' * 90}{Colors.RESET}")
+            print(f"{Colors.GREEN}│{Colors.RESET} ✅ {Colors.BOLD}REQUEST JOURNEY COMPLETE{Colors.RESET}")
+            print(f"{Colors.GREEN}├{'─' * 90}{Colors.RESET}")
+            print(f"{Colors.GREEN}│{Colors.RESET}    Trace ID: {trace_info}")
+            print(f"{Colors.GREEN}│{Colors.RESET}    Request ID: {Colors.MAGENTA}{request_id}{Colors.RESET}")
+            print(f"{Colors.GREEN}│{Colors.RESET}    Status: {status_color} {Colors.BLUE}{response.status_code}{Colors.RESET}")
+            print(f"{Colors.GREEN}│{Colors.RESET}    Method: {Colors.BLUE}{method}{Colors.RESET}")
+            print(f"{Colors.GREEN}│{Colors.RESET}    Path: {Colors.BLUE}{path}{Colors.RESET}")
+            print(f"{Colors.GREEN}│{Colors.RESET}    Processing Time: {Colors.GREEN}{processing_time*1000:.2f}ms{Colors.RESET}")
+            print(f"{Colors.GREEN}│{Colors.RESET}    Total Journey Time: {Colors.GREEN}{total_journey_time:.2f}ms{Colors.RESET}")
+            if journey_log:
+                print(journey_log)
+            print(f"{Colors.GREEN}│{Colors.RESET}    Journey: {Colors.MAGENTA}Backend → Frontend (COMPLETE){Colors.RESET}")
+            print(f"{Colors.GREEN}│{Colors.RESET}    Stage: {Colors.GREEN}5/5{Colors.RESET}")
+            print(f"{Colors.GREEN}└{'─' * 90}{Colors.RESET}")
+
             return response
-            
+
         except Exception as e:
             processing_time = time.time() - start_time
-            self.error_count += 1
             
-            # Log exception
+            # Get journey info
+            journey_info = getattr(request.state, 'request_journey', None)
+            journey_start = journey_info.get('start_time', start_time) if journey_info else start_time
+            total_journey_time = (time.time() - journey_start) * 1000
+
+            # Log exception with trace ID
             logger.error(
                 f"❌ API Exception [{request_id}]",
                 extra={
                     'request_id': request_id,
+                    'trace_id': trace_id,
                     'error': str(e),
                     'error_type': type(e).__name__,
-                    'processing_time_ms': round(processing_time * 1000, 2)
+                    'processing_time_ms': round(processing_time * 1000, 2),
+                    'journey_stage': '5/5: Backend → Frontend (EXCEPTION)'
                 },
                 exc_info=True
             )
-            
+
             # Console output
-            print(f"❌ [EXCEPTION] {method} {path}")
-            print(f"   Error: {str(e)}")
-            print(f"   Type: {type(e).__name__}")
-            print()
-            
+            print(f"\n{Colors.RED}┌{'─' * 90}{Colors.RESET}")
+            print(f"{Colors.RED}│{Colors.RESET} ❌ {Colors.BOLD}REQUEST JOURNEY FAILED{Colors.RESET}")
+            print(f"{Colors.RED}├{'─' * 90}{Colors.RESET}")
+            print(f"{Colors.RED}│{Colors.RESET}    Trace ID: {trace_info}")
+            print(f"{Colors.RED}│{Colors.RESET}    Request ID: {Colors.MAGENTA}{request_id}{Colors.RESET}")
+            print(f"{Colors.RED}│{Colors.RESET}    Method: {Colors.BLUE}{method}{Colors.RESET}")
+            print(f"{Colors.RED}│{Colors.RESET}    Path: {Colors.BLUE}{path}{Colors.RESET}")
+            print(f"{Colors.RED}│{Colors.RESET}    Error: {Colors.RED}{str(e)}{Colors.RESET}")
+            print(f"{Colors.RED}│{Colors.RESET}    Type: {Colors.YELLOW}{type(e).__name__}{Colors.RESET}")
+            print(f"{Colors.RED}│{Colors.RESET}    Processing Time: {Colors.RED}{processing_time*1000:.2f}ms{Colors.RESET}")
+            print(f"{Colors.RED}│{Colors.RESET}    Total Journey Time: {Colors.RED}{total_journey_time:.2f}ms{Colors.RESET}")
+            print(f"{Colors.RED}│{Colors.RESET}    Journey: {Colors.MAGENTA}Backend → Frontend (FAILED){Colors.RESET}")
+            print(f"{Colors.RED}└{'─' * 90}{Colors.RESET}")
+
             raise
     
     async def _get_user_info(self, request: Request) -> dict:

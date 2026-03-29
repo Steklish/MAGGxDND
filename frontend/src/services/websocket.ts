@@ -7,6 +7,15 @@ import type {
     Character,
     Event,
 } from '../types/game';
+import { 
+    logWebSocketSend, 
+    logWebSocketReceive, 
+    logEngineEvent, 
+    getTraceId,
+    logJourneyStart,
+    logJourneyStage,
+    logJourneyComplete
+} from '../utils/requestLogger';
 
 export type WebSocketMessageHandler = (message: ServerMessage) => void;
 export type WebSocketStateHandler = (state: {
@@ -36,6 +45,9 @@ export class WebSocketService {
     private connectionPromise: Promise<void> | null = null;
     private isManualDisconnect = false;
     private config: WebSocketConfig;
+    
+    // Journey tracking for player actions
+    private actionJourneyStartTimes = new Map<string, number>();
 
     constructor(config: WebSocketConfig = {}) {
         this.config = {
@@ -75,6 +87,9 @@ export class WebSocketService {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = `${protocol}//${window.location.host}/ws/${sessionId}/${playerId}`;
             console.log('[WebSocket] Connecting to:', wsUrl);
+            
+            // Log connection attempt
+            logWebSocketSend('CONNECT', { sessionId, playerId }, sessionId, playerId);
 
             try {
                 this.ws = new WebSocket(wsUrl);
@@ -110,6 +125,15 @@ export class WebSocketService {
                     try {
                         const data = JSON.parse(event.data);
                         console.log('[WebSocket] ← Received:', data.type, data);
+                        
+                        // Log received message
+                        logWebSocketReceive(
+                            data.type || 'UNKNOWN',
+                            data,
+                            this.sessionId || undefined,
+                            this.playerId || undefined
+                        );
+                        
                         this.handleMessage(data);
                     } catch (err) {
                         console.error('[WebSocket] Failed to parse message:', err);
@@ -201,6 +225,21 @@ export class WebSocketService {
             },
         };
 
+        // Create journey key for this action
+        const journeyKey = `action_${Date.now()}_${character.name || 'unknown'}`;
+        const journeyStartTime = Date.now();
+        this.actionJourneyStartTimes.set(journeyKey, journeyStartTime);
+
+        // Log journey start for player action
+        logJourneyStart(
+            `PLAYER_ACTION: ${character.name}`,
+            `Player action: ${requestText.substring(0, 50)}...`
+        );
+        logJourneyStage(1, 'Frontend → WebSocket', 'Player action prepared and sending', requestText);
+
+        // Log player action
+        logWebSocketSend('PLAYER_ACTION', actionMsg.payload, this.sessionId || undefined, this.playerId);
+
         this.send(actionMsg);
     }
 
@@ -213,6 +252,9 @@ export class WebSocketService {
             return;
         }
 
+        // Log outgoing message
+        logWebSocketSend(message.type, message, this.sessionId || undefined, this.playerId || undefined);
+        
         console.log('[WebSocket] → Sending:', message.type, message);
         this.ws.send(JSON.stringify(message));
     }
@@ -294,6 +336,42 @@ export class WebSocketService {
         // Convert server message format to our internal format
         const serverMessage = this.parseServerMessage(data);
         if (serverMessage) {
+            // Log engine event if it's a game event
+            if (serverMessage.type === 'GAME_EVENT' && serverMessage.payload?.event) {
+                logEngineEvent(
+                    serverMessage.payload.event.event_type || 'UNKNOWN',
+                    serverMessage.payload.event,
+                    getTraceId()
+                );
+                
+                // Log journey complete for action responses
+                const journeyKey = `action_${Date.now()}`;
+                // Find the most recent journey key
+                const keys = Array.from(this.actionJourneyStartTimes.keys());
+                if (keys.length > 0) {
+                    const lastKey = keys[keys.length - 1];
+                    const startTime = this.actionJourneyStartTimes.get(lastKey);
+                    const totalDuration = startTime ? Date.now() - startTime : 0;
+                    
+                    logJourneyStage(5, 'WebSocket → Frontend', 'Action result received', data);
+                    logJourneyComplete(
+                        `PLAYER_ACTION: ${serverMessage.payload.event.event_type}`,
+                        totalDuration,
+                        [
+                            'Frontend → WebSocket',
+                            'WebSocket → Backend',
+                            'Backend → Core Engine',
+                            'Core Engine Processing',
+                            'Core Engine → Event Pool → WebSocket',
+                            'WebSocket → Frontend'
+                        ]
+                    );
+                    
+                    // Clean up old journey keys
+                    this.actionJourneyStartTimes.clear();
+                }
+            }
+
             this.messageHandlers.forEach((handler) => handler(serverMessage));
         }
     }
