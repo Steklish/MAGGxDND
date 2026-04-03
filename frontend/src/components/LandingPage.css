@@ -301,14 +301,18 @@ html::-webkit-scrollbar-thumb:hover {
 }
 
 .btn-login {
-    background: transparent;
-    border: 1px solid var(--border-light);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .btn-login:hover {
     border-color: var(--accent-orange);
-    color: var(--accent-orange);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 16px rgba(255, 107, 53, 0.2);
 }
 
 .btn-profile {
@@ -364,19 +368,25 @@ html::-webkit-scrollbar-thumb:hover {
 }
 
 .btn-register {
-    background: var(--gradient-primary);
-    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     color: var(--text-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .btn-register:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-glow);
+    border-color: var(--accent-orange);
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
 }
 
 .btn-quick-start {
-    background: transparent;
-    border: 1px dashed var(--accent-gold);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px) saturate(180%);
+    border: 1px dashed rgba(244, 162, 97, 0.4);
     color: var(--accent-gold);
     padding: 10px 20px;
     font-family: var(--font-family);
@@ -385,12 +395,14 @@ html::-webkit-scrollbar-thumb:hover {
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .btn-quick-start:hover {
-    background: rgba(244, 162, 97, 0.1);
+    background: rgba(244, 162, 97, 0.15);
     border-color: var(--accent-gold);
-    color: var(--text-primary);
+    box-shadow: 0 4px 16px rgba(244, 162, 97, 0.2);
 }
 
 /* Hero Section */
