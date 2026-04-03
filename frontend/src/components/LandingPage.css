@@ -470,10 +470,11 @@ html::-webkit-scrollbar-thumb:hover {
 }
 
 .title-gradient {
-    background: var(--gradient-primary);
+    background: linear-gradient(135deg, #ffe0a0 0%, #fff5e6 50%, #ffd699 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    filter: drop-shadow(0 0 8px rgba(255, 214, 153, 0.3));
 }
 
 .hero-subtitle {
