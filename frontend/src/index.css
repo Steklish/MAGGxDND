@@ -402,9 +402,35 @@ body {
 }
 
 .neon-text-green {
-    text-shadow: 
+    text-shadow:
         0 0 5px var(--accent-green),
         0 0 10px var(--accent-green),
         0 0 20px var(--accent-green-glow),
         0 0 40px var(--accent-green-glow);
+}
+
+/* Global Scrollbar Styling */
+html {
+    scrollbar-width: 10px;
+    scrollbar-color: var(--accent-orange) transparent;
+    transition: scrollbar-color 0.3s ease;
+}
+
+html::-webkit-scrollbar {
+    width: 10px;
+}
+
+html::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+html::-webkit-scrollbar-thumb {
+    background: var(--accent-orange);
+    border-radius: 5px;
+    transition: background 0.3s ease;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-gold);
+    filter: brightness(1.2);
 }
