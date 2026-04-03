@@ -1,0 +1,83 @@
+2026-03-04 09:47:56 - session.смить - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-04 09:47:56 - session.смить - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-04 09:47:56 - session.смить - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-04 09:47:56 - session.смить.engine.magg - DEBUG - Magg initialized
+2026-03-04 09:47:56 - session.смить.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-04 09:47:56 - session.смить.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-04 09:47:56 - session.смить.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-04 09:47:56 - session.смить.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-04 09:47:56 - session.смить.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-04 09:47:56 - session.смить.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-04 09:47:56 - session.смить.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-04 09:47:56 - session.смить.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-04 09:47:56 - session.смить.manipulator - INFO - Initialized 6 manipulations
+2026-03-04 09:47:56 - session.смить - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-04 09:47:56 - session.смить - INFO - Сессия 'смить' создана с ID: 1d99ca1b-02a1-4965-8ee0-56953e96c44d
+2026-03-17 17:26:40 - session.смить - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-17 17:26:40 - session.смить - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-17 17:26:40 - session.смить - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-17 17:26:40 - session.смить.engine.magg - DEBUG - Magg initialized
+2026-03-17 17:26:40 - session.смить.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-17 17:26:40 - session.смить.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-17 17:26:40 - session.смить.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-17 17:26:40 - session.смить.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-17 17:26:40 - session.смить.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-17 17:26:40 - session.смить.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-17 17:26:40 - session.смить.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-17 17:26:40 - session.смить.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-17 17:26:40 - session.смить.manipulator - INFO - Initialized 6 manipulations
+2026-03-17 17:26:40 - session.смить - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-17 17:26:40 - session.смить.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-17 17:26:40 - session.смить - INFO - Сессия 'смить' создана с ID: c03cf105-d822-42b5-b6f1-8e5f78c64397
+2026-03-17 17:26:48 - session.смить.engine.session - INFO - Сессия запущена: 0 игроков, 0 NPC
+2026-03-17 17:26:48 - session.смить.engine.session - INFO - [MASTER] Welcome to The Drunken Dragon! Create an exciting adventure with interesting NPCs and challenging encounters
+2026-03-17 17:26:48 - session.смить.engine.session - DEBUG - [SESSION_UPDATE] смить
+2026-03-17 17:26:48 - session.смить.delivery.delivery - DEBUG - Нет подключенных игроков в сессии c03cf105-d822-42b5-b6f1-8e5f78c64397
+2026-03-17 17:26:48 - session.смить.delivery.delivery - DEBUG - Нет подключенных игроков в сессии c03cf105-d822-42b5-b6f1-8e5f78c64397
+2026-03-17 17:26:49 - session.смить.engine.session - INFO - Сессия запущена: 0 игроков, 0 NPC
+2026-03-17 17:26:49 - session.смить.engine.session - INFO - [MASTER] Welcome to The Drunken Dragon! A medieval tavern with adventurers
+2026-03-17 17:26:49 - session.смить.engine.session - DEBUG - [SESSION_UPDATE] смить
+2026-03-17 17:26:49 - session.смить.delivery.delivery - DEBUG - Нет подключенных игроков в сессии c03cf105-d822-42b5-b6f1-8e5f78c64397
+2026-03-17 17:26:49 - session.смить.delivery.delivery - DEBUG - Нет подключенных игроков в сессии c03cf105-d822-42b5-b6f1-8e5f78c64397
+2026-03-17 22:10:52 - session.смить - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-17 22:10:52 - session.смить - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-17 22:10:52 - session.смить - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-17 22:10:52 - session.смить.engine.magg - DEBUG - Magg initialized
+2026-03-17 22:10:52 - session.смить.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-17 22:10:52 - session.смить.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-17 22:10:52 - session.смить.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-17 22:10:52 - session.смить.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-17 22:10:52 - session.смить.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-17 22:10:52 - session.смить.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-17 22:10:52 - session.смить.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-17 22:10:52 - session.смить.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-17 22:10:52 - session.смить.manipulator - INFO - Initialized 6 manipulations
+2026-03-17 22:10:52 - session.смить - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-17 22:10:52 - session.смить.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-17 22:10:52 - session.смить - INFO - Сессия 'смить' создана с ID: c03cf105-d822-42b5-b6f1-8e5f78c64397
+2026-03-17 22:10:52 - session.смить.engine.session - INFO - Сессия запущена: 0 игроков, 0 NPC
+2026-03-17 22:10:52 - session.смить.engine.session - INFO - [MASTER] Welcome to The Drunken Dragon! Create an exciting adventure with interesting NPCs and challenging encounters
+2026-03-17 22:10:52 - session.смить.engine.session - DEBUG - [SESSION_UPDATE] смить
+2026-03-17 22:10:52 - session.смить.delivery.delivery - DEBUG - Нет подключенных игроков в сессии c03cf105-d822-42b5-b6f1-8e5f78c64397
+2026-03-17 22:10:52 - session.смить.delivery.delivery - DEBUG - Нет подключенных игроков в сессии c03cf105-d822-42b5-b6f1-8e5f78c64397
+2026-03-20 11:20:33 - session.смить - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-20 11:20:33 - session.смить - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-20 11:20:33 - session.смить - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-20 11:20:33 - session.смить.engine.magg - DEBUG - Magg initialized
+2026-03-20 11:20:33 - session.смить.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-20 11:20:33 - session.смить.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-20 11:20:33 - session.смить.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-20 11:20:33 - session.смить.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-20 11:20:33 - session.смить.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-20 11:20:33 - session.смить.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-20 11:20:33 - session.смить.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-20 11:20:33 - session.смить.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-20 11:20:33 - session.смить.manipulator - INFO - Initialized 6 manipulations
+2026-03-20 11:20:33 - session.смить - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-20 11:20:33 - session.смить.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-20 11:20:33 - session.смить - INFO - Сессия 'смить' создана с ID: c03cf105-d822-42b5-b6f1-8e5f78c64397
+2026-03-20 11:20:34 - session.смить.engine.session - INFO - Сессия запущена: 0 игроков, 0 NPC
+2026-03-20 11:20:34 - session.смить.engine.session - INFO - [MASTER] Welcome to The Drunken Dragon! Create an exciting adventure with interesting NPCs and challenging encounters
+2026-03-20 11:20:34 - session.смить.engine.session - DEBUG - [SESSION_UPDATE] смить
+2026-03-20 11:20:34 - session.смить.delivery.delivery - DEBUG - Нет подключенных игроков в сессии c03cf105-d822-42b5-b6f1-8e5f78c64397
+2026-03-20 11:20:34 - session.смить.delivery.delivery - DEBUG - Нет подключенных игроков в сессии c03cf105-d822-42b5-b6f1-8e5f78c64397

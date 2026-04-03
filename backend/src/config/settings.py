@@ -26,8 +26,8 @@ class Settings:
         # If DATABASE_URL is provided, use it as-is but ensure it's absolute
         DATABASE_URL: str = _db_url
     else:
-        # Default: absolute path from project root
-        db_path = PROJECT_ROOT / "maggxdnd.db"
+        # Default: absolute path from project root in data/ directory
+        db_path = PROJECT_ROOT / "data" / "maggxdnd.db"
         DATABASE_URL: str = f"sqlite:///{str(db_path).replace('\\', '/')}"
     
     # Log database path for debugging

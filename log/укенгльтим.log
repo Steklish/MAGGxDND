@@ -1,0 +1,24 @@
+2026-03-24 17:45:00 - session.укенгльтим - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-24 17:45:00 - session.укенгльтим - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-24 17:45:00 - session.укенгльтим - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-24 17:45:00 - session.укенгльтим.engine.magg - DEBUG - Magg initialized
+2026-03-24 17:45:00 - session.укенгльтим.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-24 17:45:00 - session.укенгльтим.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-24 17:45:00 - session.укенгльтим.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-24 17:45:00 - session.укенгльтим.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-24 17:45:00 - session.укенгльтим.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-24 17:45:00 - session.укенгльтим.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-24 17:45:00 - session.укенгльтим.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-24 17:45:00 - session.укенгльтим.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-24 17:45:00 - session.укенгльтим.manipulator - INFO - Initialized 6 manipulations
+2026-03-24 17:45:00 - session.укенгльтим - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-24 17:45:00 - session.укенгльтим.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-24 17:45:00 - session.укенгльтим - INFO - Сессия 'укенгльтим' создана с ID: c48f0262-c546-47fb-b451-1b9087a10af7
+2026-03-24 17:45:12 - session.укенгльтим - INFO - Attempt 1/8 for SceneNode
+2026-03-24 17:45:12 - session.укенгльтим - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-24 17:45:22 - session.укенгльтим - INFO - generate_one_shot took 9.781420 seconds
+2026-03-24 17:45:22 - session.укенгльтим.engine.session - INFO - Сессия запущена: 0 игроков, 0 NPC
+2026-03-24 17:45:22 - session.укенгльтим.engine.session - INFO - [MASTER] Welcome to The Sunken Temple of Xylos! Submerged beneath the Azure Sea, the temple's entrance shimmers with an ethereal glow. Schools of bioluminescent fish dart through crumbling archways, hinting at forgotten secrets within.
+2026-03-24 17:45:22 - session.укенгльтим.engine.session - DEBUG - [SESSION_UPDATE] укенгльтим
+2026-03-24 17:45:22 - session.укенгльтим.delivery.delivery - DEBUG - Нет подключенных игроков в сессии c48f0262-c546-47fb-b451-1b9087a10af7
+2026-03-24 17:45:22 - session.укенгльтим.delivery.delivery - DEBUG - Нет подключенных игроков в сессии c48f0262-c546-47fb-b451-1b9087a10af7

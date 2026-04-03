@@ -1,0 +1,483 @@
+2026-03-10 09:07:13 - server.src.api.routers.session_router - INFO - 🟢 Creating session: 3af63775-91b9-41e7-8f94-b802a4989dbd - олшж
+2026-03-10 09:07:14 - chromadb.telemetry.product.posthog - INFO - Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+2026-03-10 09:07:15 - session.олшж - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-10 09:07:15 - session.олшж - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-10 09:07:15 - session.олшж - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-10 09:07:15 - session.олшж.engine.magg - DEBUG - Magg initialized
+2026-03-10 09:07:15 - session.олшж.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-10 09:07:15 - session.олшж.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-10 09:07:15 - session.олшж.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-10 09:07:15 - session.олшж.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-10 09:07:15 - session.олшж.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-10 09:07:15 - session.олшж.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-10 09:07:15 - session.олшж.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-10 09:07:15 - session.олшж.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-10 09:07:15 - session.олшж.manipulator - INFO - Initialized 6 manipulations
+2026-03-10 09:07:15 - session.олшж - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-10 09:07:15 - session.олшж.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-10 09:07:15 - server.src.game.session_manager - INFO - 📝 Registering session: 51480215-1ba3-4089-96f9-3d7758e6e28c - олшж
+2026-03-10 09:07:15 - server.src.game.session_manager - INFO - ✅ Session registered: 51480215-1ba3-4089-96f9-3d7758e6e28c
+2026-03-10 09:07:15 - session.олшж - INFO - Сессия 'олшж' создана с ID: 51480215-1ba3-4089-96f9-3d7758e6e28c
+2026-03-10 09:07:15 - server.src.api.routers.session_router - INFO - ✅ Session created successfully: 3af63775-91b9-41e7-8f94-b802a4989dbd
+2026-03-10 09:07:17 - server.src.api.routers.session_router - INFO - Starting REAL game session: Active Session
+2026-03-10 09:07:17 - server.src.api.routers.session_router - INFO - [853de953-a745-44a7-9f6f-99db4fab661c] EventPool created
+2026-03-10 09:07:17 - server.src.api.routers.session_router - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-10 09:07:17 - server.src.api.routers.session_router - INFO - [853de953-a745-44a7-9f6f-99db4fab661c] RESTAPIDelivery created
+2026-03-10 09:07:17 - server.src.api.routers.session_router.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-10 09:07:17 - server.src.api.routers.session_router - INFO - [853de953-a745-44a7-9f6f-99db4fab661c] Generating scene...
+2026-03-10 09:07:17 - server.src.api.routers.session_router - INFO - Attempt 1/8 for SceneNode
+2026-03-10 09:07:18 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:18 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:19 - server.src.api.routers.session_router - INFO - Attempt 2/8 for SceneNode
+2026-03-10 09:07:19 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:19 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:20 - server.src.api.routers.session_router - INFO - Attempt 3/8 for SceneNode
+2026-03-10 09:07:20 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:20 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:21 - server.src.api.routers.session_router - INFO - Attempt 4/8 for SceneNode
+2026-03-10 09:07:22 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:22 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:23 - server.src.api.routers.session_router - INFO - Attempt 5/8 for SceneNode
+2026-03-10 09:07:23 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:23 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:24 - server.src.api.routers.session_router - INFO - Attempt 6/8 for SceneNode
+2026-03-10 09:07:24 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:24 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:25 - server.src.api.routers.session_router - INFO - Attempt 7/8 for SceneNode
+2026-03-10 09:07:25 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:25 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:26 - server.src.api.routers.session_router - INFO - Attempt 8/8 for SceneNode
+2026-03-10 09:07:27 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:27 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:28 - server.src.api.routers.session_router - INFO - generate_one_shot took 10.456871 seconds
+2026-03-10 09:07:28 - server.src.api.routers.session_router - WARNING - AI scene generation failed: Failed to generate valid SceneNode after 8 attempts., using fallback
+2026-03-10 09:07:28 - server.src.api.routers.session_router - INFO - [853de953-a745-44a7-9f6f-99db4fab661c] Scene: Default Tavern
+2026-03-10 09:07:28 - server.src.api.routers.session_router - INFO - Attempt 1/8 for Character
+2026-03-10 09:07:28 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:28 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:29 - server.src.api.routers.session_router - INFO - Attempt 2/8 for Character
+2026-03-10 09:07:29 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:29 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:30 - server.src.api.routers.session_router - INFO - Attempt 3/8 for Character
+2026-03-10 09:07:30 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:30 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:31 - server.src.api.routers.session_router - INFO - Attempt 4/8 for Character
+2026-03-10 09:07:32 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:32 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:33 - server.src.api.routers.session_router - INFO - Attempt 5/8 for Character
+2026-03-10 09:07:33 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:33 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:34 - server.src.api.routers.session_router - INFO - Attempt 6/8 for Character
+2026-03-10 09:07:34 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:34 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:35 - server.src.api.routers.session_router - INFO - Attempt 7/8 for Character
+2026-03-10 09:07:35 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:35 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:36 - server.src.api.routers.session_router - INFO - Attempt 8/8 for Character
+2026-03-10 09:07:37 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:37 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:38 - server.src.api.routers.session_router - INFO - generate_one_shot took 10.064226 seconds
+2026-03-10 09:07:38 - server.src.api.routers.session_router - WARNING - AI character generation failed: Failed to generate valid Character after 8 attempts., using fallback
+2026-03-10 09:07:38 - server.src.api.routers.session_router - INFO - [853de953-a745-44a7-9f6f-99db4fab661c] Player: Hero1
+2026-03-10 09:07:38 - server.src.api.routers.session_router - INFO - Attempt 1/8 for NPCCharacter
+2026-03-10 09:07:38 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:38 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:39 - server.src.api.routers.session_router - INFO - Attempt 2/8 for NPCCharacter
+2026-03-10 09:07:39 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:39 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:40 - server.src.api.routers.session_router - INFO - Attempt 3/8 for NPCCharacter
+2026-03-10 09:07:40 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:40 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:41 - server.src.api.routers.session_router - INFO - Attempt 4/8 for NPCCharacter
+2026-03-10 09:07:42 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:42 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:43 - server.src.api.routers.session_router - INFO - Attempt 5/8 for NPCCharacter
+2026-03-10 09:07:43 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:43 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:44 - server.src.api.routers.session_router - INFO - Attempt 6/8 for NPCCharacter
+2026-03-10 09:07:44 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:44 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:45 - server.src.api.routers.session_router - INFO - Attempt 7/8 for NPCCharacter
+2026-03-10 09:07:45 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:45 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:46 - server.src.api.routers.session_router - INFO - Attempt 8/8 for NPCCharacter
+2026-03-10 09:07:47 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:07:47 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:07:48 - server.src.api.routers.session_router - INFO - generate_one_shot took 9.903816 seconds
+2026-03-10 09:07:48 - server.src.api.routers.session_router - WARNING - AI NPC generation failed: Failed to generate valid NPCCharacter after 8 attempts., using fallback
+2026-03-10 09:07:48 - server.src.api.routers.session_router - ERROR - Failed to start real game: 1 validation error for NPCCharacter
+char_class
+  Input should be 'Peasant', 'Fighter', 'Wizard', 'Rogue', 'Cleric', 'Ranger', 'Paladin', 'Barbarian', 'Bard', 'Creature', 'Abberation', 'Monster' or 'Animal' [type=enum, input_value='Commoner', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/enum
+Traceback (most recent call last):
+  File "C:\VS_Code\MAGGxDND\server\src\api\routers\session_router.py", line 769, in start_real_game
+    npc_char = NPCCharacter(
+               ^^^^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for NPCCharacter
+char_class
+  Input should be 'Peasant', 'Fighter', 'Wizard', 'Rogue', 'Cleric', 'Ranger', 'Paladin', 'Barbarian', 'Bard', 'Creature', 'Abberation', 'Monster' or 'Animal' [type=enum, input_value='Commoner', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/enum
+2026-03-10 09:35:43 - server.src.api.routers.session_router - INFO - Starting REAL game session: Active Session
+2026-03-10 09:35:43 - server.src.api.routers.session_router - INFO - [2ff9b57d-bdc2-4e33-9f6b-cecec1eb462c] EventPool created
+2026-03-10 09:35:43 - server.src.api.routers.session_router - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-10 09:35:43 - server.src.api.routers.session_router - INFO - [2ff9b57d-bdc2-4e33-9f6b-cecec1eb462c] RESTAPIDelivery created
+2026-03-10 09:35:43 - server.src.api.routers.session_router.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-10 09:35:43 - server.src.api.routers.session_router - INFO - [2ff9b57d-bdc2-4e33-9f6b-cecec1eb462c] Generating scene...
+2026-03-10 09:35:43 - server.src.api.routers.session_router - INFO - Attempt 1/8 for SceneNode
+2026-03-10 09:35:44 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:35:44 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:35:45 - server.src.api.routers.session_router - INFO - Attempt 2/8 for SceneNode
+2026-03-10 09:35:45 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:35:45 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:35:46 - server.src.api.routers.session_router - INFO - Attempt 3/8 for SceneNode
+2026-03-10 09:35:46 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:35:46 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:35:47 - server.src.api.routers.session_router - INFO - Attempt 4/8 for SceneNode
+2026-03-10 09:35:47 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:35:47 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:35:48 - server.src.api.routers.session_router - INFO - Attempt 5/8 for SceneNode
+2026-03-10 09:35:49 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:35:49 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:35:50 - server.src.api.routers.session_router - INFO - Attempt 6/8 for SceneNode
+2026-03-10 09:35:50 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:35:50 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:35:51 - server.src.api.routers.session_router - INFO - Attempt 7/8 for SceneNode
+2026-03-10 09:35:51 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:35:51 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:35:52 - server.src.api.routers.session_router - INFO - Attempt 8/8 for SceneNode
+2026-03-10 09:35:52 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:35:52 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:35:53 - server.src.api.routers.session_router - INFO - generate_one_shot took 10.025695 seconds
+2026-03-10 09:35:53 - server.src.api.routers.session_router - WARNING - AI scene generation failed: Failed to generate valid SceneNode after 8 attempts., using fallback
+2026-03-10 09:35:53 - server.src.api.routers.session_router - INFO - [2ff9b57d-bdc2-4e33-9f6b-cecec1eb462c] Scene: Default Tavern
+2026-03-10 09:35:53 - server.src.api.routers.session_router - INFO - Attempt 1/8 for Character
+2026-03-10 09:35:54 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:35:54 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:35:55 - server.src.api.routers.session_router - INFO - Attempt 2/8 for Character
+2026-03-10 09:35:55 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:35:55 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:35:56 - server.src.api.routers.session_router - INFO - Attempt 3/8 for Character
+2026-03-10 09:35:56 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:35:56 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:35:57 - server.src.api.routers.session_router - INFO - Attempt 4/8 for Character
+2026-03-10 09:35:57 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:35:57 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:35:58 - server.src.api.routers.session_router - INFO - Attempt 5/8 for Character
+2026-03-10 09:35:58 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:35:58 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:35:59 - server.src.api.routers.session_router - INFO - Attempt 6/8 for Character
+2026-03-10 09:36:00 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:36:00 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:36:01 - server.src.api.routers.session_router - INFO - Attempt 7/8 for Character
+2026-03-10 09:36:01 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:36:01 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:36:02 - server.src.api.routers.session_router - INFO - Attempt 8/8 for Character
+2026-03-10 09:36:02 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:36:02 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:36:03 - server.src.api.routers.session_router - INFO - generate_one_shot took 9.948087 seconds
+2026-03-10 09:36:03 - server.src.api.routers.session_router - WARNING - AI character generation failed: Failed to generate valid Character after 8 attempts., using fallback
+2026-03-10 09:36:03 - server.src.api.routers.session_router - INFO - [2ff9b57d-bdc2-4e33-9f6b-cecec1eb462c] Player: Hero1
+2026-03-10 09:36:03 - server.src.api.routers.session_router - INFO - Attempt 1/8 for NPCCharacter
+2026-03-10 09:36:03 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:36:03 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:36:04 - server.src.api.routers.session_router - INFO - Attempt 2/8 for NPCCharacter
+2026-03-10 09:36:05 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:36:05 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:36:06 - server.src.api.routers.session_router - INFO - Attempt 3/8 for NPCCharacter
+2026-03-10 09:36:06 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:36:06 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:36:07 - server.src.api.routers.session_router - INFO - Attempt 4/8 for NPCCharacter
+2026-03-10 09:36:07 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:36:07 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:36:08 - server.src.api.routers.session_router - INFO - Attempt 5/8 for NPCCharacter
+2026-03-10 09:36:08 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:36:08 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:36:09 - server.src.api.routers.session_router - INFO - Attempt 6/8 for NPCCharacter
+2026-03-10 09:36:10 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:36:10 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:36:11 - server.src.api.routers.session_router - INFO - Attempt 7/8 for NPCCharacter
+2026-03-10 09:36:11 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:36:11 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:36:12 - server.src.api.routers.session_router - INFO - Attempt 8/8 for NPCCharacter
+2026-03-10 09:36:12 - server.src.api.routers.session_router - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-10 09:36:12 - server.src.api.routers.session_router - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-10 09:36:13 - server.src.api.routers.session_router - INFO - generate_one_shot took 9.852916 seconds
+2026-03-10 09:36:13 - server.src.api.routers.session_router - WARNING - AI NPC generation failed: Failed to generate valid NPCCharacter after 8 attempts., using fallback
+2026-03-10 09:36:13 - server.src.api.routers.session_router - ERROR - Failed to start real game: 1 validation error for NPCCharacter
+char_class
+  Input should be 'Peasant', 'Fighter', 'Wizard', 'Rogue', 'Cleric', 'Ranger', 'Paladin', 'Barbarian', 'Bard', 'Creature', 'Abberation', 'Monster' or 'Animal' [type=enum, input_value='Commoner', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/enum
+Traceback (most recent call last):
+  File "C:\VS_Code\MAGGxDND\server\src\api\routers\session_router.py", line 769, in start_real_game
+    center_position=Coordinate2D(x=10, y=10),
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for NPCCharacter
+char_class
+  Input should be 'Peasant', 'Fighter', 'Wizard', 'Rogue', 'Cleric', 'Ranger', 'Paladin', 'Barbarian', 'Bard', 'Creature', 'Abberation', 'Monster' or 'Animal' [type=enum, input_value='Commoner', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/enum
+2026-03-10 09:36:32 - server.src.api.routers.session_router - INFO - 🟢 Creating session: 5dd3ca64-9d6e-471d-bd69-a83b2155fbc0 - l.,kmkjnh
+2026-03-10 09:36:32 - session.l.,kmkjnh - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-10 09:36:32 - session.l.,kmkjnh - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-10 09:36:32 - session.l.,kmkjnh - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-10 09:36:32 - session.l.,kmkjnh.engine.magg - DEBUG - Magg initialized
+2026-03-10 09:36:32 - session.l.,kmkjnh.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-10 09:36:32 - session.l.,kmkjnh.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-10 09:36:32 - session.l.,kmkjnh.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-10 09:36:32 - session.l.,kmkjnh.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-10 09:36:32 - session.l.,kmkjnh.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-10 09:36:32 - session.l.,kmkjnh.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-10 09:36:32 - session.l.,kmkjnh.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-10 09:36:32 - session.l.,kmkjnh.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-10 09:36:32 - session.l.,kmkjnh.manipulator - INFO - Initialized 6 manipulations
+2026-03-10 09:36:32 - session.l.,kmkjnh - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-10 09:36:32 - session.l.,kmkjnh.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-10 09:36:32 - server.src.game.session_manager - INFO - 📝 Registering session: 4ba31670-28e0-4bd8-b4c1-94ee14816cc9 - l.,kmkjnh
+2026-03-10 09:36:32 - server.src.game.session_manager - INFO - ✅ Session registered: 4ba31670-28e0-4bd8-b4c1-94ee14816cc9
+2026-03-10 09:36:32 - session.l.,kmkjnh - INFO - Сессия 'l.,kmkjnh' создана с ID: 4ba31670-28e0-4bd8-b4c1-94ee14816cc9
+2026-03-10 09:36:32 - server.src.api.routers.session_router - INFO - ✅ Session created successfully: 5dd3ca64-9d6e-471d-bd69-a83b2155fbc0
+2026-03-10 09:36:48 - backoff - INFO - Backing off send_request(...) for 0.4s (requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='us.i.posthog.com', port=443): Read timed out. (read timeout=15))
+2026-03-11 15:00:09 - backend.main - INFO - ✓ Database initialized: sqlite:///./maggxdnd.db
+2026-03-11 15:00:09 - backend.main - INFO - ✓ CORS origins configured: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000']
+2026-03-11 15:00:09 - backend.main - INFO - ✓ Rate limiting: True (100/minute)
+2026-03-11 15:00:09 - backend.main - INFO - ✓ Server running on 127.0.0.1:8000
+2026-03-11 15:00:39 - backend.main - ERROR - Readiness check failed: cannot import name 'get_db' from 'backend.src.database' (C:\VS_Code\MAGGxDND\backend\src\database\__init__.py)
+2026-03-12 20:33:36 - backend.main - INFO - ✓ Database initialized: sqlite:///./maggxdnd.db
+2026-03-12 20:33:36 - backend.main - INFO - ✓ CORS origins configured: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000']
+2026-03-12 20:33:36 - backend.main - INFO - ✓ Rate limiting: True (100/minute)
+2026-03-12 20:33:36 - backend.main - INFO - ✓ Server running on 127.0.0.1:8000
+2026-03-12 21:01:56 - backend.src.api.routers.session_router - INFO - 🟢 Creating session: b06e24af-6799-44db-bf38-e74ad15ea0a1 - енв
+2026-03-12 21:01:56 - chromadb.telemetry.product.posthog - INFO - Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+2026-03-12 21:01:56 - session.енв - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-12 21:01:56 - session.енв - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-12 21:01:56 - session.енв - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-12 21:01:56 - session.енв.engine.magg - DEBUG - Magg initialized
+2026-03-12 21:01:56 - session.енв.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-12 21:01:56 - session.енв.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-12 21:01:56 - session.енв.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-12 21:01:56 - session.енв.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-12 21:01:56 - session.енв.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-12 21:01:56 - session.енв.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-12 21:01:56 - session.енв.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-12 21:01:56 - session.енв.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-12 21:01:56 - session.енв.manipulator - INFO - Initialized 6 manipulations
+2026-03-12 21:01:56 - session.енв - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-12 21:01:56 - session.енв.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-12 21:01:56 - backend.src.game.session_manager - INFO - 📝 Registering session: 6a52873f-dfa4-42e0-9d9f-fc5a6761b2a6 - енв
+2026-03-12 21:01:56 - backend.src.game.session_manager - INFO - ✅ Session registered: 6a52873f-dfa4-42e0-9d9f-fc5a6761b2a6
+2026-03-12 21:01:56 - session.енв - INFO - Сессия 'енв' создана с ID: 6a52873f-dfa4-42e0-9d9f-fc5a6761b2a6
+2026-03-12 21:01:56 - backend.src.api.routers.session_router - INFO - ✅ Session created successfully: b06e24af-6799-44db-bf38-e74ad15ea0a1
+2026-03-12 21:01:59 - backend.src.api.routers.session_router - INFO - Starting REAL game session: Active Session
+2026-03-12 21:01:59 - backend.src.api.routers.session_router - INFO - [6889b6c3-11f5-47e6-8a32-80f78cb9753a] EventPool created
+2026-03-12 21:01:59 - backend.src.api.routers.session_router - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-12 21:01:59 - backend.src.api.routers.session_router - INFO - [6889b6c3-11f5-47e6-8a32-80f78cb9753a] RESTAPIDelivery created
+2026-03-12 21:01:59 - backend.src.api.routers.session_router.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-12 21:01:59 - backend.src.api.routers.session_router - INFO - [6889b6c3-11f5-47e6-8a32-80f78cb9753a] Generating scene...
+2026-03-12 21:01:59 - backend.src.api.routers.session_router - INFO - Attempt 1/8 for SceneNode
+2026-03-12 21:02:07 - backend.src.api.routers.session_router - INFO - generate_one_shot took 8.557053 seconds
+2026-03-12 21:02:07 - backend.src.api.routers.session_router - INFO - [6889b6c3-11f5-47e6-8a32-80f78cb9753a] Scene: The Drunken Dragon Tavern
+2026-03-12 21:02:07 - backend.src.api.routers.session_router - INFO - Attempt 1/8 for Character
+2026-03-12 21:02:12 - backend.src.api.routers.session_router - INFO - generate_one_shot took 4.549300 seconds
+2026-03-12 21:02:12 - backend.src.api.routers.session_router - INFO - [6889b6c3-11f5-47e6-8a32-80f78cb9753a] Player: Aragorn
+2026-03-12 21:02:12 - backend.src.api.routers.session_router - INFO - Attempt 1/8 for NPCCharacter
+2026-03-12 21:02:18 - backend.src.api.routers.session_router - INFO - generate_one_shot took 6.494415 seconds
+2026-03-12 21:02:18 - backend.src.api.routers.session_router - INFO - [6889b6c3-11f5-47e6-8a32-80f78cb9753a] NPC: Zaltar
+2026-03-12 21:02:18 - backend.src.api.routers.session_router - INFO - [6889b6c3-11f5-47e6-8a32-80f78cb9753a] REAL GAME STARTED!
+2026-03-12 21:03:57 - backend.src.api.routers.session_router - INFO - [6889b6c3-11f5-47e6-8a32-80f78cb9753a] Processing action for Aragorn: цекнпрм
+2026-03-12 21:03:57 - backend.src.api.routers.session_router - INFO - Attempt 1/8 for UserInteractionProcessing
+2026-03-12 21:03:59 - backend.src.api.routers.session_router - INFO - generate_one_shot took 2.151601 seconds
+2026-03-12 21:03:59 - backend.src.api.routers.session_router.delivery - INFO - [6889b6c3-11f5-47e6-8a32-80f78cb9753a] User interaction: interaction_type=<UserInterationType.CHARACTER_ACTION: 'CHARACTER_ACTION'> user_request_saturated="Aragorn attempts to perform an action. However, the user request 'цекнпрм' is not a valid action. Please provide a valid action for Aragorn to perform in The Drunken Dragon Tavern. Aragorn is currently at position (2.5, 7.0). Zaltar is also at the same position. Available actions include interacting with Zaltar, the Wooden Table at (2.5, 3.0), the Wooden Chair at (2.0, 3.0), the Stone Fireplace at (0.5, 1.0), the Old Wooden Chest at (7.0, 8.0), or the Tankard of Ale at (3.0, 3.0)."
+2026-03-12 21:03:59 - backend.src.api.routers.session_router - INFO - Attempt 1/8 for ClarityCheck
+2026-03-12 21:04:00 - backend.src.api.routers.session_router - INFO - generate_one_shot took 0.985356 seconds
+2026-03-12 21:04:00 - backend.src.api.routers.session_router.delivery - INFO - [6889b6c3-11f5-47e6-8a32-80f78cb9753a] Verdict: original_request='цекнпрм' verdict_type=<OrchestrationVerdictType.CLAIRIFICATION_NEEDED: 'CLAIRIFICATION_NEEDED'> details="The action 'цекнпрм' is not a valid action. Please provide a valid action for Aragorn to perform."
+2026-03-12 21:04:00 - backend.src.api.routers.session_router.delivery - INFO - [6889b6c3-11f5-47e6-8a32-80f78cb9753a] DM Response: The DM considers your action...
+2026-03-12 21:04:00 - backend.src.api.routers.session_router.delivery - INFO - [6889b6c3-11f5-47e6-8a32-80f78cb9753a] DM: The DM considers your action...
+2026-03-12 21:04:00 - backend.src.api.routers.session_router.delivery - ERROR - [6889b6c3-11f5-47e6-8a32-80f78cb9753a] Error processing action: type object 'EventTypes' has no attribute 'NARRATION'
+Traceback (most recent call last):
+  File "C:\VS_Code\MAGGxDND\backend\src\delivery\rest_api_delivery.py", line 186, in process_player_action
+    self.master_message(dm_response)
+  File "C:\VS_Code\MAGGxDND\backend\src\delivery\rest_api_delivery.py", line 63, in master_message
+    event_type=EventTypes.NARRATION,
+               ^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'EventTypes' has no attribute 'NARRATION'
+2026-03-12 21:04:00 - backend.src.api.routers.session_router - INFO - [6889b6c3-11f5-47e6-8a32-80f78cb9753a] Action result: {'error': "type object 'EventTypes' has no attribute 'NARRATION'", 'status': 'error'}
+2026-03-12 21:13:50 - backend.src.api.routers.session_router - INFO - 🟢 Creating session: 2d142aa0-b2ab-4b46-bc18-646bc24acf61 - ннгннангдан
+2026-03-12 21:13:50 - session.ннгннангдан - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-12 21:13:50 - session.ннгннангдан - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-12 21:13:50 - session.ннгннангдан - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-12 21:13:50 - session.ннгннангдан.engine.magg - DEBUG - Magg initialized
+2026-03-12 21:13:50 - session.ннгннангдан.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-12 21:13:50 - session.ннгннангдан.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-12 21:13:50 - session.ннгннангдан.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-12 21:13:50 - session.ннгннангдан.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-12 21:13:50 - session.ннгннангдан.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-12 21:13:50 - session.ннгннангдан.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-12 21:13:50 - session.ннгннангдан.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-12 21:13:50 - session.ннгннангдан.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-12 21:13:50 - session.ннгннангдан.manipulator - INFO - Initialized 6 manipulations
+2026-03-12 21:13:50 - session.ннгннангдан - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-12 21:13:50 - session.ннгннангдан.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-12 21:13:50 - backend.src.game.session_manager - INFO - 📝 Registering session: 6a9240e2-4e2f-4126-9848-fcb5775cb59a - ннгннангдан
+2026-03-12 21:13:50 - backend.src.game.session_manager - INFO - ✅ Session registered: 6a9240e2-4e2f-4126-9848-fcb5775cb59a
+2026-03-12 21:13:50 - session.ннгннангдан - INFO - Сессия 'ннгннангдан' создана с ID: 6a9240e2-4e2f-4126-9848-fcb5775cb59a
+2026-03-12 21:13:50 - backend.src.api.routers.session_router - INFO - ✅ Session created successfully: 2d142aa0-b2ab-4b46-bc18-646bc24acf61
+2026-03-12 21:13:53 - backend.src.api.routers.session_router - INFO - Starting REAL game session: Active Session
+2026-03-12 21:13:53 - backend.src.api.routers.session_router - INFO - [b2bee50a-0c1e-4084-9880-720146bed162] EventPool created
+2026-03-12 21:13:53 - backend.src.api.routers.session_router - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-12 21:13:53 - backend.src.api.routers.session_router - INFO - [b2bee50a-0c1e-4084-9880-720146bed162] RESTAPIDelivery created
+2026-03-12 21:13:53 - backend.src.api.routers.session_router.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-12 21:13:53 - backend.src.api.routers.session_router - INFO - [b2bee50a-0c1e-4084-9880-720146bed162] Generating scene...
+2026-03-12 21:13:53 - backend.src.api.routers.session_router - INFO - Attempt 1/8 for SceneNode
+2026-03-12 21:14:04 - backend.src.api.routers.session_router - INFO - generate_one_shot took 10.794759 seconds
+2026-03-12 21:14:04 - backend.src.api.routers.session_router - INFO - [b2bee50a-0c1e-4084-9880-720146bed162] Scene: The Drunken Dragon Tavern
+2026-03-12 21:14:04 - backend.src.api.routers.session_router - INFO - Attempt 1/8 for Character
+2026-03-12 21:14:08 - backend.src.api.routers.session_router - INFO - generate_one_shot took 4.086920 seconds
+2026-03-12 21:14:08 - backend.src.api.routers.session_router - INFO - [b2bee50a-0c1e-4084-9880-720146bed162] Player: Aragorn
+2026-03-12 21:14:08 - backend.src.api.routers.session_router - INFO - Attempt 1/8 for NPCCharacter
+2026-03-12 21:14:13 - backend.src.api.routers.session_router - INFO - generate_one_shot took 5.219960 seconds
+2026-03-12 21:14:13 - backend.src.api.routers.session_router - INFO - [b2bee50a-0c1e-4084-9880-720146bed162] NPC: Elara
+2026-03-12 21:14:13 - backend.src.api.routers.session_router - INFO - [b2bee50a-0c1e-4084-9880-720146bed162] REAL GAME STARTED!
+2026-03-12 21:28:24 - backend.src.api.routers.session_router - INFO - [b2bee50a-0c1e-4084-9880-720146bed162] Processing action for Aragorn: \sdgdg
+2026-03-12 21:28:24 - backend.src.api.routers.session_router - INFO - Attempt 1/8 for UserInteractionProcessing
+2026-03-12 21:28:27 - backend.src.api.routers.session_router - INFO - generate_one_shot took 2.530536 seconds
+2026-03-12 21:28:27 - backend.src.api.routers.session_router.delivery - INFO - [b2bee50a-0c1e-4084-9880-720146bed162] User interaction: interaction_type=<UserInterationType.META_COMMENT: 'META_COMMENT'> user_request_saturated="The user request 'sdgdg' is unclear and lacks context. Based on the available game state, the user is currently in The Drunken Dragon Tavern as Aragorn, a level 5 Human Fighter. Without further information or clarification, it's impossible to determine the user's intent or what action they wish to perform. Please provide a specific action or question related to the game."
+2026-03-12 21:28:27 - backend.src.api.routers.session_router - INFO - Attempt 1/8 for ClarityCheck
+2026-03-12 21:28:27 - backend.src.api.routers.session_router - INFO - generate_one_shot took 0.963501 seconds
+2026-03-12 21:28:27 - backend.src.api.routers.session_router.delivery - INFO - [b2bee50a-0c1e-4084-9880-720146bed162] Verdict: original_request='\\sdgdg' verdict_type=<OrchestrationVerdictType.CLAIRIFICATION_NEEDED: 'CLAIRIFICATION_NEEDED'> details="The user request 'sdgdg' is unclear. Please provide a specific action or question related to the game."
+2026-03-12 21:28:27 - backend.src.api.routers.session_router.delivery - INFO - [b2bee50a-0c1e-4084-9880-720146bed162] DM Response: The DM considers your action...
+2026-03-12 21:28:27 - backend.src.api.routers.session_router.delivery - INFO - [b2bee50a-0c1e-4084-9880-720146bed162] DM: The DM considers your action...
+2026-03-12 21:28:27 - backend.src.api.routers.session_router.delivery - ERROR - [b2bee50a-0c1e-4084-9880-720146bed162] Error processing action: type object 'EventTypes' has no attribute 'NARRATION'
+Traceback (most recent call last):
+  File "C:\VS_Code\MAGGxDND\backend\src\delivery\rest_api_delivery.py", line 186, in process_player_action
+    self.master_message(dm_response)
+  File "C:\VS_Code\MAGGxDND\backend\src\delivery\rest_api_delivery.py", line 63, in master_message
+    event_type=EventTypes.NARRATION,
+               ^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'EventTypes' has no attribute 'NARRATION'
+2026-03-12 21:28:27 - backend.src.api.routers.session_router - INFO - [b2bee50a-0c1e-4084-9880-720146bed162] Action result: {'error': "type object 'EventTypes' has no attribute 'NARRATION'", 'status': 'error'}
+2026-03-12 21:49:31 - backend.main - INFO - ✓ Database initialized: sqlite:///./maggxdnd.db
+2026-03-12 21:49:31 - backend.main - INFO - ✓ CORS origins configured: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000']
+2026-03-12 21:49:31 - backend.main - INFO - ✓ Rate limiting: True (100/minute)
+2026-03-12 21:49:31 - backend.main - INFO - ✓ Server running on 127.0.0.1:8000
+2026-03-12 21:57:51 - backend.main - INFO - ✓ Database initialized: sqlite:///./maggxdnd.db
+2026-03-12 21:57:51 - backend.main - INFO - ✓ CORS origins configured: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000']
+2026-03-12 21:57:51 - backend.main - INFO - ✓ Rate limiting: True (100/minute)
+2026-03-12 21:57:51 - backend.main - INFO - ✓ Server running on 127.0.0.1:8000
+2026-03-12 22:12:50 - backend.main - INFO - ✓ Database initialized: sqlite:///./maggxdnd.db
+2026-03-12 22:12:50 - backend.main - INFO - ✓ CORS origins configured: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000']
+2026-03-12 22:12:50 - backend.main - INFO - ✓ Rate limiting: True (100/minute)
+2026-03-12 22:12:50 - backend.main - INFO - ✓ Server running on 127.0.0.1:8000
+2026-03-12 22:27:19 - backend.src.api.routers.session_router - INFO - 🟢 Creating session: 4e82778d-26eb-4bd7-a3fe-cd909fcad0d2 - asdfegrfg
+2026-03-12 22:27:19 - chromadb.telemetry.product.posthog - INFO - Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+2026-03-12 22:27:19 - session.asdfegrfg - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-12 22:27:19 - session.asdfegrfg - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-12 22:27:19 - session.asdfegrfg - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-12 22:27:19 - session.asdfegrfg.engine.magg - DEBUG - Magg initialized
+2026-03-12 22:27:19 - session.asdfegrfg.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-12 22:27:19 - session.asdfegrfg.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-12 22:27:19 - session.asdfegrfg.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-12 22:27:19 - session.asdfegrfg.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-12 22:27:19 - session.asdfegrfg.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-12 22:27:19 - session.asdfegrfg.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-12 22:27:19 - session.asdfegrfg.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-12 22:27:19 - session.asdfegrfg.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-12 22:27:19 - session.asdfegrfg.manipulator - INFO - Initialized 6 manipulations
+2026-03-12 22:27:19 - session.asdfegrfg - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-12 22:27:19 - session.asdfegrfg.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-12 22:27:19 - backend.src.game.session_manager - INFO - 📝 Registering session: d7ccc32d-a1be-410f-abcc-ddec6ad11ad8 - asdfegrfg
+2026-03-12 22:27:19 - backend.src.game.session_manager - INFO - ✅ Session registered: d7ccc32d-a1be-410f-abcc-ddec6ad11ad8
+2026-03-12 22:27:19 - session.asdfegrfg - INFO - Сессия 'asdfegrfg' создана с ID: d7ccc32d-a1be-410f-abcc-ddec6ad11ad8
+2026-03-12 22:27:19 - backend.src.api.routers.session_router - INFO - ✅ Session created successfully: 4e82778d-26eb-4bd7-a3fe-cd909fcad0d2
+2026-03-16 17:50:13 - backend.src.config.settings - INFO - Database URL configured: sqlite:///C:/VS_Code/MAGGxDND/maggxdnd.db
+2026-03-16 17:51:33 - backend.src.config.settings - INFO - Database URL configured: sqlite:///C:/VS_Code/MAGGxDND/maggxdnd.db
+2026-03-16 17:52:01 - backend.src.config.settings - INFO - Database URL configured: sqlite:///C:/VS_Code/MAGGxDND/maggxdnd.db
+2026-03-16 17:54:09 - backend.src.config.settings - INFO - Database URL configured: sqlite:///C:/VS_Code/MAGGxDND/maggxdnd.db
+2026-03-16 17:55:27 - backend.src.config.settings - INFO - Database URL configured: sqlite:///C:/VS_Code/MAGGxDND/maggxdnd.db
+2026-03-16 17:57:26 - backend.src.config.settings - INFO - Database URL configured: sqlite:///C:/VS_Code/MAGGxDND/maggxdnd.db
+2026-03-16 18:06:51 - backend.src.config.settings - INFO - Database URL configured: sqlite:///C:/VS_Code/MAGGxDND/maggxdnd.db
+2026-03-16 18:08:31 - backend.src.config.settings - INFO - Database URL configured: sqlite:///C:/VS_Code/MAGGxDND/maggxdnd.db
+2026-03-16 19:25:11 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 19:43:36 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 21:02:45 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 21:11:01 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 21:16:12 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 21:16:58 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 21:20:38 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 21:23:02 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 21:27:05 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 21:40:24 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 21:44:44 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 21:48:07 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 21:58:44 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 22:02:22 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 22:04:41 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 22:07:37 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 22:09:18 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 22:10:48 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 22:15:42 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 22:19:54 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 22:22:09 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 22:43:13 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-16 22:50:57 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-17 09:10:26 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-17 09:32:47 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-17 09:36:02 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-17 09:41:53 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-17 09:43:43 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-17 09:46:32 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-17 09:50:54 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-17 10:14:06 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-17 11:09:00 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-17 16:24:23 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-17 16:30:08 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-17 16:44:06 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-17 17:25:58 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-17 21:53:44 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-20 11:19:29 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-20 15:53:56 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-20 16:04:27 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 08:41:10 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 08:56:52 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 09:03:22 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 09:07:35 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 09:14:35 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 09:17:34 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 09:30:51 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 09:38:07 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 09:50:01 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 10:26:15 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 10:32:16 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 10:41:43 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 11:11:40 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 11:22:25 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 15:33:32 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 15:46:09 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 17:24:47 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 17:28:51 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 17:43:04 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 17:47:52 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 17:59:20 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 18:11:14 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 18:19:37 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-24 18:24:00 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-26 13:15:27 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-26 13:27:04 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-26 14:44:21 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-26 23:49:09 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-26 23:53:18 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-27 03:21:35 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-27 03:28:27 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-27 03:31:52 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-27 03:40:15 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-27 03:50:30 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-27 08:04:17 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-27 08:10:07 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-27 08:41:24 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-27 09:03:23 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-27 09:03:36 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-03-27 09:07:25 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db

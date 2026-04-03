@@ -1,0 +1,38 @@
+2026-03-24 08:43:45 - session.аврврвр - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-24 08:43:45 - session.аврврвр - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-24 08:43:45 - session.аврврвр - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-24 08:43:45 - session.аврврвр.engine.magg - DEBUG - Magg initialized
+2026-03-24 08:43:45 - session.аврврвр.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-24 08:43:45 - session.аврврвр.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-24 08:43:45 - session.аврврвр.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-24 08:43:45 - session.аврврвр.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-24 08:43:45 - session.аврврвр.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-24 08:43:45 - session.аврврвр.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-24 08:43:45 - session.аврврвр.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-24 08:43:45 - session.аврврвр.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-24 08:43:45 - session.аврврвр.manipulator - INFO - Initialized 6 manipulations
+2026-03-24 08:43:45 - session.аврврвр - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-24 08:43:45 - session.аврврвр.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-24 08:43:45 - session.аврврвр - INFO - Сессия 'аврврвр' создана с ID: 4a5ba0c6-5e47-4a11-b4c2-97d3fa19f6d3
+2026-03-24 09:39:02 - session.аврврвр - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-24 09:39:02 - session.аврврвр - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-24 09:39:02 - session.аврврвр - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-24 09:39:02 - session.аврврвр.engine.magg - DEBUG - Magg initialized
+2026-03-24 09:39:02 - session.аврврвр.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-24 09:39:02 - session.аврврвр.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-24 09:39:02 - session.аврврвр.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-24 09:39:02 - session.аврврвр.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-24 09:39:02 - session.аврврвр.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-24 09:39:02 - session.аврврвр.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-24 09:39:02 - session.аврврвр.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-24 09:39:02 - session.аврврвр.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-24 09:39:02 - session.аврврвр.manipulator - INFO - Initialized 6 manipulations
+2026-03-24 09:39:02 - session.аврврвр - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-24 09:39:02 - session.аврврвр.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-24 09:39:02 - session.аврврвр - INFO - Сессия 'аврврвр' создана с ID: 4a5ba0c6-5e47-4a11-b4c2-97d3fa19f6d3
+2026-03-24 09:39:02 - session.аврврвр.engine.session.player_orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-24 09:39:02 - session.аврврвр.engine.session - INFO - Сессия запущена: 1 игроков
+2026-03-24 09:39:02 - session.аврврвр.engine.session - INFO - [MASTER] Welcome to The Drunken Dragon! A dimly lit tavern with worn wooden tables and the smell of ale.
+2026-03-24 09:39:02 - session.аврврвр.engine.session - DEBUG - [SESSION_UPDATE] аврврвр
+2026-03-24 09:39:02 - session.аврврвр.delivery.delivery - DEBUG - Нет подключенных игроков в сессии 4a5ba0c6-5e47-4a11-b4c2-97d3fa19f6d3
+2026-03-24 09:39:02 - session.аврврвр.delivery.delivery - DEBUG - Нет подключенных игроков в сессии 4a5ba0c6-5e47-4a11-b4c2-97d3fa19f6d3

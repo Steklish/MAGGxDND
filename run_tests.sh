@@ -33,11 +33,11 @@ fi
 # Run backend tests with coverage
 echo "Running backend tests with coverage..."
 echo ""
-pytest backend/tests/ \
+pytest tests/backend/ \
     --cov=backend.src \
     --cov-report=term-missing \
-    --cov-report=html:backend/htmlcov \
-    --cov-report=xml:backend/coverage.xml \
+    --cov-report=html:tests/reports/backend/htmlcov \
+    --cov-report=xml:tests/reports/backend/coverage.xml \
     -v \
     --tb=short
 
@@ -54,8 +54,8 @@ fi
 
 echo ""
 echo "📊 Backend Coverage Report:"
-echo "   HTML: $PROJECT_ROOT/backend/htmlcov/index.html"
-echo "   XML:  $PROJECT_ROOT/backend/coverage.xml"
+echo "   HTML: $PROJECT_ROOT/tests/reports/backend/htmlcov/index.html"
+echo "   XML:  $PROJECT_ROOT/tests/reports/backend/coverage.xml"
 echo ""
 
 # ==================== FRONTEND TESTS ====================
@@ -75,7 +75,7 @@ fi
 # Run frontend tests with coverage
 echo "Running frontend tests with coverage..."
 echo ""
-npm run test -- --run --coverage
+npm run test -- --run --coverage --coverage.reportsDirectory=../tests/reports/frontend/htmlcov
 
 if [ $? -eq 0 ]; then
     echo ""
@@ -90,7 +90,7 @@ fi
 
 echo ""
 echo "📊 Frontend Coverage Report:"
-echo "   HTML: $PROJECT_ROOT/frontend/coverage/index.html"
+echo "   HTML: $PROJECT_ROOT/tests/reports/frontend/htmlcov/index.html"
 echo ""
 
 # ==================== SUMMARY ====================
@@ -109,28 +109,28 @@ if [ $FAILED_TESTS -eq 0 ]; then
     echo "🎉 All tests passed!"
     echo ""
     echo "📊 Coverage Reports:"
-    echo "   Backend:  file://$PROJECT_ROOT/backend/htmlcov/index.html"
-    echo "   Frontend: file://$PROJECT_ROOT/frontend/coverage/index.html"
+    echo "   Backend:  file://$PROJECT_ROOT/tests/reports/backend/htmlcov/index.html"
+    echo "   Frontend: file://$PROJECT_ROOT/tests/reports/frontend/htmlcov/index.html"
     echo ""
-    
+
     # Try to open coverage reports in browser
     echo "🌐 Opening coverage reports in browser..."
     if command -v xdg-open &> /dev/null; then
-        xdg-open "$PROJECT_ROOT/backend/htmlcov/index.html" &
-        xdg-open "$PROJECT_ROOT/frontend/coverage/index.html" &
+        xdg-open "$PROJECT_ROOT/tests/reports/backend/htmlcov/index.html" &
+        xdg-open "$PROJECT_ROOT/tests/reports/frontend/htmlcov/index.html" &
     elif command -v open &> /dev/null; then
-        open "$PROJECT_ROOT/backend/htmlcov/index.html" &
-        open "$PROJECT_ROOT/frontend/coverage/index.html" &
+        open "$PROJECT_ROOT/tests/reports/backend/htmlcov/index.html" &
+        open "$PROJECT_ROOT/tests/reports/frontend/htmlcov/index.html" &
     fi
-    
+
     exit 0
 else
     echo "⚠️  Some tests failed. Check the output above for details."
     echo ""
     echo "📊 Coverage Reports (partial):"
-    echo "   Backend:  file://$PROJECT_ROOT/backend/htmlcov/index.html"
-    echo "   Frontend: file://$PROJECT_ROOT/frontend/coverage/index.html"
+    echo "   Backend:  file://$PROJECT_ROOT/tests/reports/backend/htmlcov/index.html"
+    echo "   Frontend: file://$PROJECT_ROOT/tests/reports/frontend/htmlcov/index.html"
     echo ""
-    
+
     exit 1
 fi

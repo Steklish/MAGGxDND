@@ -1,0 +1,24 @@
+2026-03-24 18:01:11 - session.парлои - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-24 18:01:11 - session.парлои - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-24 18:01:11 - session.парлои - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-24 18:01:11 - session.парлои.engine.magg - DEBUG - Magg initialized
+2026-03-24 18:01:11 - session.парлои.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-24 18:01:11 - session.парлои.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-24 18:01:11 - session.парлои.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-24 18:01:11 - session.парлои.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-24 18:01:11 - session.парлои.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-24 18:01:11 - session.парлои.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-24 18:01:11 - session.парлои.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-24 18:01:11 - session.парлои.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-24 18:01:11 - session.парлои.manipulator - INFO - Initialized 6 manipulations
+2026-03-24 18:01:11 - session.парлои - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-24 18:01:11 - session.парлои.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-24 18:01:11 - session.парлои - INFO - Сессия 'парлои' создана с ID: c66fb719-54dc-4d98-8459-1ffa5048cc25
+2026-03-24 18:01:22 - session.парлои - INFO - Attempt 1/8 for SceneNode
+2026-03-24 18:01:22 - session.парлои - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-24 18:01:30 - session.парлои - INFO - generate_one_shot took 7.903447 seconds
+2026-03-24 18:01:30 - session.парлои.engine.session - INFO - Сессия запущена: 0 игроков, 0 NPC
+2026-03-24 18:01:30 - session.парлои.engine.session - INFO - [MASTER] Welcome to The Whispering Caves of Xylos! Sunlight filters weakly through the jagged entrance of the Whispering Caves, revealing a damp, echoing chamber. Strange formations of rock twist into grotesque shapes, and a low, constant hum vibrates through the air. The ground is uneven, littered with loose stones and patches of phosphorescent moss.
+2026-03-24 18:01:30 - session.парлои.engine.session - DEBUG - [SESSION_UPDATE] парлои
+2026-03-24 18:01:30 - session.парлои.delivery.delivery - DEBUG - Нет подключенных игроков в сессии c66fb719-54dc-4d98-8459-1ffa5048cc25
+2026-03-24 18:01:30 - session.парлои.delivery.delivery - DEBUG - Нет подключенных игроков в сессии c66fb719-54dc-4d98-8459-1ffa5048cc25

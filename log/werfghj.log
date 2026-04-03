@@ -1,0 +1,16 @@
+2026-03-15 22:25:27 - session.werfghj - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-15 22:25:27 - session.werfghj - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-15 22:25:27 - session.werfghj - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-15 22:25:27 - session.werfghj.engine.magg - DEBUG - Magg initialized
+2026-03-15 22:25:27 - session.werfghj.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-15 22:25:27 - session.werfghj.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-15 22:25:27 - session.werfghj.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-15 22:25:27 - session.werfghj.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-15 22:25:27 - session.werfghj.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-15 22:25:27 - session.werfghj.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-15 22:25:27 - session.werfghj.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-15 22:25:27 - session.werfghj.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-15 22:25:27 - session.werfghj.manipulator - INFO - Initialized 6 manipulations
+2026-03-15 22:25:27 - session.werfghj - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-15 22:25:27 - session.werfghj.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=c:\VS_Code\MAGGxDND
+2026-03-15 22:25:27 - session.werfghj - INFO - Сессия 'werfghj' создана с ID: fb040a90-c3ec-4ce8-87ae-e501a10e4226

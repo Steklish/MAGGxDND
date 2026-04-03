@@ -241,7 +241,7 @@ SECRET_KEY=change-this-for-production
 # Опционально
 DEBUG=True
 CORS_ORIGINS=http://localhost:5173,http://localhost:3000
-DATABASE_URL=sqlite:///./maggxdnd.db
+DATABASE_URL=sqlite:///./data/maggxdnd.db
 ```
 
 Полный список: см. `.env.example`

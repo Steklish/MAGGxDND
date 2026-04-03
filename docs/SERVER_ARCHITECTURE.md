@@ -344,7 +344,7 @@ ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 # Database
-DATABASE_URL=sqlite:///./maggxdnd.db
+DATABASE_URL=sqlite:///./data/maggxdnd.db
 
 # AI
 LLAMACPP_CHAT_BASE=http://localhost:8080

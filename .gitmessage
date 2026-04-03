@@ -1,5 +1,0 @@
-fix: correct prompts path in orchestrator
-
-- Update orchestrator.py to load prompts from docs/prompts/
-- Fixes: character_action_rules.md, combat.md, story.md
-- PROJECT_ROOT now correctly points to project root from core/entity/

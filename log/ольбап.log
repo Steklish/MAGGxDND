@@ -1,0 +1,27 @@
+2026-03-27 03:46:52 - session.ольбап - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-27 03:46:52 - session.ольбап - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-27 03:46:52 - session.ольбап - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-27 03:46:52 - session.ольбап.engine.magg - DEBUG - Magg initialized
+2026-03-27 03:46:52 - session.ольбап.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-27 03:46:52 - session.ольбап.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-27 03:46:52 - session.ольбап.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-27 03:46:52 - session.ольбап.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-27 03:46:52 - session.ольбап.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-27 03:46:52 - session.ольбап.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-27 03:46:52 - session.ольбап.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-27 03:46:52 - session.ольбап.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-27 03:46:52 - session.ольбап.manipulator - INFO - Initialized 6 manipulations
+2026-03-27 03:46:52 - session.ольбап - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-27 03:46:52 - session.ольбап.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-27 03:46:52 - session.ольбап - INFO - Сессия 'ольбап' создана с ID: 5c19c437-6129-4951-8169-9b0b6dd17f4d
+2026-03-27 03:47:01 - session.ольбап - INFO - Attempt 1/8 for SceneNode
+2026-03-27 03:47:01 - session.ольбап - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-27 03:47:11 - session.ольбап - INFO - generate_one_shot took 10.260228 seconds
+2026-03-27 03:47:11 - session.ольбап - INFO - Attempt 1/8 for Character
+2026-03-27 03:47:11 - session.ольбап - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-27 03:47:18 - session.ольбап - INFO - generate_one_shot took 6.322618 seconds
+2026-03-27 03:47:18 - session.ольбап.engine.session.player_orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-27 03:47:18 - session.ольбап.engine.session - INFO - [MASTER] Welcome to The Whispering Cairns! A desolate field of ancient stone cairns stretches before you, the wind whistling mournfully through the gaps. Strange symbols are etched into the stones, and a palpable sense of unease hangs in the air. In the distance, a lone figure huddles near the largest cairn.
+2026-03-27 03:47:18 - session.ольбап.engine.session - DEBUG - [SESSION_UPDATE] ольбап
+2026-03-27 03:47:18 - session.ольбап.delivery.delivery - DEBUG - Нет подключенных игроков в сессии 5c19c437-6129-4951-8169-9b0b6dd17f4d
+2026-03-27 03:47:18 - session.ольбап.delivery.delivery - DEBUG - Нет подключенных игроков в сессии 5c19c437-6129-4951-8169-9b0b6dd17f4d

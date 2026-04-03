@@ -1,0 +1,24 @@
+2026-03-24 17:54:20 - session.фывапрол - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-24 17:54:20 - session.фывапрол - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-24 17:54:20 - session.фывапрол - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-24 17:54:20 - session.фывапрол.engine.magg - DEBUG - Magg initialized
+2026-03-24 17:54:20 - session.фывапрол.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-24 17:54:20 - session.фывапрол.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-24 17:54:20 - session.фывапрол.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-24 17:54:20 - session.фывапрол.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-24 17:54:20 - session.фывапрол.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-24 17:54:20 - session.фывапрол.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-24 17:54:20 - session.фывапрол.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-24 17:54:20 - session.фывапрол.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-24 17:54:20 - session.фывапрол.manipulator - INFO - Initialized 6 manipulations
+2026-03-24 17:54:20 - session.фывапрол - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-24 17:54:20 - session.фывапрол.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-24 17:54:20 - session.фывапрол - INFO - Сессия 'фывапрол' создана с ID: 2860cad4-897d-4da9-bea3-c3902073abfa
+2026-03-24 17:54:33 - session.фывапрол - INFO - Attempt 1/8 for SceneNode
+2026-03-24 17:54:33 - session.фывапрол - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-24 17:54:45 - session.фывапрол - INFO - generate_one_shot took 11.340606 seconds
+2026-03-24 17:54:45 - session.фывапрол.engine.session - INFO - Сессия запущена: 0 игроков, 0 NPC
+2026-03-24 17:54:45 - session.фывапрол.engine.session - INFO - [MASTER] Welcome to The Whispering Cairns! A windswept plateau dotted with ancient stone cairns. The air hums with a low, resonant frequency. In the center, a particularly large cairn radiates a faint, ethereal glow.
+2026-03-24 17:54:45 - session.фывапрол.engine.session - DEBUG - [SESSION_UPDATE] фывапрол
+2026-03-24 17:54:45 - session.фывапрол.delivery.delivery - DEBUG - Нет подключенных игроков в сессии 2860cad4-897d-4da9-bea3-c3902073abfa
+2026-03-24 17:54:45 - session.фывапрол.delivery.delivery - DEBUG - Нет подключенных игроков в сессии 2860cad4-897d-4da9-bea3-c3902073abfa

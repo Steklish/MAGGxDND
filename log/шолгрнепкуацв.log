@@ -1,0 +1,27 @@
+2026-03-27 09:44:00 - session.шолгрнепкуацв - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-27 09:44:00 - session.шолгрнепкуацв - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-27 09:44:00 - session.шолгрнепкуацв - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-27 09:44:00 - session.шолгрнепкуацв.engine.magg - DEBUG - Magg initialized
+2026-03-27 09:44:00 - session.шолгрнепкуацв.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-27 09:44:00 - session.шолгрнепкуацв.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-27 09:44:00 - session.шолгрнепкуацв.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-27 09:44:00 - session.шолгрнепкуацв.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-27 09:44:00 - session.шолгрнепкуацв.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-27 09:44:00 - session.шолгрнепкуацв.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-27 09:44:00 - session.шолгрнепкуацв.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-27 09:44:00 - session.шолгрнепкуацв.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-27 09:44:00 - session.шолгрнепкуацв.manipulator - INFO - Initialized 6 manipulations
+2026-03-27 09:44:00 - session.шолгрнепкуацв - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-27 09:44:00 - session.шолгрнепкуацв.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-27 09:44:00 - session.шолгрнепкуацв - INFO - Сессия 'шолгрнепкуацв' создана с ID: e5622364-b283-48cd-a8b8-c8b8ffb61c84
+2026-03-27 09:45:24 - session.шолгрнепкуацв - INFO - Attempt 1/8 for SceneNode
+2026-03-27 09:45:24 - session.шолгрнепкуацв - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-27 09:45:34 - session.шолгрнепкуацв - INFO - generate_one_shot took 9.904157 seconds
+2026-03-27 09:45:34 - session.шолгрнепкуацв - INFO - Attempt 1/8 for Character
+2026-03-27 09:45:34 - session.шолгрнепкуацв - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-27 09:45:39 - session.шолгрнепкуацв - INFO - generate_one_shot took 5.488115 seconds
+2026-03-27 09:45:39 - session.шолгрнепкуацв.engine.session.player_orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-27 09:45:39 - session.шолгрнепкуацв.engine.session - INFO - [MASTER] Welcome to The Whispering Cairns! A desolate field of ancient standing stones, shrouded in mist. An unnatural silence hangs in the air, broken only by the rustling of unseen things in the tall grass. The ground is uneven, and several cairns appear to have been disturbed recently.
+2026-03-27 09:45:39 - session.шолгрнепкуацв.engine.session - DEBUG - [SESSION_UPDATE] шолгрнепкуацв
+2026-03-27 09:45:39 - session.шолгрнепкуацв.delivery.delivery - DEBUG - Нет подключенных игроков в сессии e5622364-b283-48cd-a8b8-c8b8ffb61c84
+2026-03-27 09:45:39 - session.шолгрнепкуацв.delivery.delivery - DEBUG - Нет подключенных игроков в сессии e5622364-b283-48cd-a8b8-c8b8ffb61c84

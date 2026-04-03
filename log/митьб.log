@@ -1,0 +1,16 @@
+2026-03-15 23:50:00 - session.митьб - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-15 23:50:00 - session.митьб - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-15 23:50:00 - session.митьб - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-15 23:50:00 - session.митьб.engine.magg - DEBUG - Magg initialized
+2026-03-15 23:50:00 - session.митьб.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-15 23:50:00 - session.митьб.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-15 23:50:00 - session.митьб.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-15 23:50:00 - session.митьб.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-15 23:50:00 - session.митьб.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-15 23:50:00 - session.митьб.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-15 23:50:00 - session.митьб.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-15 23:50:00 - session.митьб.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-15 23:50:00 - session.митьб.manipulator - INFO - Initialized 6 manipulations
+2026-03-15 23:50:00 - session.митьб - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-15 23:50:00 - session.митьб.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=c:\VS_Code\MAGGxDND
+2026-03-15 23:50:00 - session.митьб - INFO - Сессия 'митьб' создана с ID: 61b51fbc-e0f0-4e1d-b5f3-09e12201d4e4

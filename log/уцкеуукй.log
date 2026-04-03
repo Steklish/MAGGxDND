@@ -1,0 +1,15 @@
+2026-03-04 14:41:25 - session.уцкеуукй - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-04 14:41:25 - session.уцкеуукй - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-04 14:41:25 - session.уцкеуукй - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-04 14:41:25 - session.уцкеуукй.engine.magg - DEBUG - Magg initialized
+2026-03-04 14:41:25 - session.уцкеуукй.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-04 14:41:25 - session.уцкеуукй.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-04 14:41:25 - session.уцкеуукй.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-04 14:41:25 - session.уцкеуукй.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-04 14:41:25 - session.уцкеуукй.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-04 14:41:25 - session.уцкеуукй.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-04 14:41:25 - session.уцкеуукй.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-04 14:41:25 - session.уцкеуукй.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-04 14:41:25 - session.уцкеуукй.manipulator - INFO - Initialized 6 manipulations
+2026-03-04 14:41:25 - session.уцкеуукй - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-04 14:41:25 - session.уцкеуукй - INFO - Сессия 'уцкеуукй' создана с ID: 8a3e44c9-39f1-4227-88e7-a40da440acb8

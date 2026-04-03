@@ -1,0 +1,16 @@
+2026-03-16 16:04:00 - session.Test Session 1773666238.6627183 - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-16 16:04:00 - session.Test Session 1773666238.6627183 - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-16 16:04:00 - session.Test Session 1773666238.6627183 - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-16 16:04:00 - session.Test Session 1773666238.6627183.engine.magg - DEBUG - Magg initialized
+2026-03-16 16:04:00 - session.Test Session 1773666238.6627183.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-16 16:04:00 - session.Test Session 1773666238.6627183.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-16 16:04:00 - session.Test Session 1773666238.6627183.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-16 16:04:00 - session.Test Session 1773666238.6627183.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-16 16:04:00 - session.Test Session 1773666238.6627183.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-16 16:04:00 - session.Test Session 1773666238.6627183.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-16 16:04:00 - session.Test Session 1773666238.6627183.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-16 16:04:00 - session.Test Session 1773666238.6627183.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-16 16:04:00 - session.Test Session 1773666238.6627183.manipulator - INFO - Initialized 6 manipulations
+2026-03-16 16:04:00 - session.Test Session 1773666238.6627183 - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-16 16:04:00 - session.Test Session 1773666238.6627183.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-16 16:04:00 - session.Test Session 1773666238.6627183 - INFO - Сессия 'Test Session 1773666238.6627183' создана с ID: 862ec87f-7aeb-42f0-9d8a-9f1ceb979453

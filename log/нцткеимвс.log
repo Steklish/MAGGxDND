@@ -1,0 +1,15 @@
+2026-03-04 12:49:05 - session.нцткеимвс - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-04 12:49:05 - session.нцткеимвс - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-04 12:49:05 - session.нцткеимвс - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-04 12:49:05 - session.нцткеимвс.engine.magg - DEBUG - Magg initialized
+2026-03-04 12:49:05 - session.нцткеимвс.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-04 12:49:05 - session.нцткеимвс.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-04 12:49:05 - session.нцткеимвс.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-04 12:49:05 - session.нцткеимвс.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-04 12:49:05 - session.нцткеимвс.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-04 12:49:05 - session.нцткеимвс.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-04 12:49:05 - session.нцткеимвс.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-04 12:49:05 - session.нцткеимвс.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-04 12:49:05 - session.нцткеимвс.manipulator - INFO - Initialized 6 manipulations
+2026-03-04 12:49:05 - session.нцткеимвс - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-04 12:49:05 - session.нцткеимвс - INFO - Сессия 'нцткеимвс' создана с ID: f88846d1-a6e2-482b-9858-e69069fba574

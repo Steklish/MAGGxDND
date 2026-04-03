@@ -1,0 +1,16 @@
+2026-03-10 09:36:32 - session.l.,kmkjnh - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-10 09:36:32 - session.l.,kmkjnh - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-10 09:36:32 - session.l.,kmkjnh - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-10 09:36:32 - session.l.,kmkjnh.engine.magg - DEBUG - Magg initialized
+2026-03-10 09:36:32 - session.l.,kmkjnh.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-10 09:36:32 - session.l.,kmkjnh.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-10 09:36:32 - session.l.,kmkjnh.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-10 09:36:32 - session.l.,kmkjnh.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-10 09:36:32 - session.l.,kmkjnh.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-10 09:36:32 - session.l.,kmkjnh.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-10 09:36:32 - session.l.,kmkjnh.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-10 09:36:32 - session.l.,kmkjnh.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-10 09:36:32 - session.l.,kmkjnh.manipulator - INFO - Initialized 6 manipulations
+2026-03-10 09:36:32 - session.l.,kmkjnh - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-10 09:36:32 - session.l.,kmkjnh.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-10 09:36:32 - session.l.,kmkjnh - INFO - Сессия 'l.,kmkjnh' создана с ID: 4ba31670-28e0-4bd8-b4c1-94ee14816cc9

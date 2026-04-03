@@ -1,0 +1,16 @@
+2026-03-15 22:08:26 - session.fsgh - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-15 22:08:26 - session.fsgh - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-15 22:08:26 - session.fsgh - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-15 22:08:26 - session.fsgh.engine.magg - DEBUG - Magg initialized
+2026-03-15 22:08:26 - session.fsgh.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-15 22:08:26 - session.fsgh.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-15 22:08:26 - session.fsgh.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-15 22:08:26 - session.fsgh.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-15 22:08:26 - session.fsgh.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-15 22:08:26 - session.fsgh.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-15 22:08:26 - session.fsgh.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-15 22:08:26 - session.fsgh.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-15 22:08:26 - session.fsgh.manipulator - INFO - Initialized 6 manipulations
+2026-03-15 22:08:26 - session.fsgh - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-15 22:08:26 - session.fsgh.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=c:\VS_Code\MAGGxDND
+2026-03-15 22:08:26 - session.fsgh - INFO - Сессия 'fsgh' создана с ID: 9962cfd8-e9f9-4ff8-b66d-e4d0ba18d653

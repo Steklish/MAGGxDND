@@ -1,0 +1,24 @@
+2026-03-26 14:48:45 - session.5dytkf - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-26 14:48:45 - session.5dytkf - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-26 14:48:45 - session.5dytkf - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-26 14:48:45 - session.5dytkf.engine.magg - DEBUG - Magg initialized
+2026-03-26 14:48:45 - session.5dytkf.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-26 14:48:45 - session.5dytkf.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-26 14:48:45 - session.5dytkf.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-26 14:48:45 - session.5dytkf.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-26 14:48:45 - session.5dytkf.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-26 14:48:45 - session.5dytkf.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-26 14:48:45 - session.5dytkf.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-26 14:48:45 - session.5dytkf.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-26 14:48:45 - session.5dytkf.manipulator - INFO - Initialized 6 manipulations
+2026-03-26 14:48:45 - session.5dytkf - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-26 14:48:45 - session.5dytkf.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-26 14:48:45 - session.5dytkf - INFO - Сессия '5dytkf' создана с ID: f049f5a7-4f5d-482d-b0e5-638ce4938e29
+2026-03-26 14:48:58 - session.5dytkf - INFO - Attempt 1/8 for SceneNode
+2026-03-26 14:48:58 - session.5dytkf - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-26 14:49:54 - session.5dytkf - INFO - generate_one_shot took 55.283784 seconds
+2026-03-26 14:49:54 - session.5dytkf.engine.session - INFO - Сессия запущена: 0 игроков, 0 NPC
+2026-03-26 14:49:54 - session.5dytkf.engine.session - INFO - [MASTER] Welcome to The Whispering Cairns! A desolate field of ancient stone cairns stretches before you, the wind whistling eerily through the gaps. The sun beats down mercilessly, casting long, distorted shadows that dance and writhe with every gust. A narrow, overgrown path winds its way through the cairns, leading towards a distant, imposing peak.
+2026-03-26 14:49:54 - session.5dytkf.engine.session - DEBUG - [SESSION_UPDATE] 5dytkf
+2026-03-26 14:49:54 - session.5dytkf.delivery.delivery - DEBUG - Нет подключенных игроков в сессии f049f5a7-4f5d-482d-b0e5-638ce4938e29
+2026-03-26 14:49:54 - session.5dytkf.delivery.delivery - DEBUG - Нет подключенных игроков в сессии f049f5a7-4f5d-482d-b0e5-638ce4938e29

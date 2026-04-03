@@ -1,0 +1,24 @@
+2026-03-26 13:16:35 - session.fghbjnk - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-26 13:16:35 - session.fghbjnk - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-26 13:16:35 - session.fghbjnk - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-26 13:16:35 - session.fghbjnk.engine.magg - DEBUG - Magg initialized
+2026-03-26 13:16:35 - session.fghbjnk.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-26 13:16:35 - session.fghbjnk.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-26 13:16:35 - session.fghbjnk.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-26 13:16:35 - session.fghbjnk.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-26 13:16:35 - session.fghbjnk.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-26 13:16:35 - session.fghbjnk.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-26 13:16:35 - session.fghbjnk.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-26 13:16:35 - session.fghbjnk.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-26 13:16:35 - session.fghbjnk.manipulator - INFO - Initialized 6 manipulations
+2026-03-26 13:16:35 - session.fghbjnk - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-26 13:16:35 - session.fghbjnk.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-26 13:16:35 - session.fghbjnk - INFO - Сессия 'fghbjnk' создана с ID: 24830f45-ada0-4654-b881-4f96ca10359d
+2026-03-26 13:16:46 - session.fghbjnk - INFO - Attempt 1/8 for SceneNode
+2026-03-26 13:16:46 - session.fghbjnk - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-26 13:16:58 - session.fghbjnk - INFO - generate_one_shot took 11.997920 seconds
+2026-03-26 13:16:58 - session.fghbjnk.engine.session - INFO - Сессия запущена: 0 игроков, 0 NPC
+2026-03-26 13:16:58 - session.fghbjnk.engine.session - INFO - [MASTER] Welcome to The Whispering Cairns! A desolate field of ancient standing stones, shrouded in mist. The wind howls through the gaps, carrying whispers of forgotten rituals. An unsettling silence hangs heavy in the air.
+2026-03-26 13:16:58 - session.fghbjnk.engine.session - DEBUG - [SESSION_UPDATE] fghbjnk
+2026-03-26 13:16:58 - session.fghbjnk.delivery.delivery - DEBUG - Нет подключенных игроков в сессии 24830f45-ada0-4654-b881-4f96ca10359d
+2026-03-26 13:16:58 - session.fghbjnk.delivery.delivery - DEBUG - Нет подключенных игроков в сессии 24830f45-ada0-4654-b881-4f96ca10359d

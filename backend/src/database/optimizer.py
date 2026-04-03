@@ -8,7 +8,7 @@ from pathlib import Path
 from datetime import datetime
 
 
-def get_database_path(db_url: str = "sqlite:///./maggxdnd.db") -> str:
+def get_database_path(db_url: str = "sqlite:///./data/maggxdnd.db") -> str:
     """Extract database file path from SQLAlchemy URL."""
     if db_url.startswith("sqlite:///"):
         return db_url.replace("sqlite:///", "./")

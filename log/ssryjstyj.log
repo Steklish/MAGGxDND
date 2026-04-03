@@ -1,0 +1,86 @@
+2026-03-29 10:02:30 - session.ssryjstyj - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-29 10:02:30 - session.ssryjstyj - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-29 10:02:30 - session.ssryjstyj - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-29 10:02:30 - session.ssryjstyj.engine.magg - DEBUG - Magg initialized
+2026-03-29 10:02:30 - session.ssryjstyj.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-29 10:02:30 - session.ssryjstyj.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-29 10:02:30 - session.ssryjstyj.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-29 10:02:30 - session.ssryjstyj.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-29 10:02:30 - session.ssryjstyj.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-29 10:02:30 - session.ssryjstyj.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-29 10:02:30 - session.ssryjstyj.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-29 10:02:30 - session.ssryjstyj.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-29 10:02:30 - session.ssryjstyj.manipulator - INFO - Initialized 6 manipulations
+2026-03-29 10:02:30 - session.ssryjstyj - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-29 10:02:30 - session.ssryjstyj.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-29 10:02:30 - session.ssryjstyj - INFO - Сессия 'ssryjstyj' создана с ID: 1e3de28a-5508-446f-bf5e-5fee3bab3155
+2026-03-29 10:02:39 - session.ssryjstyj - INFO - Attempt 1/8 for SceneNode
+2026-03-29 10:02:39 - session.ssryjstyj - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-29 10:02:40 - session.ssryjstyj - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-29 10:02:40 - session.ssryjstyj - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-29 10:02:41 - session.ssryjstyj - INFO - Attempt 2/8 for SceneNode
+2026-03-29 10:02:41 - session.ssryjstyj - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-29 10:02:41 - session.ssryjstyj - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-29 10:02:41 - session.ssryjstyj - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-29 10:02:42 - session.ssryjstyj - INFO - Attempt 3/8 for SceneNode
+2026-03-29 10:02:42 - session.ssryjstyj - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-29 10:02:43 - session.ssryjstyj - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-29 10:02:43 - session.ssryjstyj - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-29 10:02:44 - session.ssryjstyj - INFO - Attempt 4/8 for SceneNode
+2026-03-29 10:02:44 - session.ssryjstyj - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-29 10:02:44 - session.ssryjstyj - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-29 10:02:44 - session.ssryjstyj - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-29 10:02:45 - session.ssryjstyj - INFO - Attempt 5/8 for SceneNode
+2026-03-29 10:02:45 - session.ssryjstyj - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-29 10:02:45 - session.ssryjstyj - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-29 10:02:45 - session.ssryjstyj - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-29 10:02:46 - session.ssryjstyj - INFO - Attempt 6/8 for SceneNode
+2026-03-29 10:02:46 - session.ssryjstyj - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-29 10:02:47 - session.ssryjstyj - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-29 10:02:47 - session.ssryjstyj - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-29 10:02:48 - session.ssryjstyj - INFO - Attempt 7/8 for SceneNode
+2026-03-29 10:02:48 - session.ssryjstyj - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-29 10:02:48 - session.ssryjstyj - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-29 10:02:48 - session.ssryjstyj - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-29 10:02:49 - session.ssryjstyj - INFO - Attempt 8/8 for SceneNode
+2026-03-29 10:02:49 - session.ssryjstyj - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-29 10:02:49 - session.ssryjstyj - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-29 10:02:49 - session.ssryjstyj - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-29 10:02:50 - session.ssryjstyj - INFO - generate_one_shot took 10.733409 seconds
+2026-03-29 10:02:50 - session.ssryjstyj - INFO - Attempt 1/8 for Character
+2026-03-29 10:02:50 - session.ssryjstyj - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-29 10:02:51 - session.ssryjstyj - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-29 10:02:51 - session.ssryjstyj - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-29 10:02:52 - session.ssryjstyj - INFO - Attempt 2/8 for Character
+2026-03-29 10:02:52 - session.ssryjstyj - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-29 10:02:52 - session.ssryjstyj - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-29 10:02:52 - session.ssryjstyj - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-29 10:02:53 - session.ssryjstyj - INFO - Attempt 3/8 for Character
+2026-03-29 10:02:53 - session.ssryjstyj - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-29 10:02:53 - session.ssryjstyj - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-29 10:02:53 - session.ssryjstyj - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-29 10:02:54 - session.ssryjstyj - INFO - Attempt 4/8 for Character
+2026-03-29 10:02:54 - session.ssryjstyj - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-29 10:02:55 - session.ssryjstyj - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-29 10:02:55 - session.ssryjstyj - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-29 10:02:56 - session.ssryjstyj - INFO - Attempt 5/8 for Character
+2026-03-29 10:02:56 - session.ssryjstyj - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-29 10:02:56 - session.ssryjstyj - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-29 10:02:56 - session.ssryjstyj - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-29 10:02:57 - session.ssryjstyj - INFO - Attempt 6/8 for Character
+2026-03-29 10:02:57 - session.ssryjstyj - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-29 10:02:57 - session.ssryjstyj - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-29 10:02:57 - session.ssryjstyj - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-29 10:02:58 - session.ssryjstyj - INFO - Attempt 7/8 for Character
+2026-03-29 10:02:58 - session.ssryjstyj - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-29 10:02:58 - session.ssryjstyj - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-29 10:02:58 - session.ssryjstyj - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-29 10:02:59 - session.ssryjstyj - INFO - Attempt 8/8 for Character
+2026-03-29 10:02:59 - session.ssryjstyj - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-29 10:03:00 - session.ssryjstyj - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-29 10:03:00 - session.ssryjstyj - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-29 10:03:01 - session.ssryjstyj - INFO - generate_one_shot took 10.485961 seconds
+2026-03-29 10:03:01 - session.ssryjstyj.engine.session - INFO - [MASTER] Welcome to The Adventurer's Rest! A humble establishment offering warm beds and warm meals. Create an exciting adventure with interesting NPCs and challenging encounters
+2026-03-29 10:03:01 - session.ssryjstyj.engine.session - DEBUG - [SESSION_UPDATE] ssryjstyj
+2026-03-29 10:03:01 - session.ssryjstyj.delivery.delivery - DEBUG - Нет подключенных игроков в сессии 1e3de28a-5508-446f-bf5e-5fee3bab3155
+2026-03-29 10:03:01 - session.ssryjstyj.delivery.delivery - DEBUG - Нет подключенных игроков в сессии 1e3de28a-5508-446f-bf5e-5fee3bab3155

@@ -34,11 +34,11 @@ if %ERRORLEVEL% neq 0 (
 REM Run backend tests with coverage
 echo Running backend tests with coverage...
 echo.
-pytest backend/tests/ ^
+pytest tests/backend/ ^
     --cov=backend.src ^
     --cov-report=term-missing ^
-    --cov-report=html:backend/htmlcov ^
-    --cov-report=xml:backend/coverage.xml ^
+    --cov-report=html:tests/reports/backend/htmlcov ^
+    --cov-report=xml:tests/reports/backend/coverage.xml ^
     -v ^
     --tb=short
 
@@ -55,8 +55,8 @@ set /a TOTAL_TESTS+=1
 
 echo.
 echo 📊 Backend Coverage Report:
-echo    HTML: %PROJECT_ROOT%\backend\htmlcov\index.html
-echo    XML:  %PROJECT_ROOT%\backend\coverage.xml
+echo    HTML: %PROJECT_ROOT%\tests\reports\backend\htmlcov\index.html
+echo    XML:  %PROJECT_ROOT%\tests\reports\backend\coverage.xml
 echo.
 
 REM ==================== FRONTEND TESTS ====================
@@ -76,7 +76,7 @@ if not exist "node_modules" (
 REM Run frontend tests with coverage
 echo Running frontend tests with coverage...
 echo.
-call npm run test -- --run --coverage
+call npm run test -- --run --coverage --coverage.reportsDirectory=../tests/reports/frontend/htmlcov
 
 if %ERRORLEVEL% equ 0 (
     echo.
@@ -91,7 +91,7 @@ set /a TOTAL_TESTS+=1
 
 echo.
 echo 📊 Frontend Coverage Report:
-echo    HTML: %PROJECT_ROOT%\frontend\coverage\index.html
+echo    HTML: %PROJECT_ROOT%\tests\reports\frontend\htmlcov\index.html
 echo.
 
 REM ==================== SUMMARY ====================
@@ -110,24 +110,24 @@ if %FAILED_TESTS% equ 0 (
     echo 🎉 All tests passed!
     echo.
     echo 📊 Coverage Reports:
-    echo    Backend:  file:///%PROJECT_ROOT%\backend\htmlcov\index.html
-    echo    Frontend: file:///%PROJECT_ROOT%\frontend\coverage\index.html
+    echo    Backend:  file:///%PROJECT_ROOT%/tests/reports/backend/htmlcov/index.html
+    echo    Frontend: file:///%PROJECT_ROOT%/tests/reports/frontend/htmlcov/index.html
     echo.
-    
+
     REM Try to open coverage reports in browser
     echo 🌐 Opening coverage reports in browser...
-    start "" "%PROJECT_ROOT%\backend\htmlcov\index.html"
+    start "" "%PROJECT_ROOT%\tests\reports\backend\htmlcov\index.html"
     timeout /t 2 /nobreak >nul
-    start "" "%PROJECT_ROOT%\frontend\coverage\index.html"
-    
+    start "" "%PROJECT_ROOT%\tests\reports\frontend\htmlcov\index.html"
+
     exit /b 0
 ) else (
     echo ⚠️  Some tests failed. Check the output above for details.
     echo.
     echo 📊 Coverage Reports (partial):
-    echo    Backend:  file:///%PROJECT_ROOT%\backend\htmlcov\index.html
-    echo    Frontend: file:///%PROJECT_ROOT%\frontend\coverage\index.html
+    echo    Backend:  file:///%PROJECT_ROOT%/tests/reports/backend/htmlcov/index.html
+    echo    Frontend: file:///%PROJECT_ROOT%/tests/reports/frontend/htmlcov/index.html
     echo.
-    
+
     exit /b 1
 )

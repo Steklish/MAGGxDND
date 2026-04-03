@@ -1,0 +1,16 @@
+2026-03-16 17:50:48 - session.вапролд - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-16 17:50:48 - session.вапролд - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-16 17:50:48 - session.вапролд - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-16 17:50:48 - session.вапролд.engine.magg - DEBUG - Magg initialized
+2026-03-16 17:50:48 - session.вапролд.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-16 17:50:48 - session.вапролд.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-16 17:50:48 - session.вапролд.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-16 17:50:48 - session.вапролд.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-16 17:50:48 - session.вапролд.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-16 17:50:48 - session.вапролд.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-16 17:50:48 - session.вапролд.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-16 17:50:48 - session.вапролд.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-16 17:50:48 - session.вапролд.manipulator - INFO - Initialized 6 manipulations
+2026-03-16 17:50:48 - session.вапролд - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-16 17:50:48 - session.вапролд.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-16 17:50:48 - session.вапролд - INFO - Сессия 'вапролд' создана с ID: bd06bf87-0575-4c17-b191-48f768959be4

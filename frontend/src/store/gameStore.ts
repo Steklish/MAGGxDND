@@ -439,10 +439,21 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     // Send action to backend for AI processing
     sendAction: async (actionText: string, character: any) => {
+        const traceId = sessionStorage.getItem('current_trace_id');
         console.log('📝 Player action:', actionText);
-        
+        console.log('🏷️  Trace ID:', traceId);
+
         const state = useGameStore.getState();
-        
+        const sessionId = localStorage.getItem('currentSessionId') || 'unknown';
+
+        // Log player action flow - sent
+        console.log(`%c📤 [${new Date().toLocaleTimeString()}] PLAYER ACTION SENT`, 'background: #3498db; color: white; padding: 4px 8px; border-radius: 3px;');
+        console.log(`   Character: ${character.name}`);
+        console.log(`   Session: ${sessionId}`);
+        console.log(`   Action: ${actionText}`);
+        console.log(`   Trace ID: ${traceId}`);
+        console.log('%c─────────────────────────────────────────────────────', 'color: #3498db;');
+
         // Add player message to store immediately
         const playerMessage = {
             sender_name: character.name,
@@ -451,31 +462,43 @@ export const useGameStore = create<GameState>((set, get) => ({
             timestamp: new Date().toISOString(),
         };
         state.addMessage(playerMessage);
-        
+
         // Set DM thinking state
         state.setIsDMThinking(true);
-        
+
         // Send to backend for AI processing
-        const sessionId = localStorage.getItem('currentSessionId');
         try {
-            const response = await fetch(`/api/v1/sessions/${sessionId}/player_action`, {
+            console.log(`%c🌐 [${new Date().toLocaleTimeString()}] SENDING TO BACKEND...`, 'background: #9b59b6; color: white; padding: 4px 8px; border-radius: 3px;');
+            
+            const response = await fetch(`/api/v1/sessions/${sessionId}/action`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-Trace-ID': traceId || '',
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                },
                 body: JSON.stringify({
                     character_name: character.name,
                     action: actionText,
                 }),
             });
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
-            
+
             const data = await response.json();
             
+            console.log(`%c✅ [${new Date().toLocaleTimeString()}] BACKEND RESPONSE RECEIVED`, 'background: #27ae60; color: white; padding: 4px 8px; border-radius: 3px;');
+            console.log(`   Status: ${response.status}`);
+            console.log(`   Success: ${data.success}`);
+            console.log(`   Events: ${data.events?.length || 0}`);
+            console.log(`   DM Response Length: ${data.dm_response?.length || 0}`);
+            console.log('%c─────────────────────────────────────────────────────', 'color: #27ae60;');
+
             // Clear thinking state
             state.setIsDMThinking(false);
-            
+
             // Add AI response from backend
             const dmResponse = {
                 sender_name: 'DM',
@@ -485,10 +508,23 @@ export const useGameStore = create<GameState>((set, get) => ({
             };
             state.addMessage(dmResponse);
             
+            // Log events if any
+            if (data.events && data.events.length > 0) {
+                console.log(`%c⚡ [${new Date().toLocaleTimeString()}] GAME EVENTS RECEIVED`, 'background: #f39c12; color: white; padding: 4px 8px; border-radius: 3px;');
+                data.events.forEach((event: any, i: number) => {
+                    console.log(`   Event ${i+1}: ${event.event_type}`);
+                });
+                console.log('%c─────────────────────────────────────────────────────', 'color: #f39c12;');
+            }
+
         } catch (error) {
-            console.error('❌ Failed to process action:', error);
-            state.setIsDMThinking(false);
+            console.error(`%c❌ [${new Date().toLocaleTimeString()}] ACTION PROCESSING FAILED`, 'background: #e74c3c; color: white; padding: 4px 8px; border-radius: 3px;');
+            console.error('   Error:', error);
+            console.error('   Trace ID:', traceId);
+            console.log('%c─────────────────────────────────────────────────────', 'color: #e74c3c;');
             
+            state.setIsDMThinking(false);
+
             // Show error message
             const errorResponse = {
                 sender_name: 'System',

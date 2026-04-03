@@ -1,0 +1,207 @@
+2026-03-02 16:48:39 - session.Test Session - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-02 16:48:39 - session.Test Session - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-02 16:48:39 - session.Test Session - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-02 16:48:39 - session.Test Session.engine.magg - DEBUG - Magg initialized
+2026-03-02 16:48:39 - session.Test Session.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-02 16:48:39 - session.Test Session.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-02 16:48:39 - session.Test Session.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-02 16:48:39 - session.Test Session.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-02 16:48:39 - session.Test Session.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-02 16:48:39 - session.Test Session.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-02 16:48:39 - session.Test Session.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-02 16:48:39 - session.Test Session.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-02 16:48:39 - session.Test Session.manipulator - INFO - Initialized 6 manipulations
+2026-03-02 16:48:39 - session.Test Session - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-02 16:48:40 - session.Test Session - INFO - Сессия 'Test Session' создана с ID: db665b91-3ffb-4ad5-a95a-cfcf495b794a
+2026-03-12 20:34:09 - session.Test Session - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-12 20:34:09 - session.Test Session - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-12 20:34:09 - session.Test Session - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-12 20:34:09 - session.Test Session.engine.magg - DEBUG - Magg initialized
+2026-03-12 20:34:09 - session.Test Session.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-12 20:34:09 - session.Test Session.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-12 20:34:09 - session.Test Session.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-12 20:34:09 - session.Test Session.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-12 20:34:09 - session.Test Session.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-12 20:34:09 - session.Test Session.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-12 20:34:09 - session.Test Session.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-12 20:34:09 - session.Test Session.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-12 20:34:09 - session.Test Session.manipulator - INFO - Initialized 6 manipulations
+2026-03-12 20:34:09 - session.Test Session - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-12 20:34:09 - session.Test Session.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-12 20:34:09 - session.Test Session - INFO - Сессия 'Test Session' создана с ID: b6390230-13dc-49a4-af84-254fb1ffee05
+2026-03-12 20:34:09 - session.Test Session - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-12 20:34:09 - session.Test Session - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-12 20:34:09 - session.Test Session - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-12 20:34:09 - session.Test Session.engine.magg - DEBUG - Magg initialized
+2026-03-12 20:34:09 - session.Test Session.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-12 20:34:09 - session.Test Session.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-12 20:34:09 - session.Test Session.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-12 20:34:09 - session.Test Session.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-12 20:34:09 - session.Test Session.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-12 20:34:09 - session.Test Session.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-12 20:34:09 - session.Test Session.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-12 20:34:09 - session.Test Session.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-12 20:34:09 - session.Test Session.manipulator - INFO - Initialized 6 manipulations
+2026-03-12 20:34:09 - session.Test Session - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-12 20:34:09 - session.Test Session.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-12 20:34:09 - session.Test Session - INFO - Сессия 'Test Session' создана с ID: 2b1adcd0-df09-4f87-9e82-1cb4f547551f
+2026-03-12 20:34:10 - session.Test Session - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session.engine.magg - DEBUG - Magg initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-12 20:34:10 - session.Test Session.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Initialized 6 manipulations
+2026-03-12 20:34:10 - session.Test Session - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-12 20:34:10 - session.Test Session.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-12 20:34:10 - session.Test Session - INFO - Сессия 'Test Session' создана с ID: 7cf96dbe-b1db-4a68-8a57-275cbb66f8ef
+2026-03-12 20:34:10 - session.Test Session - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session.engine.magg - DEBUG - Magg initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-12 20:34:10 - session.Test Session.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Initialized 6 manipulations
+2026-03-12 20:34:10 - session.Test Session - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-12 20:34:10 - session.Test Session.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-12 20:34:10 - session.Test Session - INFO - Сессия 'Test Session' создана с ID: 5795d894-dd7c-4023-97cf-0589019cffa0
+2026-03-12 20:34:10 - session.Test Session - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session.engine.magg - DEBUG - Magg initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-12 20:34:10 - session.Test Session.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Initialized 6 manipulations
+2026-03-12 20:34:10 - session.Test Session - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-12 20:34:10 - session.Test Session.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-12 20:34:10 - session.Test Session - INFO - Сессия 'Test Session' создана с ID: 5fc73674-a1b7-49af-bfea-2f3b769ce3ef
+2026-03-12 20:34:10 - session.Test Session - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session.engine.magg - DEBUG - Magg initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-12 20:34:10 - session.Test Session.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Initialized 6 manipulations
+2026-03-12 20:34:10 - session.Test Session - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-12 20:34:10 - session.Test Session.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-12 20:34:10 - session.Test Session - INFO - Сессия 'Test Session' создана с ID: 41fc5ccd-abd4-4122-91a2-2cb96006aafe
+2026-03-12 20:34:10 - session.Test Session - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session.engine.magg - DEBUG - Magg initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-12 20:34:10 - session.Test Session.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Initialized 6 manipulations
+2026-03-12 20:34:10 - session.Test Session - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-12 20:34:10 - session.Test Session.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-12 20:34:10 - session.Test Session - INFO - Сессия 'Test Session' создана с ID: cdbb7662-1018-46d4-8ece-192ef086527f
+2026-03-12 20:34:10 - session.Test Session - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session.engine.magg - DEBUG - Magg initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-12 20:34:10 - session.Test Session.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Initialized 6 manipulations
+2026-03-12 20:34:10 - session.Test Session - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-12 20:34:10 - session.Test Session.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-12 20:34:10 - session.Test Session - INFO - Сессия 'Test Session' создана с ID: af39ac62-851a-4a0a-8835-ecd20c00fdd0
+2026-03-12 20:34:10 - session.Test Session - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session.engine.magg - DEBUG - Magg initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-12 20:34:10 - session.Test Session.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Initialized 6 manipulations
+2026-03-12 20:34:10 - session.Test Session - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-12 20:34:10 - session.Test Session.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-12 20:34:10 - session.Test Session - INFO - Сессия 'Test Session' создана с ID: ddf89ced-6f3e-4652-a82e-a26c420a67e2
+2026-03-12 20:34:10 - session.Test Session - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session.engine.magg - DEBUG - Magg initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-12 20:34:10 - session.Test Session.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Initialized 6 manipulations
+2026-03-12 20:34:10 - session.Test Session - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-12 20:34:10 - session.Test Session.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-12 20:34:10 - session.Test Session - INFO - Сессия 'Test Session' создана с ID: a6b3637a-2775-4bcb-b44b-2292c306fc39
+2026-03-12 20:34:10 - session.Test Session - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session.engine.magg - DEBUG - Magg initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-12 20:34:10 - session.Test Session.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Initialized 6 manipulations
+2026-03-12 20:34:10 - session.Test Session - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-12 20:34:10 - session.Test Session.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-12 20:34:10 - session.Test Session - INFO - Сессия 'Test Session' создана с ID: 7fd47f8a-e38b-4454-90a1-5b895e300f5a
+2026-03-12 20:34:10 - session.Test Session - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-12 20:34:10 - session.Test Session.engine.magg - DEBUG - Magg initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-12 20:34:10 - session.Test Session.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-12 20:34:10 - session.Test Session.manipulator - INFO - Initialized 6 manipulations
+2026-03-12 20:34:10 - session.Test Session - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-12 20:34:10 - session.Test Session.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-12 20:34:10 - session.Test Session - INFO - Сессия 'Test Session' создана с ID: 8d38c4b5-edc6-4da4-846b-07c3ccc4dd19

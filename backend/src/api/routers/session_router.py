@@ -28,6 +28,7 @@ from backend.src.auth.dependencies import get_current_user
 from backend.src.models.user import User
 from backend.src.models.session import GameSession, SessionStatusEnum
 from backend.src.repositories.session_repository import SessionRepository
+from backend.src.api.middleware.logging import Colors
 from backend.src.utils import validate_safe_text, sanitize_string
 from backend.src.game.session_manager import session_manager
 from backend.src.game.session_factory import session_factory, SessionConfig
@@ -570,13 +571,25 @@ async def create_session(
 ):
     """
     Создать новую игровую сессию.
-    
+
     Требуется аутентификация. Сессия будет закреплена за создателем.
     """
     import logging
+    from backend.src.logging.request_tracing import RequestTracer, get_trace_id
+    
     logger = logging.getLogger(__name__)
+    trace_id = get_trace_id()
 
     session_uuid = str(uuid.uuid4())
+    
+    # Log request tracing
+    print(f"\n{Colors.MAGENTA}{'='*70}{Colors.RESET}")
+    print(f"{Colors.MAGENTA}🚀 ENTERING: create_session{Colors.RESET}")
+    print(f"{Colors.MAGENTA}   Trace ID: {trace_id}{Colors.RESET}")
+    print(f"{Colors.MAGENTA}   Session UUID: {session_uuid}{Colors.RESET}")
+    print(f"{Colors.MAGENTA}   User ID: {current_user.id}{Colors.RESET}")
+    print(f"{Colors.MAGENTA}{'='*70}{Colors.RESET}\n")
+    
     logger.info(f"Creating session: {session_uuid} - {request.session_name} for user {current_user.id}")
 
     repository = get_session_repository(db)
@@ -630,6 +643,14 @@ async def create_session(
         else:
             logger.info(f"VERIFIED: Session exists in database with owner_id={verify_session.owner_id}")
 
+        # Log success
+        print(f"\n{Colors.GREEN}{'='*70}{Colors.RESET}")
+        print(f"{Colors.GREEN}✅ EXITING: create_session{Colors.RESET}")
+        print(f"{Colors.GREEN}   Trace ID: {trace_id}{Colors.RESET}")
+        print(f"{Colors.GREEN}   Status: SUCCESS{Colors.RESET}")
+        print(f"{Colors.GREEN}   Session ID: {db_session.session_uuid}{Colors.RESET}")
+        print(f"{Colors.GREEN}{'='*70}{Colors.RESET}\n")
+
         return SessionResponse(
             session_id=db_session.session_uuid,
             session_name=db_session.session_name,
@@ -645,9 +666,21 @@ async def create_session(
 
     except ImportError as e:
         logger.error(f"ImportError: {e}")
+        print(f"\n{Colors.RED}{'='*70}{Colors.RESET}")
+        print(f"{Colors.RED}❌ EXITING: create_session{Colors.RESET}")
+        print(f"{Colors.RED}   Trace ID: {trace_id}{Colors.RESET}")
+        print(f"{Colors.RED}   Status: ERROR - ImportError{Colors.RESET}")
+        print(f"{Colors.RED}   Error: {str(e)}{Colors.RESET}")
+        print(f"{Colors.RED}{'='*70}{Colors.RESET}\n")
         raise HTTPException(status_code=503, detail=f"SKLS dependencies not installed: {str(e)}")
     except Exception as e:
         logger.error(f"Exception: {e}", exc_info=True)
+        print(f"\n{Colors.RED}{'='*70}{Colors.RESET}")
+        print(f"{Colors.RED}❌ EXITING: create_session{Colors.RESET}")
+        print(f"{Colors.RED}   Trace ID: {trace_id}{Colors.RESET}")
+        print(f"{Colors.RED}   Status: ERROR - Exception{Colors.RESET}")
+        print(f"{Colors.RED}   Error: {str(e)}{Colors.RESET}")
+        print(f"{Colors.RED}{'='*70}{Colors.RESET}\n")
         raise HTTPException(status_code=500, detail=f"Error creating session: {str(e)}")
 
 
@@ -2025,36 +2058,82 @@ async def player_action(
 ):
     """
     Обработать действие игрока через AI.
-    
+
     Использует MAGG и Orchestrator для обработки действия
     и генерации нарративного ответа.
     """
+    from backend.src.logging.request_tracing import RequestTracer, get_trace_id
+    from backend.src.api.middleware.logging import Colors
+    
+    trace_id = get_trace_id()
+    
+    # Log request tracing
+    print(f"\n{Colors.MAGENTA}{'='*80}{Colors.RESET}")
+    print(f"{Colors.MAGENTA}🎮 PLAYER ACTION ENDPOINT{Colors.RESET}")
+    print(f"{Colors.MAGENTA}   Trace ID: {trace_id}{Colors.RESET}")
+    print(f"{Colors.MAGENTA}   Session ID: {session_id}{Colors.RESET}")
+    print(f"{Colors.MAGENTA}   User: {current_user.username} (ID: {current_user.id}){Colors.RESET}")
+    print(f"{Colors.MAGENTA}   Character: {request.character_name}{Colors.RESET}")
+    print(f"{Colors.MAGENTA}   Action: {request.action[:100]}...{Colors.RESET}")
+    print(f"{Colors.MAGENTA}   Journey: Frontend → Backend → Core Engine → AI Processing{Colors.RESET}")
+    print(f"{Colors.MAGENTA}{'='*80}{Colors.RESET}\n")
+    
     # Get active game session
     game_session = active_game_sessions.get(session_id)
-    
+
     if not game_session:
+        print(f"{Colors.RED}❌ Game session not found: {session_id}{Colors.RESET}")
         raise HTTPException(
             status_code=404,
             detail="Game session not found or not initialized"
         )
-    
+
     try:
         # Create AI service
         from backend.src.services.ai_game_service import AIGameService
         ai_service = AIGameService(game_session)
         
+        # Log core engine processing start
+        print(f"\n{Colors.CYAN}┌{'─' * 80}{Colors.RESET}")
+        print(f"{Colors.CYAN}│{Colors.RESET} ⚙️  CORE ENGINE PROCESSING")
+        print(f"{Colors.CYAN}│{Colors.RESET}    Trace ID: {trace_id}")
+        print(f"{Colors.CYAN}│{Colors.RESET}    Session: {session_id}")
+        print(f"{Colors.CYAN}│{Colors.RESET}    Character: {request.character_name}")
+        print(f"{Colors.CYAN}│{Colors.RESET}    Action: {request.action[:100]}...")
+        print(f"{Colors.CYAN}│{Colors.RESET}    Journey: Backend → Core Engine → MAGG → Orchestrator{Colors.RESET}")
+        print(f"{Colors.CYAN}└{'─' * 80}{Colors.RESET}\n")
+
         # Process action
         result = await ai_service.process_player_action(
             character_name=request.character_name,
             action=request.action
         )
         
+        # Log core engine processing complete
+        print(f"\n{Colors.GREEN}┌{'─' * 80}{Colors.RESET}")
+        print(f"{Colors.GREEN}│{Colors.RESET} ✅ CORE ENGINE PROCESSING COMPLETE")
+        print(f"{Colors.GREEN}│{Colors.RESET}    Trace ID: {trace_id}")
+        print(f"{Colors.GREEN}│{Colors.RESET}    Success: {result.get('success', False)}")
+        print(f"{Colors.GREEN}│{Colors.RESET}    Events: {len(result.get('events', []))}")
+        print(f"{Colors.GREEN}│{Colors.RESET}    DM Response Length: {len(result.get('dm_response', ''))}")
+        print(f"{Colors.GREEN}│{Colors.RESET}    Journey: Core Engine → Backend → Frontend{Colors.RESET}")
+        print(f"{Colors.GREEN}└{'─' * 80}{Colors.RESET}\n")
+
         # Send DM message to all players
         if result.get('dm_response'):
             game_session.delivery.master_message(result['dm_response'])
-        
+
         game_session.delivery.session_updated(game_session)
         
+        # Log response
+        print(f"\n{Colors.GREEN}{'='*80}{Colors.RESET}")
+        print(f"{Colors.GREEN}📤 RESPONSE READY{Colors.RESET}")
+        print(f"{Colors.GREEN}   Trace ID: {trace_id}{Colors.RESET}")
+        print(f"{Colors.GREEN}   Session: {session_id}{Colors.RESET}")
+        print(f"{Colors.GREEN}   Status: SUCCESS{Colors.RESET}")
+        print(f"{Colors.GREEN}   Journey: Backend → Frontend (SENDING){Colors.RESET}")
+        print(f"{Colors.GREEN}{'='*80}{Colors.RESET}\n")
+
         return PlayerActionResponse(
             success=result['success'],
             dm_response=result['dm_response'],
@@ -2062,8 +2141,16 @@ async def player_action(
             game_state=result.get('game_state', {}),
             error=None
         )
-        
+
     except Exception as e:
+        print(f"\n{Colors.RED}{'='*80}{Colors.RESET}")
+        print(f"{Colors.RED}❌ PLAYER ACTION ERROR{Colors.RESET}")
+        print(f"{Colors.RED}   Trace ID: {trace_id}{Colors.RESET}")
+        print(f"{Colors.RED}   Session: {session_id}{Colors.RESET}")
+        print(f"{Colors.RED}   Error: {str(e)}{Colors.RESET}")
+        print(f"{Colors.RED}   Journey: Backend → Frontend (ERROR){Colors.RESET}")
+        print(f"{Colors.RED}{'='*80}{Colors.RESET}\n")
+        
         logger.error(f"[ACTION] Error: {e}", exc_info=True)
         return PlayerActionResponse(
             success=False,

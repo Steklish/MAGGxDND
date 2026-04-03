@@ -1,119 +1,50 @@
 # --- Operating System Files ---
-# macOS
 .DS_Store
-.AppleDouble
-.LSOverride
-._*
-
-# Windows
 Thumbs.db
-ehthumbs.db
 Desktop.ini
 
-# --- IDE & Editor Configuration ---
-# VS Code
-.vscode/
+# --- IDE Configuration ---
+.vscode/*.json
 !.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-*.code-workspace
-
-# JetBrains (IntelliJ, WebStorm, PyCharm, etc.)
 .idea/
 *.iml
+*.code-workspace
 
-# Vim / Emacs
+# --- Editor Temp Files ---
 *~
 *.swp
 *.swo
-\#*#
 
-# --- Generic Logs & Databases ---
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-*.sqlite
-*.sqlite3
-
-# --- Dependencies & Package Managers ---
-# Node.js
+# --- Build Artifacts ---
 node_modules/
-jspm_packages/
-.pnp
-.pnp.js
-
-# Python
-*__pycache__/
 __pycache__/
-*.py[cod]
-*$py.class
+*.pyc
+*.pyo
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# --- Virtual Environments ---
 venv/
 .venv/
 env/
 
-# --- Build Outputs & Temporary Files ---
-dist/
-build/
-bin/
-obj/
-tmp/
-temp/
-coverage/
-*.tmp
-
-# --- Environment Variables ---
-# (Security Risk: Never commit .env files containing API keys)
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# --- Misc ---
-.sass-cache/
-*.bak
-
-# --- Project Specific ---
-# Data & Saves
-data/
-saves/
-
-# AI
-QWEN.md
-
-# Database
-*.db
-chroma_db/
-
-# Logs
-log/
-
-# Frontend build artifacts
-frontend/dist/
-frontend/.vite/
-frontend/tsconfig.node.tsbuildinfo
-frontend/tsconfig.tsbuildinfo
-
-# Backend test artifacts
+# --- Browser/Tooling Cache ---
+.vite/
 .pytest_cache/
 .coverage
 htmlcov/
+*.tsbuildinfo
 
-# Migration scripts (temporary)
-migrate_imports.*
-cleanup.bat
+# --- Temp/Crash Files ---
+*.tmp
+*.bak
+*.crash
 
-# Old directories (after reorganization)
-server/
-UI/
-game/
-entity/
-schemas/
-magg/
-interface/
-utils/
-prompts/
+# --- ChromaDB (auto-generated vector DB) ---
+chroma_db/
+backend/chroma_db/
+
+# --- Test Reports (auto-generated) ---
+tests/reports/

@@ -1,0 +1,48 @@
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447 - INFO - ChromaClient инициализирован: ./chroma_db/data.db
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447 - INFO - Generator initialized with model: gemini-2.0-flash
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447 - INFO - Generator инициализирован: gemini-2.0-flash
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447.engine.magg - DEBUG - Magg initialized
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447.engine.session - DEBUG - Initialized round determinator with round duration 10
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447.manipulator - INFO - Manipulator initialized (entity_specific=False)
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447.engine.session.MeleeAttackManipulator - INFO - MeleeAttackManipulator initialized
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447.engine.session.RangedAttackManipulator - INFO - RangedAttackManipulator initialized
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447.engine.session.MovementManipulator - INFO - MovementManipulator initialized
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447.engine.session.SceneObjectMovementManipulator - INFO - SceneObjectMovementManipulator initialized
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447.engine.session.ObjectTransferManipulator - INFO - ObjectTransferManipulator initialized
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447.engine.session.ItemInteractionManipulator - INFO - ItemInteractionManipulator initialized
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447.manipulator - INFO - Initialized 6 manipulations
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447 - INFO - Manipulator инициализирован: 6 манипуляций
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447.orchestrator - INFO - Orchestrator initializing, PROJECT_ROOT=C:\VS_Code\MAGGxDND
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447 - INFO - Attempt 1/8 for Plot
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447 - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447 - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-16 15:47:58 - session.Test Session 1773665276.2624447 - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-16 15:47:59 - session.Test Session 1773665276.2624447 - INFO - Attempt 2/8 for Plot
+2026-03-16 15:47:59 - session.Test Session 1773665276.2624447 - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-16 15:48:00 - session.Test Session 1773665276.2624447 - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-16 15:48:00 - session.Test Session 1773665276.2624447 - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-16 15:48:01 - session.Test Session 1773665276.2624447 - INFO - Attempt 3/8 for Plot
+2026-03-16 15:48:01 - session.Test Session 1773665276.2624447 - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-16 15:48:01 - session.Test Session 1773665276.2624447 - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-16 15:48:01 - session.Test Session 1773665276.2624447 - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-16 15:48:02 - session.Test Session 1773665276.2624447 - INFO - Attempt 4/8 for Plot
+2026-03-16 15:48:02 - session.Test Session 1773665276.2624447 - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-16 15:48:02 - session.Test Session 1773665276.2624447 - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-16 15:48:02 - session.Test Session 1773665276.2624447 - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-16 15:48:03 - session.Test Session 1773665276.2624447 - INFO - Attempt 5/8 for Plot
+2026-03-16 15:48:03 - session.Test Session 1773665276.2624447 - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-16 15:48:03 - session.Test Session 1773665276.2624447 - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-16 15:48:03 - session.Test Session 1773665276.2624447 - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-16 15:48:04 - session.Test Session 1773665276.2624447 - INFO - Attempt 6/8 for Plot
+2026-03-16 15:48:04 - session.Test Session 1773665276.2624447 - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-16 15:48:04 - session.Test Session 1773665276.2624447 - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-16 15:48:04 - session.Test Session 1773665276.2624447 - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-16 15:48:05 - session.Test Session 1773665276.2624447 - INFO - Attempt 7/8 for Plot
+2026-03-16 15:48:05 - session.Test Session 1773665276.2624447 - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-16 15:48:06 - session.Test Session 1773665276.2624447 - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-16 15:48:06 - session.Test Session 1773665276.2624447 - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-16 15:48:07 - session.Test Session 1773665276.2624447 - INFO - Attempt 8/8 for Plot
+2026-03-16 15:48:07 - session.Test Session 1773665276.2624447 - DEBUG - Sending to Gemini (gemini-2.0-flash): 1 messages
+2026-03-16 15:48:07 - session.Test Session 1773665276.2624447 - ERROR - Google API Error: 400 User location is not supported for the API use.
+2026-03-16 15:48:07 - session.Test Session 1773665276.2624447 - ERROR - Unexpected error: 400 User location is not supported for the API use.
+2026-03-16 15:48:08 - session.Test Session 1773665276.2624447 - INFO - generate_one_shot took 9.890741 seconds
