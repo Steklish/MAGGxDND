@@ -1,5 +1,7 @@
 .footer {
-    background-color: var(--bg-secondary);
+    background-color: rgba(20, 20, 20, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-top: 1px solid var(--border-color);
     padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
     font-family: 'Rajdhani', sans-serif;

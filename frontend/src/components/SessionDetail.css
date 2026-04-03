@@ -46,8 +46,9 @@
 }
 
 .session-detail-header.scrolled {
-    background: rgba(15, 15, 20, 0.95);
+    background: rgba(15, 15, 20, 0.5);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border-color);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
