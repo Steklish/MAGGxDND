@@ -578,7 +578,22 @@ html::-webkit-scrollbar-thumb:hover {
 .stat-item {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    gap: 6px;
+    padding: 16px 24px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+    border-color: var(--accent-gold);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(244, 162, 97, 0.2);
 }
 
 .stat-value {
@@ -597,7 +612,7 @@ html::-webkit-scrollbar-thumb:hover {
 .stat-divider {
     width: 1px;
     height: 40px;
-    background: var(--border-color);
+    background: linear-gradient(180deg, transparent, var(--border-color), transparent);
 }
 
 .hero-visual {

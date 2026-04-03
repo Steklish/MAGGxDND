@@ -233374,3 +233374,396 @@
   "body": null
 }
 2026-04-03 17:00:41 - INFO - [logging] 📤 API Response [api_20260403_140041_0]
+2026-04-03 17:02:07 - INFO - [logging] 📥 API Request [api_20260403_140207_1]
+2026-04-03 17:02:07 - INFO - [logging] {
+  "request_id": "api_20260403_140207_1",
+  "timestamp": "2026-04-03T14:02:07.269178+00:00",
+  "method": "GET",
+  "path": "/",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "cache-control": "max-age=0",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "upgrade-insecure-requests": "1",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "navigate",
+    "sec-fetch-user": "?1",
+    "sec-fetch-dest": "document",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:02:07 - INFO - [logging] 📤 API Response [api_20260403_140207_1]
+2026-04-03 17:02:07 - INFO - [logging] 📥 API Request [api_20260403_140207_2]
+2026-04-03 17:02:07 - INFO - [logging] {
+  "request_id": "api_20260403_140207_2",
+  "timestamp": "2026-04-03T14:02:07.329695+00:00",
+  "method": "GET",
+  "path": "/assets/index-Dc9p-zY7.js",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "origin": "http://localhost:8000",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "accept": "*/*",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-dest": "script",
+    "referer": "http://localhost:8000/",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:02:07 - INFO - [logging] 📥 API Request [api_20260403_140207_3]
+2026-04-03 17:02:07 - INFO - [logging] {
+  "request_id": "api_20260403_140207_3",
+  "timestamp": "2026-04-03T14:02:07.332695+00:00",
+  "method": "GET",
+  "path": "/assets/index-BOkgQgct.css",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "origin": "http://localhost:8000",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "accept": "text/css,*/*;q=0.1",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-dest": "style",
+    "referer": "http://localhost:8000/",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:02:07 - INFO - [logging] 📤 API Response [api_20260403_140207_2]
+2026-04-03 17:02:07 - INFO - [logging] 📤 API Response [api_20260403_140207_3]
+2026-04-03 17:02:07 - INFO - [logging] 📥 API Request [api_20260403_140207_4]
+2026-04-03 17:02:07 - INFO - [logging] {
+  "request_id": "api_20260403_140207_4",
+  "timestamp": "2026-04-03T14:02:07.625764+00:00",
+  "method": "GET",
+  "path": "/api/v1/characters/user/1",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "accept": "application/json, text/plain, */*",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "x-trace-id": "trace_mniz34oq_ryupm8",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-dest": "empty",
+    "referer": "http://localhost:8000/",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": true,
+    "type": "bearer"
+  },
+  "body": null
+}
+2026-04-03 17:02:07 - INFO - [logging] 📥 API Request [api_20260403_140207_5]
+2026-04-03 17:02:07 - INFO - [logging] {
+  "request_id": "api_20260403_140207_5",
+  "timestamp": "2026-04-03T14:02:07.627763+00:00",
+  "method": "GET",
+  "path": "/api/v1/sessions",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "accept": "application/json, text/plain, */*",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "x-trace-id": "trace_mniz34oq_ryupm8",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-dest": "empty",
+    "referer": "http://localhost:8000/",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": true,
+    "type": "bearer"
+  },
+  "body": null
+}
+2026-04-03 17:02:07 - INFO - [logging] 📤 API Response [api_20260403_140207_5]
+2026-04-03 17:02:07 - WARNING - [logging] ⚠️ API Error [api_20260403_140207_5]
+2026-04-03 17:02:07 - INFO - [logging] 📤 API Response [api_20260403_140207_4]
+2026-04-03 17:02:07 - INFO - [logging] 📥 API Request [api_20260403_140207_6]
+2026-04-03 17:02:07 - INFO - [logging] {
+  "request_id": "api_20260403_140207_6",
+  "timestamp": "2026-04-03T14:02:07.688763+00:00",
+  "method": "GET",
+  "path": "/assets/app-BJ1TPLCv.png",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "no-cors",
+    "sec-fetch-dest": "image",
+    "referer": "http://localhost:8000/",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:02:07 - INFO - [logging] 📤 API Response [api_20260403_140207_6]
+2026-04-03 17:02:07 - INFO - [logging] 📥 API Request [api_20260403_140207_7]
+2026-04-03 17:02:07 - INFO - [logging] {
+  "request_id": "api_20260403_140207_7",
+  "timestamp": "2026-04-03T14:02:07.694770+00:00",
+  "method": "GET",
+  "path": "/api/v1/profiles/character/1",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "accept": "application/json, text/plain, */*",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "x-trace-id": "trace_mniz34oq_ryupm8",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-dest": "empty",
+    "referer": "http://localhost:8000/",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:02:07 - INFO - [logging] 📤 API Response [api_20260403_140207_7]
+2026-04-03 17:02:07 - INFO - [logging] 📥 API Request [api_20260403_140207_8]
+2026-04-03 17:02:07 - INFO - [logging] {
+  "request_id": "api_20260403_140207_8",
+  "timestamp": "2026-04-03T14:02:07.719283+00:00",
+  "method": "GET",
+  "path": "/assets/bg-home-MW-esKs0.png",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "no-cors",
+    "sec-fetch-dest": "image",
+    "referer": "http://localhost:8000/assets/index-BOkgQgct.css",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:02:07 - INFO - [logging] 📤 API Response [api_20260403_140207_8]
+2026-04-03 17:02:07 - INFO - [logging] 📥 API Request [api_20260403_140207_9]
+2026-04-03 17:02:07 - INFO - [logging] {
+  "request_id": "api_20260403_140207_9",
+  "timestamp": "2026-04-03T14:02:07.787282+00:00",
+  "method": "GET",
+  "path": "/api/v1/characters/user/1",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "accept": "application/json, text/plain, */*",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "x-trace-id": "trace_mniz34oq_ryupm8",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-dest": "empty",
+    "referer": "http://localhost:8000/",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:02:07 - INFO - [logging] 📥 API Request [api_20260403_140207_10]
+2026-04-03 17:02:07 - INFO - [logging] {
+  "request_id": "api_20260403_140207_10",
+  "timestamp": "2026-04-03T14:02:07.789282+00:00",
+  "method": "GET",
+  "path": "/api/v1/sessions",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "accept": "application/json, text/plain, */*",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "x-trace-id": "trace_mniz34oq_ryupm8",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-dest": "empty",
+    "referer": "http://localhost:8000/",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:02:07 - INFO - [logging] 📤 API Response [api_20260403_140207_9]
+2026-04-03 17:02:07 - INFO - [logging] 📤 API Response [api_20260403_140207_10]
+2026-04-03 17:02:07 - WARNING - [logging] ⚠️ API Error [api_20260403_140207_10]
+2026-04-03 17:02:07 - INFO - [logging] 📥 API Request [api_20260403_140207_11]
+2026-04-03 17:02:07 - INFO - [logging] {
+  "request_id": "api_20260403_140207_11",
+  "timestamp": "2026-04-03T14:02:07.803289+00:00",
+  "method": "GET",
+  "path": "/api/v1/sessions",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "accept": "application/json, text/plain, */*",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "x-trace-id": "trace_mniz34oq_ryupm8",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-dest": "empty",
+    "referer": "http://localhost:8000/",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:02:07 - INFO - [logging] 📤 API Response [api_20260403_140207_11]
+2026-04-03 17:02:07 - WARNING - [logging] ⚠️ API Error [api_20260403_140207_11]
+2026-04-03 17:02:07 - INFO - [logging] 📥 API Request [api_20260403_140207_12]
+2026-04-03 17:02:07 - INFO - [logging] {
+  "request_id": "api_20260403_140207_12",
+  "timestamp": "2026-04-03T14:02:07.823657+00:00",
+  "method": "GET",
+  "path": "/api/v1/profiles/character/1",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "accept": "application/json, text/plain, */*",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "x-trace-id": "trace_mniz34oq_ryupm8",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-dest": "empty",
+    "referer": "http://localhost:8000/",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:02:07 - INFO - [logging] 📤 API Response [api_20260403_140207_12]
+2026-04-03 17:02:10 - INFO - [logging] 📥 API Request [api_20260403_140210_13]
+2026-04-03 17:02:10 - INFO - [logging] {
+  "request_id": "api_20260403_140210_13",
+  "timestamp": "2026-04-03T14:02:10.339207+00:00",
+  "method": "GET",
+  "path": "/assets/bg-main-CuuPjZww.png",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "no-cors",
+    "sec-fetch-dest": "image",
+    "referer": "http://localhost:8000/assets/index-BOkgQgct.css",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:02:10 - INFO - [logging] 📤 API Response [api_20260403_140210_13]
