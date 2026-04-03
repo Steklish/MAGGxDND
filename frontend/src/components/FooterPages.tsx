@@ -13,41 +13,44 @@ export const FooterPages: React.FC<FooterPagesProps> = ({ page, onClose }) => {
             content: (
                 <>
                     <section className="fp-section">
-                        <h3>Introduction to Dungeons & Dragons</h3>
+                        <h3>What is Dungeons & Dragons?</h3>
                         <p>
-                            Dungeons & Dragons (D&D) is a fantasy tabletop role-playing game (RPG) originally 
-                            designed by Gary Gygax and Dave Arneson. It was first published in 1974 by Tactical 
-                            Studies Rules, Inc. (TSR) and has been published by Wizards of the Coast since 1997.
+                            Dungeons & Dragons (D&D) is the world's most popular fantasy tabletop role-playing game.
+                            First published in 1974 by Gary Gygax and Dave Arneson, it has entertained millions of
+                            players for over 50 years. The current edition (5th Edition, revised in 2024) makes the
+                            game more accessible than ever.
                         </p>
                     </section>
 
                     <section className="fp-section">
                         <h3>How It Works</h3>
                         <p>
-                            In D&D, players create fictional characters and embark on imaginary adventures within 
-                            a fantasy setting. A special player, the Dungeon Master (DM), serves as the game's 
-                            referee and storyteller, maintaining the setting in which adventures occur and playing 
-                            the role of the inhabitants.
+                            D&D is a cooperative storytelling game. Players create unique characters — brave warriors,
+                            cunning rogues, wise wizards — and embark on imaginary adventures together. One player takes
+                            on the role of the Dungeon Master (DM), who narrates the world, controls monsters and NPCs,
+                            and guides the story.
                         </p>
                         <div className="fp-highlight">
-                            <h4>Key Components:</h4>
+                            <h4>What You Need:</h4>
                             <ul>
-                                <li><strong>Players:</strong> Create and control player characters (PCs)</li>
-                                <li><strong>Dungeon Master:</strong> Narrates the story and controls NPCs</li>
-                                <li><strong>Character Sheets:</strong> Track character abilities and progress</li>
-                                <li><strong>Dice:</strong> Primarily 20-sided dice (d20) for resolving actions</li>
+                                <li><strong>Players (1-6):</strong> Each creates and controls a character</li>
+                                <li><strong>Dungeon Master:</strong> The storyteller and referee of the game</li>
+                                <li><strong>Character Sheets:</strong> Your character's abilities, equipment, and backstory</li>
+                                <li><strong>Dice:</strong> Polyhedral dice (d4, d6, d8, d10, d12, d20) — we handle this digitally!</li>
                             </ul>
                         </div>
                     </section>
 
                     <section className="fp-section">
-                        <h3>The Game Flow</h3>
+                        <h3>The Core Mechanic</h3>
                         <p>
-                            The players describe what their characters want to do, and the DM describes what 
-                            happens in the game world. When the outcome of an action is uncertain, the game's 
-                            rules determine the success or failure, often involving rolling a die and comparing 
-                            the result to a target number.
+                            When you want to do something risky — attack a monster, pick a lock, persuade a guard — you
+                            roll a 20-sided die (d20) and add your relevant ability modifier. If the total meets or
+                            exceeds the Difficulty Class (DC) set by the DM, you succeed!
                         </p>
+                        <div className="fp-highlight">
+                            <p><strong>Formula:</strong> d20 roll + Ability Modifier + Proficiency Bonus ≥ DC = Success!</p>
+                        </div>
                     </section>
 
                     <section className="fp-section">
@@ -55,25 +58,35 @@ export const FooterPages: React.FC<FooterPagesProps> = ({ page, onClose }) => {
                         <div className="fp-benefits">
                             <div className="fp-benefit-card">
                                 <span className="fp-benefit-icon">🎭</span>
-                                <h4>Storytelling</h4>
-                                <p>Create epic narratives and memorable characters</p>
-                            </div>
-                            <div className="fp-benefit-card">
-                                <span className="fp-benefit-icon">🧠</span>
-                                <h4>Creativity</h4>
-                                <p>Solve problems in innovative ways</p>
+                                <h4>Unlimited Creativity</h4>
+                                <p>If you can imagine it, you can try it. No video game can match this freedom.</p>
                             </div>
                             <div className="fp-benefit-card">
                                 <span className="fp-benefit-icon">👥</span>
-                                <h4>Social</h4>
-                                <p>Build friendships and collaborate with others</p>
+                                <h4>Social Connection</h4>
+                                <p>Build lasting friendships through shared adventures and memorable moments.</p>
+                            </div>
+                            <div className="fp-benefit-card">
+                                <span className="fp-benefit-icon">🧠</span>
+                                <h4>Problem Solving</h4>
+                                <p>Think critically, negotiate, strategize, and adapt to unexpected challenges.</p>
                             </div>
                             <div className="fp-benefit-card">
                                 <span className="fp-benefit-icon">⚔️</span>
-                                <h4>Adventure</h4>
-                                <p>Experience epic quests and heroic moments</p>
+                                <h4>Epic Adventures</h4>
+                                <p>From humble taverns to cosmic horrors — every session is a new story.</p>
                             </div>
                         </div>
+                    </section>
+
+                    <section className="fp-section">
+                        <h3>Playing with MAGGxDND</h3>
+                        <p>
+                            Traditional D&D requires a human Dungeon Master. With MAGGxDND, our AI takes on that role,
+                            allowing you to play solo or with friends anytime — no scheduling conflicts, no DM burnout.
+                            The AI adapts to your choices, creates compelling narratives, and handles all the rules
+                            automatically.
+                        </p>
                     </section>
                 </>
             ),
@@ -243,45 +256,60 @@ export const FooterPages: React.FC<FooterPagesProps> = ({ page, onClose }) => {
                 <>
                     <section className="fp-section">
                         <h3>Frequently Asked Questions</h3>
-                        
+
                         <div className="fp-faq-item">
                             <h4>🎯 Is MAGGxDND free to use?</h4>
-                            <p>Yes! MAGGxDND is completely free. We believe everyone should have access to D&D.</p>
+                            <p>Yes! MAGGxDND is completely free to play. We believe everyone should have access to the magic of D&D. The AI Dungeon Master is powered by Google Gemini AI — you'll need a free API key from Google AI Studio to unlock full features.</p>
                         </div>
 
                         <div className="fp-faq-item">
                             <h4>👥 Do I need other players to start?</h4>
-                            <p>No! You can play solo with the AI Dungeon Master, or invite friends to join your session.</p>
+                            <p>No! You can play solo with the AI Dungeon Master — perfect for when your group can't meet. You can also invite friends to join your session for a multiplayer experience.</p>
                         </div>
 
                         <div className="fp-faq-item">
                             <h4>🤖 How does the AI Dungeon Master work?</h4>
-                            <p>Our AI uses advanced language models to understand your actions, create narratives, and respond dynamically to your choices.</p>
+                            <p>Our AI uses Google's Gemini language model to understand your actions, create dynamic narratives, control NPCs, and respond to your choices in real-time. It knows D&D 5e rules, generates balanced encounters, and adapts the story based on your decisions. If AI is unavailable, a procedural generation system ensures you can still play.</p>
                         </div>
 
                         <div className="fp-faq-item">
                             <h4>📱 Can I play on mobile?</h4>
-                            <p>Yes! MAGGxDND is fully responsive and works on desktop, tablet, and mobile devices.</p>
+                            <p>Yes! MAGGxDND is fully responsive and works on desktop, tablet, and mobile devices. The interface adapts to your screen size for the best experience anywhere.</p>
                         </div>
 
                         <div className="fp-faq-item">
                             <h4>💾 Is my progress saved?</h4>
-                            <p>Yes! Your characters, sessions, and campaign history are automatically saved to your account.</p>
+                            <p>Yes! Your characters, sessions, and campaign history are automatically saved to your account. You can pick up right where you left off, even days later.</p>
                         </div>
 
                         <div className="fp-faq-item">
                             <h4>🌍 Can I play with friends from other countries?</h4>
-                            <p>Absolutely! MAGGxDND supports players from around the world.</p>
+                            <p>Absolutely! MAGGxDND is a web application — anyone with a browser and internet connection can join your session, regardless of location.</p>
                         </div>
 
                         <div className="fp-faq-item">
                             <h4>🎲 Do I need physical dice?</h4>
-                            <p>No! MAGGxDND includes a built-in dice roller. But you can use physical dice if you prefer!</p>
+                            <p>No! MAGGxDND includes a built-in dice roller that handles all D&D dice (d4, d6, d8, d10, d12, d20). The AI also rolls behind the screen for hidden checks.</p>
                         </div>
 
                         <div className="fp-faq-item">
                             <h4>🔒 Is my data secure?</h4>
-                            <p>Yes! We use industry-standard security measures to protect your account and data.</p>
+                            <p>Yes! We use JWT authentication, bcrypt password hashing, and industry-standard security practices. Your personal data is never shared with third parties.</p>
+                        </div>
+
+                        <div className="fp-faq-item">
+                            <h4>🎭 Do I need to know D&D rules?</h4>
+                            <p>Not at all! The AI Dungeon Master guides you through the rules as you play. It's a great way to learn D&D naturally. Experienced players can dive right into complex scenarios.</p>
+                        </div>
+
+                        <div className="fp-faq-item">
+                            <h4>📖 What edition of D&D does this use?</h4>
+                            <p>MAGGxDND is based on D&D 5th Edition (5e) rules, the most popular and accessible edition. The AI handles character creation, combat, skill checks, and spellcasting according to 5e mechanics.</p>
+                        </div>
+
+                        <div className="fp-faq-item">
+                            <h4>🛠 Can I contribute to the project?</h4>
+                            <p>Yes! MAGGxDND is open source. Check out our GitHub repository to report issues, suggest features, or submit pull requests. We welcome contributions of all kinds!</p>
                         </div>
                     </section>
                 </>
@@ -295,52 +323,57 @@ export const FooterPages: React.FC<FooterPagesProps> = ({ page, onClose }) => {
                         <h3>Get In Touch</h3>
                         <p>
                             Have questions, suggestions, or feedback? We'd love to hear from you!
+                            Whether you're reporting a bug, suggesting a feature, or just want to share
+                            your epic adventure story — every message matters to us.
                         </p>
                     </section>
 
                     <section className="fp-section">
-                        <h3>Contact Methods</h3>
+                        <h3>Best Ways to Reach Us</h3>
                         <div className="fp-contact-grid">
                             <div className="fp-contact-card">
-                                <span className="fp-contact-icon">📧</span>
-                                <h4>Email</h4>
-                                <p>support@maggxdnd.com</p>
-                                <p className="fp-contact-note">Response time: 24-48 hours</p>
+                                <span className="fp-contact-icon">🐙</span>
+                                <h4>GitHub</h4>
+                                <p>Report bugs, request features, or contribute code</p>
+                                <p className="fp-contact-note">Best for: Technical issues & contributions</p>
                             </div>
                             <div className="fp-contact-card">
                                 <span className="fp-contact-icon">💬</span>
                                 <h4>Discord</h4>
-                                <p>Join our community server</p>
-                                <p className="fp-contact-note">Real-time support & discussion</p>
+                                <p>Join our community for real-time chat and support</p>
+                                <p className="fp-contact-note">Best for: Quick questions & finding players</p>
+                            </div>
+                            <div className="fp-contact-card">
+                                <span className="fp-contact-icon">📧</span>
+                                <h4>Email</h4>
+                                <p>support@maggxdnd.com</p>
+                                <p className="fp-contact-note">Best for: Business inquiries & partnerships</p>
                             </div>
                             <div className="fp-contact-card">
                                 <span className="fp-contact-icon">🐦</span>
-                                <h4>Twitter</h4>
-                                <p>@MAGGxDND</p>
-                                <p className="fp-contact-note">Updates & announcements</p>
-                            </div>
-                            <div className="fp-contact-card">
-                                <span className="fp-contact-icon">📋</span>
-                                <h4>GitHub</h4>
-                                <p>Report issues & contribute</p>
-                                <p className="fp-contact-note">Open source project</p>
+                                <h4>Social Media</h4>
+                                <p>Follow @MAGGxDND for updates</p>
+                                <p className="fp-contact-note">Best for: News & community highlights</p>
                             </div>
                         </div>
                     </section>
 
                     <section className="fp-section">
-                        <h3>Support</h3>
-                        <p>
-                            For technical support, bug reports, or feature requests, please visit our 
-                            GitHub repository or join our Discord community.
-                        </p>
+                        <h3>Before You Contact Us</h3>
+                        <ul className="fp-tips-list">
+                            <li><strong>Bug Reports:</strong> Check our GitHub Issues first — someone may have already reported it</li>
+                            <li><strong>Game Questions:</strong> Our FAQ section covers most common questions</li>
+                            <li><strong>Feature Requests:</strong> We track all suggestions on GitHub — add yours there!</li>
+                            <li><strong>Community Help:</strong> Our Discord community is often faster than official support</li>
+                        </ul>
                     </section>
 
                     <section className="fp-section">
-                        <h3>Community</h3>
+                        <h3>Community Guidelines</h3>
                         <p>
-                            Join our growing community of D&D enthusiasts! Share your stories, 
-                            get help with rules, and find other players to game with.
+                            We welcome players of all experience levels and backgrounds. Be respectful,
+                            help each other out, and most importantly — have fun! Our community thrives
+                            on creativity and collaboration.
                         </p>
                     </section>
                 </>
