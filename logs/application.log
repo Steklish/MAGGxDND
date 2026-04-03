@@ -18152,3 +18152,20 @@ AttributeError: type object 'CharacterClass' has no attribute 'COMMONER'
   "body": null
 }
 2026-03-29 10:07:40 - api - [32mINFO[0m - [logging.dispatch:162] - 📤 API Response [api_20260329_070740_123]
+2026-04-03 17:00:28 - root - [32mINFO[0m - [config.setup_logging:150] - ================================================================================
+2026-04-03 17:00:28 - root - [32mINFO[0m - [config.setup_logging:151] - MAGGxDND Logging System Initialized
+2026-04-03 17:00:28 - root - [32mINFO[0m - [config.setup_logging:152] - Log directory: C:\VS_Code\MAGGxDND\logs
+2026-04-03 17:00:28 - root - [32mINFO[0m - [config.setup_logging:153] - Console level: INFO
+2026-04-03 17:00:28 - root - [32mINFO[0m - [config.setup_logging:154] - File level: DEBUG
+2026-04-03 17:00:28 - root - [32mINFO[0m - [config.setup_logging:155] - ================================================================================
+2026-04-03 17:00:28 - main - [32mINFO[0m - [main.on_startup:99] - ================================================================================
+2026-04-03 17:00:28 - main - [32mINFO[0m - [main.on_startup:100] - MAGGxDND Server Starting
+2026-04-03 17:00:28 - main - [32mINFO[0m - [main.on_startup:101] - ================================================================================
+2026-04-03 17:00:28 - backend.src.database.init_db - [32mINFO[0m - [init_db.init_db:34] - Applying SQLite optimizations to: C:\VS_Code\MAGGxDND\data\maggxdnd.db
+2026-04-03 17:00:28 - backend.src.database.init_db - [32mINFO[0m - [init_db.init_db:53] - ✓ Database optimizations applied (WAL mode, foreign keys, cache)
+2026-04-03 17:00:28 - backend.src.database.init_db - [32mINFO[0m - [init_db.init_db:57] - Database initialized successfully!
+2026-04-03 17:00:28 - main - [32mINFO[0m - [main.on_startup:114] - ✓ Database initialized: sqlite:///./data/maggxdnd.db
+2026-04-03 17:00:28 - main - [32mINFO[0m - [main.on_startup:115] - ✓ CORS origins configured: ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173']
+2026-04-03 17:00:28 - main - [32mINFO[0m - [main.on_startup:116] - ✓ Rate limiting: True (100/minute)
+2026-04-03 17:00:28 - main - [32mINFO[0m - [main.on_startup:117] - ✓ Server running on 127.0.0.1:8000
+2026-04-03 17:00:28 - main - [32mINFO[0m - [main.on_startup:118] - ================================================================================

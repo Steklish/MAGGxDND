@@ -481,3 +481,4 @@ AttributeError: type object 'EventTypes' has no attribute 'NARRATION'
 2026-03-27 09:03:23 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
 2026-03-27 09:03:36 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
 2026-03-27 09:07:25 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./maggxdnd.db
+2026-04-03 17:00:25 - backend.src.config.settings - INFO - Database URL configured: sqlite:///./data/maggxdnd.db
