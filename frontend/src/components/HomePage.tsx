@@ -79,11 +79,31 @@ export const HomePage: React.FC<HomePageProps> = ({
 
             setScrolled(scrollTop > 50);
 
+            // Update scrollbar color based on scroll position
+            const scrollbar = document.documentElement;
+            let color: string;
+
+            if (scrollProgress < 0.25) {
+                const t = scrollProgress / 0.25;
+                color = `rgb(${42 + t * (233 - 42)}, ${157 + t * (196 - 157)}, ${143 + t * (106 - 143)})`;
+            } else if (scrollProgress < 0.5) {
+                const t = (scrollProgress - 0.25) / 0.25;
+                color = `rgb(${233 + t * (255 - 233)}, ${196 + t * (107 - 196)}, ${106 + t * (53 - 106)})`;
+            } else if (scrollProgress < 0.75) {
+                const t = (scrollProgress - 0.5) / 0.25;
+                color = `rgb(${255 + t * (230 - 255)}, ${107 + t * (57 - 107)}, ${53 + t * (70 - 53)})`;
+            } else {
+                const t = (scrollProgress - 0.75) / 0.25;
+                color = `rgb(${230 + t * (157 - 230)}, ${57 + t * (78 - 57)}, ${70 + t * (221 - 70)})`;
+            }
+
+            scrollbar.style.setProperty('--scrollbar-color', color);
+
             // Move background at 20% scroll speed with limit
             // Background stops when it reaches the end of its extra 20% buffer
             const maxBackgroundScroll = maxScroll * 0.2;
             const backgroundScroll = Math.min(scrollTop * 0.2, maxBackgroundScroll);
-            
+
             if (backgroundRef.current) {
                 backgroundRef.current.style.transform = `translateY(-${backgroundScroll}px)`;
             }

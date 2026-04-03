@@ -69,9 +69,30 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
         // Refresh players every 3 seconds for real-time updates (reduced frequency)
         const playersInterval = setInterval(loadPlayers, 3000);
 
-        // Scroll handler for header
+        // Scroll handler for header + dynamic scrollbar color
         const handleScroll = () => {
             setScrolled(window.scrollY > 50);
+
+            const scrollTop = window.scrollY;
+            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = maxScroll > 0 ? scrollTop / maxScroll : 0;
+
+            let color: string;
+            if (progress < 0.25) {
+                const t = progress / 0.25;
+                color = `rgb(${42 + t * (233 - 42)}, ${157 + t * (196 - 157)}, ${143 + t * (106 - 143)})`;
+            } else if (progress < 0.5) {
+                const t = (progress - 0.25) / 0.25;
+                color = `rgb(${233 + t * (255 - 233)}, ${196 + t * (107 - 196)}, ${106 + t * (53 - 106)})`;
+            } else if (progress < 0.75) {
+                const t = (progress - 0.5) / 0.25;
+                color = `rgb(${255 + t * (230 - 255)}, ${107 + t * (57 - 107)}, ${53 + t * (70 - 53)})`;
+            } else {
+                const t = (progress - 0.75) / 0.25;
+                color = `rgb(${230 + t * (157 - 230)}, ${57 + t * (78 - 57)}, ${70 + t * (221 - 70)})`;
+            }
+
+            document.documentElement.style.setProperty('--scrollbar-color', color);
         };
         window.addEventListener('scroll', handleScroll);
 
