@@ -18581,3 +18581,158 @@ AttributeError: type object 'CharacterClass' has no attribute 'COMMONER'
   "body": null
 }
 2026-04-03 17:02:10 - api - [32mINFO[0m - [logging.dispatch:162] - 📤 API Response [api_20260403_140210_13]
+2026-04-03 17:06:06 - api - [32mINFO[0m - [logging.dispatch:72] - 📥 API Request [api_20260403_140606_14]
+2026-04-03 17:06:06 - api.requests - [32mINFO[0m - [logging.dispatch:146] - {
+  "request_id": "api_20260403_140606_14",
+  "timestamp": "2026-04-03T14:06:06.311947+00:00",
+  "method": "GET",
+  "path": "/",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "cache-control": "max-age=0",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "upgrade-insecure-requests": "1",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "navigate",
+    "sec-fetch-user": "?1",
+    "sec-fetch-dest": "document",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7",
+    "if-none-match": "\"cb70c6e3e415662f174fb7e85fd140e1\"",
+    "if-modified-since": "Fri, 03 Apr 2026 14:00:09 GMT"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:06:06 - api - [32mINFO[0m - [logging.dispatch:162] - 📤 API Response [api_20260403_140606_14]
+2026-04-03 17:06:06 - api - [32mINFO[0m - [logging.dispatch:72] - 📥 API Request [api_20260403_140606_15]
+2026-04-03 17:06:06 - api.requests - [32mINFO[0m - [logging.dispatch:146] - {
+  "request_id": "api_20260403_140606_15",
+  "timestamp": "2026-04-03T14:06:06.369977+00:00",
+  "method": "GET",
+  "path": "/assets/index-Cb52Jlu5.js",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "origin": "http://localhost:8000",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "accept": "*/*",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-dest": "script",
+    "referer": "http://localhost:8000/",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:06:06 - api - [32mINFO[0m - [logging.dispatch:162] - 📤 API Response [api_20260403_140606_15]
+2026-04-03 17:06:06 - api - [32mINFO[0m - [logging.dispatch:72] - 📥 API Request [api_20260403_140606_16]
+2026-04-03 17:06:06 - api.requests - [32mINFO[0m - [logging.dispatch:146] - {
+  "request_id": "api_20260403_140606_16",
+  "timestamp": "2026-04-03T14:06:06.372976+00:00",
+  "method": "GET",
+  "path": "/assets/index-BjzrrlmY.css",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "origin": "http://localhost:8000",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "accept": "text/css,*/*;q=0.1",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-dest": "style",
+    "referer": "http://localhost:8000/",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:06:06 - api - [32mINFO[0m - [logging.dispatch:162] - 📤 API Response [api_20260403_140606_16]
+2026-04-03 17:06:06 - api - [32mINFO[0m - [logging.dispatch:72] - 📥 API Request [api_20260403_140606_17]
+2026-04-03 17:06:06 - api.requests - [32mINFO[0m - [logging.dispatch:146] - {
+  "request_id": "api_20260403_140606_17",
+  "timestamp": "2026-04-03T14:06:06.628119+00:00",
+  "method": "GET",
+  "path": "/assets/bg-main-CuuPjZww.png",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "no-cors",
+    "sec-fetch-dest": "image",
+    "referer": "http://localhost:8000/assets/index-BjzrrlmY.css",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7",
+    "if-none-match": "\"bede36ebfdd895c31987db4ab6accdaf\"",
+    "if-modified-since": "Fri, 03 Apr 2026 14:00:09 GMT"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:06:06 - api - [32mINFO[0m - [logging.dispatch:162] - 📤 API Response [api_20260403_140606_17]
+2026-04-03 17:06:06 - api - [32mINFO[0m - [logging.dispatch:72] - 📥 API Request [api_20260403_140606_18]
+2026-04-03 17:06:06 - api.requests - [32mINFO[0m - [logging.dispatch:146] - {
+  "request_id": "api_20260403_140606_18",
+  "timestamp": "2026-04-03T14:06:06.951189+00:00",
+  "method": "GET",
+  "path": "/assets/app-BJ1TPLCv.png",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "no-cors",
+    "sec-fetch-dest": "image",
+    "referer": "http://localhost:8000/",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7",
+    "if-none-match": "\"a6a2d5e8a73df03ce5614f8d93a27e89\"",
+    "if-modified-since": "Fri, 03 Apr 2026 14:00:09 GMT"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:06:06 - api - [32mINFO[0m - [logging.dispatch:162] - 📤 API Response [api_20260403_140606_18]

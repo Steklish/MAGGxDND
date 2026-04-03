@@ -572,6 +572,13 @@ html::-webkit-scrollbar-thumb:hover {
     display: flex;
     align-items: center;
     gap: 32px;
+    padding: 24px 32px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
     animation: fadeInUp 0.8s ease 0.4s backwards;
 }
 
@@ -1349,6 +1356,17 @@ html::-webkit-scrollbar-thumb:hover {
 
     .hero-stats {
         justify-content: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        padding: 16px 20px;
+    }
+
+    .hero-stats .stat-divider {
+        display: none;
+    }
+
+    .stat-item {
+        padding: 12px 20px;
     }
 
     .about-content {
