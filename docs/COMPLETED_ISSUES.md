@@ -36,17 +36,15 @@ This document tracks all completed UI/UX improvements and bug fixes for MAGGxDND
 **Date:** 2026-04-03  
 **Description:** Moved scrollbar styling from `LandingPage.css` to `index.css` so all pages have orange scrollbar.
 
----
+### #31: Header/footer opacity too solid
+**Status:** ✅ Closed  
+**Date:** 2026-04-03  
+**Description:** Set all header backgrounds on scroll to `0.5` opacity with `backdrop-filter: blur`. Footer now uses `rgba(20, 20, 20, 0.5)` with glassmorphism.
 
-## 📋 Pending Issues
-
-### #31: Header/footer opacity on scroll
-**Status:** 🟡 In Progress  
-**Description:** Set header/footer background opacity to 0.5 when they appear on scroll.
-
-### #32: Footer pages content
-**Status:** 🟡 In Progress  
-**Description:** Add real, accurate content to footer pages (About, What is D&D, About Project, How to Play, FAQ, Contact).
+### #32: Footer pages content incomplete
+**Status:** ✅ Closed  
+**Date:** 2026-04-03  
+**Description:** Enhanced FAQ with 11 detailed questions, Contact page with 4 contact methods and guidelines, What is D&D with core mechanics and formula.
 
 ---
 
@@ -54,7 +52,6 @@ This document tracks all completed UI/UX improvements and bug fixes for MAGGxDND
 
 | Metric | Value |
 |--------|-------|
-| Total Issues | 32 |
-| Closed | 26 |
-| Open | 6 |
-| In Progress | 2 |
+| Total Issues (UIv0.3) | 8 |
+| Closed | 8 |
+| Open | 0 |
