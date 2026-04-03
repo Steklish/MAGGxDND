@@ -435,11 +435,13 @@ html::-webkit-scrollbar-thumb:hover {
 }
 
 .title-gradient {
-    background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 50%, #f4a261 100%);
+    background: linear-gradient(135deg, #ff8c42 0%, #ffa559 25%, #ff6b35 50%, #ff8c42 75%, #f4a261 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    filter: drop-shadow(0 0 12px rgba(255, 107, 53, 0.5));
+    filter: drop-shadow(0 0 16px rgba(255, 140, 66, 0.8)) drop-shadow(0 0 32px rgba(255, 107, 53, 0.4));
+    text-shadow: none;
+    font-weight: 700;
 }
 
 .hero-subtitle {

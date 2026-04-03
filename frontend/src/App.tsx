@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useGameStore } from './store/gameStore';
+import { useServerConnection } from './hooks/useServerConnection';
 import { LandingPage } from './components/LandingPage';
 import { HomePage } from './components/HomePage';
 import { ProfilePage } from './components/ProfilePage';
@@ -11,6 +12,7 @@ import { GameSetup } from './components/GameSetup';
 import { WaitingRoom } from './components/WaitingRoom';
 import { GameLayout } from './components/GameLayout';
 import { LoadingPage } from './components/LoadingPage';
+import { ErrorPage } from './components/ErrorPage';
 import { ToastProvider } from './components/common/Toast';
 import './App.css';
 
@@ -38,6 +40,13 @@ function App() {
         isGuest,
         setActiveSessions
     } = useGameStore();
+
+    // Server connection monitoring
+    const { isConnected, error, hideError } = useServerConnection({
+        endpoint: '/health',
+        interval: 5000,
+        failureThreshold: 3,
+    });
 
     const [currentPage, setCurrentPage] = useState<Page>('landing');
     const [localUserId, setLocalUserId] = useState<number | null>(null);
@@ -342,6 +351,14 @@ function App() {
 
     return (
         <ToastProvider>
+            {/* Error page - shown when server is unreachable */}
+            {!isConnected && (
+                <ErrorPage
+                    title="Server Unavailable"
+                    message={error || 'The game server is currently offline. Please try again later.'}
+                    onRetry={hideError}
+                />
+            )}
             {renderPage()}
         </ToastProvider>
     );
