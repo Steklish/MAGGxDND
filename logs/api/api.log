@@ -235192,3 +235192,162 @@
   "body": null
 }
 2026-04-03 17:26:34 - INFO - [logging] 📤 API Response [api_20260403_142634_59]
+2026-04-03 17:33:33 - INFO - [logging] 📥 API Request [api_20260403_143333_60]
+2026-04-03 17:33:33 - INFO - [logging] {
+  "request_id": "api_20260403_143333_60",
+  "timestamp": "2026-04-03T14:33:33.247499+00:00",
+  "method": "GET",
+  "path": "/",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "cache-control": "max-age=0",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "upgrade-insecure-requests": "1",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "navigate",
+    "sec-fetch-user": "?1",
+    "sec-fetch-dest": "document",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7",
+    "if-none-match": "\"130a2a22e63aeefe94423bd3c8ccc787\"",
+    "if-modified-since": "Fri, 03 Apr 2026 14:23:42 GMT"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:33:33 - INFO - [logging] 📤 API Response [api_20260403_143333_60]
+2026-04-03 17:33:33 - INFO - [logging] 📥 API Request [api_20260403_143333_61]
+2026-04-03 17:33:33 - INFO - [logging] {
+  "request_id": "api_20260403_143333_61",
+  "timestamp": "2026-04-03T14:33:33.308500+00:00",
+  "method": "GET",
+  "path": "/assets/index-DqvcMSvX.js",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "origin": "http://localhost:8000",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "accept": "*/*",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-dest": "script",
+    "referer": "http://localhost:8000/",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7",
+    "if-none-match": "\"106f8e5e680a186a3a73b48e6a8523ef\"",
+    "if-modified-since": "Fri, 03 Apr 2026 14:23:42 GMT"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:33:33 - INFO - [logging] 📥 API Request [api_20260403_143333_62]
+2026-04-03 17:33:33 - INFO - [logging] {
+  "request_id": "api_20260403_143333_62",
+  "timestamp": "2026-04-03T14:33:33.310498+00:00",
+  "method": "GET",
+  "path": "/assets/index-BtoQw35n.css",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "origin": "http://localhost:8000",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "accept": "text/css,*/*;q=0.1",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-dest": "style",
+    "referer": "http://localhost:8000/",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7",
+    "if-none-match": "\"bd7da81a28172a52590da3b60eabdfe2\"",
+    "if-modified-since": "Fri, 03 Apr 2026 14:23:42 GMT"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:33:33 - INFO - [logging] 📤 API Response [api_20260403_143333_61]
+2026-04-03 17:33:33 - INFO - [logging] 📤 API Response [api_20260403_143333_62]
+2026-04-03 17:33:33 - INFO - [logging] 📥 API Request [api_20260403_143333_63]
+2026-04-03 17:33:33 - INFO - [logging] {
+  "request_id": "api_20260403_143333_63",
+  "timestamp": "2026-04-03T14:33:33.485096+00:00",
+  "method": "GET",
+  "path": "/assets/bg-main-CuuPjZww.png",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "no-cors",
+    "sec-fetch-dest": "image",
+    "referer": "http://localhost:8000/assets/index-BtoQw35n.css",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7",
+    "if-none-match": "\"be8db82c52ce003d61823ae464be7fa4\"",
+    "if-modified-since": "Fri, 03 Apr 2026 14:23:42 GMT"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:33:33 - INFO - [logging] 📤 API Response [api_20260403_143333_63]
+2026-04-03 17:33:33 - INFO - [logging] 📥 API Request [api_20260403_143333_64]
+2026-04-03 17:33:33 - INFO - [logging] {
+  "request_id": "api_20260403_143333_64",
+  "timestamp": "2026-04-03T14:33:33.875679+00:00",
+  "method": "GET",
+  "path": "/assets/app-BJ1TPLCv.png",
+  "query_params": {},
+  "headers": {
+    "host": "localhost:8000",
+    "connection": "keep-alive",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\"",
+    "sec-ch-ua-mobile": "?0",
+    "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-mode": "no-cors",
+    "sec-fetch-dest": "image",
+    "referer": "http://localhost:8000/",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7",
+    "if-none-match": "\"6840dfbaa15d42afd3184d973010933b\"",
+    "if-modified-since": "Fri, 03 Apr 2026 14:23:42 GMT"
+  },
+  "client_host": "127.0.0.1",
+  "user": {
+    "authenticated": false
+  },
+  "body": null
+}
+2026-04-03 17:33:33 - INFO - [logging] 📤 API Response [api_20260403_143333_64]
