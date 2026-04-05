@@ -864,7 +864,7 @@
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
-/* Good alignments - Green tones */
+/* Good row — green dominant */
 .align-btn.selected.align-lawful-good {
     background: linear-gradient(135deg, #22c55e, #16a34a);
     border-color: #22c55e;
@@ -878,16 +878,16 @@
 }
 
 .align-btn.selected.align-chaotic-good {
-    background: linear-gradient(135deg, #86efac, #4ade80);
-    border-color: #86efac;
-    box-shadow: 0 6px 20px rgba(134, 239, 172, 0.5);
+    background: linear-gradient(135deg, #4adea0, #22c55e);
+    border-color: #4adea0;
+    box-shadow: 0 6px 20px rgba(78, 222, 160, 0.5);
 }
 
-/* Neutral alignments - Yellow/Gold tones */
+/* Neutral row — yellow dominant */
 .align-btn.selected.align-lawful-neutral {
-    background: linear-gradient(135deg, #eab308, #ca8a04);
-    border-color: #eab308;
-    box-shadow: 0 6px 20px rgba(234, 179, 8, 0.5);
+    background: linear-gradient(135deg, #d4c712, #c8b820);
+    border-color: #d4c712;
+    box-shadow: 0 6px 20px rgba(212, 199, 18, 0.5);
 }
 
 .align-btn.selected.align-true-neutral {
@@ -897,28 +897,28 @@
 }
 
 .align-btn.selected.align-chaotic-neutral {
-    background: linear-gradient(135deg, #fde047, #facc15);
-    border-color: #fde047;
-    box-shadow: 0 6px 20px rgba(253, 224, 71, 0.5);
+    background: linear-gradient(135deg, #d4b04a, #c8a030);
+    border-color: #d4b04a;
+    box-shadow: 0 6px 20px rgba(212, 176, 74, 0.5);
 }
 
-/* Evil alignments - Purple/Red tones */
+/* Evil row — purple dominant */
 .align-btn.selected.align-lawful-evil {
-    background: linear-gradient(135deg, #a855f7, #9333ea);
-    border-color: #a855f7;
-    box-shadow: 0 6px 20px rgba(168, 85, 247, 0.5);
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    border-color: #7c3aed;
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
 }
 
 .align-btn.selected.align-neutral-evil {
-    background: linear-gradient(135deg, #c084fc, #a855f7);
-    border-color: #c084fc;
-    box-shadow: 0 6px 20px rgba(192, 132, 252, 0.5);
+    background: linear-gradient(135deg, #9b6df0, #8b5cf6);
+    border-color: #9b6df0;
+    box-shadow: 0 6px 20px rgba(155, 109, 240, 0.5);
 }
 
 .align-btn.selected.align-chaotic-evil {
-    background: linear-gradient(135deg, #e879f9, #c084fc);
-    border-color: #e879f9;
-    box-shadow: 0 6px 20px rgba(232, 121, 249, 0.5);
+    background: linear-gradient(135deg, #a855f7, #8b5cf6);
+    border-color: #a855f7;
+    box-shadow: 0 6px 20px rgba(168, 85, 247, 0.5);
 }
 
 /* Image Upload Section */
