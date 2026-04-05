@@ -1451,6 +1451,202 @@
     }
 }
 
+/* Selection Grids */
+.race-selection-grid,
+.class-selection-grid,
+.background-selection-grid,
+.trait-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.race-card,
+.class-card,
+.background-card,
+.trait-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.race-card:hover,
+.class-card:hover,
+.background-card:hover,
+.trait-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 107, 53, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.race-card.selected,
+.class-card.selected,
+.background-card.selected,
+.trait-card.selected {
+    background: rgba(255, 107, 53, 0.15);
+    border-color: var(--accent-orange);
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.2);
+}
+
+.race-name,
+.class-name,
+.bg-name {
+    display: block;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: #fff;
+}
+
+.race-bonus {
+    display: block;
+    font-size: 0.85rem;
+    color: rgba(255, 107, 53, 0.9);
+    margin-bottom: 6px;
+}
+
+.race-detail,
+.class-detail {
+    display: block;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.bg-skills {
+    display: block;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 6px;
+}
+
+.bg-feature-preview {
+    display: block;
+    font-size: 0.8rem;
+    color: rgba(255, 214, 107, 0.9);
+}
+
+/* Ability Scores Top */
+.ability-scores-top {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.ability-score-item {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+}
+
+.ability-abbr {
+    display: block;
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: var(--accent-orange);
+    margin-bottom: 12px;
+}
+
+.ability-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.ability-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    min-width: 50px;
+    text-align: center;
+}
+
+.racial-bonus-small {
+    font-size: 0.8rem;
+    color: rgba(107, 255, 107, 0.9);
+}
+
+.ability-final-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.ability-modifier {
+    display: block;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 4px;
+}
+
+/* Skills Grid Full */
+.skills-grid-full {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.skill-btn-full {
+    background: rgba(255, 255, 255, 0.04);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+}
+
+.skill-btn-full:hover:not(.disabled) {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 107, 53, 0.4);
+}
+
+.skill-btn-full.chosen {
+    background: rgba(107, 255, 107, 0.15);
+    border-color: rgba(107, 255, 107, 0.6);
+}
+
+.skill-btn-full.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.skill-btn-full.bg-skill {
+    border-color: rgba(255, 214, 107, 0.3);
+}
+
+.bg-badge {
+    background: rgba(255, 214, 107, 0.2);
+    color: rgba(255, 214, 107, 0.9);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.skill-check {
+    color: rgba(107, 255, 107, 0.9);
+    font-weight: 700;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .character-creation-overlay {

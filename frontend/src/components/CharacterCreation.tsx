@@ -323,7 +323,7 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
         }
     };
 
-    const progress = ((step) / TOTAL_STEPS) * 100;
+    const progress = (step / TOTAL_STEPS) * 100;
 
     // ==================== RENDER ====================
     return (
@@ -337,7 +337,6 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                 {/* Linear Progress Bar */}
                 <div className="cc-progress-bar">
                     <div className="progress-fill" style={{ width: `${progress}%` }}></div>
-                    <span className="progress-label">{Math.round(progress)}%</span>
                 </div>
 
                 {errors.submit && (
@@ -375,19 +374,26 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                         <div className="cc-section fade-in">
                             <h3>2. Race</h3>
                             <p className="step-description">Your race determines your character's innate abilities, traits, and appearance.</p>
-                            <div className="form-group large">
-                                <select
-                                    id="race"
-                                    value={formData.race}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, race: e.target.value, subrace: '', selectedTraits: RACES[e.target.value]?.traits || [] }))}
-                                >
-                                    {Object.entries(RACES).map(([key, race]) => (
-                                        <option key={key} value={key}>{race.name} — {Object.entries(race.abilityBonuses).map(([s, v]) => `${s.toUpperCase()} +${v}`).join(', ')}</option>
-                                    ))}
-                                </select>
+                            <div className="race-selection-grid">
+                                {Object.entries(RACES).map(([key, race]) => {
+                                    const isSelected = formData.race === key;
+                                    return (
+                                        <button
+                                            key={key}
+                                            type="button"
+                                            className={`race-card ${isSelected ? 'selected' : ''}`}
+                                            onClick={() => setFormData(prev => ({ ...prev, race: key, subrace: '' }))}
+                                        >
+                                            <span className="race-name">{race.name}</span>
+                                            <span className="race-bonus">{Object.entries(race.abilityBonuses).map(([s, v]) => `${s.toUpperCase()} +${v}`).join(', ')}</span>
+                                            <span className="race-detail">⚡ {race.speed} ft • {race.size}</span>
+                                            {race.darkvision && <span className="race-detail">👁️ Darkvision</span>}
+                                        </button>
+                                    );
+                                })}
                             </div>
-                            {raceData.subraces && (
-                                <div className="form-group large">
+                            {raceData.subraces && formData.race && (
+                                <div className="form-group large" style={{ marginTop: '20px' }}>
                                     <label>Subrace</label>
                                     <select id="subrace" value={formData.subrace} onChange={(e) => setFormData(prev => ({ ...prev, subrace: e.target.value }))}>
                                         <option value="">— None —</option>
@@ -415,25 +421,23 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                         <div className="cc-section fade-in">
                             <h3>3. Class</h3>
                             <p className="step-description">Your class defines your character's role, combat style, and special abilities.</p>
-                            <div className="form-group large">
-                                <select
-                                    id="char_class"
-                                    value={formData.char_class}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, char_class: e.target.value, skillChoices: [] }))}
-                                >
-                                    {Object.entries(CLASSES).map(([key, cls]) => (
-                                        <option key={key} value={key}>{cls.name} — HP: d{cls.hitDie}, Skills: {cls.skillCount}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="class-preview-grid">
-                                <div className="class-preview-item"><span>❤️ Hit Die</span><span>d{classData.hitDie}</span></div>
-                                <div className="class-preview-item"><span>🎯 Primary</span><span>{classData.primaryAbility}</span></div>
-                                <div className="class-preview-item"><span>🛡️ Saves</span><span>{classData.savingThrows.join(', ')}</span></div>
-                            </div>
-                            <div className="proficiency-tags">
-                                {classData.armorProficiencies.map(p => (<span key={p} className="prof-tag">{p}</span>))}
-                                {classData.weaponProficiencies.map(p => (<span key={p} className="prof-tag">{p}</span>))}
+                            <div className="class-selection-grid">
+                                {Object.entries(CLASSES).map(([key, cls]) => {
+                                    const isSelected = formData.char_class === key;
+                                    return (
+                                        <button
+                                            key={key}
+                                            type="button"
+                                            className={`class-card ${isSelected ? 'selected' : ''}`}
+                                            onClick={() => setFormData(prev => ({ ...prev, char_class: key, skillChoices: [] }))}
+                                        >
+                                            <span className="class-name">{cls.name}</span>
+                                            <span className="class-detail">HP: d{cls.hitDie} • {cls.primaryAbility}</span>
+                                            <span className="class-detail">Saves: {cls.savingThrows.join(', ')}</span>
+                                            <span className="class-detail">Skills: {cls.skillCount}</span>
+                                        </button>
+                                    );
+                                })}
                             </div>
                             <div className="cc-actions">
                                 <button type="button" className="cc-back" onClick={() => setStep(2)}>← Back</button>
@@ -447,25 +451,22 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                         <div className="cc-section fade-in">
                             <h3>4. Background</h3>
                             <p className="step-description">Your background represents your character's life before adventuring.</p>
-                            <div className="form-group large">
-                                <select
-                                    id="background"
-                                    value={formData.background}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, background: e.target.value }))}
-                                >
-                                    {Object.entries(BACKGROUNDS).map(([key, bg]) => (
-                                        <option key={key} value={key}>{key} — Skills: {bg.skills.join(', ')}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="bg-preview">
-                                <div className="bg-feature"><span>⭐ Feature</span><span>{backgroundData.feature}</span></div>
-                                <h4>Starting Equipment</h4>
-                                <div className="equipment-list">
-                                    {backgroundData.equipment.map((item, i) => (
-                                        <div key={i} className="equipment-item"><span className="equip-icon">📦</span><span>{item}</span></div>
-                                    ))}
-                                </div>
+                            <div className="background-selection-grid">
+                                {Object.entries(BACKGROUNDS).map(([key, bg]) => {
+                                    const isSelected = formData.background === key;
+                                    return (
+                                        <button
+                                            key={key}
+                                            type="button"
+                                            className={`background-card ${isSelected ? 'selected' : ''}`}
+                                            onClick={() => setFormData(prev => ({ ...prev, background: key }))}
+                                        >
+                                            <span className="bg-name">{key}</span>
+                                            <span className="bg-skills">Skills: {bg.skills.join(', ')}</span>
+                                            <span className="bg-feature-preview">⭐ {bg.feature}</span>
+                                        </button>
+                                    );
+                                })}
                             </div>
                             <div className="cc-actions">
                                 <button type="button" className="cc-back" onClick={() => setStep(3)}>← Back</button>
@@ -502,38 +503,36 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                         <div className="cc-section fade-in">
                             <h3>6. Ability Scores</h3>
                             <p className="step-description">Distribute {MAX_POINTS} points using the Point Buy system. Range: 8–15 before racial bonuses.</p>
-                            <p className="stat-points">
-                                Points used: {pointsUsed}/{MAX_POINTS}
-                                {pointsRemaining > 0 && <span className="points-remaining"> ({pointsRemaining} remaining)</span>}
-                                {pointsRemaining <= 0 && <span className="points-max"> — Max reached!</span>}
-                            </p>
-                            <div className="stats-grid">
+                            <div className="ability-scores-top">
                                 {[
-                                    { label: 'Strength', key: 'Strength', bonusKey: 'str', base: formData.baseStrength, final: finalStr },
-                                    { label: 'Dexterity', key: 'Dexterity', bonusKey: 'dex', base: formData.baseDexterity, final: finalDex },
-                                    { label: 'Constitution', key: 'Constitution', bonusKey: 'con', base: formData.baseConstitution, final: finalCon },
-                                    { label: 'Intelligence', key: 'Intelligence', bonusKey: 'int', base: formData.baseIntelligence, final: finalInt },
-                                    { label: 'Wisdom', key: 'Wisdom', bonusKey: 'wis', base: formData.baseWisdom, final: finalWis },
-                                    { label: 'Charisma', key: 'Charisma', bonusKey: 'cha', base: formData.baseCharisma, final: finalCha },
+                                    { label: 'STR', key: 'Strength', bonusKey: 'str', base: formData.baseStrength, final: finalStr },
+                                    { label: 'DEX', key: 'Dexterity', bonusKey: 'dex', base: formData.baseDexterity, final: finalDex },
+                                    { label: 'CON', key: 'Constitution', bonusKey: 'con', base: formData.baseConstitution, final: finalCon },
+                                    { label: 'INT', key: 'Intelligence', bonusKey: 'int', base: formData.baseIntelligence, final: finalInt },
+                                    { label: 'WIS', key: 'Wisdom', bonusKey: 'wis', base: formData.baseWisdom, final: finalWis },
+                                    { label: 'CHA', key: 'Charisma', bonusKey: 'cha', base: formData.baseCharisma, final: finalCha },
                                 ].map(stat => {
                                     const racialBonus = raceData?.abilityBonuses[stat.bonusKey] || 0;
                                     return (
-                                        <div key={stat.key} className="stat-control">
-                                            <label className="stat-label">{stat.label}</label>
-                                            <div className="stat-input">
+                                        <div key={stat.key} className="ability-score-item">
+                                            <span className="ability-abbr">{stat.label}</span>
+                                            <div className="ability-controls">
                                                 <button type="button" onClick={() => handleStatChange(stat.key, -1)} className="stat-btn minus" disabled={stat.base <= 8}>−</button>
-                                                <div className="stat-value-group">
-                                                    <span className="stat-value">{stat.base}</span>
-                                                    {racialBonus > 0 && <span className="racial-bonus">+{racialBonus}</span>}
-                                                    <span className="stat-final">= {stat.final}</span>
-                                                </div>
+                                                <span className="ability-value">{stat.base}</span>
                                                 <button type="button" onClick={() => handleStatChange(stat.key, 1)} className="stat-btn plus" disabled={stat.base >= 15 || pointsRemaining <= 0}>+</button>
                                             </div>
-                                            <span className="stat-modifier">Modifier: {getModifier(stat.final) >= 0 ? '+' : ''}{getModifier(stat.final)}</span>
+                                            {racialBonus > 0 && <span className="racial-bonus-small">+{racialBonus} race</span>}
+                                            <span className="ability-final-value">→ {stat.final}</span>
+                                            <span className="ability-modifier">({getModifier(stat.final) >= 0 ? '+' : ''}{getModifier(stat.final)})</span>
                                         </div>
                                     );
                                 })}
                             </div>
+                            <p className="stat-points">
+                                Points: {pointsUsed}/{MAX_POINTS}
+                                {pointsRemaining > 0 && <span className="points-remaining"> ({pointsRemaining} left)</span>}
+                                {pointsRemaining <= 0 && <span className="points-max"> — Max!</span>}
+                            </p>
                             <div className="stat-summary">
                                 <h4>Combat Preview</h4>
                                 <div className="derived-stats">
@@ -566,20 +565,29 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                 </div>
                             </div>
                             <div className="skill-category">
-                                <h4>Class Skills (Choose {classData.skillCount})</h4>
-                                <div className="skills-grid">
-                                    {classData.skillChoices.map(skill => {
+                                <h4>All Skills — Choose {classData.skillCount} from class list</h4>
+                                <div className="skills-grid-full">
+                                    {Object.entries(SKILLS).map(([skill, ability]) => {
+                                        const isClassSkill = classData.skillChoices.includes(skill);
                                         const isChosen = formData.chosenSkills.includes(skill);
+                                        const isBackgroundSkill = backgroundData?.skills.includes(skill);
                                         return (
-                                            <button key={skill} type="button" className={`skill-btn ${isChosen ? 'chosen' : ''}`} onClick={() => handleSkillToggle(skill)}>
+                                            <button
+                                                key={skill}
+                                                type="button"
+                                                className={`skill-btn-full ${isChosen ? 'chosen' : ''} ${isBackgroundSkill ? 'bg-skill' : ''} ${!isClassSkill && !isChosen ? 'disabled' : ''}`}
+                                                disabled={!isClassSkill && !isChosen}
+                                                onClick={() => isClassSkill && handleSkillToggle(skill)}
+                                            >
                                                 <span className="skill-name">{skill}</span>
-                                                <span className="skill-ability">{SKILLS[skill]?.slice(0, 3)}</span>
+                                                <span className="skill-ability">{ability.slice(0, 3)}</span>
                                                 {isChosen && <span className="skill-check">✓</span>}
+                                                {isBackgroundSkill && <span className="bg-badge">BG</span>}
                                             </button>
                                         );
                                     })}
                                 </div>
-                                <p className="choice-counter">Selected: {formData.chosenSkills.length}/{classData.skillCount}</p>
+                                <p className="choice-counter">Selected: {formData.chosenSkills.length}/{classData.skillCount} (class) + {backgroundData?.skills.length} (background)</p>
                             </div>
                             {errors.skills && <span className="error-message">{errors.skills}</span>}
                             <div className="cc-actions">
@@ -594,11 +602,20 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                         <div className="cc-section fade-in">
                             <h3>8. Personality Trait</h3>
                             <p className="step-description">A personality trait describes a distinctive quality of your character's behavior.</p>
-                            <div className="form-group large">
-                                <select id="personalityTrait" value={formData.personalityTrait} onChange={(e) => setFormData(prev => ({ ...prev, personalityTrait: e.target.value }))}>
-                                    <option value="">— Select a trait —</option>
-                                    {PERSONALITY_TRAITS.map((t, i) => (<option key={i} value={t}>{t}</option>))}
-                                </select>
+                            <div className="trait-selection-grid">
+                                {PERSONALITY_TRAITS.map((t, i) => {
+                                    const isSelected = formData.personalityTrait === t;
+                                    return (
+                                        <button
+                                            key={i}
+                                            type="button"
+                                            className={`trait-card ${isSelected ? 'selected' : ''}`}
+                                            onClick={() => setFormData(prev => ({ ...prev, personalityTrait: t }))}
+                                        >
+                                            {t}
+                                        </button>
+                                    );
+                                })}
                             </div>
                             <div className="cc-actions">
                                 <button type="button" className="cc-back" onClick={() => setStep(7)}>← Back</button>
@@ -612,11 +629,20 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                         <div className="cc-section fade-in">
                             <h3>9. Ideal</h3>
                             <p className="step-description">An ideal is a core principle or belief that drives your character.</p>
-                            <div className="form-group large">
-                                <select id="ideal" value={formData.ideal} onChange={(e) => setFormData(prev => ({ ...prev, ideal: e.target.value }))}>
-                                    <option value="">— Select an ideal —</option>
-                                    {IDEALS.map((t, i) => (<option key={i} value={t}>{t}</option>))}
-                                </select>
+                            <div className="trait-selection-grid">
+                                {IDEALS.map((t, i) => {
+                                    const isSelected = formData.ideal === t;
+                                    return (
+                                        <button
+                                            key={i}
+                                            type="button"
+                                            className={`trait-card ${isSelected ? 'selected' : ''}`}
+                                            onClick={() => setFormData(prev => ({ ...prev, ideal: t }))}
+                                        >
+                                            {t}
+                                        </button>
+                                    );
+                                })}
                             </div>
                             <div className="cc-actions">
                                 <button type="button" className="cc-back" onClick={() => setStep(8)}>← Back</button>
@@ -630,11 +656,20 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                         <div className="cc-section fade-in">
                             <h3>10. Bond</h3>
                             <p className="step-description">A bond is a connection to something that motivates your character.</p>
-                            <div className="form-group large">
-                                <select id="bond" value={formData.bond} onChange={(e) => setFormData(prev => ({ ...prev, bond: e.target.value }))}>
-                                    <option value="">— Select a bond —</option>
-                                    {BONDS.map((t, i) => (<option key={i} value={t}>{t}</option>))}
-                                </select>
+                            <div className="trait-selection-grid">
+                                {BONDS.map((t, i) => {
+                                    const isSelected = formData.bond === t;
+                                    return (
+                                        <button
+                                            key={i}
+                                            type="button"
+                                            className={`trait-card ${isSelected ? 'selected' : ''}`}
+                                            onClick={() => setFormData(prev => ({ ...prev, bond: t }))}
+                                        >
+                                            {t}
+                                        </button>
+                                    );
+                                })}
                             </div>
                             <div className="cc-actions">
                                 <button type="button" className="cc-back" onClick={() => setStep(9)}>← Back</button>
@@ -648,11 +683,20 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                         <div className="cc-section fade-in">
                             <h3>11. Flaw</h3>
                             <p className="step-description">A flaw is a weakness or vulnerability that complicates your character's life.</p>
-                            <div className="form-group large">
-                                <select id="flaw" value={formData.flaw} onChange={(e) => setFormData(prev => ({ ...prev, flaw: e.target.value }))}>
-                                    <option value="">— Select a flaw —</option>
-                                    {FLAWS.map((t, i) => (<option key={i} value={t}>{t}</option>))}
-                                </select>
+                            <div className="trait-selection-grid">
+                                {FLAWS.map((t, i) => {
+                                    const isSelected = formData.flaw === t;
+                                    return (
+                                        <button
+                                            key={i}
+                                            type="button"
+                                            className={`trait-card ${isSelected ? 'selected' : ''}`}
+                                            onClick={() => setFormData(prev => ({ ...prev, flaw: t }))}
+                                        >
+                                            {t}
+                                        </button>
+                                    );
+                                })}
                             </div>
                             <div className="cc-actions">
                                 <button type="button" className="cc-back" onClick={() => setStep(10)}>← Back</button>
