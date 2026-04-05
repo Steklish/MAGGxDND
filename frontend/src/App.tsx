@@ -202,7 +202,7 @@ function App() {
     };
 
     const handleCharacterComplete = () => {
-        setCurrentPage('profile');
+        setCurrentPage('home');
         if (localUserId) {
             loadCharacters(localUserId);
         }
