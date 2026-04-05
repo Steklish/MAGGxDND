@@ -1,6 +1,13 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import './ErrorBoundary.css';
 
+// Preload the error background image so it's ready instantly
+const preloadErrorBackground = () => {
+    const img = new Image();
+    img.src = '/arts/backgrounds/bg-error.png';
+};
+preloadErrorBackground();
+
 interface Props {
     children: ReactNode;
     fallback?: ReactNode;
@@ -70,6 +77,8 @@ export class ErrorBoundary extends Component<Props, State> {
         errorInfo: null,
     };
 
+    private retryTimeoutRef: ReturnType<typeof setTimeout> | null = null;
+
     public static getDerivedStateFromError(error: Error): State {
         return { hasError: true, error, errorInfo: null };
     }
@@ -88,9 +97,11 @@ export class ErrorBoundary extends Component<Props, State> {
             if (this.state.hasError) {
                 document.documentElement.style.overflow = 'hidden';
                 document.body.style.overflow = 'hidden';
+                document.documentElement.style.touchAction = 'none';
             } else {
                 document.documentElement.style.overflow = '';
                 document.body.style.overflow = '';
+                document.documentElement.style.touchAction = '';
             }
         }
     }
@@ -99,6 +110,10 @@ export class ErrorBoundary extends Component<Props, State> {
         // Restore scroll on unmount
         document.documentElement.style.overflow = '';
         document.body.style.overflow = '';
+        document.documentElement.style.touchAction = '';
+        if (this.retryTimeoutRef) {
+            clearTimeout(this.retryTimeoutRef);
+        }
     }
 
     private handleRetry = () => {

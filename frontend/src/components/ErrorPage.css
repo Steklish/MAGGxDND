@@ -20,31 +20,7 @@
     pointer-events: auto;
 }
 
-/* Hide scrollbars when error page is visible */
-.error-page.visible ~ * {
-    overflow: hidden !important;
-}
-
-html:has(.error-page.visible) {
-    overflow: hidden !important;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-
-html:has(.error-page.visible)::-webkit-scrollbar {
-    display: none;
-}
-
-body:has(.error-page.visible) {
-    overflow: hidden !important;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-
-body:has(.error-page.visible)::-webkit-scrollbar {
-    display: none;
-}
-
+/* Error background overlay (dark, no image) */
 .error-background {
     position: absolute;
     top: 0;
@@ -52,24 +28,9 @@ body:has(.error-page.visible)::-webkit-scrollbar {
     width: 100%;
     height: 100%;
     z-index: 0;
-}
-
-.error-bg-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-}
-
-.error-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba(5, 5, 10, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .error-content {
@@ -78,13 +39,27 @@ body:has(.error-page.visible)::-webkit-scrollbar {
     text-align: center;
     max-width: 600px;
     padding: 48px;
-    background: rgba(20, 20, 20, 0.7);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: url('/arts/backgrounds/bg-error.png') no-repeat center center;
+    background-size: cover;
     border-radius: 24px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-    animation: errorSlideIn 0.5s ease-out;
+    box-shadow: 0 20px 80px rgba(0, 0, 0, 0.7), 0 0 60px rgba(34, 197, 94, 0.15);
+    animation: errorSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    overflow: hidden;
+}
+
+.error-content::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 15, 10, 0.75);
+    border-radius: 24px;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.error-content > * {
+    position: relative;
+    z-index: 1;
 }
 
 @keyframes errorSlideIn {
@@ -136,27 +111,64 @@ body:has(.error-page.visible)::-webkit-scrollbar {
     align-items: center;
     gap: 10px;
     padding: 14px 32px;
-    background: rgba(255, 107, 53, 0.2);
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(22, 163, 74, 0.4));
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 107, 53, 0.4);
+    border: 1px solid rgba(34, 197, 94, 0.5);
     border-radius: 12px;
     color: #ffffff;
     font-family: 'Rajdhani', sans-serif;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+}
+
+.error-retry-btn::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: conic-gradient(from 0deg, transparent, rgba(34, 197, 94, 0.6), transparent, rgba(34, 197, 94, 0.3), transparent);
+    border-radius: 14px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    animation: retrySpin 3s linear infinite;
+}
+
+.error-retry-btn:hover::before {
+    opacity: 1;
 }
 
 .error-retry-btn:hover {
-    background: rgba(255, 107, 53, 0.3);
-    border-color: #ff6b35;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.4), rgba(22, 163, 74, 0.5));
+    border-color: rgba(34, 197, 94, 0.7);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 30px rgba(34, 197, 94, 0.35);
+}
+
+.error-retry-btn:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.25);
+}
+
+.error-retry-btn.retrying {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.error-retry-btn.retrying .retry-icon {
+    animation: retrySpin 0.8s linear infinite;
+}
+
+@keyframes retrySpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 .retry-icon {
