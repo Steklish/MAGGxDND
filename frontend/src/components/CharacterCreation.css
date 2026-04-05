@@ -39,12 +39,30 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, 
-        var(--accent-orange) 0%, 
-        var(--accent-yellow) 50%, 
-        var(--accent-purple) 100%);
+    height: 2px;
+    background: linear-gradient(90deg,
+        #22c55e 0%,
+        #eab308 50%,
+        #8b5cf6 100%);
     border-radius: 24px 24px 0 0;
+    opacity: 0.6;
+    z-index: 1;
+}
+
+/* Thin progress line at top */
+.cc-progress-line {
+    width: 100%;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 24px 24px 0 0;
+    overflow: hidden;
+}
+
+.progress-line-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #22c55e, #eab308, #8b5cf6);
+    transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    border-radius: 3px;
 }
 
 /* Scrollbar styling */
@@ -89,33 +107,6 @@
     color: rgba(255, 255, 255, 0.5);
     font-size: 0.9rem;
     font-weight: 500;
-}
-
-/* Linear Progress Bar */
-.cc-progress-bar {
-    width: 100%;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.08);
-    position: relative;
-    overflow: hidden;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent-orange), var(--accent-yellow), var(--accent-purple));
-    transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-    border-radius: 4px;
-}
-
-.progress-label {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.8);
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .cc-error {
@@ -489,10 +480,12 @@
 
 .cc-next:disabled,
 .cc-submit:disabled {
-    opacity: 0.4;
+    opacity: 0.5;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
+    background: rgba(100, 116, 139, 0.3);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .cc-next:active,
@@ -504,6 +497,8 @@
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
+    background: rgba(100, 116, 139, 0.3);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 /* Preview Section */
@@ -722,6 +717,15 @@
     letter-spacing: 0.3px;
 }
 
+/* Character Count */
+.char-count {
+    text-align: right;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 8px;
+    margin-bottom: 0;
+}
+
 /* Race Preview */
 .race-preview {
     display: flex;
@@ -824,36 +828,72 @@
 }
 
 /* Alignment Grid */
-.alignment-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+/* Alignment Gradient Bar */
+.alignment-gradient-bar {
+    display: flex;
+    gap: 0;
     margin: 20px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
-.alignment-btn {
-    padding: 18px 16px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 1rem;
+.align-btn {
+    flex: 1;
+    padding: 18px 10px;
+    border: none;
+    color: #fff;
+    font-size: 0.85rem;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
     text-align: center;
+    position: relative;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-.alignment-btn:hover {
-    background: rgba(255, 107, 53, 0.08);
-    border-color: rgba(255, 107, 53, 0.3);
+.align-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    transition: background 0.3s ease;
 }
 
-.alignment-btn.selected {
-    background: linear-gradient(135deg, var(--accent-orange), #ff8c42);
-    border-color: var(--accent-orange);
-    color: #fff;
-    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+.align-btn:hover::before {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.align-btn.selected::before {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.align-btn.selected {
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.3);
+    transform: scale(1.02);
+}
+
+/* Good Green Variants */
+.align-good {
+    background: linear-gradient(180deg, #22c55e, #16a34a);
+}
+
+.align-good-2 {
+    background: linear-gradient(180deg, #16a34a, #15803d);
+}
+
+.align-good-3 {
+    background: linear-gradient(180deg, #15803d, #166534);
+}
+
+/* Neutral Yellow */
+.align-neutral {
+    background: linear-gradient(180deg, #eab308, #ca8a04);
+}
+
+/* Chaotic Purple */
+.align-chaotic {
+    background: linear-gradient(180deg, #8b5cf6, #7c3aed);
 }
 
 /* Image Upload Section */
@@ -1597,6 +1637,54 @@
     font-size: 1.2rem;
     color: var(--accent-orange);
     margin-bottom: 12px;
+    cursor: help;
+}
+
+/* Ability Tooltip */
+.ability-tooltip-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.ability-tooltip {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%) translateY(5px);
+    background: rgba(20, 25, 40, 0.95);
+    color: #e5e7eb;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    line-height: 1.4;
+    width: max-content;
+    max-width: 220px;
+    text-align: left;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    z-index: 100;
+}
+
+.ability-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: rgba(20, 25, 40, 0.95);
+}
+
+.ability-score-item:hover .ability-tooltip {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
 }
 
 .ability-controls {
@@ -1729,8 +1817,13 @@
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .alignment-grid {
-        grid-template-columns: repeat(3, 1fr);
+    .alignment-gradient-bar {
+        flex-wrap: wrap;
+    }
+
+    .align-btn {
+        flex: 1 1 calc(50% - 6px);
+        min-width: calc(50% - 6px);
     }
 
     .ai-generate-row {
@@ -1764,7 +1857,12 @@
         grid-template-columns: 1fr;
     }
 
-    .alignment-grid {
-        grid-template-columns: 1fr;
+    .alignment-gradient-bar {
+        flex-direction: column;
+    }
+
+    .align-btn {
+        flex: 1;
+        min-width: 100%;
     }
 }

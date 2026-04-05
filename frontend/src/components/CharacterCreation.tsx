@@ -150,11 +150,11 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
 
     const [formData, setFormData] = useState({
         name: '',
-        race: 'Human',
+        race: '',
         subrace: '',
-        char_class: 'Fighter',
-        background: 'Soldier',
-        alignment: 'True Neutral',
+        char_class: '',
+        background: '',
+        alignment: '',
         baseStrength: 8, baseDexterity: 8, baseConstitution: 8,
         baseIntelligence: 8, baseWisdom: 8, baseCharisma: 8,
         chosenSkills: [] as string[],
@@ -169,9 +169,9 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
     });
 
     const getModifier = (score: number) => Math.floor((score - 10) / 2);
-    const raceData = useMemo(() => RACES[formData.race], [formData.race]);
-    const classData = useMemo(() => CLASSES[formData.char_class], [formData.char_class]);
-    const backgroundData = useMemo(() => BACKGROUNDS[formData.background], [formData.background]);
+    const raceData = useMemo(() => formData.race ? RACES[formData.race] : null, [formData.race]);
+    const classData = useMemo(() => formData.char_class ? CLASSES[formData.char_class] : null, [formData.char_class]);
+    const backgroundData = useMemo(() => formData.background ? BACKGROUNDS[formData.background] : null, [formData.background]);
 
     const getFinalScore = (base: number, key: string) => base + (raceData?.abilityBonuses[key] || 0);
     const finalStr = getFinalScore(formData.baseStrength, 'str');
@@ -188,7 +188,7 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
         [formData.baseStrength, formData.baseDexterity, formData.baseConstitution, formData.baseIntelligence, formData.baseWisdom, formData.baseCharisma]
     );
     const pointsRemaining = MAX_POINTS - pointsUsed;
-    const calculateHP = () => classData.hitDie + getModifier(finalCon);
+    const calculateHP = () => (classData?.hitDie || 10) + getModifier(finalCon);
     const calculateAC = () => 10 + getModifier(finalDex);
     const proficiencyBonus = 2;
 
@@ -206,9 +206,9 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
     const handleSkillToggle = (skill: string) => {
         setFormData(prev => {
             const chosen = prev.chosenSkills;
-            const isClassSkill = classData.skillChoices.includes(skill);
+            const isClassSkill = classData?.skillChoices.includes(skill) || false;
             if (chosen.includes(skill)) return { ...prev, chosenSkills: chosen.filter(s => s !== skill) };
-            if (!isClassSkill || chosen.length >= classData.skillCount) return prev;
+            if (!isClassSkill || chosen.length >= (classData?.skillCount || 0)) return prev;
             return { ...prev, chosenSkills: [...chosen, skill] };
         });
     };
@@ -275,7 +275,7 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
         formData.chosenSkills.forEach(s => { allSkills[s] = true; });
         backgroundData?.skills.forEach(s => { allSkills[s] = true; });
 
-        const racialTraits = [...raceData.traits];
+        const racialTraits = [...(raceData?.traits || [])];
         if (formData.subrace) racialTraits.push(`${formData.subrace} Trait`);
 
         const characterData = {
@@ -289,10 +289,10 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                 trait: formData.personalityTrait, ideal: formData.ideal, bond: formData.bond, flaw: formData.flaw,
             }),
             max_hp: calculateHP(), current_hp: calculateHP(), armor_class: calculateAC(),
-            speed: raceData.speed,
+            speed: raceData?.speed || 30,
             stats: { strength: finalStr, dexterity: finalDex, constitution: finalCon, intelligence: finalInt, wisdom: finalWis, charisma: finalCha },
             abilities: racialTraits,
-            inventory: classData.startingEquipment.weapons.concat(classData.startingEquipment.equipment),
+            inventory: classData?.startingEquipment?.weapons.concat(classData?.startingEquipment?.equipment) || [],
         };
 
         try {
@@ -304,13 +304,13 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                     background: formData.background,
                     appearance_description: formData.appearance,
                     deity: null, homeland: null,
-                    hit_dice: `1d${classData.hitDie}`,
+                    hit_dice: `1d${classData?.hitDie || 8}`,
                     passive_wisdom: 10 + getModifier(finalWis),
                     inspiration: false,
-                    saving_throws: { str: classData.savingThrows.includes('Strength') ? proficiencyBonus : 0, dex: classData.savingThrows.includes('Dexterity') ? proficiencyBonus : 0, con: classData.savingThrows.includes('Constitution') ? proficiencyBonus : 0, int: classData.savingThrows.includes('Intelligence') ? proficiencyBonus : 0, wis: classData.savingThrows.includes('Wisdom') ? proficiencyBonus : 0, cha: classData.savingThrows.includes('Charisma') ? proficiencyBonus : 0 },
+                    saving_throws: { str: classData?.savingThrows.includes('Strength') ? proficiencyBonus : 0, dex: classData?.savingThrows.includes('Dexterity') ? proficiencyBonus : 0, con: classData?.savingThrows.includes('Constitution') ? proficiencyBonus : 0, int: classData?.savingThrows.includes('Intelligence') ? proficiencyBonus : 0, wis: classData?.savingThrows.includes('Wisdom') ? proficiencyBonus : 0, cha: classData?.savingThrows.includes('Charisma') ? proficiencyBonus : 0 },
                     skills: allSkills,
-                    equipment: classData.startingEquipment.weapons.concat(classData.startingEquipment.equipment, backgroundData?.equipment || []),
-                    attacks: classData.startingEquipment.weapons,
+                    equipment: classData?.startingEquipment?.weapons.concat(classData?.startingEquipment?.equipment, backgroundData?.equipment || []) || [],
+                    attacks: classData?.startingEquipment?.weapons || [],
                     spell_slots: {},
                     features_traits: racialTraits,
                     notes: `Personality: ${formData.personalityTrait}\nIdeal: ${formData.ideal}\nBond: ${formData.bond}\nFlaw: ${formData.flaw}`,
@@ -329,14 +329,14 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
     return (
         <div className="character-creation-overlay">
             <div className="character-creation">
+                {/* Thin progress line at very top */}
+                <div className="cc-progress-line">
+                    <div className="progress-line-fill" style={{ width: `${progress}%` }}></div>
+                </div>
+
                 <div className="cc-header">
                     <h2>Create Your Character</h2>
                     <p>Step {step} of {TOTAL_STEPS} — D&D 5e Rules</p>
-                </div>
-
-                {/* Linear Progress Bar */}
-                <div className="cc-progress-bar">
-                    <div className="progress-fill" style={{ width: `${progress}%` }}></div>
                 </div>
 
                 {errors.submit && (
@@ -392,7 +392,7 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                     );
                                 })}
                             </div>
-                            {raceData.subraces && formData.race && (
+                            {raceData?.subraces && formData.race && (
                                 <div className="subrace-selection" style={{ marginTop: '20px' }}>
                                     <label>Subrace</label>
                                     <div className="subrace-selection-grid">
@@ -417,16 +417,16 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                 </div>
                             )}
                             <div className="race-preview">
-                                <div className="race-preview-item"><span>⚡ Speed</span><span>{raceData.speed} ft</span></div>
-                                <div className="race-preview-item"><span>📏 Size</span><span>{raceData.size}</span></div>
-                                {raceData.darkvision && <div className="race-preview-item"><span>👁️ Darkvision</span><span>60 ft</span></div>}
+                                <div className="race-preview-item"><span>⚡ Speed</span><span>{raceData?.speed || 30} ft</span></div>
+                                <div className="race-preview-item"><span>📏 Size</span><span>{raceData?.size || 'Medium'}</span></div>
+                                {raceData?.darkvision && <div className="race-preview-item"><span>👁️ Darkvision</span><span>60 ft</span></div>}
                             </div>
                             <div className="traits-list">
-                                {raceData.traits.map(t => (<span key={t} className="trait-tag">✦ {t}</span>))}
+                                {(raceData?.traits || []).map(t => (<span key={t} className="trait-tag">✦ {t}</span>))}
                             </div>
                             <div className="cc-actions">
                                 <button type="button" className="cc-back" onClick={() => setStep(1)}>← Back</button>
-                                <button type="button" className="cc-next" onClick={() => setStep(3)}>Next →</button>
+                                <button type="button" className="cc-next" onClick={() => setStep(3)} disabled={!formData.race}>Next →</button>
                             </div>
                         </div>
                     )}
@@ -456,7 +456,7 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                             </div>
                             <div className="cc-actions">
                                 <button type="button" className="cc-back" onClick={() => setStep(2)}>← Back</button>
-                                <button type="button" className="cc-next" onClick={() => setStep(4)}>Next →</button>
+                                <button type="button" className="cc-next" onClick={() => setStep(4)} disabled={!formData.char_class}>Next →</button>
                             </div>
                         </div>
                     )}
@@ -485,7 +485,7 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                             </div>
                             <div className="cc-actions">
                                 <button type="button" className="cc-back" onClick={() => setStep(3)}>← Back</button>
-                                <button type="button" className="cc-next" onClick={() => setStep(5)}>Next →</button>
+                                <button type="button" className="cc-next" onClick={() => setStep(5)} disabled={!formData.background}>Next →</button>
                             </div>
                         </div>
                     )}
@@ -495,20 +495,51 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                         <div className="cc-section fade-in">
                             <h3>5. Alignment</h3>
                             <p className="step-description">Alignment reflects your character's moral and ethical compass.</p>
-                            <div className="alignment-grid">
-                                {ALIGNMENTS.map(a => (
-                                    <button
-                                        key={a} type="button"
-                                        className={`alignment-btn ${formData.alignment === a ? 'selected' : ''}`}
-                                        onClick={() => setFormData(prev => ({ ...prev, alignment: a }))}
-                                    >
-                                        {a}
-                                    </button>
-                                ))}
+                            <div className="alignment-gradient-bar">
+                                <button
+                                    type="button"
+                                    className={`align-btn align-good ${formData.alignment === 'Lawful Good' ? 'selected' : ''}`}
+                                    onClick={() => setFormData(prev => ({ ...prev, alignment: 'Lawful Good' }))}
+                                    title="Lawful Good - Combines honor and compassion"
+                                >
+                                    Lawful Good
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`align-btn align-good-2 ${formData.alignment === 'Neutral Good' ? 'selected' : ''}`}
+                                    onClick={() => setFormData(prev => ({ ...prev, alignment: 'Neutral Good' }))}
+                                    title="Neutral Good - Goodness without law or chaos"
+                                >
+                                    Neutral Good
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`align-btn align-good-3 ${formData.alignment === 'Chaotic Good' ? 'selected' : ''}`}
+                                    onClick={() => setFormData(prev => ({ ...prev, alignment: 'Chaotic Good' }))}
+                                    title="Chaotic Good - Compassion with freedom"
+                                >
+                                    Chaotic Good
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`align-btn align-neutral ${formData.alignment === 'True Neutral' ? 'selected' : ''}`}
+                                    onClick={() => setFormData(prev => ({ ...prev, alignment: 'True Neutral' }))}
+                                    title="True Neutral - Balance above all"
+                                >
+                                    True Neutral
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`align-btn align-chaotic ${formData.alignment === 'Chaotic Evil' ? 'selected' : ''}`}
+                                    onClick={() => setFormData(prev => ({ ...prev, alignment: 'Chaotic Evil' }))}
+                                    title="Chaotic Evil - Destruction and randomness"
+                                >
+                                    Chaotic Evil
+                                </button>
                             </div>
                             <div className="cc-actions">
                                 <button type="button" className="cc-back" onClick={() => setStep(4)}>← Back</button>
-                                <button type="button" className="cc-next" onClick={() => setStep(6)}>Next →</button>
+                                <button type="button" className="cc-next" onClick={() => setStep(6)} disabled={!formData.alignment}>Next →</button>
                             </div>
                         </div>
                     )}
@@ -520,17 +551,20 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                             <p className="step-description">Distribute {MAX_POINTS} points using the Point Buy system. Range: 8–15 before racial bonuses.</p>
                             <div className="ability-scores-top">
                                 {[
-                                    { label: 'STR', key: 'Strength', bonusKey: 'str', base: formData.baseStrength, final: finalStr },
-                                    { label: 'DEX', key: 'Dexterity', bonusKey: 'dex', base: formData.baseDexterity, final: finalDex },
-                                    { label: 'CON', key: 'Constitution', bonusKey: 'con', base: formData.baseConstitution, final: finalCon },
-                                    { label: 'INT', key: 'Intelligence', bonusKey: 'int', base: formData.baseIntelligence, final: finalInt },
-                                    { label: 'WIS', key: 'Wisdom', bonusKey: 'wis', base: formData.baseWisdom, final: finalWis },
-                                    { label: 'CHA', key: 'Charisma', bonusKey: 'cha', base: formData.baseCharisma, final: finalCha },
+                                    { label: 'STR', key: 'Strength', bonusKey: 'str', base: formData.baseStrength, final: finalStr, desc: 'Strength measures physical power and melee attack capability. Affects melee damage, carrying capacity, and athletic abilities.' },
+                                    { label: 'DEX', key: 'Dexterity', bonusKey: 'dex', base: formData.baseDexterity, final: finalDex, desc: 'Dexterity measures agility, reflexes, and balance. Affects armor class, initiative, ranged attacks, and stealth.' },
+                                    { label: 'CON', key: 'Constitution', bonusKey: 'con', base: formData.baseConstitution, final: finalCon, desc: 'Constitution measures health and stamina. Affects hit points, concentration saves, and endurance.' },
+                                    { label: 'INT', key: 'Intelligence', bonusKey: 'int', base: formData.baseIntelligence, final: finalInt, desc: 'Intelligence measures reasoning and memory. Affects spellcasting for wizards, investigation, and arcana.' },
+                                    { label: 'WIS', key: 'Wisdom', bonusKey: 'wis', base: formData.baseWisdom, final: finalWis, desc: 'Wisdom measures perception and intuition. Affects spellcasting for clerics/druids, perception, and insight.' },
+                                    { label: 'CHA', key: 'Charisma', bonusKey: 'cha', base: formData.baseCharisma, final: finalCha, desc: 'Charisma measures force of personality. Affects spellcasting for bards/paladins/sorcerers, persuasion, and deception.' },
                                 ].map(stat => {
                                     const racialBonus = raceData?.abilityBonuses[stat.bonusKey] || 0;
                                     return (
-                                        <div key={stat.key} className="ability-score-item">
-                                            <span className="ability-abbr">{stat.label}</span>
+                                        <div key={stat.key} className="ability-score-item" title={stat.desc}>
+                                            <div className="ability-tooltip-wrapper">
+                                                <span className="ability-abbr">{stat.label}</span>
+                                                <div className="ability-tooltip">{stat.desc}</div>
+                                            </div>
                                             <div className="ability-controls">
                                                 <button type="button" onClick={() => handleStatChange(stat.key, -1)} className="stat-btn minus" disabled={stat.base <= 8}>−</button>
                                                 <span className="ability-value">{stat.base}</span>
@@ -542,11 +576,6 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                     );
                                 })}
                             </div>
-                            <p className="stat-points">
-                                Points: {pointsUsed}/{MAX_POINTS}
-                                {pointsRemaining > 0 && <span className="points-remaining"> ({pointsRemaining} left)</span>}
-                                {pointsRemaining <= 0 && <span className="points-max"> — Max!</span>}
-                            </p>
                             <div className="stat-summary">
                                 <h4>Combat Preview</h4>
                                 <div className="derived-stats">
@@ -554,10 +583,15 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                     <div className="derived-stat"><span>🛡️ AC</span><span className="value">{calculateAC()}</span></div>
                                     <div className="derived-stat"><span>⚡ Initiative</span><span className="value">{getModifier(finalDex) >= 0 ? '+' : ''}{getModifier(finalDex)}</span></div>
                                     <div className="derived-stat"><span>👁️ Passive Wis</span><span className="value">{10 + getModifier(finalWis)}</span></div>
-                                    <div className="derived-stat"><span>🏃 Speed</span><span className="value">{raceData.speed} ft</span></div>
+                                    <div className="derived-stat"><span>🏃 Speed</span><span className="value">{raceData?.speed || 30} ft</span></div>
                                     <div className="derived-stat"><span>🎯 Proficiency</span><span className="value">+{proficiencyBonus}</span></div>
                                 </div>
                             </div>
+                            <p className="stat-points">
+                                Points: {pointsUsed}/{MAX_POINTS}
+                                {pointsRemaining > 0 && <span className="points-remaining"> ({pointsRemaining} left)</span>}
+                                {pointsRemaining <= 0 && <span className="points-max"> — Max!</span>}
+                            </p>
                             <div className="cc-actions">
                                 <button type="button" className="cc-back" onClick={() => setStep(5)}>← Back</button>
                                 <button type="button" className="cc-next" onClick={() => setStep(7)}>Next →</button>
@@ -569,7 +603,7 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                     {step === 7 && (
                         <div className="cc-section fade-in">
                             <h3>7. Skills</h3>
-                            <p className="step-description">Choose {classData.skillCount} skills from your class list. Background gives you {backgroundData?.skills.length} automatically.</p>
+                            <p className="step-description">Choose {classData?.skillCount || 0} skills from your class list. Background gives you {backgroundData?.skills.length || 0} automatically.</p>
                             <div className="skill-category">
                                 <h4>Background Skills (Fixed)</h4>
                                 <div className="fixed-skills">
@@ -579,10 +613,10 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                 </div>
                             </div>
                             <div className="skill-category">
-                                <h4>All Skills — Choose {classData.skillCount} from class list</h4>
+                                <h4>All Skills — Choose {classData?.skillCount || 0} from class list</h4>
                                 <div className="skills-grid-full">
                                     {Object.entries(SKILLS).map(([skill, ability]) => {
-                                        const isClassSkill = classData.skillChoices.includes(skill);
+                                        const isClassSkill = classData?.skillChoices.includes(skill) || false;
                                         const isChosen = formData.chosenSkills.includes(skill);
                                         const isBackgroundSkill = backgroundData?.skills.includes(skill);
                                         return (
@@ -601,12 +635,12 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                         );
                                     })}
                                 </div>
-                                <p className="choice-counter">Selected: {formData.chosenSkills.length}/{classData.skillCount} (class) + {backgroundData?.skills.length} (background)</p>
+                                <p className="choice-counter">Selected: {formData.chosenSkills.length}/{classData?.skillCount || 0} (class) + {backgroundData?.skills.length || 0} (background)</p>
                             </div>
                             {errors.skills && <span className="error-message">{errors.skills}</span>}
                             <div className="cc-actions">
                                 <button type="button" className="cc-back" onClick={() => setStep(6)}>← Back</button>
-                                <button type="button" className="cc-next" onClick={() => setStep(8)}>Next →</button>
+                                <button type="button" className="cc-next" onClick={() => setStep(8)} disabled={formData.chosenSkills.length !== classData?.skillCount}>Next →</button>
                             </div>
                         </div>
                     )}
@@ -615,25 +649,20 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                     {step === 8 && (
                         <div className="cc-section fade-in">
                             <h3>8. Personality Trait</h3>
-                            <p className="step-description">A personality trait describes a distinctive quality of your character's behavior.</p>
-                            <div className="trait-selection-grid">
-                                {PERSONALITY_TRAITS.map((t, i) => {
-                                    const isSelected = formData.personalityTrait === t;
-                                    return (
-                                        <button
-                                            key={i}
-                                            type="button"
-                                            className={`trait-card ${isSelected ? 'selected' : ''}`}
-                                            onClick={() => setFormData(prev => ({ ...prev, personalityTrait: t }))}
-                                        >
-                                            {t}
-                                        </button>
-                                    );
-                                })}
+                            <p className="step-description">Describe a distinctive quality of your character's behavior.</p>
+                            <div className="form-group large">
+                                <textarea
+                                    value={formData.personalityTrait}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, personalityTrait: e.target.value }))}
+                                    placeholder="e.g., I always have a smile on my face, even in the face of danger..."
+                                    rows={4}
+                                    maxLength={500}
+                                />
+                                <p className="char-count">{formData.personalityTrait.length}/500</p>
                             </div>
                             <div className="cc-actions">
                                 <button type="button" className="cc-back" onClick={() => setStep(7)}>← Back</button>
-                                <button type="button" className="cc-next" onClick={() => setStep(9)} disabled={!formData.personalityTrait}>Next →</button>
+                                <button type="button" className="cc-next" onClick={() => setStep(9)} disabled={!formData.personalityTrait.trim()}>Next →</button>
                             </div>
                         </div>
                     )}
@@ -642,25 +671,20 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                     {step === 9 && (
                         <div className="cc-section fade-in">
                             <h3>9. Ideal</h3>
-                            <p className="step-description">An ideal is a core principle or belief that drives your character.</p>
-                            <div className="trait-selection-grid">
-                                {IDEALS.map((t, i) => {
-                                    const isSelected = formData.ideal === t;
-                                    return (
-                                        <button
-                                            key={i}
-                                            type="button"
-                                            className={`trait-card ${isSelected ? 'selected' : ''}`}
-                                            onClick={() => setFormData(prev => ({ ...prev, ideal: t }))}
-                                        >
-                                            {t}
-                                        </button>
-                                    );
-                                })}
+                            <p className="step-description">What is a core principle or belief that drives your character?</p>
+                            <div className="form-group large">
+                                <textarea
+                                    value={formData.ideal}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, ideal: e.target.value }))}
+                                    placeholder="e.g., Freedom - Chains are meant to be broken..."
+                                    rows={4}
+                                    maxLength={500}
+                                />
+                                <p className="char-count">{formData.ideal.length}/500</p>
                             </div>
                             <div className="cc-actions">
                                 <button type="button" className="cc-back" onClick={() => setStep(8)}>← Back</button>
-                                <button type="button" className="cc-next" onClick={() => setStep(10)} disabled={!formData.ideal}>Next →</button>
+                                <button type="button" className="cc-next" onClick={() => setStep(10)} disabled={!formData.ideal.trim()}>Next →</button>
                             </div>
                         </div>
                     )}
@@ -669,25 +693,20 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                     {step === 10 && (
                         <div className="cc-section fade-in">
                             <h3>10. Bond</h3>
-                            <p className="step-description">A bond is a connection to something that motivates your character.</p>
-                            <div className="trait-selection-grid">
-                                {BONDS.map((t, i) => {
-                                    const isSelected = formData.bond === t;
-                                    return (
-                                        <button
-                                            key={i}
-                                            type="button"
-                                            className={`trait-card ${isSelected ? 'selected' : ''}`}
-                                            onClick={() => setFormData(prev => ({ ...prev, bond: t }))}
-                                        >
-                                            {t}
-                                        </button>
-                                    );
-                                })}
+                            <p className="step-description">What is a connection to something that motivates your character?</p>
+                            <div className="form-group large">
+                                <textarea
+                                    value={formData.bond}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, bond: e.target.value }))}
+                                    placeholder="e.g., I will never forget the village that raised me..."
+                                    rows={4}
+                                    maxLength={500}
+                                />
+                                <p className="char-count">{formData.bond.length}/500</p>
                             </div>
                             <div className="cc-actions">
                                 <button type="button" className="cc-back" onClick={() => setStep(9)}>← Back</button>
-                                <button type="button" className="cc-next" onClick={() => setStep(11)} disabled={!formData.bond}>Next →</button>
+                                <button type="button" className="cc-next" onClick={() => setStep(11)} disabled={!formData.bond.trim()}>Next →</button>
                             </div>
                         </div>
                     )}
@@ -696,25 +715,20 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                     {step === 11 && (
                         <div className="cc-section fade-in">
                             <h3>11. Flaw</h3>
-                            <p className="step-description">A flaw is a weakness or vulnerability that complicates your character's life.</p>
-                            <div className="trait-selection-grid">
-                                {FLAWS.map((t, i) => {
-                                    const isSelected = formData.flaw === t;
-                                    return (
-                                        <button
-                                            key={i}
-                                            type="button"
-                                            className={`trait-card ${isSelected ? 'selected' : ''}`}
-                                            onClick={() => setFormData(prev => ({ ...prev, flaw: t }))}
-                                        >
-                                            {t}
-                                        </button>
-                                    );
-                                })}
+                            <p className="step-description">What is a weakness or vulnerability that complicates your character's life?</p>
+                            <div className="form-group large">
+                                <textarea
+                                    value={formData.flaw}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, flaw: e.target.value }))}
+                                    placeholder="e.g., I have a soft spot for orphans and will go out of my way to help them..."
+                                    rows={4}
+                                    maxLength={500}
+                                />
+                                <p className="char-count">{formData.flaw.length}/500</p>
                             </div>
                             <div className="cc-actions">
                                 <button type="button" className="cc-back" onClick={() => setStep(10)}>← Back</button>
-                                <button type="button" className="cc-next" onClick={() => setStep(12)} disabled={!formData.flaw}>Next →</button>
+                                <button type="button" className="cc-next" onClick={() => setStep(12)} disabled={!formData.flaw.trim()}>Next →</button>
                             </div>
                         </div>
                     )}
