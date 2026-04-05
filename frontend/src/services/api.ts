@@ -206,17 +206,16 @@ api.interceptors.response.use(
 
         switch (status) {
             case 401:
-                // Clear invalid token and redirect to landing page
-                console.warn('⚠️ 401 Unauthorized - clearing auth and redirecting');
+                console.warn('⚠️ 401 Unauthorized - clearing auth and redirecting to landing');
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('userId');
                 localStorage.removeItem('username');
                 localStorage.removeItem('is_guest');
+                localStorage.removeItem('remember_me');
+                localStorage.removeItem('currentSessionId');
                 message = 'Session expired. Please log in again.';
-                // Only redirect if not already on landing page
-                if (window.location.pathname !== '/' && window.location.pathname !== '/home') {
-                    window.location.href = '/';
-                }
+                // Notify App.tsx to reset state to landing page
+                window.dispatchEvent(new CustomEvent('auth:invalid'));
                 break;
             case 403:
                 message = 'You do not have permission to perform this action.';

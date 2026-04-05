@@ -86,6 +86,21 @@ function App() {
         initAuth();
     }, [checkAuthPersistence]);
 
+    // Listen for auth invalidation from API interceptor (401)
+    useEffect(() => {
+        const handleAuthInvalid = () => {
+            console.warn('🔄 Auth invalidated by API interceptor — redirecting to landing');
+            setLocalUserId(null);
+            setCurrentPage('landing');
+            setActiveSessions([]);
+            setSelectedSessionId(null);
+            setSelectedCharacterId(null);
+        };
+
+        window.addEventListener('auth:invalid', handleAuthInvalid);
+        return () => window.removeEventListener('auth:invalid', handleAuthInvalid);
+    }, [setActiveSessions]);
+
     // Handle authentication state changes - reload sessions on auth change
     useEffect(() => {
         if (isInitialized && !isLoadingAfterAuth) {
