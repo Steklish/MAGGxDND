@@ -94,7 +94,7 @@
 
 .footer-links a:hover,
 .footer-link-btn {
-    color: var(--accent-orange);
+    color: #9ca3af;
     transform: translateX(4px);
     background: none;
     border: none;
@@ -102,13 +102,12 @@
     padding: 0;
     font-family: inherit;
     font-size: inherit;
-    color: inherit;
     text-align: left;
     width: 100%;
 }
 
 .footer-link-btn:hover {
-    color: var(--accent-orange);
+    color: #6b7280;
     transform: translateX(4px);
 }
 

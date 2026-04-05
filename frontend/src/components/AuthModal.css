@@ -178,7 +178,7 @@
 .auth-close {
     background: transparent;
     border: none;
-    color: var(--text-secondary);
+    color: #ef4444;
     font-size: 24px;
     cursor: pointer;
     padding: 4px;
@@ -190,8 +190,8 @@
 }
 
 .auth-close:hover {
-    color: var(--text-primary);
-    background: var(--bg-tertiary);
+    color: #dc2626;
+    background: rgba(239, 68, 68, 0.1);
 }
 
 .auth-modal-body {
@@ -493,6 +493,11 @@
 .toggle-auth {
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    color: #8b5cf6 !important;
+}
+
+.toggle-auth:hover {
+    color: #7c3aed !important;
 }
 
 /* Scrollbar styling */

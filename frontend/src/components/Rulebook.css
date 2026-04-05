@@ -49,7 +49,7 @@
 .rb-close {
     background: transparent;
     border: none;
-    color: var(--text-secondary);
+    color: #64748b;
     font-size: 24px;
     cursor: pointer;
     padding: 4px;
@@ -61,8 +61,8 @@
 }
 
 .rb-close:hover {
-    color: var(--text-primary);
-    background: var(--bg-tertiary);
+    color: #475569;
+    background: rgba(100, 116, 139, 0.1);
 }
 
 .rulebook-search {

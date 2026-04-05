@@ -326,9 +326,9 @@
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--text-primary);
+    border: 1px solid rgba(255, 107, 53, 0.3);
+    background: rgba(255, 107, 53, 0.1);
+    color: #ff8c42;
     font-size: 1.3rem;
     font-weight: 600;
     cursor: pointer;
@@ -339,11 +339,11 @@
 }
 
 .stat-btn:hover:not(:disabled) {
-    background: var(--accent-orange);
-    border-color: var(--accent-orange);
+    background: #ff8c42;
+    border-color: #ff8c42;
     color: #fff;
     transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.5);
 }
 
 .stat-btn:active:not(:disabled) {
@@ -447,10 +447,10 @@
 .cc-cancel,
 .cc-back {
     padding: 12px 28px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(100, 180, 255, 0.08);
+    border: 1px solid rgba(100, 180, 255, 0.25);
     border-radius: 12px;
-    color: var(--text-primary);
+    color: #64b4ff;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -459,15 +459,16 @@
 
 .cc-cancel:hover,
 .cc-back:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(100, 180, 255, 0.15);
+    border-color: rgba(100, 180, 255, 0.4);
+    color: #8ac8ff;
     transform: translateY(-2px);
 }
 
 .cc-next,
 .cc-submit {
     padding: 12px 32px;
-    background: linear-gradient(135deg, var(--accent-orange), #ff8c42);
+    background: linear-gradient(135deg, #f4a261, #e76f53);
     border: none;
     border-radius: 12px;
     color: #fff;
@@ -475,15 +476,15 @@
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     font-size: 0.95rem;
-    box-shadow: 0 4px 16px rgba(255, 107, 53, 0.3);
+    box-shadow: 0 4px 16px rgba(244, 162, 97, 0.4);
 }
 
 .cc-next:hover,
 .cc-submit:hover:not(:disabled) {
     transform: translateY(-3px);
     box-shadow:
-        0 8px 24px rgba(255, 107, 53, 0.5),
-        0 0 40px rgba(255, 107, 53, 0.2);
+        0 8px 24px rgba(244, 162, 97, 0.6),
+        0 0 40px rgba(231, 111, 83, 0.3);
 }
 
 .cc-next:disabled,
@@ -896,10 +897,10 @@
 
 .upload-btn {
     padding: 14px 22px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(255, 255, 255, 0.12);
+    background: rgba(162, 122, 255, 0.1);
+    border: 2px solid rgba(162, 122, 255, 0.25);
     border-radius: 12px;
-    color: var(--text-primary);
+    color: #a27aff;
     font-size: 0.95rem;
     font-weight: 700;
     cursor: pointer;
@@ -908,8 +909,9 @@
 }
 
 .upload-btn:hover {
-    background: rgba(255, 107, 53, 0.1);
-    border-color: rgba(255, 107, 53, 0.3);
+    background: rgba(162, 122, 255, 0.2);
+    border-color: #a27aff;
+    box-shadow: 0 0 16px rgba(162, 122, 255, 0.25);
 }
 
 /* AI Generate Row */

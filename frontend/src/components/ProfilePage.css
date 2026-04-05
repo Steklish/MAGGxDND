@@ -119,10 +119,10 @@
 
 .btn-back-nav {
     padding: 10px 20px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: #6366f1;
+    border: 1px solid #6366f1;
     border-radius: 8px;
-    color: var(--text-primary);
+    color: #ffffff;
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;
@@ -133,18 +133,19 @@
 }
 
 .btn-back-nav:hover {
-    border-color: var(--accent-green);
-    color: var(--accent-green);
+    background: #4f46e5;
+    border-color: #4f46e5;
+    color: #ffffff;
     transform: translateX(-4px);
-    box-shadow: 0 4px 12px rgba(42, 157, 143, 0.2);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
 
 .btn-home {
     padding: 10px 20px;
-    background: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-gold) 100%);
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     border: none;
     border-radius: 8px;
-    color: var(--text-primary);
+    color: #ffffff;
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;
@@ -156,7 +157,7 @@
 
 .btn-home:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
     filter: brightness(1.1);
 }
 
@@ -284,10 +285,10 @@
 
 .btn-create {
     padding: 12px 28px;
-    background: linear-gradient(135deg, #FF8A5C 0%, #FFB347 100%);
-    border: 2px solid #FF8A5C;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    border: 2px solid #f97316;
     border-radius: 8px;
-    color: #1a1a1a;
+    color: #ffffff;
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
@@ -298,9 +299,9 @@
 }
 
 .btn-create:hover {
-    background: linear-gradient(135deg, #FFB347 0%, #FF8A5C 100%);
+    background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 138, 92, 0.6);
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.6);
 }
 
 .btn-icon {
@@ -407,8 +408,8 @@
     width: 28px;
     height: 28px;
     border-radius: 6px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: transparent;
+    border: 1px solid #ef4444;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -422,8 +423,8 @@
 }
 
 .btn-delete-char:hover {
-    background: var(--accent-red);
-    border-color: var(--accent-red);
+    background: #ef4444;
+    border-color: #ef4444;
 }
 
 /* Character Display */
@@ -500,18 +501,19 @@
 
 .btn-edit {
     padding: 8px 20px;
-    background: var(--accent-green);
+    background: #3b82f6;
     border: none;
     border-radius: 6px;
-    color: var(--bg-primary);
+    color: #ffffff;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .btn-edit:hover {
+    background: #2563eb;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(42, 157, 143, 0.4);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .edit-actions {
@@ -521,32 +523,34 @@
 
 .btn-save {
     padding: 8px 20px;
-    background: var(--accent-green);
+    background: #22c55e;
     border: none;
     border-radius: 6px;
-    color: var(--bg-primary);
+    color: #ffffff;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .btn-save:hover {
+    background: #16a34a;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(42, 157, 143, 0.4);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
 }
 
 .btn-cancel {
     padding: 8px 20px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: #6b7280;
+    border: 1px solid #6b7280;
     border-radius: 6px;
-    color: var(--text-primary);
+    color: #ffffff;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .btn-cancel:hover {
-    background: var(--bg-secondary);
+    background: #4b5563;
+    border-color: #4b5563;
 }
 
 /* Stats Bar */
@@ -791,10 +795,10 @@
 
 .btn-create-game {
     padding: 10px 24px;
-    background: linear-gradient(135deg, #2ECC71 0%, #14A76C 100%);
-    border: 2px solid #2ECC71;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    border: 2px solid #8b5cf6;
     border-radius: 6px;
-    color: #1a1a1a;
+    color: #ffffff;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -804,9 +808,9 @@
 }
 
 .btn-create-game:hover {
-    background: linear-gradient(135deg, #14A76C 0%, #2ECC71 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(46, 204, 113, 0.5);
+    box-shadow: 0 6px 15px rgba(139, 92, 246, 0.5);
 }
 
 .games-section {
@@ -910,18 +914,19 @@
 .btn-join-game {
     width: 100%;
     padding: 10px 20px;
-    background: var(--accent-green);
+    background: #06b6d4;
     border: none;
     border-radius: 6px;
-    color: var(--bg-primary);
+    color: #ffffff;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .btn-join-game:hover {
+    background: #0891b2;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(42, 157, 143, 0.4);
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
 }
 
 .game-card-actions {
@@ -933,19 +938,19 @@
 .btn-view-session {
     flex: 1;
     padding: 10px 16px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: #14b8a6;
+    border: 1px solid #14b8a6;
     border-radius: 6px;
-    color: var(--text-primary);
+    color: #ffffff;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .btn-view-session:hover {
-    background: var(--accent-purple);
-    border-color: var(--accent-purple);
-    color: var(--bg-primary);
+    background: #0d9488;
+    border-color: #0d9488;
+    color: #ffffff;
 }
 
 .games-list {
@@ -1093,25 +1098,25 @@
 .btn-danger {
     padding: 10px 20px;
     background: transparent;
-    border: 1px solid var(--accent-red);
+    border: 1px solid #dc2626;
     border-radius: 6px;
-    color: var(--accent-red);
+    color: #dc2626;
     cursor: pointer;
     transition: all 0.2s ease;
     font-weight: 600;
 }
 
 .btn-danger:hover {
-    background: var(--accent-red);
-    color: var(--bg-primary);
+    background: #dc2626;
+    color: #ffffff;
 }
 
 .btn-logout {
     padding: 12px 28px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: #ef4444;
+    border: 1px solid #ef4444;
     border-radius: 6px;
-    color: var(--text-primary);
+    color: #ffffff;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
@@ -1120,9 +1125,9 @@
 }
 
 .btn-logout:hover {
-    background: var(--accent-red);
-    border-color: var(--accent-red);
-    color: var(--bg-primary);
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #ffffff;
 }
 
 /* Loading Spinner */

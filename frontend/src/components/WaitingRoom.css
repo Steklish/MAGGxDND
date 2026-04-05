@@ -139,17 +139,17 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(139, 92, 246, 0.2);
+    border: 1px solid rgba(139, 92, 246, 0.3);
     border-radius: 8px;
-    color: #fff;
+    color: #8b5cf6;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .waiting-room-header .btn-profile:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(139, 92, 246, 0.3);
+    border-color: #8b5cf6;
 }
 
 .waiting-room-header .profile-avatar {
@@ -163,18 +163,17 @@
 
 .waiting-room-header .btn-logout {
     padding: 0.5rem;
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
     border-radius: 8px;
-    color: #fff;
-    cursor: pointer;
+    color: #ef4444;
     font-size: 1.25rem;
     transition: all 0.2s ease;
 }
 
 .waiting-room-header .btn-logout:hover {
-    background: rgba(233, 69, 96, 0.2);
-    border-color: #e94560;
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
 }
 
 /* Content */
@@ -256,20 +255,21 @@
     align-items: center;
     gap: 0.5rem;
     padding: 1rem 2rem;
-    background: linear-gradient(135deg, #48c78e 0%, #2ecc71 100%);
+    background: #f59e0b;
     border: none;
     border-radius: 12px;
-    color: #fff;
+    color: #1a1a1a;
     font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(72, 199, 142, 0.3);
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
 }
 
 .btn-start-game:hover:not(.disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(72, 199, 142, 0.4);
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    background: #d97706;
 }
 
 .btn-start-game.disabled {
@@ -283,8 +283,8 @@
     align-items: center;
     gap: 0.5rem;
     padding: 1rem 2rem;
-    background: rgba(102, 126, 234, 0.2);
-    border: 2px solid rgba(102, 126, 234, 0.5);
+    background: rgba(6, 182, 212, 0.2);
+    border: 2px solid rgba(6, 182, 212, 0.5);
     border-radius: 12px;
     color: #fff;
     font-size: 1.1rem;
@@ -294,13 +294,13 @@
 }
 
 .btn-ready:hover {
-    background: rgba(102, 126, 234, 0.3);
-    border-color: #667eea;
+    background: rgba(6, 182, 212, 0.3);
+    border-color: #06b6d4;
 }
 
 .btn-ready.ready {
-    background: linear-gradient(135deg, #48c78e 0%, #2ecc71 100%);
-    border-color: #48c78e;
+    background: #06b6d4;
+    border-color: #06b6d4;
 }
 
 .loading-spinner-small {
@@ -392,10 +392,10 @@
 
 .btn-copy {
     padding: 0.25rem 0.5rem;
-    background: rgba(102, 126, 234, 0.2);
-    border: 1px solid rgba(102, 126, 234, 0.3);
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid rgba(59, 130, 246, 0.3);
     border-radius: 4px;
-    color: #667eea;
+    color: #3b82f6;
     font-size: 0.75rem;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -403,7 +403,7 @@
 }
 
 .btn-copy:hover {
-    background: rgba(102, 126, 234, 0.3);
+    background: rgba(59, 130, 246, 0.3);
 }
 
 .info-description {
@@ -603,8 +603,8 @@
     align-items: center;
     gap: 0.5rem;
     padding: 1rem 2rem;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: #64748b;
+    border: 1px solid #64748b;
     border-radius: 12px;
     color: #fff;
     font-size: 1rem;
@@ -614,8 +614,8 @@
 }
 
 .btn-back-large:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
+    background: #475569;
+    border-color: #475569;
     transform: translateY(-2px);
 }
 
@@ -656,23 +656,24 @@
 }
 
 .error-retry-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #14b8a6;
     border: none;
     color: #fff;
 }
 
 .error-home-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: #14b8a6;
+    border: none;
     color: #fff;
 }
 
 .error-retry-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 20px rgba(20, 184, 166, 0.4);
+    background: #0d9488;
 }
 
 .error-home-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
+    background: #0d9488;
+    transform: translateY(-2px);
 }

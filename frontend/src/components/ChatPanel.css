@@ -54,10 +54,10 @@
 
 .filter-buttons button {
     padding: 6px 12px;
-    background-color: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background-color: #64748b;
+    border: 1px solid #64748b;
     border-radius: var(--radius-sm);
-    color: var(--text-secondary);
+    color: #fff;
     font-size: 0.8rem;
     font-family: 'Rajdhani', sans-serif;
     text-transform: uppercase;
@@ -80,9 +80,9 @@
 }
 
 .filter-buttons button:hover {
-    background-color: var(--bg-primary);
-    border-color: var(--accent-orange);
-    color: var(--text-primary);
+    background-color: #475569;
+    border-color: #475569;
+    color: #fff;
     transform: translateY(-2px);
 }
 

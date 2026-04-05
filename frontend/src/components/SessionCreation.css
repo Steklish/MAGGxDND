@@ -364,10 +364,10 @@
 .sc-cancel,
 .sc-back {
     padding: 12px 24px;
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
+    background: #3b82f6;
+    border: 1px solid #3b82f6;
     border-radius: 8px;
-    color: var(--text-primary);
+    color: #fff;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -375,15 +375,15 @@
 
 .sc-cancel:hover,
 .sc-back:hover {
-    background: var(--bg-tertiary);
-    border-color: var(--text-muted);
+    background: #2563eb;
+    border-color: #2563eb;
 }
 
 .sc-next,
 .sc-submit {
     padding: 12px 28px;
-    background: linear-gradient(135deg, #FF8A5C 0%, #FFB347 100%);
-    border: 2px solid #FF8A5C;
+    background: #f59e0b;
+    border: 2px solid #f59e0b;
     border-radius: 8px;
     color: #1a1a1a;
     font-weight: 700;
@@ -393,9 +393,10 @@
 
 .sc-next:hover,
 .sc-submit:hover:not(:disabled) {
-    background: linear-gradient(135deg, #FFB347 0%, #FF8A5C 100%);
+    background: #d97706;
+    border-color: #d97706;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 138, 92, 0.5);
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
 }
 
 .sc-submit:disabled {
