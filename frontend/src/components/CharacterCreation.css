@@ -722,6 +722,415 @@
     font-size: 0.95rem;
 }
 
+/* ==================== NEW STYLES FOR D&D 5e ==================== */
+
+/* Traits List */
+.traits-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.trait-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.15), rgba(255, 107, 53, 0.05));
+    border: 1px solid rgba(255, 107, 53, 0.3);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: var(--accent-orange);
+    font-weight: 600;
+}
+
+.trait-icon {
+    font-size: 0.7rem;
+}
+
+/* Languages */
+.languages-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.lang-tag {
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Class Features */
+.class-features {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.feature-block {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 16px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.feature-block h4 {
+    margin: 0 0 10px;
+    font-size: 0.95rem;
+    color: var(--accent-orange);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.feature-value {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.feature-value .highlight {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--accent-orange);
+}
+
+.feature-desc {
+    width: 100%;
+    margin: 8px 0 0;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.85rem;
+}
+
+.save-tag,
+.prof-tag {
+    padding: 6px 12px;
+    background: rgba(100, 149, 237, 0.15);
+    border: 1px solid rgba(100, 149, 237, 0.3);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--accent-blue);
+    font-weight: 600;
+}
+
+.none-tag {
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.4);
+    font-style: italic;
+}
+
+/* Skill Choices */
+.class-skill-choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.skill-choice-btn {
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.skill-choice-btn:hover:not(.chosen) {
+    background: rgba(255, 107, 53, 0.1);
+    border-color: rgba(255, 107, 53, 0.3);
+}
+
+.skill-choice-btn.chosen {
+    background: linear-gradient(135deg, var(--accent-orange), #ff8c42);
+    border-color: var(--accent-orange);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.skill-ability {
+    font-size: 0.7rem;
+    opacity: 0.6;
+    margin-left: 4px;
+}
+
+.choice-counter {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 600;
+}
+
+/* Stat Value Group */
+.stat-value-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.racial-bonus {
+    font-size: 0.85rem;
+    color: var(--accent-green);
+    font-weight: 700;
+}
+
+.stat-final {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.points-remaining {
+    color: var(--accent-green);
+    font-weight: 700;
+}
+
+.points-max {
+    color: var(--accent-orange);
+    font-weight: 700;
+}
+
+/* Skills Section */
+.skills-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.skill-category h4 {
+    margin: 0 0 12px;
+    font-size: 1rem;
+    color: var(--accent-orange);
+    font-weight: 700;
+}
+
+.fixed-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.fixed-skill-tag {
+    padding: 8px 14px;
+    background: rgba(100, 149, 237, 0.15);
+    border: 1px solid rgba(100, 149, 237, 0.3);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: var(--accent-blue);
+    font-weight: 600;
+}
+
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+}
+
+.skill-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.skill-btn:hover:not(.disabled) {
+    background: rgba(255, 107, 53, 0.1);
+    border-color: rgba(255, 107, 53, 0.3);
+    transform: translateY(-2px);
+}
+
+.skill-btn.chosen {
+    background: linear-gradient(135deg, var(--accent-orange), #ff8c42);
+    border-color: var(--accent-orange);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.skill-btn.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.skill-name {
+    flex: 1;
+}
+
+.skill-check {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.skill-summary {
+    background: rgba(255, 255, 255, 0.04);
+    padding: 16px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.skill-summary h4 {
+    margin: 0 0 12px;
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.total-skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.total-skill-tag {
+    padding: 6px 12px;
+    background: rgba(255, 107, 53, 0.1);
+    border: 1px solid rgba(255, 107, 53, 0.3);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    color: var(--accent-orange);
+    font-weight: 600;
+}
+
+/* Equipment Section */
+.equipment-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.equipment-category h4 {
+    margin: 0 0 12px;
+    font-size: 1rem;
+    color: var(--accent-orange);
+    font-weight: 700;
+}
+
+.equipment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.equipment-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.equipment-item.weapon {
+    background: rgba(230, 57, 70, 0.08);
+    border-color: rgba(230, 57, 70, 0.2);
+}
+
+.equip-icon {
+    font-size: 1.1rem;
+}
+
+.equipment-summary-box {
+    background: linear-gradient(135deg, rgba(233, 196, 106, 0.1), rgba(233, 196, 106, 0.03));
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(233, 196, 106, 0.3);
+}
+
+.equipment-summary-box h4 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+    color: var(--accent-yellow);
+    font-weight: 700;
+}
+
+.gold-info {
+    margin: 0 0 12px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85rem;
+}
+
+.gold-amounts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.gold-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.gold-value {
+    font-weight: 700;
+    color: var(--accent-yellow);
+}
+
+/* Personality Section */
+.personality-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.personality-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.preview-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.preview-section h5 {
+    margin: 0 0 12px;
+    font-size: 0.95rem;
+    color: var(--accent-orange);
+    font-weight: 700;
+}
+
+.preview-section p {
+    margin: 0 0 8px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
 /* Animations */
 @keyframes fadeIn {
     from {
