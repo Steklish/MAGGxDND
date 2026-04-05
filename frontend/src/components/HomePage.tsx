@@ -19,6 +19,7 @@ interface HomePageProps {
 
 export const HomePage: React.FC<HomePageProps> = ({
     onShowProfile,
+    onCreateCharacter,
     onViewSession,
     onViewCharacter,
     onJoinSession,
@@ -415,12 +416,9 @@ export const HomePage: React.FC<HomePageProps> = ({
                     <div className="characters-section">
                         <div className="section-header">
                             <h2>Your Characters</h2>
-                            <button 
+                            <button
                                 className="btn-primary"
-                                onClick={() => {
-                                    // Navigate to character creation or open modal
-                                    alert('Character creation coming soon!');
-                                }}
+                                onClick={onCreateCharacter}
                             >
                                 + Create Character
                             </button>
@@ -452,11 +450,9 @@ export const HomePage: React.FC<HomePageProps> = ({
                                 <span className="empty-icon">⚔️</span>
                                 <h3>No characters yet</h3>
                                 <p>Create your first character and start your adventure!</p>
-                                <button 
+                                <button
                                     className="btn-primary btn-large"
-                                    onClick={() => {
-                                        alert('Character creation coming soon!');
-                                    }}
+                                    onClick={onCreateCharacter}
                                 >
                                     Create Character
                                 </button>
