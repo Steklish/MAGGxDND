@@ -393,12 +393,27 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                 })}
                             </div>
                             {raceData.subraces && formData.race && (
-                                <div className="form-group large" style={{ marginTop: '20px' }}>
+                                <div className="subrace-selection" style={{ marginTop: '20px' }}>
                                     <label>Subrace</label>
-                                    <select id="subrace" value={formData.subrace} onChange={(e) => setFormData(prev => ({ ...prev, subrace: e.target.value }))}>
-                                        <option value="">— None —</option>
-                                        {raceData.subraces.map(sr => (<option key={sr} value={sr}>{sr}</option>))}
-                                    </select>
+                                    <div className="subrace-selection-grid">
+                                        <button
+                                            type="button"
+                                            className={`subrace-card ${!formData.subrace ? 'selected' : ''}`}
+                                            onClick={() => setFormData(prev => ({ ...prev, subrace: '' }))}
+                                        >
+                                            — None —
+                                        </button>
+                                        {raceData.subraces.map(sr => (
+                                            <button
+                                                key={sr}
+                                                type="button"
+                                                className={`subrace-card ${formData.subrace === sr ? 'selected' : ''}`}
+                                                onClick={() => setFormData(prev => ({ ...prev, subrace: sr }))}
+                                            >
+                                                {sr}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
                             <div className="race-preview">
@@ -522,7 +537,6 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                                 <button type="button" onClick={() => handleStatChange(stat.key, 1)} className="stat-btn plus" disabled={stat.base >= 15 || pointsRemaining <= 0}>+</button>
                                             </div>
                                             {racialBonus > 0 && <span className="racial-bonus-small">+{racialBonus} race</span>}
-                                            <span className="ability-final-value">→ {stat.final}</span>
                                             <span className="ability-modifier">({getModifier(stat.final) >= 0 ? '+' : ''}{getModifier(stat.final)})</span>
                                         </div>
                                     );

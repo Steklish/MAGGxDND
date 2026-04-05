@@ -1534,6 +1534,45 @@
     color: rgba(255, 214, 107, 0.9);
 }
 
+/* Subrace Selection */
+.subrace-selection label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+}
+
+.subrace-selection-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.subrace-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.subrace-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 107, 53, 0.4);
+    transform: translateY(-1px);
+}
+
+.subrace-card.selected {
+    background: rgba(255, 107, 53, 0.15);
+    border-color: var(--accent-orange);
+    box-shadow: 0 0 16px rgba(255, 107, 53, 0.15);
+}
+
 /* Ability Scores Top */
 .ability-scores-top {
     display: grid;
