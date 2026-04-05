@@ -1556,12 +1556,89 @@
 }
 
 .race-card.selected,
-.class-card.selected,
 .background-card.selected,
 .trait-card.selected {
     background: rgba(255, 107, 53, 0.15);
     border-color: var(--accent-orange);
     box-shadow: 0 0 20px rgba(255, 107, 53, 0.2);
+}
+
+/* Class cards — unique colors per class */
+.class-card.selected {
+    color: #fff;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.class-card.selected[data-class="barbarian"] {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    border-color: #ef4444;
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
+}
+
+.class-card.selected[data-class="bard"] {
+    background: linear-gradient(135deg, #ec4899, #db2777);
+    border-color: #f472b6;
+    box-shadow: 0 0 25px rgba(236, 72, 153, 0.5);
+}
+
+.class-card.selected[data-class="cleric"] {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-color: #fbbf24;
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.5);
+}
+
+.class-card.selected[data-class="druid"] {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    border-color: #22c55e;
+    box-shadow: 0 0 25px rgba(34, 197, 94, 0.5);
+}
+
+.class-card.selected[data-class="fighter"] {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    border-color: #9ca3af;
+    box-shadow: 0 0 25px rgba(156, 163, 175, 0.4);
+}
+
+.class-card.selected[data-class="monk"] {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+    border-color: #22d3ee;
+    box-shadow: 0 0 25px rgba(6, 182, 212, 0.5);
+}
+
+.class-card.selected[data-class="paladin"] {
+    background: linear-gradient(135deg, #eab308, #ca8a04);
+    border-color: #fde047;
+    box-shadow: 0 0 25px rgba(234, 179, 8, 0.5);
+}
+
+.class-card.selected[data-class="ranger"] {
+    background: linear-gradient(135deg, #059669, #047857);
+    border-color: #10b981;
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.5);
+}
+
+.class-card.selected[data-class="rogue"] {
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    border-color: #6366f1;
+    box-shadow: 0 0 25px rgba(99, 102, 241, 0.5);
+}
+
+.class-card.selected[data-class="sorcerer"] {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    border-color: #a78bfa;
+    box-shadow: 0 0 25px rgba(124, 58, 237, 0.5);
+}
+
+.class-card.selected[data-class="warlock"] {
+    background: linear-gradient(135deg, #a855f7, #9333ea);
+    border-color: #c084fc;
+    box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
+}
+
+.class-card.selected[data-class="wizard"] {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-color: #60a5fa;
+    box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
 }
 
 .race-name,

@@ -444,6 +444,7 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                             key={key}
                                             type="button"
                                             className={`class-card ${isSelected ? 'selected' : ''}`}
+                                            data-class={key.toLowerCase()}
                                             onClick={() => setFormData(prev => ({ ...prev, char_class: key, skillChoices: [] }))}
                                         >
                                             <span className="class-name">{cls.name}</span>
@@ -580,6 +581,22 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                     {step === 6 && (
                         <div className="cc-section fade-in">
                             <h3>6. Ability Scores</h3>
+                            <div className="stat-summary">
+                                <h4>Combat Preview</h4>
+                                <div className="derived-stats">
+                                    <div className="derived-stat"><span>❤️ HP</span><span className="value">{calculateHP()}</span></div>
+                                    <div className="derived-stat"><span>🛡️ AC</span><span className="value">{calculateAC()}</span></div>
+                                    <div className="derived-stat"><span>⚡ Initiative</span><span className="value">{getModifier(finalDex) >= 0 ? '+' : ''}{getModifier(finalDex)}</span></div>
+                                    <div className="derived-stat"><span>👁️ Passive Wis</span><span className="value">{10 + getModifier(finalWis)}</span></div>
+                                    <div className="derived-stat"><span>🏃 Speed</span><span className="value">{raceData?.speed || 30} ft</span></div>
+                                    <div className="derived-stat"><span>🎯 Proficiency</span><span className="value">+{proficiencyBonus}</span></div>
+                                </div>
+                            </div>
+                            <p className="stat-points">
+                                Points: {pointsUsed}/{MAX_POINTS}
+                                {pointsRemaining > 0 && <span className="points-remaining"> ({pointsRemaining} left)</span>}
+                                {pointsRemaining <= 0 && <span className="points-max"> — Max!</span>}
+                            </p>
                             <p className="step-description">Distribute {MAX_POINTS} points using the Point Buy system. Range: 8–15 before racial bonuses.</p>
                             <div className="ability-scores-top">
                                 {[
@@ -608,22 +625,6 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                     );
                                 })}
                             </div>
-                            <div className="stat-summary">
-                                <h4>Combat Preview</h4>
-                                <div className="derived-stats">
-                                    <div className="derived-stat"><span>❤️ HP</span><span className="value">{calculateHP()}</span></div>
-                                    <div className="derived-stat"><span>🛡️ AC</span><span className="value">{calculateAC()}</span></div>
-                                    <div className="derived-stat"><span>⚡ Initiative</span><span className="value">{getModifier(finalDex) >= 0 ? '+' : ''}{getModifier(finalDex)}</span></div>
-                                    <div className="derived-stat"><span>👁️ Passive Wis</span><span className="value">{10 + getModifier(finalWis)}</span></div>
-                                    <div className="derived-stat"><span>🏃 Speed</span><span className="value">{raceData?.speed || 30} ft</span></div>
-                                    <div className="derived-stat"><span>🎯 Proficiency</span><span className="value">+{proficiencyBonus}</span></div>
-                                </div>
-                            </div>
-                            <p className="stat-points">
-                                Points: {pointsUsed}/{MAX_POINTS}
-                                {pointsRemaining > 0 && <span className="points-remaining"> ({pointsRemaining} left)</span>}
-                                {pointsRemaining <= 0 && <span className="points-max"> — Max!</span>}
-                            </p>
                             <div className="cc-actions">
                                 <button type="button" className="cc-back" onClick={() => setStep(5)}>← Back</button>
                                 <button type="button" className="cc-next" onClick={() => setStep(7)}>Next →</button>
