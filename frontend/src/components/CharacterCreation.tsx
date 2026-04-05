@@ -498,7 +498,7 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                             <div className="alignment-gradient-bar">
                                 <button
                                     type="button"
-                                    className={`align-btn align-good ${formData.alignment === 'Lawful Good' ? 'selected' : ''}`}
+                                    className={`align-btn ${formData.alignment === 'Lawful Good' ? 'selected align-lawful-good' : ''}`}
                                     onClick={() => setFormData(prev => ({ ...prev, alignment: 'Lawful Good' }))}
                                     title="Lawful Good - Combines honor and compassion"
                                 >
@@ -506,7 +506,7 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                 </button>
                                 <button
                                     type="button"
-                                    className={`align-btn align-good-2 ${formData.alignment === 'Neutral Good' ? 'selected' : ''}`}
+                                    className={`align-btn ${formData.alignment === 'Neutral Good' ? 'selected align-neutral-good' : ''}`}
                                     onClick={() => setFormData(prev => ({ ...prev, alignment: 'Neutral Good' }))}
                                     title="Neutral Good - Goodness without law or chaos"
                                 >
@@ -514,7 +514,7 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                 </button>
                                 <button
                                     type="button"
-                                    className={`align-btn align-good-3 ${formData.alignment === 'Chaotic Good' ? 'selected' : ''}`}
+                                    className={`align-btn ${formData.alignment === 'Chaotic Good' ? 'selected align-chaotic-good' : ''}`}
                                     onClick={() => setFormData(prev => ({ ...prev, alignment: 'Chaotic Good' }))}
                                     title="Chaotic Good - Compassion with freedom"
                                 >
@@ -522,7 +522,15 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                 </button>
                                 <button
                                     type="button"
-                                    className={`align-btn align-neutral ${formData.alignment === 'True Neutral' ? 'selected' : ''}`}
+                                    className={`align-btn ${formData.alignment === 'Lawful Neutral' ? 'selected align-lawful-neutral' : ''}`}
+                                    onClick={() => setFormData(prev => ({ ...prev, alignment: 'Lawful Neutral' }))}
+                                    title="Lawful Neutral - Order above all"
+                                >
+                                    Lawful Neutral
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`align-btn ${formData.alignment === 'True Neutral' ? 'selected align-true-neutral' : ''}`}
                                     onClick={() => setFormData(prev => ({ ...prev, alignment: 'True Neutral' }))}
                                     title="True Neutral - Balance above all"
                                 >
@@ -530,7 +538,31 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                 </button>
                                 <button
                                     type="button"
-                                    className={`align-btn align-chaotic ${formData.alignment === 'Chaotic Evil' ? 'selected' : ''}`}
+                                    className={`align-btn ${formData.alignment === 'Chaotic Neutral' ? 'selected align-chaotic-neutral' : ''}`}
+                                    onClick={() => setFormData(prev => ({ ...prev, alignment: 'Chaotic Neutral' }))}
+                                    title="Chaotic Neutral - Freedom above all"
+                                >
+                                    Chaotic Neutral
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`align-btn ${formData.alignment === 'Lawful Evil' ? 'selected align-lawful-evil' : ''}`}
+                                    onClick={() => setFormData(prev => ({ ...prev, alignment: 'Lawful Evil' }))}
+                                    title="Lawful Evil - Methodical and ruthless"
+                                >
+                                    Lawful Evil
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`align-btn ${formData.alignment === 'Neutral Evil' ? 'selected align-neutral-evil' : ''}`}
+                                    onClick={() => setFormData(prev => ({ ...prev, alignment: 'Neutral Evil' }))}
+                                    title="Neutral Evil - Self-interest without restraint"
+                                >
+                                    Neutral Evil
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`align-btn ${formData.alignment === 'Chaotic Evil' ? 'selected align-chaotic-evil' : ''}`}
                                     onClick={() => setFormData(prev => ({ ...prev, alignment: 'Chaotic Evil' }))}
                                     title="Chaotic Evil - Destruction and randomness"
                                 >
