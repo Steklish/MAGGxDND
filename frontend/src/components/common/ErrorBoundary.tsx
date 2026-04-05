@@ -41,21 +41,21 @@ const ERROR_DESCRIPTIONS: Record<string, string> = {
 
 const getErrorCode = (error: Error | null): string => {
     if (!error) return 'UNKNOWN_ERROR';
-    
+
     const errorMessage = error.message;
-    
+
     for (const [key, code] of Object.entries(ERROR_CODE_MAP)) {
         if (errorMessage.toLowerCase().includes(key.toLowerCase())) {
             return code;
         }
     }
-    
+
     // Check for HTTP status codes in message
     const statusMatch = errorMessage.match(/\b([0-9]{3})\b/);
     if (statusMatch && ERROR_CODE_MAP[statusMatch[1]]) {
         return ERROR_CODE_MAP[statusMatch[1]];
     }
-    
+
     return 'UNKNOWN_ERROR';
 };
 
@@ -80,6 +80,25 @@ export class ErrorBoundary extends Component<Props, State> {
         if (this.props.onError) {
             this.props.onError(error, errorInfo);
         }
+    }
+
+    public componentDidUpdate(_prevProps: Props, prevState: State) {
+        // Toggle body scroll lock when error state changes
+        if (this.state.hasError !== prevState.hasError) {
+            if (this.state.hasError) {
+                document.documentElement.style.overflow = 'hidden';
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.documentElement.style.overflow = '';
+                document.body.style.overflow = '';
+            }
+        }
+    }
+
+    public componentWillUnmount() {
+        // Restore scroll on unmount
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
     }
 
     private handleRetry = () => {

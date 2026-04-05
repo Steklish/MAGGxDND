@@ -20,6 +20,31 @@
     pointer-events: auto;
 }
 
+/* Hide scrollbars when error page is visible */
+.error-page.visible ~ * {
+    overflow: hidden !important;
+}
+
+html:has(.error-page.visible) {
+    overflow: hidden !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+html:has(.error-page.visible)::-webkit-scrollbar {
+    display: none;
+}
+
+body:has(.error-page.visible) {
+    overflow: hidden !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+body:has(.error-page.visible)::-webkit-scrollbar {
+    display: none;
+}
+
 .error-background {
     position: absolute;
     top: 0;

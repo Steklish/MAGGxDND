@@ -14,6 +14,27 @@
     padding: var(--spacing-lg);
 }
 
+/* Hide scrollbars when error boundary is shown */
+html:has(.error-boundary) {
+    overflow: hidden !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+html:has(.error-boundary)::-webkit-scrollbar {
+    display: none;
+}
+
+body:has(.error-boundary) {
+    overflow: hidden !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+body:has(.error-boundary)::-webkit-scrollbar {
+    display: none;
+}
+
 .error-boundary::before {
     content: '';
     position: absolute;

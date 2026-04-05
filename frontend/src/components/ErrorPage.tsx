@@ -19,6 +19,20 @@ export const ErrorPage: React.FC<ErrorPageProps> = ({
         requestAnimationFrame(() => setVisible(true));
     }, []);
 
+    useEffect(() => {
+        // Disable body scroll when error page is shown
+        const html = document.documentElement;
+        const body = document.body;
+        html.style.overflow = 'hidden';
+        body.style.overflow = 'hidden';
+
+        return () => {
+            // Restore body scroll when error page is removed
+            html.style.overflow = '';
+            body.style.overflow = '';
+        };
+    }, []);
+
     return (
         <div className={`error-page ${visible ? 'visible' : ''}`}>
             <div className="error-background">
