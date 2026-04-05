@@ -289,99 +289,94 @@ export const HomePage: React.FC<HomePageProps> = ({
                 {activeTab === 'overview' && (
                     <div className="overview-section">
                         {/* Recent Sessions */}
-                        <div className="content-card">
-                            <div className="card-header">
-                                <h2>Recent Sessions</h2>
-                                <button 
-                                    className="btn-view-all"
-                                    onClick={() => setActiveTab('sessions')}
+                        <div className="card-header">
+                            <h2>Recent Sessions</h2>
+                            <button
+                                className="btn-view-all"
+                                onClick={() => setActiveTab('sessions')}
+                            >
+                                View All →
+                            </button>
+                        </div>
+                        {activeSessions.length > 0 ? (
+                            <div className="session-list">
+                                {activeSessions.slice(0, 3).map((session) => (
+                                    <div
+                                        key={session.session_id}
+                                        className="session-item"
+                                        onClick={() => handleSessionJoin(session.session_id)}
+                                    >
+                                        <div className="session-icon">
+                                            {session.status === 'running' ? '🎮' : '📋'}
+                                        </div>
+                                        <div className="session-info">
+                                            <h3>{session.session_name}</h3>
+                                            <p>{session.player_count}/{session.max_players} players</p>
+                                        </div>
+                                        <div className="session-status">
+                                            <span className={`status-badge ${session.status}`}>
+                                                {session.status}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="empty-state">
+                                <span className="empty-icon">📜</span>
+                                <p>No active sessions</p>
+                                <button
+                                    className="btn-primary"
+                                    onClick={() => setShowSessionCreation(true)}
                                 >
-                                    View All →
+                                    Create Your First Session
                                 </button>
                             </div>
-                            {activeSessions.length > 0 ? (
-                                <div className="session-list">
-                                    {activeSessions.slice(0, 3).map((session) => (
-                                        <div 
-                                            key={session.session_id} 
-                                            className="session-item"
-                                            onClick={() => handleSessionJoin(session.session_id)}
-                                        >
-                                            <div className="session-icon">
-                                                {session.status === 'running' ? '🎮' : '📋'}
-                                            </div>
-                                            <div className="session-info">
-                                                <h3>{session.session_name}</h3>
-                                                <p>{session.player_count}/{session.max_players} players</p>
-                                            </div>
-                                            <div className="session-status">
-                                                <span className={`status-badge ${session.status}`}>
-                                                    {session.status}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="empty-state">
-                                    <span className="empty-icon">📜</span>
-                                    <p>No active sessions</p>
-                                    <button 
-                                        className="btn-primary"
-                                        onClick={() => setShowSessionCreation(true)}
-                                    >
-                                        Create Your First Session
-                                    </button>
-                                </div>
-                            )}
-                        </div>
+                        )}
 
                         {/* Recent Characters */}
-                        <div className="content-card">
-                            <div className="card-header">
-                                <h2>Your Characters</h2>
-                                <button 
-                                    className="btn-view-all"
-                                    onClick={() => setActiveTab('characters')}
-                                >
-                                    View All →
+                        <div className="card-header">
+                            <h2>Your Characters</h2>
+                            <button
+                                className="btn-view-all"
+                                onClick={() => setActiveTab('characters')}
+                            >
+                                View All →
+                            </button>
+                        </div>
+                        {characters.length > 0 ? (
+                            <div className="character-grid">
+                                {characters.slice(0, 3).map((char) => (
+                                    <div
+                                        key={char.id}
+                                        className="character-card-mini"
+                                        onClick={() => handleCharacterSelect(char.id)}
+                                    >
+                                        <div className="char-avatar">
+                                            {char.race === 'Human' ? '🧙' : char.race === 'Elf' ? '🧝' : '🧌'}
+                                        </div>
+                                        <div className="char-info">
+                                            <h3>{char.name}</h3>
+                                            <p>Lvl {char.level} {char.race} {char.char_class}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="empty-state">
+                                <span className="empty-icon">⚔️</span>
+                                <p>No characters yet</p>
+                                <button className="btn-primary">
+                                    Create Your First Character
                                 </button>
                             </div>
-                            {characters.length > 0 ? (
-                                <div className="character-grid">
-                                    {characters.slice(0, 3).map((char) => (
-                                        <div 
-                                            key={char.id} 
-                                            className="character-card-mini"
-                                            onClick={() => handleCharacterSelect(char.id)}
-                                        >
-                                            <div className="char-avatar">
-                                                {char.race === 'Human' ? '🧙' : char.race === 'Elf' ? '🧝' : '🧌'}
-                                            </div>
-                                            <div className="char-info">
-                                                <h3>{char.name}</h3>
-                                                <p>Lvl {char.level} {char.race} {char.char_class}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="empty-state">
-                                    <span className="empty-icon">⚔️</span>
-                                    <p>No characters yet</p>
-                                    <button className="btn-primary">
-                                        Create Your First Character
-                                    </button>
-                                </div>
-                            )}
-                        </div>
+                        )}
 
                         {/* Quick Actions */}
-                        <div className="content-card">
-                            <div className="card-header">
-                                <h2>Quick Actions</h2>
-                            </div>
-                            <div className="quick-actions">
+                        <div className="card-header">
+                            <h2>Quick Actions</h2>
+                        </div>
+                        <div className="quick-actions">
                                 <button className="action-btn" onClick={() => setShowSessionCreation(true)}>
                                     <span className="action-icon">⚔️</span>
                                     <span>Create Session</span>
@@ -400,7 +395,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                                     <span className="action-icon">🎲</span>
                                     <span>Quick Play</span>
                                 </button>
-                                <button 
+                                <button
                                     className="action-btn"
                                     onClick={handleRulebookClick}
                                 >
@@ -408,7 +403,6 @@ export const HomePage: React.FC<HomePageProps> = ({
                                     <span>Rulebook</span>
                                 </button>
                             </div>
-                        </div>
                     </div>
                 )}
 
