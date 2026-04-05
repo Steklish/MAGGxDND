@@ -67,29 +67,30 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
             // Update scrollbar color based on scroll position
             const scrollbar = document.documentElement;
             let color1, color2;
-            
-            if (progress < 0.25) {
-                // Green to Yellow
-                const t = progress / 0.25;
-                color1 = `rgb(${42 + t * (233 - 42)}, ${157 + t * (196 - 157)}, ${143 + t * (106 - 143)})`;
-                color2 = `rgb(${42 + t * (233 - 42)}, ${157 + t * (196 - 157)}, ${143 + t * (106 - 143)})`;
-            } else if (progress < 0.5) {
-                // Yellow to Orange
-                const t = (progress - 0.25) / 0.25;
-                color1 = `rgb(${233 + t * (255 - 233)}, ${196 + t * (107 - 196)}, ${106 + t * (53 - 106)})`;
-                color2 = `rgb(${233 + t * (255 - 233)}, ${196 + t * (107 - 196)}, ${106 + t * (53 - 106)})`;
-            } else if (progress < 0.75) {
-                // Orange to Red
-                const t = (progress - 0.5) / 0.25;
-                color1 = `rgb(${255 + t * (230 - 255)}, ${107 + t * (57 - 107)}, ${53 + t * (70 - 53)})`;
-                color2 = `rgb(${255 + t * (230 - 255)}, ${107 + t * (57 - 107)}, ${53 + t * (70 - 53)})`;
+
+            // Color stops: Orange (start) → Yellow (middle) → Purple (end)
+            const orange = { r: 255, g: 107, b: 53 };   // #FF6B35
+            const yellow = { r: 233, g: 196, b: 106 };  // #E9C46A
+            const purple = { r: 157, g: 78, b: 221 };   // #9D4EDD
+
+            if (progress < 0.5) {
+                // Orange to Yellow (0% - 50% scroll)
+                const t = progress / 0.5;
+                const r = Math.round(orange.r + t * (yellow.r - orange.r));
+                const g = Math.round(orange.g + t * (yellow.g - orange.g));
+                const b = Math.round(orange.b + t * (yellow.b - orange.b));
+                color1 = `rgb(${r}, ${g}, ${b})`;
+                color2 = `rgb(${r}, ${g}, ${b})`;
             } else {
-                // Red to Purple
-                const t = (progress - 0.75) / 0.25;
-                color1 = `rgb(${230 + t * (157 - 230)}, ${57 + t * (78 - 57)}, ${70 + t * (221 - 70)})`;
-                color2 = `rgb(${230 + t * (157 - 230)}, ${57 + t * (78 - 57)}, ${70 + t * (221 - 70)})`;
+                // Yellow to Purple (50% - 100% scroll)
+                const t = (progress - 0.5) / 0.5;
+                const r = Math.round(yellow.r + t * (purple.r - yellow.r));
+                const g = Math.round(yellow.g + t * (purple.g - yellow.g));
+                const b = Math.round(yellow.b + t * (purple.b - yellow.b));
+                color1 = `rgb(${r}, ${g}, ${b})`;
+                color2 = `rgb(${r}, ${g}, ${b})`;
             }
-            
+
             scrollbar.style.setProperty('--scrollbar-color', color1);
 
             // Animate sections on scroll

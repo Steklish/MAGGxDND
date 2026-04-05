@@ -2,7 +2,7 @@
 
 :root {
     --font-family: 'Rajdhani', 'Nurito', Nunito, Inter, system-ui, sans-serif;
-    --scrollbar-color: var(--accent-green);
+    --scrollbar-color: var(--accent-orange);
 }
 
 .landing-page {
