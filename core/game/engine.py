@@ -86,7 +86,7 @@ class Session:
 
     def _init_plot(self, guide : str) -> None:
         prompt = None
-        with open("prompts/plot_generation.md", "r", encoding="utf-8") as f:
+        with open("docs//prompts/plot_generation.md", "r", encoding="utf-8") as f:
             prompt = f.read()
         if not prompt:
             raise ValueError("Plot generation prompt not found")

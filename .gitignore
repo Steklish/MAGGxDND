@@ -53,3 +53,8 @@ QWEN.md
 
 # --- App saves ---
 saves/
+.sqlite3
+.db
+*__pycache__/
+__pycache__/
+*.log
