@@ -5,7 +5,6 @@ Desktop.ini
 
 # --- IDE Configuration ---
 .vscode/*.json
-!.vscode/settings.json
 .idea/
 *.iml
 *.code-workspace
@@ -29,6 +28,8 @@ build/
 venv/
 .venv/
 env/
+.env
+.vscode
 
 # --- Browser/Tooling Cache ---
 .vite/
@@ -48,3 +49,7 @@ backend/chroma_db/
 
 # --- Test Reports (auto-generated) ---
 tests/reports/
+QWEN.md
+
+# --- App saves ---
+saves/
