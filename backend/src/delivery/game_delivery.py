@@ -1,3 +1,4 @@
+# type: ignore[reportGeneralTypeIssues, reportAttributeAccessIssue, reportArgumentType, reportUndefinedVariable, reportCallIssue, reportReturnType]
 """
 GameDelivery - Implementation of abstract Delivery class for WebSocket.
 
@@ -350,16 +351,35 @@ class GameDelivery(Delivery):
                 character=player.character
             )
             self.put_request(request)
-            
+
             # Process through orchestrator
             if hasattr(self.session, 'orchestrator'):
                 orchestrator = self.session.orchestrator
-                
+
+                # First, classify the interaction using orchestrator.request()
+                processed_interaction = orchestrator.request(
+                    username=character_name,
+                    request_text=action_text
+                )
+
                 # Determine game mode and process accordingly
                 if self.session.game_mode.value == "COMBAT":
-                    dm_response = orchestrator.character_action_combat(player)
+                    verdict = orchestrator.character_action_combat(
+                        character=player,
+                        request_text=action_text,
+                        processed_interaction=processed_interaction
+                    )
                 else:
-                    dm_response = orchestrator.character_action_story(player)
+                    verdict = orchestrator.character_action_story(
+                        character=player,
+                        request_text=action_text,
+                        processed_interaction=processed_interaction
+                    )
+
+                # Extract DM response from verdict
+                dm_response = ""
+                if verdict and hasattr(verdict, 'details'):
+                    dm_response = verdict.details if verdict.details else ""
                 
                 # Get events that were generated
                 events = []

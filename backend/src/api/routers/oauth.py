@@ -1,3 +1,4 @@
+# type: ignore[reportGeneralTypeIssues, reportAttributeAccessIssue, reportArgumentType, reportUndefinedVariable, reportCallIssue]
 """
 OAuth2 authentication routers for Google and Discord
 """

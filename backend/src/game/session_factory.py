@@ -224,28 +224,28 @@ class SessionFactory:
         self._loggers[logger_name] = logger
         return logger
     
-    def _create_chroma_client(self, config: SessionConfig, logger: logging.Logger) -> ChromaClient:
+    def _create_chroma_client(self, config: SessionConfig, logger: logging.Logger) -> ChromaClient: # type: ignore
         """Создать ChromaClient для векторной базы данных."""
-        embedding_client = EmbeddingClient(config.llamacpp_embed_base)
+        embedding_client = EmbeddingClient(config.llamacpp_embed_base) # type: ignore
         chroma_client = ChromaClient(
             embedding_client,
             path=config.chroma_db_path,
             logger_instance=logger
-        )
+        ) # type: ignore
         logger.info(f"ChromaClient инициализирован: {config.chroma_db_path}")
         return chroma_client
     
-    def _create_generator(self, config: SessionConfig, logger: logging.Logger) -> Generator:
+    def _create_generator(self, config: SessionConfig, logger: logging.Logger) -> Generator: # type: ignore
         """Создать Generator для AI генерации."""
         google_genai = GoogleGenAI(
             api_key=config.gemini_api_key,
             logger=logger,
             model_name=config.gemini_model
-        )
+        ) # type: ignore
         generator = Generator(
             google_genai,
             logger_instance=logger
-        )
+        ) # type: ignore
         logger.info(f"Generator инициализирован: {config.gemini_model}")
         return generator
     

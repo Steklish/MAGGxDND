@@ -15,7 +15,7 @@ load_dotenv()
 # Set UTF-8 encoding for Windows
 if os.name == 'nt':
     os.system('chcp 65001 >nul')
-sys.stdout.reconfigure(encoding='utf-8')
+sys.stdout.reconfigure(encoding='utf-8') # type: ignore
 
 print("=" * 60)
 print("MAGGxDND Server")

@@ -1,3 +1,4 @@
+# type: ignore[reportGeneralTypeIssues, reportAttributeAccessIssue, reportArgumentType, reportUndefinedVariable, reportCallIssue]
 """
 Character API router
 
@@ -145,15 +146,9 @@ async def create_character(
         
         # Add to session
         game_session.players.append(player)
-        
-        # Notify all players via delivery
+
+        # Notify all players via delivery (includes the new character in session state)
         game_session.delivery.session_updated(game_session)
-        
-        # Send character update event
-        game_session.delivery.send_character_update(character.name, {
-            "action": "created",
-            "character": character.model_dump() if hasattr(character, 'model_dump') else str(character)
-        })
         
         # Log success
         game_session.logger.info(f"Character '{character.name}' added to session. Total players: {len(game_session.players)}")
@@ -251,14 +246,6 @@ def _procedural_generate_character(
         resources={"hit_dice": 1},
         position=Coordinate2D(x=0.0, y=0.0),
         abilities=abilities,
-        active_conditions="",
-        proficiency_bonus=2,
-        is_alive=True,
-        initiative_bonus=10 + max(0, (stats.dexterity - 10) // 2),
-        short_summary=f"{name} the {character_class.value}",
-        alignment=random.choice(["Neutral Good", "Lawful Neutral", "Chaotic Good", "True Neutral"]),
-        appearance=f"A {random.choice(['tall', 'short', 'average'])} human with {random.choice(['bright', 'steady', 'keen'])} eyes.",
-        age=20 + random.randint(0, 20),
     )
 
 

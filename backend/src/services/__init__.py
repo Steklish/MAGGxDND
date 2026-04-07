@@ -16,7 +16,6 @@ __all__ = [
     "AccessGroupService",
     "auth_service",
     "AuthService",
-    "AIGameService",
     "AIServiceError",
     "GenerationError",
     "SessionNotInitializedError",

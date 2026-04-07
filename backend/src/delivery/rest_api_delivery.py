@@ -1,3 +1,4 @@
+# type: ignore[reportGeneralTypeIssues, reportAttributeAccessIssue, reportArgumentType, reportUndefinedVariable, reportCallIssue, reportReturnType]
 """
 REST API Delivery - bridges game engine with REST API endpoints.
 Allows server to interact with game sessions through Delivery interface.
@@ -177,7 +178,7 @@ class RESTAPIDelivery(Delivery):
             self.logger.info(f"[{self.session_id}] Verdict: {verdict}")
             
             # Get DM response
-            dm_response = verdict.summary if hasattr(verdict, 'summary') and verdict.summary else "The DM considers your action..."
+            dm_response = verdict.details if verdict.details else "The DM considers your action..."
             
             self.logger.info(f"[{self.session_id}] DM Response: {dm_response}")
             

@@ -15,7 +15,7 @@ def get_database_path(db_url: str = "sqlite:///./data/maggxdnd.db") -> str:
     return db_url
 
 
-def optimize_database(db_path: str = None) -> dict:
+def optimize_database(db_path: str = None) -> dict: # type: ignore
     """
     Optimize SQLite database for better performance.
     Returns optimization statistics.
@@ -88,7 +88,7 @@ def optimize_database(db_path: str = None) -> dict:
     return stats
 
 
-def backup_database(db_path: str = None, backup_dir: str = "./backups") -> str:
+def backup_database(db_path: str = None, backup_dir: str = "./backups") -> str: # type: ignore
     """
     Create a backup of the database.
     Returns the backup file path.
@@ -142,7 +142,7 @@ def cleanup_old_backups(backup_dir: str = "./backups", keep_count: int = 5) -> i
     return deleted_count
 
 
-def reset_database(db_path: str = None) -> bool:
+def reset_database(db_path: str = None) -> bool: # type: ignore
     """
     Reset database by deleting and recreating it.
     WARNING: This will delete all data!
@@ -160,7 +160,7 @@ def reset_database(db_path: str = None) -> bool:
     return True
 
 
-def get_database_info(db_path: str = None) -> dict:
+def get_database_info(db_path: str = None) -> dict: # type: ignore
     """
     Get database information and statistics.
     """

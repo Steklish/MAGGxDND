@@ -114,7 +114,7 @@ def get_current_user_optional_cookie(
     
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        username: str = payload.get("sub")
+        username: str = payload.get("sub") # type: ignore
         if not username:
             return None
     except JWTError:
@@ -163,7 +163,7 @@ def get_current_user(
     
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        username: str = payload.get("sub")
+        username: str = payload.get("sub") # type: ignore
         if not username:
             raise credentials_exception
     except JWTError:

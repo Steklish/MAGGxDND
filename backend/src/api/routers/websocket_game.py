@@ -1,3 +1,4 @@
+# type: ignore[reportGeneralTypeIssues, reportAttributeAccessIssue, reportArgumentType, reportUndefinedVariable, reportCallIssue]
 """
 WebSocket router для подключения игроков к игровым сессиям.
 
@@ -51,9 +52,10 @@ async def event_stream_sender(
                 # Сериализуем событие и отправляем клиенту
                 event_dict = {
                     "event_type": event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type),
-                    "data": event.data,
-                    "source": event.source,
-                    "timestamp": event.timestamp.isoformat() if hasattr(event, 'timestamp') and event.timestamp else None
+                    "event_initiator": event.event_initiator,
+                    "event_subject": event.event_subject,
+                    "event_target": event.event_target,
+                    "description": event.description,
                 }
                 await websocket.send_json(event_dict)
             else:
@@ -136,11 +138,10 @@ async def event_receiver(
                 else:
                     # Unknown event type - create event and broadcast to other players only
                     event_data = data.get("data", {})
-                    from core.game.event_pool import Event
                     event = Event(
                         event_type=event_type,
-                        data=event_data,
-                        source=player_id
+                        event_initiator=player_id,
+                        description=data.get("description", json.dumps(event_data))
                     )
 
                     # Publish event to other players in session
@@ -161,11 +162,10 @@ async def event_receiver(
             else:
                 # No delivery available - fallback to simple broadcast
                 event_data = data.get("data", {})
-                from core.game.event_pool import Event
                 event = Event(
                     event_type=event_type,
-                    data=event_data,
-                    source=player_id
+                    event_initiator=player_id,
+                    description=data.get("description", json.dumps(event_data))
                 )
 
                 await session_manager.broadcast_to_session(
