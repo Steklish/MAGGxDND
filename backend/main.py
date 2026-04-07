@@ -7,7 +7,7 @@ from slowapi.util import get_remote_address
 from backend.src.api.routers import dev, login, user, access_group, oauth  # , compendium
 from backend.src.api.routers.session_router import router as session_router
 from backend.src.api.routers.websocket_game import router as websocket_router
-from backend.src.api.routers import character, profile
+from backend.src.api.routers import character, profile, character_profile
 from backend.src.api.middleware import APILoggingMiddleware, SlowRequestMiddleware
 from backend.src.config import settings
 from backend.src.database import init_db, engine
@@ -60,6 +60,7 @@ sub_app.include_router(login.router)
 sub_app.include_router(dev.router)
 sub_app.include_router(session_router)
 sub_app.include_router(character.router)
+sub_app.include_router(character_profile.router)
 sub_app.include_router(profile.router)
 sub_app.include_router(oauth.router)
 # sub_app.include_router(compendium.router)  # Temporarily disabled

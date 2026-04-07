@@ -176,24 +176,69 @@ class RESTAPIDelivery(Delivery):
                 )
             
             self.logger.info(f"[{self.session_id}] Verdict: {verdict}")
+
+            # Handle verdict based on type (same flow as GameDelivery)
+            from core.schemas.orchestration import OrchestrationVerdictType
             
-            # Get DM response
-            dm_response = verdict.details if verdict.details else "The DM considers your action..."
+            dm_response = ""
+            if verdict.verdict_type == OrchestrationVerdictType.CLAIRIFICATION_NEEDED:
+                if hasattr(self._session, 'game_master') and self._session.game_master:
+                    dm_response = self._session.game_master.clarify_user_request(
+                        correction_question=verdict.details if verdict.details else "Action needs clarification"
+                    )
+                else:
+                    dm_response = verdict.details if verdict.details else "Could you clarify?"
+            
+            elif verdict.verdict_type == OrchestrationVerdictType.ILLEGAL_PLAYER_ACTION:
+                if hasattr(self._session, 'game_master') and self._session.game_master:
+                    dm_response = self._session.game_master.illegal_action_comment(
+                        prompt=action_text,
+                        name=character_name,
+                        reasoning=verdict.details if verdict.details else "Action not allowed"
+                    )
+                else:
+                    dm_response = f"[Illegal] {verdict.details if verdict.details else 'Action not allowed'}"
+            
+            elif verdict.verdict_type == OrchestrationVerdictType.ALLOWED_PLAYER_ACTION:
+                # Execute through manipulator
+                events = []
+                if hasattr(self._session, 'manipulator') and self._session.manipulator:
+                    action_events = self._session.manipulator._external_action_as_an_entity(
+                        verdict.details if verdict.details else action_text,
+                        player
+                    )
+                    events = self._session.manipulator.execute_events(action_events)
+                
+                # Get MAGG narrative
+                if hasattr(self._session, 'game_master') and self._session.game_master:
+                    if hasattr(self._session.game_master, 'comment'):
+                        dm_response = self._session.game_master.comment(events)
+                    else:
+                        dm_response = verdict.details if verdict.details else action_text
+                else:
+                    dm_response = verdict.details if verdict.details else action_text
             
             self.logger.info(f"[{self.session_id}] DM Response: {dm_response}")
-            
+
             # Send through delivery
             self.master_message(dm_response)
-            
+
             # Store result
             self._last_action_result = {
+                "success": True,
                 "character": character_name,
                 "action": action_text,
                 "verdict": str(verdict),
                 "dm_response": dm_response,
+                "events": [],
+                "game_state": {
+                    "scene": self._session.current_scene.name if self._session.current_scene else None,
+                    "players": len(self._session.players),
+                    "npcs": len(self._session.npcs)
+                },
                 "status": "processed"
             }
-            
+
             return self._last_action_result
             
         except Exception as e:

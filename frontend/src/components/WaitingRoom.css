@@ -48,7 +48,9 @@
     left: 0;
     right: 0;
     z-index: 100;
-    background: transparent;
+    background: rgba(26, 26, 46, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     transition: all 0.3s ease;
     padding: 1rem 2rem;
 }

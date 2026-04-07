@@ -376,30 +376,101 @@ class GameDelivery(Delivery):
                         processed_interaction=processed_interaction
                     )
 
-                # Extract DM response from verdict
+                # Handle verdict based on type (mimics terminal delivery flow)
                 dm_response = ""
-                if verdict and hasattr(verdict, 'details'):
+                from core.schemas.orchestration import OrchestrationVerdictType
+                
+                if verdict.verdict_type == OrchestrationVerdictType.CLAIRIFICATION_NEEDED:
+                    # Clarification needed - ask player for clarification
+                    if hasattr(self.session, 'game_master') and self.session.game_master:
+                        dm_response = self.session.game_master.clarify_user_request(
+                            correction_question=verdict.details if verdict.details else "Action needs clarification"
+                        )
+                    else:
+                        dm_response = verdict.details if verdict.details else "Could you clarify what you mean?"
+                    
+                    self.session.logger.info(f"[PLAYER_ACTION] Clarification needed: {dm_response}")
+
+                elif verdict.verdict_type == OrchestrationVerdictType.ILLEGAL_PLAYER_ACTION:
+                    # Illegal action - explain why and request new action
+                    if hasattr(self.session, 'game_master') and self.session.game_master:
+                        dm_response = self.session.game_master.illegal_action_comment(
+                            prompt=action_text,
+                            name=character_name,
+                            reasoning=verdict.details if verdict.details else "Action is not allowed"
+                        )
+                    else:
+                        dm_response = f"[Illegal action] {verdict.details if verdict.details else 'Action not allowed'}"
+                    
+                    self.session.logger.info(f"[PLAYER_ACTION] Illegal action: {dm_response}")
+
+                elif verdict.verdict_type == OrchestrationVerdictType.ALLOWED_PLAYER_ACTION:
+                    # Allowed action - execute through manipulator, then get MAGG narrative
+                    # Step 1: Execute events through manipulator (like terminal's run_story)
+                    events = []
+                    if hasattr(self.session, 'manipulator') and self.session.manipulator:
+                        # Execute the action through manipulator (creates events)
+                        action_events = self.session.manipulator._external_action_as_an_entity(
+                            verdict.details if verdict.details else action_text,
+                            player
+                        )
+                        # Execute events (triggers side effects, publishes to EventPool)
+                        events = self.session.manipulator.execute_events(action_events)
+                        self.session.logger.info(f"[PLAYER_ACTION] Executed {len(events)} events")
+
+                    # Step 2: Call MAGG.handle_events() to generate AI narrative
+                    # This is what terminal delivery does in game_loop line 1091
+                    if hasattr(self.session, 'game_master') and self.session.game_master:
+                        # handle_events() is async, so we need to await it
+                        try:
+                            # Try to run async MAGG in sync context
+                            loop = asyncio.get_event_loop()
+                            if loop.is_running():
+                                # Create task and await
+                                import concurrent.futures
+                                # Can't await in running loop, use run_coroutine_threadsafe
+                                future = asyncio.run_coroutine_threadsafe(
+                                    self.session.game_master.handle_events(),
+                                    loop
+                                )
+                                dm_response = future.result(timeout=30.0)
+                            else:
+                                # No running loop, can use asyncio.run
+                                dm_response = asyncio.run(self.session.game_master.handle_events())
+                        except Exception as magg_error:
+                            self.session.logger.warning(f"[PLAYER_ACTION] MAGG handle_events failed: {magg_error}, using fallback")
+                            # Fallback: call comment() directly with events
+                            if hasattr(self.session.game_master, 'comment'):
+                                dm_response = self.session.game_master.comment(events)
+                            else:
+                                dm_response = verdict.details if verdict.details else action_text
+                    else:
+                        # No MAGG available - use verdict details as fallback
+                        dm_response = verdict.details if verdict.details else action_text
+                    
+                    self.session.logger.info(f"[PLAYER_ACTION] AI narrative generated: {len(dm_response)} chars")
+                else:
+                    # Unknown verdict type - fallback to details
                     dm_response = verdict.details if verdict.details else ""
-                
-                # Get events that were generated
-                events = []
-                # Events are already published to EventPool by manipulators
-                # They will be streamed to clients via WebSocket
-                
+
+                # Broadcast DM response to all players
+                if dm_response:
+                    self.master_message(dm_response)
+
                 # Send session update
                 self.session_updated(self.session)
-                
+
                 result = {
                     "success": True,
                     "dm_response": dm_response if dm_response else "",
-                    "events": events,
+                    "events": [],  # Events are already published to EventPool
                     "game_state": {
                         "scene": self.session.current_scene.name if self.session.current_scene else None,
                         "players": len(self.session.players),
                         "npcs": len(self.session.npcs)
                     }
                 }
-                
+
                 self.session.logger.info(f"[PLAYER_ACTION] Success: {character_name}")
                 return result
             else:

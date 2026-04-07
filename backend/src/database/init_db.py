@@ -12,6 +12,16 @@ def init_db(engine):
     Initialize the database by creating all tables.
     Also applies SQLite optimizations.
     """
+    # Ensure the database directory exists
+    from pathlib import Path
+    db_url = str(engine.url)
+    if db_url.startswith("sqlite:///"):
+        db_path = db_url.replace("sqlite:///", "").lstrip("/")
+        # Convert forward slashes to backslashes for Windows
+        db_path = db_path.replace("/", "\\")
+        db_dir = Path(db_path).parent
+        db_dir.mkdir(parents=True, exist_ok=True)
+    
     Base.metadata.create_all(bind=engine)
 
     # Apply SQLite optimizations

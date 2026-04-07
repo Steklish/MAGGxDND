@@ -40,7 +40,9 @@
     left: 0;
     right: 0;
     z-index: 1000;
-    background: transparent;
+    background: rgba(15, 15, 20, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     transition: all 0.3s ease;
     border-bottom: 1px solid transparent;
 }
