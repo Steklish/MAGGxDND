@@ -144,20 +144,20 @@ class APILoggingMiddleware(BaseHTTPMiddleware):
                     extra={'error': str(e)}
                 )
         
-        # Log to dedicated request log
+        # Log to dedicated request log (reduced verbosity - no full body dump)
         request_data = {
             'request_id': request_id,
             'timestamp': datetime.now(timezone.utc).isoformat(),
             'method': method,
             'path': path,
-            'query_params': query_params,
-            'headers': {k: v for k, v in headers.items() if k not in ['authorization', 'cookie']},
+            'query_params': query_params if query_params else None,
             'client_host': client_host,
             'user': user_info,
-            'body': request_body
+            'has_body': request_body is not None,
+            'body_length': len(request_body) if request_body else 0
         }
-        
-        request_logger.info(json.dumps(request_data, ensure_ascii=False, indent=2))
+
+        request_logger.info(json.dumps(request_data, ensure_ascii=False))
 
         try:
             # Process request

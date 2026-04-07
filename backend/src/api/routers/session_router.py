@@ -285,8 +285,8 @@ class ProceduralGenerator:
     @classmethod
     def generate_npc(cls, role: str = None, prompt: str = ""):
         """Generate an NPC procedurally."""
-        from core.schemas.in_game import NPCCharacter, CharacterClass, AbilityScores
-        
+        from core.schemas.in_game import NPCCharacter, CharacterClass, AbilityScores, Coordinate2D
+
         npc_role = role or random.choice(cls.NPC_ROLES)
         npc_name = f"{random.choice(cls.CHARACTER_NAMES)} the {npc_role.title()}"
         
@@ -332,7 +332,7 @@ class ProceduralGenerator:
             memory="",
             current_scene=None,  # Will be set by caller
             occupation=npc_role.title(),
-            appearance=f"A {random.choice ['middle-aged', 'young', 'elderly']} human with a {random.choice(['warm', 'stern', 'tired'])} expression.",
+            appearance=f"A {random.choice(['middle-aged', 'young', 'elderly'])} human with a {random.choice(['warm', 'stern', 'tired'])} expression.",
         )
 
 
@@ -2128,10 +2128,6 @@ async def player_action(
         )
 
     try:
-        # Create AI service
-        # Using delivery directly for game communication
-        pass
-        
         # Log core engine processing start
         print(f"\n{Colors.CYAN}┌{'─' * 80}{Colors.RESET}")
         print(f"{Colors.CYAN}│{Colors.RESET} ⚙️  CORE ENGINE PROCESSING")
@@ -2142,10 +2138,11 @@ async def player_action(
         print(f"{Colors.CYAN}│{Colors.RESET}    Journey: Backend → Core Engine → MAGG → Orchestrator{Colors.RESET}")
         print(f"{Colors.CYAN}└{'─' * 80}{Colors.RESET}\n")
 
-        # Process action
-        result = await ai_service.process_player_action(
+        # Process action through delivery
+        delivery = game_session.delivery
+        result = await delivery.process_player_action(
             character_name=request.character_name,
-            action=request.action
+            action_text=request.action
         )
         
         # Log core engine processing complete
@@ -2225,13 +2222,47 @@ async def get_session_state(
         )
     
     try:
-        # Create AI service
-        # Using delivery directly for game communication
-        pass
+        # Get game state directly from session
+        session = game_session
         
-        # Get game state
-        state = ai_service.get_game_state()
-        
+        state = {
+            'scene': {
+                'name': session.current_scene.name if session.current_scene else None,
+                'description': session.current_scene.description if session.current_scene else None,
+            } if session.current_scene else None,
+            'players': [
+                {
+                    'name': p.character.name if hasattr(p, 'character') else str(p),
+                    'hp': p.character.current_hp if hasattr(p, 'character') else 0,
+                    'max_hp': p.character.max_hp if hasattr(p, 'character') else 0,
+                }
+                for p in session.players
+            ],
+            'npcs': [
+                {
+                    'name': n.character.name if hasattr(n, 'character') else str(n),
+                    'hp': n.character.current_hp if hasattr(n, 'character') else 0,
+                    'current_scene': n.character.current_scene if hasattr(n, 'character') else None,
+                }
+                for n in session.npcs
+            ],
+            'messages': [
+                {
+                    'sender': msg.sender_name,
+                    'text': msg.text,
+                    'tag': msg.tag,
+                }
+                for msg in session.messages
+            ],
+            'turn_queue': [
+                {
+                    'entity_id': str(entity.id if hasattr(entity, 'id') else entity),
+                    'entity_type': 'player' if hasattr(entity, 'character') else 'npc'
+                }
+                for entity, _, _ in session.turn_queue
+            ] if session.turn_queue else []
+        }
+
         return SessionStateResponse(
             success=True,
             scene=state.get('scene'),

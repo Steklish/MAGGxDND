@@ -18,7 +18,7 @@ import logging
 
 # Fix Unicode encoding for Windows console
 if sys.platform == 'win32':
-    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stdout.reconfigure(encoding='utf-8') # type: ignore
 
 # Setup comprehensive logging
 setup_logging(
@@ -50,7 +50,7 @@ limiter = Limiter(
     enabled=settings.RATE_LIMIT_ENABLED,
 )
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler) # type: ignore
 
 # This will be our sub-application to hold all the prefixed routes
 sub_app = FastAPI()
@@ -65,7 +65,7 @@ sub_app.include_router(oauth.router)
 # sub_app.include_router(compendium.router)  # Temporarily disabled
 
 # Apply rate limiting to auth endpoints
-login.router.dependencies.insert(0, limiter.limit(settings.RATE_LIMIT_AUTH))
+login.router.dependencies.insert(0, limiter.limit(settings.RATE_LIMIT_AUTH)) # type: ignore
 
 app.mount("/api/v1", sub_app)
 

@@ -14,6 +14,7 @@ from backend.src.auth.dependencies import get_current_user
 from backend.src.models.user import User
 from backend.src.game.session_manager import session_manager
 from backend.src.repositories.session_repository import SessionRepository
+from core.schemas.in_game import Character
 
 router = APIRouter(prefix="/characters", tags=["characters"])
 
