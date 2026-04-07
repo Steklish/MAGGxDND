@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship, Mapped, mapped_column
 from typing import List, Optional
 
 from backend.src.database.base import Base
+from backend.src.models.session import GameSession
 
 class AccessGroup(Base):
     __tablename__ = "access_groups"
@@ -27,9 +28,6 @@ class User(Base):
     # Relationship to AccessGroup (Many-to-One)
     # The type hint `Mapped[Optional["AccessGroup"]]` indicates this can be an AccessGroup or None.
     group: Mapped[Optional["AccessGroup"]] = relationship(back_populates="users")
-    
-    # Relationship to Characters (One-to-Many)
-    characters: Mapped[List["CharacterModel"]] = relationship("CharacterModel", back_populates="user", cascade="all, delete-orphan")
 
     # Relationship to Game Sessions (One-to-Many) - sessions owned by this user
     sessions: Mapped[List["GameSession"]] = relationship(
@@ -37,15 +35,3 @@ class User(Base):
         back_populates="owner",
         foreign_keys="GameSession.owner_id"
     )
-
-    # Relationship to Session Participations (One-to-Many) - sessions this user participates in
-    session_participations: Mapped[List["SessionParticipant"]] = relationship(
-        "SessionParticipant",
-        back_populates="user"
-    )
-
-    # Relationships to Compendium will be added later when compendium is fully implemented
-    # compendium_entries: Mapped[List["CompendiumEntry"]] = relationship("CompendiumEntry", back_populates="creator")
-    # compendium_ratings: Mapped[List["CompendiumRating"]] = relationship("CompendiumRating", back_populates="user")
-    # compendium_comments: Mapped[List["CompendiumComment"]] = relationship("CompendiumComment", back_populates="user")
-    # homebrew_content: Mapped[List["UserHomebrew"]] = relationship("UserHomebrew", back_populates="user")

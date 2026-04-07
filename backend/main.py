@@ -28,6 +28,11 @@ setup_logging(
     enable_json_logs=True
 )
 
+# Completely disable uvicorn access logger (we use custom APILoggingMiddleware instead)
+logging.getLogger("uvicorn.access").handlers = []
+logging.getLogger("uvicorn.access").propagate = False
+logging.getLogger("uvicorn.access").disabled = True
+
 logger = get_logger('main')
 
 app = FastAPI(
@@ -64,8 +69,8 @@ login.router.dependencies.insert(0, limiter.limit(settings.RATE_LIMIT_AUTH))
 
 app.mount("/api/v1", sub_app)
 
-# Add logging middleware
-app.add_middleware(APILoggingMiddleware, log_request_body=True, log_response_body=False)
+# Add logging middleware (verbose=False reduces console spam)
+app.add_middleware(APILoggingMiddleware, log_request_body=True, log_response_body=False, verbose=False)
 app.add_middleware(SlowRequestMiddleware, threshold_seconds=2.0)
 
 # WebSocket router (не поддерживает префиксы, монтируем отдельно)
@@ -209,7 +214,7 @@ async def serve_ui_root():
     index_path = os.path.join(UI_DIST_PATH, "index.html")
     if os.path.isfile(index_path):
         return FileResponse(index_path)
-    return {"error": "UI not built. Run: cd UI && npm run build"}
+    return {"error": "UI not built. Run: npm run build"}
 
 @app.get("/{full_path:path}")
 async def serve_ui(full_path: str):

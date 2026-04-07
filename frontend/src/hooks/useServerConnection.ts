@@ -1,11 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface UseServerConnectionOptions {
-    /** Health check endpoint */
     endpoint?: string;
-    /** Check interval in milliseconds */
     interval?: number;
-    /** Number of failed checks before showing error */
     failureThreshold?: number;
 }
 
@@ -18,107 +15,91 @@ interface UseServerConnectionResult {
 }
 
 /**
- * Hook that monitors server connection via periodic health checks.
- * Shows error page when server becomes unreachable.
+ * Monitors server connection via health checks.
+ * Runs EXACTLY one check per interval. No duplicates.
  */
 export function useServerConnection(
     options: UseServerConnectionOptions = {}
 ): UseServerConnectionResult {
-    const {
-        endpoint = '/health',
-        interval = 5000,
-        failureThreshold = 3,
-    } = options;
+    const endpoint = options.endpoint ?? '/health';
+    const intervalMs = options.interval ?? 5000;
+    const threshold = options.failureThreshold ?? 3;
 
     const [isConnected, setIsConnected] = useState(true);
     const [isChecking, setIsChecking] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [failureCount, setFailureCount] = useState(0);
 
-    const checkConnection = useCallback(async () => {
-        if (isChecking) return;
-
-        setIsChecking(true);
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-            const response = await fetch(endpoint, {
-                method: 'GET',
-                signal: controller.signal,
-            });
-
-            clearTimeout(timeoutId);
-
-            if (response.ok) {
-                setIsConnected(true);
-                setFailureCount(0);
-                setError(null);
-            } else {
-                throw new Error(`Server returned ${response.status}`);
-            }
-        } catch (err) {
-            const newFailureCount = failureCount + 1;
-            setFailureCount(newFailureCount);
-
-            if (newFailureCount >= failureThreshold) {
-                setIsConnected(false);
-                setError(
-                    err instanceof DOMException && err.name === 'AbortError'
-                        ? 'Server is not responding'
-                        : 'Connection to server lost'
-                );
-            }
-        } finally {
-            setIsChecking(false);
-        }
-    }, [endpoint, failureThreshold, failureCount, isChecking]);
-
-    const forceShowError = useCallback(() => {
-        setIsConnected(false);
-        setError('Server connection lost');
-        setFailureCount(failureThreshold);
-    }, [failureThreshold]);
-
-    const hideError = useCallback(() => {
-        setIsConnected(true);
-        setError(null);
-        setFailureCount(0);
-    }, []);
+    // All mutable state in a single ref
+    const state = useRef({
+        intervalId: 0 as number,
+        checking: false,
+        failures: 0,
+    });
 
     useEffect(() => {
+        // If already running, don't create a new one
+        if (state.current.intervalId) return;
+
+        const tick = () => {
+            if (state.current.checking) return;
+            state.current.checking = true;
+            setIsChecking(true);
+
+            const ctrl = new AbortController();
+            const tid = setTimeout(() => ctrl.abort(), 3000);
+
+            fetch(endpoint, { signal: ctrl.signal })
+                .then((res) => {
+                    clearTimeout(tid);
+                    if (!res.ok) throw new Error(`${res.status}`);
+                    state.current.failures = 0;
+                    setIsConnected(true);
+                    setError(null);
+                })
+                .catch((err) => {
+                    clearTimeout(tid);
+                    state.current.failures += 1;
+                    if (state.current.failures >= threshold) {
+                        setIsConnected(false);
+                        setError(
+                            err.name === 'AbortError'
+                                ? 'Server not responding'
+                                : 'Connection lost'
+                        );
+                    }
+                })
+                .finally(() => {
+                    state.current.checking = false;
+                    setIsChecking(false);
+                });
+        };
+
         // Initial check
-        checkConnection();
+        tick();
 
-        // Periodic checks
-        const checkInterval = setInterval(checkConnection, interval);
+        // Single interval
+        state.current.intervalId = window.setInterval(tick, intervalMs);
 
-        // Also listen for online/offline events
-        const handleOnline = () => {
-            setFailureCount(0);
-            checkConnection();
-        };
-
-        const handleOffline = () => {
-            setIsConnected(false);
-            setError('Network connection lost');
-        };
-
-        window.addEventListener('online', handleOnline);
-        window.addEventListener('offline', handleOffline);
-
+        // Cleanup: runs ONCE when component unmounts
         return () => {
-            clearInterval(checkInterval);
-            window.removeEventListener('online', handleOnline);
-            window.removeEventListener('offline', handleOffline);
+            if (state.current.intervalId) {
+                window.clearInterval(state.current.intervalId);
+                state.current.intervalId = 0;
+            }
         };
-    }, [checkConnection, interval]);
+    }, []); // Empty deps = runs ONCE on mount
 
-    return {
-        isConnected,
-        isChecking,
-        error,
-        forceShowError,
-        hideError,
+    const forceShowError = () => {
+        setIsConnected(false);
+        setError('Server connection lost');
+        state.current.failures = threshold;
     };
+
+    const hideError = () => {
+        setIsConnected(true);
+        setError(null);
+        state.current.failures = 0;
+    };
+
+    return { isConnected, isChecking, error, forceShowError, hideError };
 }

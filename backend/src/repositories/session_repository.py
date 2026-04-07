@@ -2,6 +2,7 @@
 Session Repository - Database access layer for game sessions.
 
 Provides CRUD operations for GameSession model with ownership validation.
+Sessions store complete game state as JSON in session_data field.
 """
 from typing import Optional, List, Dict, Any
 from datetime import datetime
@@ -10,9 +11,6 @@ from sqlalchemy import select, update, delete
 
 from backend.src.models.session import (
     GameSession,
-    SessionParticipant,
-    SessionSave,
-    SessionCharacter,
     GameModeEnum,
     SessionStatusEnum
 )
@@ -21,7 +19,7 @@ from backend.src.models.session import (
 class SessionRepository:
     """
     Repository for database operations on game sessions.
-    
+
     All operations respect session ownership - only the owner
     has full control over their sessions.
     """
@@ -37,24 +35,18 @@ class SessionRepository:
         session_name: str,
         owner_id: int,
         game_mode: str = "STORY",
-        max_players: int = 5,
-        description: Optional[str] = None,
-        guide: Optional[str] = None,
-        gemini_model: str = "gemini-2.0-flash"
+        session_data: Optional[Dict[str, Any]] = None
     ) -> GameSession:
         """
         Create a new game session.
-        
+
         Args:
             session_uuid: Unique UUID for the session
             session_name: Name of the session
             owner_id: ID of the user who owns (created) this session
             game_mode: Game mode (STORY, COMBAT, SANDBOX)
-            max_players: Maximum number of players
-            description: Session description
-            guide: AI plot hint
-            gemini_model: AI model to use
-            
+            session_data: Complete session data as JSON (optional)
+
         Returns:
             Created GameSession object
         """
@@ -63,19 +55,15 @@ class SessionRepository:
             session_name=session_name,
             owner_id=owner_id,
             game_mode=GameModeEnum(game_mode),
-            max_players=max_players,
-            description=description,
-            guide=guide,
-            gemini_model=gemini_model,
+            session_data=session_data or {},
             status=SessionStatusEnum.CREATED,
-            is_active=True,
-            is_public=False
+            is_active=True
         )
-        
+
         self.db.add(db_session)
         self.db.commit()
         self.db.refresh(db_session)
-        
+
         return db_session
 
     # === READ ===
@@ -98,44 +86,22 @@ class SessionRepository:
     ) -> List[GameSession]:
         """
         Get all sessions owned by a user.
-        
+
         Args:
             owner_id: ID of the owner
             active_only: If True, only return active sessions
-            
+
         Returns:
             List of GameSession objects
         """
         query = select(GameSession).where(GameSession.owner_id == owner_id)
-        
+
         if active_only:
             query = query.where(GameSession.is_active == True)
-        
-        query = query.order_by(GameSession.created_at.desc())
-        
-        result = self.db.execute(query)
-        return list(result.scalars().all())
 
-    def get_participating_sessions(
-        self,
-        user_id: int
-    ) -> List[GameSession]:
-        """
-        Get all sessions where user is a participant (not necessarily owner).
-        
-        Args:
-            user_id: ID of the user
-            
-        Returns:
-            List of GameSession objects
-        """
-        result = self.db.execute(
-            select(GameSession)
-            .join(SessionParticipant)
-            .where(SessionParticipant.user_id == user_id)
-            .where(GameSession.is_active == True)
-            .order_by(SessionParticipant.joined_at.desc())
-        )
+        query = query.order_by(GameSession.created_at.desc())
+
+        result = self.db.execute(query)
         return list(result.scalars().all())
 
     def get_all_active_sessions(self) -> List[GameSession]:
@@ -149,6 +115,74 @@ class SessionRepository:
 
     # === UPDATE ===
 
+    def update_session(
+        self,
+        session_uuid: str,
+        updates: Dict[str, Any],
+        owner_id: Optional[int] = None
+    ) -> bool:
+        """
+        Update session fields including session_data.
+
+        Args:
+            session_uuid: UUID of the session
+            updates: Dictionary of fields to update (can include session_data)
+            owner_id: Optional owner ID for ownership validation
+
+        Returns:
+            True if updated, False if not found or not owner
+        """
+        session = self.get_session_by_uuid(session_uuid)
+
+        if not session:
+            return False
+
+        if owner_id is not None and session.owner_id != owner_id:
+            return False  # Not the owner
+
+        # Update fields
+        for key, value in updates.items():
+            if hasattr(session, key):
+                setattr(session, key, value)
+
+        session.updated_at = datetime.now()
+        session.last_active_at = datetime.now()
+
+        self.db.commit()
+        return True
+
+    def update_session_data(
+        self,
+        session_uuid: str,
+        session_data: Dict[str, Any],
+        owner_id: Optional[int] = None
+    ) -> bool:
+        """
+        Update complete session data.
+
+        Args:
+            session_uuid: UUID of the session
+            session_data: Complete session data as JSON
+            owner_id: Optional owner ID for ownership validation
+
+        Returns:
+            True if updated, False if not found or not owner
+        """
+        session = self.get_session_by_uuid(session_uuid)
+
+        if not session:
+            return False
+
+        if owner_id is not None and session.owner_id != owner_id:
+            return False
+
+        session.session_data = session_data
+        session.updated_at = datetime.now()
+        session.last_active_at = datetime.now()
+
+        self.db.commit()
+        return True
+
     def update_session_status(
         self,
         session_uuid: str,
@@ -157,29 +191,29 @@ class SessionRepository:
     ) -> bool:
         """
         Update session status.
-        
+
         Args:
             session_uuid: UUID of the session
             status: New status value
             owner_id: Optional owner ID for ownership validation
-            
+
         Returns:
             True if updated, False if not found or not owner
         """
         session = self.get_session_by_uuid(session_uuid)
-        
+
         if not session:
             return False
-            
+
         if owner_id is not None and session.owner_id != owner_id:
             return False  # Not the owner
-            
+
         session.status = SessionStatusEnum(status)
         session.updated_at = datetime.now()
-        
+
         if status == SessionStatusEnum.RUNNING:
             session.last_active_at = datetime.now()
-            
+
         self.db.commit()
         return True
 
@@ -189,19 +223,32 @@ class SessionRepository:
         scene_name: str,
         owner_id: Optional[int] = None
     ) -> bool:
-        """Update current scene name for a session."""
+        """
+        Update current scene name in session_data.
+
+        Args:
+            session_uuid: UUID of the session
+            scene_name: Name of the current scene
+            owner_id: Optional owner ID for ownership validation
+
+        Returns:
+            True if updated, False if not found or not owner
+        """
         session = self.get_session_by_uuid(session_uuid)
-        
+
         if not session:
             return False
-            
+
         if owner_id is not None and session.owner_id != owner_id:
             return False
-            
-        session.current_scene_name = scene_name
+
+        # Store scene name in session_data
+        session_data = session.session_data or {}
+        session_data["current_scene_name"] = scene_name
+        session.session_data = session_data
         session.updated_at = datetime.now()
         session.last_active_at = datetime.now()
-        
+
         self.db.commit()
         return True
 
@@ -211,10 +258,10 @@ class SessionRepository:
     ) -> bool:
         """Update last active timestamp."""
         session = self.get_session_by_uuid(session_uuid)
-        
+
         if not session:
             return False
-            
+
         session.last_active_at = datetime.now()
         self.db.commit()
         return True
@@ -226,23 +273,23 @@ class SessionRepository:
     ) -> bool:
         """
         Deactivate a session (soft delete).
-        
+
         Args:
             session_uuid: UUID of the session
             owner_id: Optional owner ID for validation
         """
         session = self.get_session_by_uuid(session_uuid)
-        
+
         if not session:
             return False
-            
+
         if owner_id is not None and session.owner_id != owner_id:
             return False
-            
+
         session.is_active = False
         session.status = SessionStatusEnum.ARCHIVED
         session.updated_at = datetime.now()
-        
+
         self.db.commit()
         return True
 
@@ -255,27 +302,27 @@ class SessionRepository:
     ) -> bool:
         """
         Delete a session (hard delete).
-        
+
         Args:
             session_uuid: UUID of the session
             owner_id: Optional owner ID for validation
-            
+
         Returns:
             True if deleted, False if not found or not owner
         """
         session = self.get_session_by_uuid(session_uuid)
-        
+
         if not session:
             return False
-            
+
         if owner_id is not None and session.owner_id != owner_id:
             return False
-            
+
         self.db.delete(session)
         self.db.commit()
         return True
 
-    # === PARTICIPANT MANAGEMENT ===
+    # === PARTICIPANT MANAGEMENT (stored in session_data JSON) ===
 
     def add_participant(
         self,
@@ -285,266 +332,150 @@ class SessionRepository:
         user_id: Optional[int] = None,
         character_id: Optional[int] = None,
         character_name: Optional[str] = None,
-        role: str = "player"
-    ) -> Optional[SessionParticipant]:
+        role: str = "player",
+        owner_id: Optional[int] = None
+    ) -> Optional[Dict[str, Any]]:
         """
-        Add a participant to a session.
-        
+        Add a participant to session_data JSON.
+
         Args:
             session_uuid: UUID of the session
             player_uuid: Unique UUID for the player
             player_name: Display name of the player
             user_id: Optional user ID (for registered users)
-            character_id: Optional character ID
+            character_id: Optional character ID (deprecated, stored in session_data)
             character_name: Optional character name
             role: Player role (owner, player, observer)
-            
+            owner_id: Optional owner ID for ownership validation
+
         Returns:
-            Created SessionParticipant or None if session not found
+            Created participant dict or None if session not found
         """
         session = self.get_session_by_uuid(session_uuid)
-        
+
         if not session:
             return None
-            
+
+        if owner_id is not None and session.owner_id != owner_id:
+            return None
+
+        # Get or initialize participants list in session_data
+        session_data = session.session_data or {}
+        participants = session_data.get("participants", [])
+
         # Check if already a participant
-        existing = self.db.execute(
-            select(SessionParticipant).where(
-                SessionParticipant.session_id == session.id,
-                SessionParticipant.player_uuid == player_uuid
-            )
-        ).scalar_one_or_none()
-        
+        existing = next((p for p in participants if p.get("player_uuid") == player_uuid), None)
+
         if existing:
             # Re-activate existing participation
-            existing.is_connected = True
-            existing.last_active_at = datetime.now()
-            self.db.commit()
-            self.db.refresh(existing)
-            return existing
-            
-        participant = SessionParticipant(
-            session_id=session.id,
-            user_id=user_id,
-            player_name=player_name,
-            player_uuid=player_uuid,
-            character_id=character_id,
-            character_name=character_name,
-            role=role,
-            is_connected=True
-        )
-        
-        self.db.add(participant)
+            existing["is_connected"] = True
+            existing["last_active_at"] = datetime.now().isoformat()
+        else:
+            participant = {
+                "player_uuid": player_uuid,
+                "player_name": player_name,
+                "user_id": user_id,
+                "character_name": character_name,
+                "role": role,
+                "is_connected": True,
+                "joined_at": datetime.now().isoformat(),
+                "last_active_at": datetime.now().isoformat()
+            }
+            participants.append(participant)
+
+        session_data["participants"] = participants
+        session.session_data = session_data
+        session.updated_at = datetime.now()
+        session.last_active_at = datetime.now()
+
         self.db.commit()
-        self.db.refresh(participant)
         
-        return participant
+        # Return the participant we just added/updated
+        return next((p for p in participants if p.get("player_uuid") == player_uuid), None)
 
     def remove_participant(
         self,
         session_uuid: str,
-        player_uuid: str
+        player_uuid: str,
+        owner_id: Optional[int] = None
     ) -> bool:
-        """Remove a participant from a session."""
+        """Remove a participant from session_data JSON."""
         session = self.get_session_by_uuid(session_uuid)
-        
+
         if not session:
             return False
-            
-        result = self.db.execute(
-            delete(SessionParticipant).where(
-                SessionParticipant.session_id == session.id,
-                SessionParticipant.player_uuid == player_uuid
-            )
-        )
-        
+
+        if owner_id is not None and session.owner_id != owner_id:
+            return False
+
+        session_data = session.session_data or {}
+        participants = session_data.get("participants", [])
+
+        # Filter out the participant
+        original_count = len(participants)
+        participants = [p for p in participants if p.get("player_uuid") != player_uuid]
+
+        if len(participants) == original_count:
+            return False  # Participant not found
+
+        session_data["participants"] = participants
+        session.session_data = session_data
+        session.updated_at = datetime.now()
+
         self.db.commit()
-        return result.rowcount > 0
+        return True
 
     def update_participant_connection(
         self,
         session_uuid: str,
         player_uuid: str,
-        is_connected: bool
+        is_connected: bool,
+        owner_id: Optional[int] = None
     ) -> bool:
-        """Update participant connection status."""
+        """Update participant connection status in session_data JSON."""
         session = self.get_session_by_uuid(session_uuid)
-        
+
         if not session:
             return False
-            
-        participant = self.db.execute(
-            select(SessionParticipant).where(
-                SessionParticipant.session_id == session.id,
-                SessionParticipant.player_uuid == player_uuid
-            )
-        ).scalar_one_or_none()
-        
+
+        if owner_id is not None and session.owner_id != owner_id:
+            return False
+
+        session_data = session.session_data or {}
+        participants = session_data.get("participants", [])
+
+        participant = next((p for p in participants if p.get("player_uuid") == player_uuid), None)
+
         if not participant:
             return False
-            
-        participant.is_connected = is_connected
+
+        participant["is_connected"] = is_connected
         if is_connected:
-            participant.last_active_at = datetime.now()
-            
+            participant["last_active_at"] = datetime.now().isoformat()
+
+        session_data["participants"] = participants
+        session.session_data = session_data
+        session.updated_at = datetime.now()
+
         self.db.commit()
         return True
 
     def get_session_participants(
         self,
         session_uuid: str
-    ) -> List[SessionParticipant]:
-        """Get all participants for a session."""
+    ) -> List[Dict[str, Any]]:
+        """Get all participants from session_data JSON."""
         session = self.get_session_by_uuid(session_uuid)
-        
+
         if not session:
             return []
-            
-        result = self.db.execute(
-            select(SessionParticipant)
-            .where(SessionParticipant.session_id == session.id)
-            .order_by(SessionParticipant.joined_at)
-        )
-        return list(result.scalars().all())
 
-    # === SAVE MANAGEMENT ===
-
-    def create_session_save(
-        self,
-        session_uuid: str,
-        save_name: str,
-        session_data: Dict[str, Any],
-        save_type: str = "auto",
-        game_state_summary: Optional[str] = None,
-        turn_number: Optional[int] = None,
-        in_game_time: Optional[str] = None
-    ) -> Optional[SessionSave]:
-        """Create a session save state."""
-        session = self.get_session_by_uuid(session_uuid)
-        
-        if not session:
-            return None
-            
-        save = SessionSave(
-            session_id=session.id,
-            save_name=save_name,
-            save_type=save_type,
-            session_data=session_data,
-            game_state_summary=game_state_summary,
-            turn_number=turn_number,
-            in_game_time=in_game_time
-        )
-        
-        self.db.add(save)
-        self.db.commit()
-        self.db.refresh(save)
-        
-        return save
-
-    def get_session_saves(
-        self,
-        session_uuid: str
-    ) -> List[SessionSave]:
-        """Get all saves for a session."""
-        session = self.get_session_by_uuid(session_uuid)
-        
-        if not session:
-            return []
-            
-        result = self.db.execute(
-            select(SessionSave)
-            .where(SessionSave.session_id == session.id)
-            .order_by(SessionSave.created_at.desc())
-        )
-        return list(result.scalars().all())
-
-    def get_latest_session_save(
-        self,
-        session_uuid: str
-    ) -> Optional[SessionSave]:
-        """Get the most recent save for a session."""
-        session = self.get_session_by_uuid(session_uuid)
-        
-        if not session:
-            return None
-            
-        save = self.db.execute(
-            select(SessionSave)
-            .where(SessionSave.session_id == session.id)
-            .order_by(SessionSave.created_at.desc())
-            .limit(1)
-        ).scalar_one_or_none()
-        
-        return save
-
-    def delete_session_save(
-        self,
-        save_id: int,
-        session_uuid: Optional[str] = None
-    ) -> bool:
-        """Delete a session save."""
-        query = delete(SessionSave).where(SessionSave.id == save_id)
-        
-        if session_uuid:
-            session = self.get_session_by_uuid(session_uuid)
-            if session:
-                query = query.where(SessionSave.session_id == session.id)
-                
-        result = self.db.execute(query)
-        self.db.commit()
-        return result.rowcount > 0
-
-    # === CHARACTER MANAGEMENT ===
-
-    def add_session_character(
-        self,
-        session_uuid: str,
-        character_id: int,
-        character_type: str = "player"
-    ) -> Optional[SessionCharacter]:
-        """Add a character to a session."""
-        session = self.get_session_by_uuid(session_uuid)
-        
-        if not session:
-            return None
-            
-        session_character = SessionCharacter(
-            session_id=session.id,
-            character_id=character_id,
-            character_type=character_type,
-            is_active=True
-        )
-        
-        self.db.add(session_character)
-        self.db.commit()
-        self.db.refresh(session_character)
-        
-        return session_character
-
-    def get_session_characters(
-        self,
-        session_uuid: str,
-        character_type: Optional[str] = None
-    ) -> List[SessionCharacter]:
-        """Get all characters in a session."""
-        session = self.get_session_by_uuid(session_uuid)
-        
-        if not session:
-            return []
-            
-        query = select(SessionCharacter).where(
-            SessionCharacter.session_id == session.id,
-            SessionCharacter.is_active == True
-        )
-        
-        if character_type:
-            query = query.where(SessionCharacter.character_type == character_type)
-            
-        result = self.db.execute(query)
-        return list(result.scalars().all())
+        session_data = session.session_data or {}
+        return session_data.get("participants", [])
 
 
 # Convenience function for creating repository with dependency injection
 def get_repository(db: DBSession) -> SessionRepository:
     """Get session repository instance."""
     return SessionRepository(db)
+

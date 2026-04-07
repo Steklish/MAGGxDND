@@ -7,6 +7,10 @@ import os
 import sys
 import logging
 from logging.handlers import RotatingFileHandler
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv()
 
 # Set UTF-8 encoding for Windows
 if os.name == 'nt':

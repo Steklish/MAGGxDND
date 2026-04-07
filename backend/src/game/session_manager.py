@@ -253,7 +253,7 @@ class SessionManager:
         print(f"{Colors.PURPLE}├{'─' * 90}{Colors.RESET}")
         print(f"{Colors.PURPLE}│{Colors.RESET}    Session: {session_id}")
         print(f"{Colors.PURPLE}│{Colors.RESET}    Event Type: {Colors.YELLOW}{event.event_type}{Colors.RESET}")
-        print(f"{Colors.PURPLE}│{Colors.RESET}    Source: {event.source}")
+        print(f"{Colors.PURPLE}│{Colors.RESET}    Source: {event.source}") # type: ignore
         print(f"{Colors.PURPLE}│{Colors.RESET}    Journey Stage: {Colors.MAGENTA}Backend → Core Engine → EventPool{Colors.RESET}")
         print(f"{Colors.PURPLE}│{Colors.RESET}    Next: {Colors.CYAN}EventPool → WebSocket{Colors.RESET}")
         print(f"{Colors.PURPLE}└{'─' * 90}{Colors.RESET}\n")

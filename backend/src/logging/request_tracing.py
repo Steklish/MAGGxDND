@@ -73,7 +73,7 @@ class RequestTracer:
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
-        duration_ms = (time.time() - self.start_time) * 1000
+        duration_ms = (time.time() - self.start_time) * 1000 # type: ignore
         if exc_type:
             self._log_step_error(exc_val, duration_ms)
         else:

@@ -191,27 +191,13 @@ export const useGameStore = create<GameState>((set, get) => ({
     },
 
     // Character actions
-    loadCharacters: async (userId) => {
-        set({ isLoading: true });
-        try {
-            const characters = await characterAPI.getUserCharacters(userId);
-            set({ characters, isLoading: false });
-
-            // Load profiles for each character
-            const profiles = new Map<number, CharacterProfile>();
-            for (const char of characters) {
-                try {
-                    const profile = await characterAPI.getCharacterProfile(char.id);
-                    profiles.set(char.id, profile);
-                } catch (e) {
-                    console.warn(`Failed to load profile for character ${char.id}`);
-                }
-            }
-            set({ characterProfiles: profiles });
-        } catch (error: any) {
-            console.warn('Failed to load characters (using empty list):', error.message);
-            set({ characters: [], isLoading: false });
-        }
+    // NOTE: Characters now belong to sessions, not users directly
+    // Characters are loaded through session game_info endpoint
+    loadCharacters: async (_userId) => {
+        // Deprecated - characters are now loaded from sessions
+        // Use loadSessions() to get sessions, then getGameInfo(sessionId) for characters
+        console.warn('loadCharacters is deprecated. Characters belong to sessions.');
+        set({ characters: [], isLoading: false });
     },
 
     setSelectedCharacter: (character) => {
@@ -225,35 +211,10 @@ export const useGameStore = create<GameState>((set, get) => ({
         set({ activeCharacter: character });
     },
 
-    createCharacter: async (data) => {
-        set({ isLoading: true });
-        try {
-            const character = await characterAPI.createCharacter(data);
-            
-            // Create profile
-            if (data.profileData) {
-                await characterAPI.createCharacterProfile({
-                    character_id: character.id,
-                    ...data.profileData,
-                });
-            }
-            
-            // Refresh characters list
-            const { userId } = get();
-            if (userId) {
-                await get().loadCharacters(userId);
-            }
-            
-            set({ isLoading: false });
-            return character;
-        } catch (error: any) {
-            console.error('Failed to create character:', error);
-            set({ 
-                error: error.response?.data?.detail || 'Failed to create character',
-                isLoading: false 
-            });
-            throw error;
-        }
+    createCharacter: async (_data) => {
+        // Deprecated - use createCharacterInSession instead
+        console.warn('createCharacter deprecated. Use createCharacterInSession.');
+        throw new Error('Deprecated: Use session-based character creation');
     },
 
     deleteCharacter: async (characterId) => {

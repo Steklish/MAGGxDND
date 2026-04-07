@@ -71,7 +71,9 @@ export const SessionCreation: React.FC<SessionCreationProps> = ({ userId: _userI
                 description: formData.description,
             };
 
+            console.log('Creating session with data:', sessionData);
             const response = await axios.post('/api/v1/sessions', sessionData);
+            console.log('Session creation response:', response.data);
 
             if (response.data.session_id) {
                 // Auto-join the session as owner
@@ -88,6 +90,9 @@ export const SessionCreation: React.FC<SessionCreationProps> = ({ userId: _userI
                 onComplete(response.data.session_id);
             }
         } catch (error: any) {
+            console.error('Session creation error:', error);
+            console.error('Error response:', error.response?.data);
+            console.error('Error status:', error.response?.status);
             setIsLoading(false);
             if (error.response) {
                 setErrors({ submit: error.response.data.detail || 'Failed to create session' });

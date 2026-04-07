@@ -47,7 +47,7 @@ class JSONFormatter(logging.Formatter):
         
         # Add extra fields
         if hasattr(record, 'extra_data'):
-            log_data.update(record.extra_data)
+            log_data.update(record.extra_data) # type: ignore
         
         # Add exception info if present
         if record.exc_info:
@@ -281,10 +281,10 @@ class LogContext:
         self.old_factory = logging.getLogRecordFactory()
         
         def record_factory(*args, **kwargs):
-            record = self.old_factory(*args, **kwargs)
+            record = self.old_factory(*args, **kwargs) # type: ignore
             if not hasattr(record, 'extra_data'):
                 record.extra_data = {}
-            record.extra_data.update(self.context)
+            record.extra_data.update(self.context) # type: ignore
             return record
         
         logging.setLogRecordFactory(record_factory)

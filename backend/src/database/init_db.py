@@ -1,5 +1,5 @@
 from .base import Base
-from ..models import user, character, character_profile
+from ..models import user, session
 from ..config import settings
 import sqlite3
 import logging

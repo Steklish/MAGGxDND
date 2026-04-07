@@ -37,16 +37,35 @@ from core.schemas.in_game import GameModes
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
-# Store for active game sessions (in-memory engine sessions)
-# Key: session_uuid, Value: Session engine object
-active_game_sessions: Dict[str, Session] = {}
-
 # Store for active players (temporary, until full WebSocket integration)
 active_players: Dict[str, Dict[str, any]] = {}
 
 # Store for player ready status in waiting room
 # Key: session_id, Value: Dict[user_id, is_ready] - track by user_id to prevent duplicates
 waiting_room_ready_status: Dict[str, Dict[int, bool]] = {}
+
+
+# === Helper Functions for Session Data Extraction ===
+
+def get_session_description(db_session) -> Optional[str]:
+    """Extract description from session_data JSON"""
+    return (db_session.session_data or {}).get('description')
+
+def get_session_guide(db_session) -> Optional[str]:
+    """Extract guide from session_data JSON"""
+    return (db_session.session_data or {}).get('guide')
+
+def get_session_max_players(db_session) -> int:
+    """Extract max_players from session_data JSON, default 5"""
+    return (db_session.session_data or {}).get('max_players', 5)
+
+def get_session_is_public(db_session) -> bool:
+    """Extract is_public from session_data JSON, default False"""
+    return (db_session.session_data or {}).get('is_public', False)
+
+def get_session_gemini_model(db_session) -> str:
+    """Extract gemini_model from session_data JSON, default gemini-2.0-flash"""
+    return (db_session.session_data or {}).get('gemini_model', 'gemini-2.0-flash')
 
 
 # === Procedural Generation Helpers (Fallback when AI unavailable) ===
@@ -283,7 +302,7 @@ class ProceduralGenerator:
         return NPCCharacter(
             name=npc_name,
             race="Human",
-            char_class=CharacterClass.COMMONER,
+            char_class=CharacterClass.PEASANT,
             level=1,
             backstory_summary=prompt or f"A local {npc_role} going about their daily business.",
             personality_traits=[random.choice(["Friendly", "Reserved", "Talkative", "Suspicious"])],
@@ -601,10 +620,13 @@ async def create_session(
             session_name=request.session_name,
             owner_id=current_user.id,
             game_mode=request.game_mode,
-            max_players=request.max_players,
-            description=request.description,
-            guide=request.guide,
-            gemini_model=request.gemini_model
+            session_data={
+                "max_players": request.max_players,
+                "description": request.description,
+                "guide": request.guide,
+                "gemini_model": request.gemini_model,
+                "participants": []
+            }
         )
 
         logger.info(f"Database session created: {db_session.id} (UUID: {db_session.session_uuid}, owner_id={db_session.owner_id})")
@@ -620,8 +642,8 @@ async def create_session(
         )
 
         # Pass the session_uuid to factory so it uses the same ID
+        # SessionFactory will register it with session_manager automatically
         game_session = session_factory.create_session(config, session_id=session_uuid)
-        active_game_sessions[session_uuid] = game_session
 
         logger.info(f"Game session created in memory: {session_uuid}")
 
@@ -631,10 +653,11 @@ async def create_session(
             player_uuid=str(uuid.uuid4()),
             player_name=current_user.username,
             user_id=current_user.id,
-            role="owner"
+            role="owner",
+            owner_id=current_user.id
         )
 
-        logger.info(f"Owner added as participant: {participant.id if participant else 'FAILED'}")
+        logger.info(f"Owner added as participant: {participant.get('player_uuid') if participant else 'FAILED'}")
 
         # Step 4: Verify session is in database
         verify_session = repository.get_session_by_uuid(session_uuid)
@@ -657,7 +680,7 @@ async def create_session(
             game_mode=db_session.game_mode.value,
             player_count=1,
             status=db_session.status.value,
-            description=db_session.description,
+            description=get_session_description(db_session),
             owner_id=db_session.owner_id,
             owner_name=current_user.username,
             created_at=db_session.created_at.isoformat(),
@@ -702,15 +725,15 @@ async def list_sessions(
     session_list = []
     for db_session in db_sessions:
         # Check if session has active game engine
-        game_session = active_game_sessions.get(db_session.session_uuid)
+        game_session = session_manager.get_session(db_session.session_uuid)
         player_count = 0
-        
+
         if game_session:
             player_count = len(game_session.players)
         else:
             # Get from DB
             participants = repository.get_session_participants(db_session.session_uuid)
-            player_count = len([p for p in participants if p.is_connected])
+            player_count = len([p for p in participants if p.get('is_connected')])
         
         session_list.append(SessionResponse(
             session_id=db_session.session_uuid,
@@ -718,7 +741,7 @@ async def list_sessions(
             game_mode=db_session.game_mode.value,
             player_count=player_count,
             status=db_session.status.value,
-            description=db_session.description,
+            description=get_session_description(db_session),
             owner_id=db_session.owner_id,
             owner_name=current_user.username,
             created_at=db_session.created_at.isoformat(),
@@ -743,7 +766,7 @@ async def get_session(
     db_session = get_session_by_uuid_or_404(session_id, repository)
 
     # Get player count
-    game_session = active_game_sessions.get(session_id)
+    game_session = session_manager.get_session(session_id)
     player_count = 0
     
     # Get players from DB
@@ -756,17 +779,17 @@ async def get_session(
     if game_session:
         player_count = len(game_session.players)
     else:
-        player_count = len([p for p in participants if p.is_connected])
+        player_count = len([p for p in participants if p.get('is_connected')])
     
     # Build players list with ready status
     for p in participants:
-        is_ready = session_ready_status.get(p.user_id, False) if p.user_id else False
+        is_ready = session_ready_status.get(p.get('user_id'), False) if p.get('user_id') else False
         players.append(PlayerResponse(
-            player_id=p.player_uuid,
-            player_name=p.player_name,
-            character_name=p.character_name,
-            connected=p.is_connected,
-            role=p.role,
+            player_id=p.get('player_uuid'),
+            player_name=p.get('player_name'),
+            character_name=p.get('character_name'),
+            connected=p.get('is_connected'),
+            role=p.get('role'),
             is_ready=is_ready
         ))
 
@@ -776,7 +799,7 @@ async def get_session(
         game_mode=db_session.game_mode.value,
         player_count=player_count,
         status=db_session.status.value,
-        description=db_session.description,
+        description=get_session_description(db_session),
         owner_id=db_session.owner_id,
         owner_name=current_user.username if db_session.owner_id == current_user.id else None,
         created_at=db_session.created_at.isoformat(),
@@ -801,26 +824,34 @@ async def update_session(
     
     db_session = get_session_by_uuid_or_404(session_id, repository)
     verify_session_owner(db_session, current_user)
+
+    # Update session_data JSON instead of direct fields
+    session_data_updates = {}
     
-    # Update fields
     if request.session_name is not None:
         db_session.session_name = request.session_name
     if request.description is not None:
-        db_session.description = request.description
+        session_data_updates['description'] = request.description
     if request.guide is not None:
-        db_session.guide = request.guide
+        session_data_updates['guide'] = request.guide
     if request.max_players is not None:
-        db_session.max_players = request.max_players
+        session_data_updates['max_players'] = request.max_players
     if request.is_public is not None:
-        db_session.is_public = request.is_public
-        
+        session_data_updates['is_public'] = request.is_public
+
+    # Apply session_data updates if any
+    if session_data_updates:
+        session_data = db_session.session_data or {}
+        session_data.update(session_data_updates)
+        db_session.session_data = session_data
+
     db_session.updated_at = datetime.now()
     db.commit()
     db.refresh(db_session)
     
     # Get player count
     participants = repository.get_session_participants(session_id)
-    player_count = len([p for p in participants if p.is_connected])
+    player_count = len([p for p in participants if p.get('is_connected')])
     
     return SessionResponse(
         session_id=db_session.session_uuid,
@@ -828,7 +859,7 @@ async def update_session(
         game_mode=db_session.game_mode.value,
         player_count=player_count,
         status=db_session.status.value,
-        description=db_session.description,
+        description=get_session_description(db_session),
         owner_id=db_session.owner_id,
         owner_name=current_user.username,
         created_at=db_session.created_at.isoformat(),
@@ -853,10 +884,9 @@ async def delete_session(
     verify_session_owner(db_session, current_user)
     
     # Remove from active game sessions
-    game_session = active_game_sessions.get(session_id)
+    game_session = session_manager.get_session(session_id)
     if game_session:
         await session_manager.remove_session(session_id)
-        del active_game_sessions[session_id]
     
     # Delete from database
     repository.delete_session(session_id, owner_id=current_user.id)
@@ -885,8 +915,8 @@ async def start_session(
     verify_session_owner(db_session, current_user)
 
     # Get or create game session
-    game_session = active_game_sessions.get(session_id)
-    logger.info(f"[START] active_game_sessions check: {session_id} - found: {game_session is not None}")
+    game_session = session_manager.get_session(session_id)
+    logger.info(f"[START] Session check: {session_id} - found: {game_session is not None}")
 
     if not game_session:
         # Session exists in DB but not in memory - need to initialize it
@@ -897,14 +927,13 @@ async def start_session(
             config = SessionConfig(
                 session_name=db_session.session_name,
                 game_mode=db_session.game_mode.value,
-                max_players=db_session.max_players,
-                description=db_session.description,
-                guide=db_session.guide,
-                gemini_model=db_session.gemini_model or "gemini-2.0-flash"
+                max_players=get_session_max_players(db_session),
+                description=get_session_description(db_session),
+                guide=get_session_guide(db_session),
+                gemini_model=get_session_gemini_model(db_session) or "gemini-2.0-flash"
             )
             logger.info(f"[START] Creating session factory config: {config.session_name}")
             game_session = session_factory.create_session(config, session_id=session_id)
-            active_game_sessions[session_id] = game_session
             logger.info(f"[START] Session {session_id} created with generator: {hasattr(game_session, 'generator')}")
         except Exception as e:
             logger.error(f"[START] Failed to create session: {e}", exc_info=True)
@@ -1167,7 +1196,7 @@ async def start_session(
             game_mode=db_session.game_mode.value,
             player_count=len(game_session.players),
             status="running",
-            description=db_session.description,
+            description=get_session_description(db_session),
             owner_id=db_session.owner_id,
             owner_name=current_user.username,
             created_at=db_session.created_at.isoformat(),
@@ -1204,7 +1233,7 @@ async def get_session_info(
     db_session = get_session_by_uuid_or_404(session_id, repository)
     
     # Get game session
-    game_session = active_game_sessions.get(session_id)
+    game_session = session_manager.get_session(session_id)
     
     # Get players
     players = []
@@ -1229,11 +1258,11 @@ async def get_session_info(
         player_count = len(participants)
         for p in participants:
             players.append(PlayerResponse(
-                player_id=p.player_uuid,
-                player_name=p.player_name,
-                character_name=p.character_name,
-                connected=p.is_connected,
-                role=p.role
+                player_id=p.get('player_uuid'),
+                player_name=p.get('player_name'),
+                character_name=p.get('character_name'),
+                connected=p.get('is_connected'),
+                role=p.get('role')
             ))
     
     return SessionInfoResponse(
@@ -1241,9 +1270,9 @@ async def get_session_info(
         session_name=db_session.session_name,
         game_mode=db_session.game_mode.value,
         player_count=player_count,
-        max_players=db_session.max_players,
+        max_players=get_session_max_players(db_session),
         status=db_session.status.value,
-        description=db_session.description,
+        description=get_session_description(db_session),
         owner_id=db_session.owner_id,
         owner_name=current_user.username if db_session.owner_id == current_user.id else "Unknown",
         is_owner=(db_session.owner_id == current_user.id),
@@ -1281,27 +1310,27 @@ async def join_session(
     
     # Check if current user already joined
     for participant in existing_participants:
-        if participant.user_id == current_user.id:
+        if participant.get('user_id') == current_user.id:
             # User already joined - return existing player_id
             return PlayerResponse(
-                player_id=participant.player_uuid,
-                player_name=participant.player_name,
-                character_name=participant.character_name,
-                connected=participant.is_connected,
-                role=participant.role
+                player_id=participant.get('player_uuid'),
+                player_name=participant.get('player_name'),
+                character_name=participant.get('character_name'),
+                connected=participant.get('is_connected'),
+                role=participant.get('role')
             )
         # Also check by player_name for guest users
-        if participant.player_name == request.player_name and participant.user_id is None:
+        if participant.get('player_name') == request.player_name and participant.get('user_id') is None:
             raise HTTPException(
                 status_code=400,
                 detail=f"Player '{request.player_name}' is already in this session"
             )
 
     # Check max players
-    if len(existing_participants) >= db_session.max_players:
+    if len(existing_participants) >= get_session_max_players(db_session):
         raise HTTPException(
             status_code=400,
-            detail=f"Session is full (max {db_session.max_players} players)"
+            detail=f"Session is full (max {get_session_max_players(db_session)} players)"
         )
 
     # Determine role - owner gets 'owner' role
@@ -1351,13 +1380,13 @@ async def leave_session(
     
     # Get participant to check if it's the current user
     participants = repository.get_session_participants(session_id)
-    participant = next((p for p in participants if p.player_uuid == player_id), None)
+    participant = next((p for p in participants if p.get('player_uuid') == player_id), None)
     
     if not participant:
         raise HTTPException(status_code=404, detail="Player not found in session")
     
     # Check if current user is the player being removed or the session owner
-    is_own_action = participant.user_id == current_user.id
+    is_own_action = participant.get('user_id') == current_user.id
     is_owner = db_session.owner_id == current_user.id
     
     if not is_own_action and not is_owner:
@@ -1402,13 +1431,13 @@ async def kick_player(
     
     # Get participant
     participants = repository.get_session_participants(session_id)
-    participant = next((p for p in participants if p.player_uuid == player_id), None)
+    participant = next((p for p in participants if p.get('player_uuid') == player_id), None)
     
     if not participant:
         raise HTTPException(status_code=404, detail="Player not found in session")
     
     # Cannot kick the owner
-    if participant.role == "owner":
+    if participant.get('role') == "owner":
         raise HTTPException(
             status_code=400,
             detail="Cannot kick the session owner"
@@ -1442,12 +1471,12 @@ async def get_session_players_endpoint(
 
     return [
         PlayerResponse(
-            player_id=p.player_uuid,
-            player_name=p.player_name,
-            character_name=p.character_name,
-            connected=p.is_connected,
-            role=p.role,
-            is_ready=session_ready_status.get(p.user_id, False) if p.user_id else False
+            player_id=p.get('player_uuid'),
+            player_name=p.get('player_name'),
+            character_name=p.get('character_name'),
+            connected=p.get('is_connected'),
+            role=p.get('role'),
+            is_ready=session_ready_status.get(p.get('user_id'), False) if p.get('user_id') else False
         )
         for p in participants
     ]
@@ -1470,7 +1499,7 @@ async def get_session_game_info(
     db_session = get_session_by_uuid_or_404(session_id, repository)
 
     # Try to get from active game sessions
-    game_session = active_game_sessions.get(session_id)
+    game_session = session_manager.get_session(session_id)
 
     if not game_session:
         raise HTTPException(
@@ -1481,7 +1510,7 @@ async def get_session_game_info(
     try:
         # Get DB participants for complete player list
         db_participants = repository.get_session_participants(session_id)
-        db_player_names = {p.player_name for p in db_participants}
+        db_player_names = {p.get('player_name') for p in db_participants}
         
         # Build players data from game engine
         players_data = []
@@ -1555,10 +1584,10 @@ async def get_session_game_info(
         # Add DB participants who don't have characters yet (waiting room players)
         engine_player_names = {p.get('name') for p in players_data}
         for participant in db_participants:
-            if participant.player_name not in engine_player_names:
+            if participant.get('player_name') not in engine_player_names:
                 # Player joined but doesn't have a character yet
                 players_data.append({
-                    "name": participant.player_name,
+                    "name": participant.get('player_name'),
                     "race": "Human",
                     "char_class": "Adventurer",
                     "level": 1,
@@ -1679,7 +1708,7 @@ async def get_waiting_room(
 
     # Get players from DB
     participants = repository.get_session_participants(session_id)
-    player_count = len([p for p in participants if p.is_connected])
+    player_count = len([p for p in participants if p.get('is_connected')])
     
     # Get ready status for this session (tracked by user_id)
     session_ready_status = waiting_room_ready_status.get(session_id, {})
@@ -1687,14 +1716,14 @@ async def get_waiting_room(
     players = []
     for p in participants:
         # Get ready status by user_id (None for guest users without account)
-        user_id_key = p.user_id if p.user_id is not None else hash(p.player_uuid)
+        user_id_key = p.get('user_id') if p.get('user_id') is not None else hash(p.get('player_uuid'))
         is_ready = session_ready_status.get(user_id_key, False)
         players.append(PlayerResponse(
-            player_id=p.player_uuid,
-            player_name=p.player_name,
-            character_name=p.character_name,
-            connected=p.is_connected,
-            role=p.role,
+            player_id=p.get('player_uuid'),
+            player_name=p.get('player_name'),
+            character_name=p.get('character_name'),
+            connected=p.get('is_connected'),
+            role=p.get('role'),
             is_ready=is_ready
         ))
 
@@ -1703,9 +1732,9 @@ async def get_waiting_room(
         session_name=db_session.session_name,
         game_mode=db_session.game_mode.value,
         player_count=player_count,
-        max_players=db_session.max_players,
+        max_players=get_session_max_players(db_session),
         status=db_session.status.value,
-        description=db_session.description,
+        description=get_session_description(db_session),
         owner_id=db_session.owner_id,
         owner_name=current_user.username if db_session.owner_id == current_user.id else "Unknown",
         is_owner=(db_session.owner_id == current_user.id),
@@ -1733,7 +1762,7 @@ async def set_player_ready(
 
     # Verify player is in the session - check by user_id
     participants = repository.get_session_participants(session_id)
-    participant = next((p for p in participants if p.user_id == current_user.id), None)
+    participant = next((p for p in participants if p.get('user_id') == current_user.id), None)
     
     if not participant:
         raise HTTPException(
@@ -1742,7 +1771,7 @@ async def set_player_ready(
         )
     
     # Check if player is already connected (prevent double connection)
-    if participant.is_connected:
+    if participant.get('is_connected'):
         # Player already connected - this is fine, just update ready status
         pass
 
@@ -1756,7 +1785,7 @@ async def set_player_ready(
     return {
         "success": True,
         "user_id": current_user.id,
-        "player_name": participant.player_name,
+        "player_name": participant.get('player_name'),
         "is_ready": request.is_ready,
         "session_id": session_id
     }
@@ -1790,7 +1819,7 @@ async def start_game_from_waiting_room(
 
     # Get all connected players
     participants = repository.get_session_participants(session_id)
-    connected_players = [p for p in participants if p.is_connected]
+    connected_players = [p for p in participants if p.get('is_connected')]
     
     if not connected_players:
         raise HTTPException(
@@ -1803,10 +1832,10 @@ async def start_game_from_waiting_room(
     
     not_ready_players = []
     for player in connected_players:
-        user_id_key = player.user_id if player.user_id is not None else hash(player.player_uuid)
+        user_id_key = player.get('user_id') if player.get('user_id') is not None else hash(player.get('player_uuid'))
         is_ready = session_ready_status.get(user_id_key, False)
         if not is_ready:
-            not_ready_players.append(player.player_name)
+            not_ready_players.append(player.get('player_name'))
     
     if not_ready_players:
         raise HTTPException(
@@ -1817,7 +1846,7 @@ async def start_game_from_waiting_room(
     logger.info(f"[START-GAME] Session {session_id} - Starting from waiting room with {len(connected_players)} ready players")
 
     # Get or create game session
-    game_session = active_game_sessions.get(session_id)
+    game_session = session_manager.get_session(session_id)
 
     if not game_session:
         # Initialize the game session from DB
@@ -1828,13 +1857,12 @@ async def start_game_from_waiting_room(
             config = SessionConfig(
                 session_name=db_session.session_name,
                 game_mode=db_session.game_mode.value,
-                max_players=db_session.max_players,
-                description=db_session.description,
-                guide=db_session.guide,
-                gemini_model=db_session.gemini_model or "gemini-2.0-flash"
+                max_players=get_session_max_players(db_session),
+                description=get_session_description(db_session),
+                guide=get_session_guide(db_session),
+                gemini_model=get_session_gemini_model(db_session) or "gemini-2.0-flash"
             )
             game_session = session_factory.create_session(config, session_id=session_id)
-            active_game_sessions[session_id] = game_session
             logger.info(f"[START-GAME] Session {session_id} restored from DB")
         except Exception as e:
             logger.error(f"[START-GAME] Failed to restore session {session_id}: {e}")
@@ -1851,7 +1879,7 @@ async def start_game_from_waiting_room(
         from core.entity.orchestrator import Orchestrator
 
         # Create initial scene
-        scene_description = db_session.guide or "A dimly lit tavern with worn wooden tables and the smell of ale."
+        scene_description = get_session_guide(db_session) or "A dimly lit tavern with worn wooden tables and the smell of ale."
 
         scene = SceneNode(
             name="The Drunken Dragon",
@@ -1879,11 +1907,11 @@ async def start_game_from_waiting_room(
         # Initialize player characters from ALL connected players
         for i, participant in enumerate(connected_players):
             character = Character(
-                name=participant.character_name or participant.player_name,
+                name=participant.get('character_name') or participant.get('player_name'),
                 race="Human",
                 char_class=CharacterClass.FIGHTER,
                 level=1,
-                backstory_summary=f"{participant.player_name}'s character",
+                backstory_summary=f"{participant.get('player_name')}'s character",
                 personality_traits=["Brave"],
                 max_hp=30,
                 current_hp=30,
@@ -1903,7 +1931,7 @@ async def start_game_from_waiting_room(
                 proficiency_bonus=2,
                 is_alive=True,
                 initiative_bonus=11,
-                short_summary=f"{participant.player_name}'s character"
+                short_summary=f"{participant.get('player_name')}'s character"
             )
 
             player_orchestrator = Orchestrator(
@@ -1943,7 +1971,7 @@ async def start_game_from_waiting_room(
             game_mode=db_session.game_mode.value,
             player_count=len(game_session.players),
             status="running",
-            description=db_session.description,
+            description=get_session_description(db_session),
             owner_id=db_session.owner_id,
             owner_name=current_user.username,
             created_at=db_session.created_at.isoformat(),
@@ -1984,7 +2012,7 @@ async def ai_initialize_session(
         )
     
     # Get or create game session
-    game_session = active_game_sessions.get(session_id)
+    game_session = session_manager.get_session(session_id)
     
     if not game_session:
         # Initialize from DB
@@ -1993,13 +2021,12 @@ async def ai_initialize_session(
             config = SessionConfig(
                 session_name=db_session.session_name,
                 game_mode=db_session.game_mode.value,
-                max_players=db_session.max_players,
-                description=db_session.description,
-                guide=db_session.guide,
-                gemini_model=db_session.gemini_model or "gemini-2.0-flash"
+                max_players=get_session_max_players(db_session),
+                description=get_session_description(db_session),
+                guide=get_session_guide(db_session),
+                gemini_model=get_session_gemini_model(db_session) or "gemini-2.0-flash"
             )
             game_session = session_factory.create_session(config, session_id=session_id)
-            active_game_sessions[session_id] = game_session
             logger.info(f"[AI-INIT] Session {session_id} created")
         except Exception as e:
             logger.error(f"[AI-INIT] Failed to create session: {e}")
@@ -2009,36 +2036,46 @@ async def ai_initialize_session(
             )
     
     try:
-        # Create AI service
-        from backend.src.services.ai_game_service import AIGameService
-        ai_service = AIGameService(game_session)
+        # Verify delivery is available
+        if not hasattr(game_session, 'delivery') or not game_session.delivery:
+            raise HTTPException(status_code=503, detail="Game delivery not available")
         
         # Prepare prompts
         scene_prompt = request.scene_prompt or request.wishes or "A mysterious adventure begins..."
         character_prompts = request.character_prompts or []
         npc_prompts = request.npc_prompts or []
+
+        # Initialize scene and characters through session factory methods
+        from backend.src.game.session_factory import session_factory
         
-        # Initialize through AI
-        result = await ai_service.initialize_session(
-            scene_prompt=scene_prompt,
-            character_prompts=character_prompts,
-            npc_prompts=npc_prompts
-        )
+        # Generate scene
+        scene = session_factory.init_scene(game_session, scene_prompt)
+        
+        # Generate characters
+        for i, char_prompt in enumerate(character_prompts):
+            player_name = f"Player_{i+1}"
+            player_id = str(uuid.uuid4())
+            session_factory.init_player(game_session, char_prompt, player_name, player_id)
+        
+        # Generate NPCs
+        for npc_prompt in npc_prompts:
+            session_factory.init_npc(game_session, npc_prompt)
         
         # Update DB status
         repository.update_session_status(session_id, "running", owner_id=current_user.id)
-        
-        # Send welcome message
-        game_session.delivery.master_message(result['message'])
+
+        # Send welcome message through delivery
+        welcome_msg = f"Welcome to {scene.name}! {scene.description}"
+        game_session.delivery.master_message(welcome_msg)
         game_session.delivery.session_updated(game_session)
-        
+
         return AIInitializeResponse(
-            success=result['success'],
-            session_id=result['session_id'],
-            scene_description=result['scene'].get('description', '') if result.get('scene') else '',
-            characters_count=len(result.get('characters', [])),
-            npcs_count=len(result.get('npcs', [])),
-            message=result['message']
+            success=True,
+            session_id=session_id,
+            scene_description=scene.description,
+            characters_count=len(game_session.players),
+            npcs_count=len(game_session.npcs),
+            message=f"Session initialized with {len(game_session.players)} players and {len(game_session.npcs)} NPCs"
         )
         
     except Exception as e:
@@ -2062,9 +2099,11 @@ async def player_action(
     Использует MAGG и Orchestrator для обработки действия
     и генерации нарративного ответа.
     """
+    import logging
     from backend.src.logging.request_tracing import RequestTracer, get_trace_id
     from backend.src.api.middleware.logging import Colors
-    
+
+    logger = logging.getLogger(__name__)
     trace_id = get_trace_id()
     
     # Log request tracing
@@ -2079,7 +2118,7 @@ async def player_action(
     print(f"{Colors.MAGENTA}{'='*80}{Colors.RESET}\n")
     
     # Get active game session
-    game_session = active_game_sessions.get(session_id)
+    game_session = session_manager.get_session(session_id)
 
     if not game_session:
         print(f"{Colors.RED}❌ Game session not found: {session_id}{Colors.RESET}")
@@ -2090,8 +2129,8 @@ async def player_action(
 
     try:
         # Create AI service
-        from backend.src.services.ai_game_service import AIGameService
-        ai_service = AIGameService(game_session)
+        # Using delivery directly for game communication
+        pass
         
         # Log core engine processing start
         print(f"\n{Colors.CYAN}┌{'─' * 80}{Colors.RESET}")
@@ -2173,7 +2212,7 @@ async def get_session_state(
     Возвращает сцену, игроков, NPC, сообщения и очередь ходов.
     """
     # Get active game session
-    game_session = active_game_sessions.get(session_id)
+    game_session = session_manager.get_session(session_id)
     
     if not game_session:
         return SessionStateResponse(
@@ -2187,8 +2226,8 @@ async def get_session_state(
     
     try:
         # Create AI service
-        from backend.src.services.ai_game_service import AIGameService
-        ai_service = AIGameService(game_session)
+        # Using delivery directly for game communication
+        pass
         
         # Get game state
         state = ai_service.get_game_state()

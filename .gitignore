@@ -58,3 +58,5 @@ saves/
 *__pycache__/
 __pycache__/
 *.log
+logs/
+*log*

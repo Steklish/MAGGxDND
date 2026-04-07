@@ -47,20 +47,6 @@ async def event_stream_sender(
 
             if event:
                 event_count += 1
-                timestamp = datetime.now().strftime('%H:%M:%S')
-
-                # Log event being sent with journey info
-                print(f"\n{Colors.GREEN}┌{'─' * 90}{Colors.RESET}")
-                print(f"{Colors.GREEN}│{Colors.RESET} 📤 {Colors.BOLD}EVENT JOURNEY: STAGE 4/5{Colors.RESET}")
-                print(f"{Colors.GREEN}├{'─' * 90}{Colors.RESET}")
-                print(f"{Colors.GREEN}│{Colors.RESET}    Timestamp: {timestamp}")
-                print(f"{Colors.GREEN}│{Colors.RESET}    Session: {session_id}")
-                print(f"{Colors.GREEN}│{Colors.RESET}    Player: {player_id}")
-                print(f"{Colors.GREEN}│{Colors.RESET}    Event Type: {Colors.YELLOW}{event.event_type}{Colors.RESET}")
-                print(f"{Colors.GREEN}│{Colors.RESET}    Event Count: #{event_count}")
-                print(f"{Colors.GREEN}│{Colors.RESET}    Journey Stage: {Colors.MAGENTA}Core Engine → EventPool → WebSocket{Colors.RESET}")
-                print(f"{Colors.GREEN}│{Colors.RESET}    Next: {Colors.CYAN}WebSocket → Frontend{Colors.RESET}")
-                print(f"{Colors.GREEN}└{'─' * 90}{Colors.RESET}\n")
 
                 # Сериализуем событие и отправляем клиенту
                 event_dict = {
@@ -87,66 +73,111 @@ async def event_receiver(
     session_manager: SessionManager
 ):
     """
-    Получает события от клиента (действия игрока) и публикует их в EventPool.
+    Receives events from client (player actions) and processes them through the game engine.
+    
+    Input pipeline: WebSocket -> Delivery.orchestrator -> Manipulator -> Events -> WebSocket
     """
     try:
         while True:
-            # Получаем сообщение от клиента
+            # Receive message from client
             data = await websocket.receive_json()
 
-            # Log received WebSocket message with journey info
-            timestamp = datetime.now().strftime('%H:%M:%S')
-            event_type = data.get("event_type", "UNKNOWN")
+            # Log received WebSocket message (reduced verbosity)
+            event_type = data.get("event_type", data.get("type", "UNKNOWN"))
+            
+            # Get the session
+            session = session_manager.get_session(session_id)
+            if not session:
+                await websocket.send_json({
+                    "type": "ERROR",
+                    "message": "Session not found"
+                })
+                continue
 
-            print(f"\n{Colors.CYAN}┌{'─' * 90}{Colors.RESET}")
-            print(f"{Colors.CYAN}│{Colors.RESET} 📥 {Colors.BOLD}WS MESSAGE RECEIVED: STAGE 2/5{Colors.RESET}")
-            print(f"{Colors.CYAN}├{'─' * 90}{Colors.RESET}")
-            print(f"{Colors.CYAN}│{Colors.RESET}    Timestamp: {timestamp}")
-            print(f"{Colors.CYAN}│{Colors.RESET}    Session: {session_id}")
-            print(f"{Colors.CYAN}│{Colors.RESET}    Player: {player_id}")
-            print(f"{Colors.CYAN}│{Colors.RESET}    Event Type: {Colors.YELLOW}{event_type}{Colors.RESET}")
-            print(f"{Colors.CYAN}│{Colors.RESET}    Data: {Colors.BLUE}{json.dumps(data.get('data', {}), ensure_ascii=False)[:200]}{Colors.RESET}")
-            print(f"{Colors.CYAN}│{Colors.RESET}    Journey Stage: {Colors.MAGENTA}Frontend → WebSocket → Backend{Colors.RESET}")
-            print(f"{Colors.CYAN}│{Colors.RESET}    Next: {Colors.CYAN}Backend → Core Engine{Colors.RESET}")
-            print(f"{Colors.CYAN}└{'─' * 90}{Colors.RESET}\n")
+            # Route through delivery for processing
+            if hasattr(session, 'delivery') and session.delivery:
+                # Handle different message types
+                if event_type in ["PLAYER_ACTION", "ACTION"]:
+                    # Extract action data
+                    action_data = data.get("data", data.get("action", {}))
+                    character_name = action_data.get("character_name", data.get("character_name", ""))
+                    action_text = action_data.get("action", action_data.get("text", ""))
+                    
+                    if not character_name or not action_text:
+                        await websocket.send_json({
+                            "type": "ERROR",
+                            "message": "Missing character_name or action in request"
+                        })
+                        continue
+                    
+                    # Process through delivery (which routes through orchestrator)
+                    result = await session.delivery.process_player_action(
+                        character_name=character_name,
+                        action_text=action_text,
+                        player_id=player_id
+                    )
+                    
+                    # Send result back to player
+                    await websocket.send_json({
+                        "type": "ACTION_RESULT",
+                        "success": result.get("success", False),
+                        "dm_response": result.get("dm_response", ""),
+                        "game_state": result.get("game_state", {}),
+                        "error": result.get("error")
+                    })
+                    
+                elif event_type == "PING":
+                    # Heartbeat - respond with PONG
+                    await websocket.send_json({
+                        "type": "PONG",
+                        "timestamp": datetime.now().isoformat()
+                    })
+                    
+                else:
+                    # Unknown event type - create event and broadcast to other players only
+                    event_data = data.get("data", {})
+                    from core.game.event_pool import Event
+                    event = Event(
+                        event_type=event_type,
+                        data=event_data,
+                        source=player_id
+                    )
 
-            # Создаём событие из действия игрока
-            event_data = data.get("data", {})
+                    # Publish event to other players in session
+                    await session_manager.broadcast_to_session(
+                        session_id=session_id,
+                        event=event,
+                        exclude_player_id=player_id
+                    )
 
-            event = Event(
-                event_type=event_type,
-                data=event_data,
-                source=player_id
-            )
+                    # Send confirmation to sender
+                    await websocket.send_json({
+                        "type": "ACTION_CONFIRMED",
+                        "event": {
+                            "event_type": event_type,
+                            "data": event_data
+                        }
+                    })
+            else:
+                # No delivery available - fallback to simple broadcast
+                event_data = data.get("data", {})
+                from core.game.event_pool import Event
+                event = Event(
+                    event_type=event_type,
+                    data=event_data,
+                    source=player_id
+                )
 
-            # Публикуем событие другим игрокам в сессии
-            await session_manager.broadcast_to_session(
-                session_id=session_id,
-                event=event,
-                exclude_player_id=player_id
-            )
+                await session_manager.broadcast_to_session(
+                    session_id=session_id,
+                    event=event,
+                    exclude_player_id=player_id
+                )
 
-            # Log broadcast with journey info
-            print(f"\n{Colors.GREEN}┌{'─' * 90}{Colors.RESET}")
-            print(f"{Colors.GREEN}│{Colors.RESET} 📤 {Colors.BOLD}EVENT PUBLISHED: STAGE 3/5{Colors.RESET}")
-            print(f"{Colors.GREEN}├{'─' * 90}{Colors.RESET}")
-            print(f"{Colors.GREEN}│{Colors.RESET}    Session: {session_id}")
-            print(f"{Colors.GREEN}│{Colors.RESET}    Event Type: {Colors.YELLOW}{event_type}{Colors.RESET}")
-            print(f"{Colors.GREEN}│{Colors.RESET}    Journey Stage: {Colors.MAGENTA}Backend → Core Engine → EventPool{Colors.RESET}")
-            print(f"{Colors.GREEN}│{Colors.RESET}    Next: {Colors.CYAN}EventPool → WebSocket{Colors.RESET}")
-            print(f"{Colors.GREEN}└{'─' * 90}{Colors.RESET}\n")
-
-            # Также отправляем подтверждение отправителю
-            await websocket.send_json({
-                "type": "ACTION_CONFIRMED",
-                "event": {
-                    "event_type": event_type,
-                    "data": event_data
-                }
-            })
-
-            # Log confirmation sent
-            print(f"\n{Colors.GREEN}│{Colors.RESET}    ✅ Confirmation sent to player {player_id}{Colors.RESET}\n")
+                await websocket.send_json({
+                    "type": "ERROR",
+                    "message": "Delivery not available for action processing"
+                })
 
     except WebSocketDisconnect:
         print(f"\n{Colors.YELLOW}⚠️  Player {player_id} disconnected from session {session_id}{Colors.RESET}\n")
@@ -169,18 +200,8 @@ async def websocket_endpoint(
     - Клиент -> Сервер: {"event_type": "PLAYER_ACTION", "data": {...}}
     - Сервер -> Клиент: {"event_type": "...", "data": {...}, "source": "..."}
     """
-    timestamp = datetime.now().strftime('%H:%M:%S')
-
-    # Log connection attempt with journey info
-    print(f"\n{Colors.MAGENTA}{'='*90}{Colors.RESET}")
-    print(f"{Colors.MAGENTA}🔌 {Colors.BOLD}WEBSOCKET CONNECTION ATTEMPT: STAGE 1/5{Colors.RESET}")
-    print(f"{Colors.MAGENTA}{'='*90}{Colors.RESET}")
-    print(f"{Colors.MAGENTA}   Timestamp: {timestamp}{Colors.RESET}")
-    print(f"{Colors.MAGENTA}   Session: {session_id}{Colors.RESET}")
-    print(f"{Colors.MAGENTA}   Player: {player_id}{Colors.RESET}")
-    print(f"{Colors.MAGENTA}   Journey: {Colors.CYAN}Frontend → WebSocket Server (START){Colors.RESET}")
-    print(f"{Colors.MAGENTA}   Stage: {Colors.GREEN}1/5{Colors.RESET}")
-    print(f"{Colors.MAGENTA}{'='*90}{Colors.RESET}\n")
+    # Log connection
+    print(f"\n{Colors.GREEN}🔌 WebSocket connected: {player_id} → session {session_id}{Colors.RESET}")
     
     # Проверяем существование сессии
     if not session_manager.session_exists(session_id):
@@ -195,12 +216,7 @@ async def websocket_endpoint(
 
     # Принимаем подключение
     await websocket.accept()
-    print(f"\n{Colors.GREEN}┌{'─' * 90}{Colors.RESET}")
-    print(f"{Colors.GREEN}│{Colors.RESET} ✅ {Colors.BOLD}WEBSOCKET CONNECTED{Colors.RESET}")
-    print(f"{Colors.GREEN}├{'─' * 90}{Colors.RESET}")
-    print(f"{Colors.GREEN}│{Colors.RESET}    Player {player_id} CONNECTED to session {session_id}")
-    print(f"{Colors.GREEN}│{Colors.RESET}    Journey Stage: {Colors.MAGENTA}Frontend → WebSocket → Backend (COMPLETE){Colors.RESET}")
-    print(f"{Colors.GREEN}└{'─' * 90}{Colors.RESET}\n")
+
     
     # Регистрируем WebSocket
     await session_manager.register_player_websocket(
