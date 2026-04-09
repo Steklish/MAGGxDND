@@ -35,7 +35,7 @@ The Google Gemini API is not configured, causing all AI-generated content (scene
    ```
 
 4. **Verify API key is loaded:**
-   - Check server logs for: `Generator initialized with model: gemini-2.0-flash`
+   - Check server logs for: `Generator initialized with model: gemini-flash-latest`
    - No API errors should appear when starting a game session
 
 ### Option 2: Use Fallback Mode (No API Key Required)
@@ -134,7 +134,7 @@ Look for:
 Required for full AI features:
 ```env
 GEMINI_API_KEY=AIzaSy...your_key
-GEMINI_MODEL=gemini-2.0-flash
+GEMINI_MODEL=gemini-flash-latest
 AI_GEN_RETRIES=3
 ```
 

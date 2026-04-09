@@ -1,0 +1,4 @@
+in game delivery changed session update method to send full session state instead (need s fixes in the frontend)
+session_updated is the united method to sent any update in the session (its a little not pretty but i need to 
+stick to it as the session itself uses this method) so i removed all the send_xxx_update. 
+need to check how exactly manipulators yeld their ecents and then connect to the methods that send them to the frontend.

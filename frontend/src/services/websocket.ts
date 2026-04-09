@@ -225,6 +225,13 @@ export class WebSocketService {
             },
         };
 
+        console.log('[WebSocket] → Sending action:', {
+            type: actionMsg.type,
+            characterName: character.name,
+            requestText: requestText,
+            payload: actionMsg.payload
+        });
+
         // Create journey key for this action
         const journeyKey = `action_${Date.now()}_${character.name || 'unknown'}`;
         const journeyStartTime = Date.now();
@@ -438,6 +445,23 @@ export class WebSocketService {
                             event_target: null,
                             description: `Action confirmed: ${data.payload?.request_text || 'Action received'}`,
                         } as Event,
+                    },
+                };
+
+            case 'ACTION_RESULT':
+                // Direct response from action processing
+                console.log('[WebSocket] Action result received:', {
+                    success: data.success,
+                    dmResponseLength: data.dm_response?.length || 0,
+                    error: data.error
+                });
+                return {
+                    type: 'ACTION_RESULT',
+                    payload: {
+                        success: data.success,
+                        dm_response: data.dm_response || '',
+                        game_state: data.game_state || {},
+                        error: data.error,
                     },
                 };
 

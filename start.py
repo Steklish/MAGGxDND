@@ -10,7 +10,7 @@ from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 
 # Load .env file
-load_dotenv()
+load_dotenv(override=True)
 
 # Set UTF-8 encoding for Windows
 if os.name == 'nt':
@@ -46,7 +46,7 @@ console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 
 root_logger = logging.getLogger()
-root_logger.setLevel(logging.INFO)
+root_logger.setLevel(logging.DEBUG)
 root_logger.addHandler(file_handler)
 root_logger.addHandler(console_handler)
 

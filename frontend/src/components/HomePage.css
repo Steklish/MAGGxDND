@@ -127,6 +127,11 @@ body.has-home-bg #root {
     cursor: pointer;
     transition: all 0.3s ease;
     border-radius: var(--radius-md);
+    line-height: 1.4;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .header-nav button:hover {

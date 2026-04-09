@@ -183,7 +183,7 @@ class GameDelivery(Delivery):
     def session_updated(self, session: "Session") -> None:
         """
         Notify about session state update.
-        
+
         Immediately sends update to all players.
 
         Args:
@@ -195,24 +195,18 @@ class GameDelivery(Delivery):
         # Serialize important state for clients
         message = {
             "type": "SESSION_UPDATE",
-            "data": {
-                "session_name": session.session_name,
-                "game_mode": session.game_mode.value,
-                "scene_name": session.current_scene.name if session.current_scene else None,
-                "player_count": len(session.players),
-                "npc_count": len(session.npcs),
-                "turn_queue": [
-                    {
-                        "entity_id": entity.id if hasattr(entity, 'id') else str(entity),
-                        "entity_type": "player" if isinstance(entity, session.players[0].__class__) else "npc"
-                    }
-                    for entity, _, _ in session.turn_queue
-                ] if session.turn_queue else []
-            }
+            "data": session.get_session_state()
         }
 
-        # Schedule async broadcast
-        asyncio.create_task(self._broadcast_to_session(message))
+        # Schedule async broadcast (thread-safe)
+        try:
+            loop = asyncio.get_running_loop()
+            # We're in async context, use create_task
+            asyncio.create_task(self._broadcast_to_session(message))
+        except RuntimeError:
+            # No running loop - we're in a thread (e.g., from manipulator.execute_events)
+            # The broadcast will happen when process_player_action calls session_updated
+            self.session.logger.debug("[SESSION_UPDATE] Deferred broadcast (called from thread)")
 
     async def get_next_message(self) -> dict:
         """
@@ -224,78 +218,6 @@ class GameDelivery(Delivery):
         # This method is not used in current implementation
         # Events are streamed via WebSocket through event_stream_sender
         pass
-
-    def send_to_player(self, player_id: str, message: dict) -> None:
-        """
-        Send message to specific player.
-
-        Args:
-            player_id: ID of player
-            message: Message
-        """
-        self.session.logger.debug(f"[SEND_TO_PLAYER] {player_id}: {message.get('type', 'unknown')}")
-
-        # Schedule async send
-        asyncio.create_task(self._send_to_websocket(player_id, message))
-
-    def send_character_update(
-        self,
-        character_id: str,
-        updates: dict,
-        exclude_player: Optional[str] = None
-    ) -> None:
-        """
-        Send character state update.
-
-        Args:
-            character_id: ID of character
-            updates: Update data
-            exclude_player: Exclude player (sender)
-        """
-        message = {
-            "type": "CHARACTER_UPDATE",
-            "character_id": character_id,
-            "updates": updates
-        }
-
-        self.session.logger.debug(f"[CHARACTER_UPDATE] {character_id}: {updates}")
-
-        # Schedule async broadcast
-        asyncio.create_task(self._broadcast_to_session(message, exclude_player))
-
-    def send_scene_update(self, scene_data: dict) -> None:
-        """
-        Send scene update.
-
-        Args:
-            scene_data: Scene data
-        """
-        message = {
-            "type": "SCENE_UPDATE",
-            "scene": scene_data
-        }
-
-        self.session.logger.debug(f"[SCENE_UPDATE] {scene_data.get('name', 'unknown')}")
-
-        # Schedule async broadcast
-        asyncio.create_task(self._broadcast_to_session(message))
-
-    def send_combat_event(self, event_data: dict) -> None:
-        """
-        Send combat event.
-
-        Args:
-            event_data: Combat event data
-        """
-        message = {
-            "type": "COMBAT_EVENT",
-            "data": event_data
-        }
-
-        self.session.logger.info(f"[COMBAT_EVENT] {event_data}")
-
-        # Schedule async broadcast
-        asyncio.create_task(self._broadcast_to_session(message))
 
     async def process_player_action(self, character_name: str, action_text: str, player_id: Optional[str] = None) -> dict:
         """
@@ -414,9 +336,23 @@ class GameDelivery(Delivery):
                             verdict.details if verdict.details else action_text,
                             player
                         )
+                        self.session.logger.info(f"[PLAYER_ACTION] _external_action_as_an_entity returned {len(action_events) if action_events else 0} action events")
+                        
                         # Execute events (triggers side effects, publishes to EventPool)
                         events = self.session.manipulator.execute_events(action_events)
-                        self.session.logger.info(f"[PLAYER_ACTION] Executed {len(events)} events")
+                        self.session.logger.info(f"[PLAYER_ACTION] execute_events returned {len(events)} events")
+
+                        # CRITICAL: Publish events to EventPool so WebSocket subscribers receive them
+                        # This is what terminal delivery does: self.event_queue.publish_to_others(e)
+                        if events:
+                            for event in events:
+                                self.session.event_pool.add_event(event)
+                                self.session.logger.info(f"[PLAYER_ACTION] ✅ Published event to EventPool: {event.event_type}")
+                                self.session.logger.info(f"[PLAYER_ACTION] Event description: {event.description[:80] if event.description else 'N/A'}...")
+                            
+                            self.session.logger.info(f"[PLAYER_ACTION] Total events published: {len(events)}")
+                        else:
+                            self.session.logger.warning(f"[PLAYER_ACTION] No events produced by manipulator - this might be the issue!")
 
                     # Step 2: Call MAGG.handle_events() to generate AI narrative
                     # This is what terminal delivery does in game_loop line 1091
@@ -437,12 +373,28 @@ class GameDelivery(Delivery):
                             else:
                                 # No running loop, can use asyncio.run
                                 dm_response = asyncio.run(self.session.game_master.handle_events())
-                        except Exception as magg_error:
-                            self.session.logger.warning(f"[PLAYER_ACTION] MAGG handle_events failed: {magg_error}, using fallback")
-                            # Fallback: call comment() directly with events
-                            if hasattr(self.session.game_master, 'comment'):
-                                dm_response = self.session.game_master.comment(events)
+                            
+                            # Log the result
+                            if dm_response:
+                                self.session.logger.info(f"[PLAYER_ACTION] AI narrative generated: {len(dm_response)} chars")
                             else:
+                                self.session.logger.info(f"[PLAYER_ACTION] MAGG returned empty response, using fallback")
+                                dm_response = verdict.details if verdict.details else action_text
+                        except Exception as magg_error:
+                            import traceback
+                            error_type = type(magg_error).__name__
+                            self.session.logger.warning(f"[PLAYER_ACTION] MAGG handle_events failed ({error_type}): {magg_error}")
+                            self.session.logger.debug(f"[PLAYER_ACTION] MAGG error traceback:\n{traceback.format_exc()}")
+                            # Fallback: call comment() directly with events
+                            try:
+                                if hasattr(self.session.game_master, 'comment'):
+                                    self.session.logger.info(f"[PLAYER_ACTION] Attempting fallback with comment({len(events)} events)")
+                                    dm_response = self.session.game_master.comment(events)
+                                    self.session.logger.info(f"[PLAYER_ACTION] Fallback comment succeeded: {len(dm_response)} chars")
+                                else:
+                                    dm_response = verdict.details if verdict.details else action_text
+                            except Exception as comment_error:
+                                self.session.logger.error(f"[PLAYER_ACTION] Fallback comment() also failed: {type(comment_error).__name__}: {comment_error}")
                                 dm_response = verdict.details if verdict.details else action_text
                     else:
                         # No MAGG available - use verdict details as fallback
@@ -457,13 +409,54 @@ class GameDelivery(Delivery):
                 if dm_response:
                     self.master_message(dm_response)
 
-                # Send session update
+                # Send session update with full state
                 self.session_updated(self.session)
+                
+                # Explicitly send character position/state updates
+                if events:
+                    for event in events:
+                        # Check if event involves a character movement or state change
+                        if hasattr(event, 'event_subject') and event.event_subject:
+                            # Send character update to frontend
+                            character_update = {
+                                "type": "CHARACTER_STATUS_UPDATE",
+                                "payload": {
+                                    "character_name": event.event_subject,
+                                    "event_type": event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type),
+                                    "description": event.description
+                                }
+                            }
+                            asyncio.create_task(self._broadcast_to_session(character_update))
+                            self.session.logger.debug(f"[PLAYER_ACTION] Sent character update for: {event.event_subject}")
+                
+                # Send explicit scene update if current scene exists
+                if self.session.current_scene:
+                    scene_update_msg = {
+                        "type": "SCENE_UPDATE",
+                        "payload": {
+                            "scene": self.session.current_scene.model_dump(mode='json') if hasattr(self.session.current_scene, 'model_dump') else str(self.session.current_scene),
+                            "players": [p.character.model_dump(mode='json') if hasattr(p.character, 'model_dump') else str(p.character) for p in self.session.players],
+                            "npcs": [n.character.model_dump(mode='json') if hasattr(n.character, 'model_dump') else str(n.character) for n in self.session.npcs]
+                        }
+                    }
+                    asyncio.create_task(self._broadcast_to_session(scene_update_msg))
+                    self.session.logger.info(f"[PLAYER_ACTION] Sent scene update: {self.session.current_scene.name}")
+
+                # Serialize events for the response
+                serialized_events = []
+                for event in events:
+                    serialized_events.append({
+                        "event_type": event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type),
+                        "event_initiator": event.event_initiator,
+                        "event_subject": event.event_subject,
+                        "event_target": event.event_target,
+                        "description": event.description,
+                    })
 
                 result = {
                     "success": True,
                     "dm_response": dm_response if dm_response else "",
-                    "events": [],  # Events are already published to EventPool
+                    "events": serialized_events,
                     "game_state": {
                         "scene": self.session.current_scene.name if self.session.current_scene else None,
                         "players": len(self.session.players),

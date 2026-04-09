@@ -143,7 +143,7 @@ sendAction("move", {
   "description": "string (optional)",
   "guide": "string (optional) - Сюжетная подсказка для AI",
   "gemini_api_key": "string (optional)",
-  "gemini_model": "string (default: gemini-2.0-flash)"
+  "gemini_model": "string (default: gemini-flash-latest)"
 }
 ```
 
@@ -532,7 +532,7 @@ game.sendAction('melee_attack', { target: 'orc', weapon: 'sword' });
 ```env
 # AI Settings
 GEMINI_API_KEY=your-api-key-here
-GEMINI_MODEL=gemini-2.0-flash
+GEMINI_MODEL=gemini-flash-latest
 
 # Database
 CHROMA_DB_PATH=./chroma_db/data.db

@@ -2,6 +2,22 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './SessionCreation.css';
 
+// Game mode options
+const gameModes = [
+    {
+        value: 'STORY',
+        label: 'Story Mode',
+        icon: '📖',
+        description: 'Focus on narrative and exploration'
+    },
+    {
+        value: 'COMBAT',
+        label: 'Combat Mode',
+        icon: '⚔️',
+        description: 'Turn-based tactical combat'
+    }
+];
+
 interface SessionCreationProps {
     userId: number;
     onComplete: (sessionId: string) => void;
@@ -20,13 +36,6 @@ export const SessionCreation: React.FC<SessionCreationProps> = ({ userId: _userI
         is_public: true,
     });
 
-    const gameModes = [
-        { value: 'STORY', label: 'Story Mode', icon: '📖', description: 'Focus on narrative and roleplay' },
-        { value: 'COMBAT', label: 'Combat Mode', icon: '⚔️', description: 'Tactical battles and encounters' },
-        { value: 'SANDBOX', label: 'Sandbox Mode', icon: '🌍', description: 'Open world exploration' },
-        { value: 'CAMPAIGN', label: 'Campaign Mode', icon: '📜', description: 'Long-term adventure' },
-    ];
-
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -44,12 +53,15 @@ export const SessionCreation: React.FC<SessionCreationProps> = ({ userId: _userI
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+        console.log('Form submitted, current step:', step);
+        console.log('Form data:', formData);
+
         // Prevent double submission
         if (isLoading) {
+            console.log('Already loading, returning early');
             return;
         }
-        
+
         setIsLoading(true);
         setErrors({});
 
@@ -60,6 +72,7 @@ export const SessionCreation: React.FC<SessionCreationProps> = ({ userId: _userI
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             setIsLoading(false);
+            console.log('Validation errors:', newErrors);
             return;
         }
 
@@ -71,14 +84,17 @@ export const SessionCreation: React.FC<SessionCreationProps> = ({ userId: _userI
                 description: formData.description,
             };
 
-            console.log('Creating session with data:', sessionData);
+            console.log('Sending request to /api/v1/sessions:', sessionData);
             const response = await axios.post('/api/v1/sessions', sessionData);
-            console.log('Session creation response:', response.data);
+            console.log('Session creation response status:', response.status);
+            console.log('Session creation response data:', response.data);
 
-            if (response.data.session_id) {
+            if (response.data && response.data.session_id) {
+                console.log('Session ID received:', response.data.session_id);
                 // Auto-join the session as owner
                 try {
                     const username = localStorage.getItem('username') || 'Owner';
+                    console.log('Joining session as:', username);
                     await axios.post(`/api/v1/sessions/${response.data.session_id}/players`, {
                         player_name: username
                     });
@@ -86,13 +102,20 @@ export const SessionCreation: React.FC<SessionCreationProps> = ({ userId: _userI
                 } catch (joinError) {
                     console.warn('Failed to auto-join session:', joinError);
                 }
-                
+
+                console.log('Calling onComplete with session ID');
+                setIsLoading(false);
                 onComplete(response.data.session_id);
+            } else {
+                console.error('No session_id in response:', response.data);
+                setErrors({ submit: 'Session created but no session ID returned' });
+                setIsLoading(false);
             }
         } catch (error: any) {
             console.error('Session creation error:', error);
             console.error('Error response:', error.response?.data);
             console.error('Error status:', error.response?.status);
+            console.error('Error message:', error.message);
             setIsLoading(false);
             if (error.response) {
                 setErrors({ submit: error.response.data.detail || 'Failed to create session' });

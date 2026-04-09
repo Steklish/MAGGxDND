@@ -541,7 +541,7 @@ CREATE TABLE game_sessions (
   "guide": "Players explore an abandoned mine",
   "max_players": 4,
   "is_public": false,
-  "gemini_model": "gemini-2.0-flash",
+  "gemini_model": "gemini-flash-latest",
   "participants": [
     {
       "user_id": 1,

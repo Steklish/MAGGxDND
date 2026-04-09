@@ -208,7 +208,11 @@ class RESTAPIDelivery(Delivery):
                         player
                     )
                     events = self._session.manipulator.execute_events(action_events)
-                
+                    
+                    # Publish events to EventPool
+                    for event in events:
+                        self._session.event_pool.add_event(event)
+
                 # Get MAGG narrative
                 if hasattr(self._session, 'game_master') and self._session.game_master:
                     if hasattr(self._session.game_master, 'comment'):
@@ -217,11 +221,22 @@ class RESTAPIDelivery(Delivery):
                         dm_response = verdict.details if verdict.details else action_text
                 else:
                     dm_response = verdict.details if verdict.details else action_text
-            
+
             self.logger.info(f"[{self.session_id}] DM Response: {dm_response}")
 
             # Send through delivery
             self.master_message(dm_response)
+
+            # Serialize events for response
+            serialized_events = []
+            for event in events:
+                serialized_events.append({
+                    "event_type": event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type),
+                    "event_initiator": event.event_initiator,
+                    "event_subject": event.event_subject,
+                    "event_target": event.event_target,
+                    "description": event.description,
+                })
 
             # Store result
             self._last_action_result = {
@@ -230,7 +245,7 @@ class RESTAPIDelivery(Delivery):
                 "action": action_text,
                 "verdict": str(verdict),
                 "dm_response": dm_response,
-                "events": [],
+                "events": serialized_events,
                 "game_state": {
                     "scene": self._session.current_scene.name if self._session.current_scene else None,
                     "players": len(self._session.players),

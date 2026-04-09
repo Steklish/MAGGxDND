@@ -2,106 +2,179 @@
 """
 Character API router
 
-Handles character creation through session delivery.
-All character operations go through the session's delivery object.
+Handles two types of character operations:
+1. Character Profiles - Save user's character templates to database (reusable across sessions)
+2. In-Session Characters - Create characters within active game sessions
 """
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
-from sqlalchemy.orm import Session
+from typing import Optional, Dict, Any, List
 
 from backend.src.database.session import get_db
 from backend.src.auth.dependencies import get_current_user
 from backend.src.models.user import User
 from backend.src.game.session_manager import session_manager
 from backend.src.repositories.session_repository import SessionRepository
-from core.schemas.in_game import Character
+from backend.src.repositories.character_profile_repository import CharacterProfileRepository
 
 router = APIRouter(prefix="/characters", tags=["characters"])
 
 
-class CharacterCreateRequest(BaseModel):
-    """Request for creating a character in a session."""
-    session_id: str = Field(..., description="Session UUID where character will be created")
-    character_name: str = Field(..., description="Name of the character", min_length=2, max_length=100)
-    character_prompt: str = Field(..., description="Description prompt for AI generation", max_length=2000)
-    character_class: Optional[str] = Field(None, description="Character class (optional, AI will suggest if not provided)")
-    character_race: Optional[str] = Field(None, description="Character race (optional, AI will suggest if not provided)")
+# ===================================================================
+# Request/Response Models
+# ===================================================================
+
+class CharacterProfileCreateRequest(BaseModel):
+    """Request for saving a character profile to user's library."""
+    name: str = Field(..., min_length=2, max_length=100)
+    race: str = Field(default="Human", max_length=50)
+    char_class: str = Field(..., max_length=50)
+    level: int = Field(default=1, ge=1, le=20)
+    character_data: Optional[Dict[str, Any]] = None
+    backstory_summary: Optional[str] = Field(None, max_length=2000)
+    personality_traits: Optional[List[str]] = None
+    appearance_description: Optional[str] = Field(None, max_length=2000)
+    background: Optional[str] = Field(None, max_length=100)
+    alignment: Optional[str] = Field(None, max_length=50)
+    max_hp: int = Field(default=10, ge=1)
+    armor_class: int = Field(default=10)
+    speed: int = Field(default=30)
+    is_favorite: bool = False
 
 
-class CharacterResponse(BaseModel):
-    """Response with character information."""
+class CharacterProfileResponse(BaseModel):
+    """Response with saved character profile information."""
     success: bool
-    character_name: str
-    character_class: str
-    character_race: str
+    profile_id: int
+    name: str
+    race: str
+    char_class: str
     level: int
     max_hp: int
-    current_hp: int
     armor_class: int
-    stats: Dict[str, int]
-    abilities: list
-    inventory: list
+    speed: int
     message: str
 
 
-@router.post("/", response_model=CharacterResponse)
-async def create_character(
-    request: CharacterCreateRequest,
-    db: Session = Depends(get_db),
+# ===================================================================
+# Endpoints
+# ===================================================================
+
+@router.post("/", response_model=CharacterProfileResponse)
+async def create_or_save_character(
+    request: Dict[str, Any],
+    db=Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Create a character in a session using AI generation.
+    Create/save a character.
     
-    The character is created through the session's delivery object which
-    ensures proper integration with the game engine.
-    
-    The character will be added to the session and all connected players
-    will receive a CHARACTER_UPDATE event via WebSocket.
+    If request contains 'session_id' → Session-based character creation (AI generated)
+    If request does NOT contain 'session_id' → Save as character profile to database
     """
-    repository = SessionRepository(db)
+    # Check if this is session-based creation or profile save
+    if 'session_id' in request:
+        return await _create_character_in_session(request, db, current_user)
+    else:
+        return await _save_character_profile(request, db, current_user)
+
+
+async def _save_character_profile(
+    request: Dict[str, Any],
+    db,
+    current_user: User
+) -> CharacterProfileResponse:
+    """Save a character profile to user's library for reuse across sessions."""
+    repo = CharacterProfileRepository(db)
     
+    try:
+        profile = repo.create(
+            user_id=current_user.id,
+            name=request.get('name', 'Unnamed Character'),
+            race=request.get('race', 'Human'),
+            char_class=request.get('char_class', 'Fighter'),
+            level=request.get('level', 1),
+            character_data=request.get('character_data'),
+            backstory_summary=request.get('backstory_summary'),
+            personality_traits=request.get('personality_traits'),
+            appearance_description=request.get('appearance_description'),
+            background=request.get('background'),
+            alignment=request.get('alignment'),
+            max_hp=request.get('max_hp', 10),
+            armor_class=request.get('armor_class', 10),
+            speed=request.get('speed', 30),
+            is_favorite=request.get('is_favorite', False)
+        )
+        
+        return CharacterProfileResponse(
+            success=True,
+            profile_id=profile.id,
+            name=profile.name,
+            race=profile.race,
+            char_class=profile.char_class,
+            level=profile.level,
+            max_hp=profile.max_hp,
+            armor_class=profile.armor_class,
+            speed=profile.speed,
+            message=f"Character '{profile.name}' saved to your library!"
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error saving character profile: {str(e)}")
+
+
+async def _create_character_in_session(
+    request: Dict[str, Any],
+    db,
+    current_user: User
+) -> 'CharacterResponse':
+    """Create a character within an active game session."""
+    from core.schemas.in_game import Character
+    from core.entity.player import Player
+    from core.entity.orchestrator import Orchestrator
+    
+    # Validate required fields
+    session_id = request.get('session_id')
+    character_name = request.get('character_name')
+    character_prompt = request.get('character_prompt', '')
+    
+    if not session_id or not character_name:
+        raise HTTPException(status_code=422, detail="session_id and character_name are required")
+    
+    repository = SessionRepository(db)
+
     # Verify session exists in database
-    db_session = repository.get_session_by_uuid(request.session_id)
+    db_session = repository.get_session_by_uuid(session_id)
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
-    
-    # Verify user has access to session (owner or participant)
+
+    # Verify user has access to session
     is_owner = db_session.owner_id == current_user.id
-    participants = repository.get_session_participants(request.session_id)
+    participants = repository.get_session_participants(session_id)
     is_participant = any(p.get("user_id") == current_user.id for p in participants)
-    
+
     if not is_owner and not is_participant:
         raise HTTPException(status_code=403, detail="You don't have access to this session")
-    
+
     # Get active game session
-    game_session = session_manager.get_session(request.session_id)
+    game_session = session_manager.get_session(session_id)
     if not game_session:
-        raise HTTPException(
-            status_code=400, 
-            detail="Session is not active. Please start the session first."
-        )
-    
+        raise HTTPException(status_code=400, detail="Session is not active. Please start the session first.")
+
     # Verify delivery is available
     if not hasattr(game_session, 'delivery') or not game_session.delivery:
         raise HTTPException(status_code=503, detail="Game delivery not available")
-    
+
     try:
         # Build character prompt
-        full_prompt = request.character_prompt
-        if request.character_class:
-            full_prompt += f"\nClass: {request.character_class}"
-        if request.character_race:
-            full_prompt += f"\nRace: {request.character_race}"
-        
-        # Generate character through AI
-        from core.schemas.in_game import Character
-        from core.entity.player import Player
-        from core.entity.orchestrator import Orchestrator
-        
+        full_prompt = character_prompt
+        if request.get('character_class'):
+            full_prompt += f"\nClass: {request.get('character_class')}"
+        if request.get('character_race'):
+            full_prompt += f"\nRace: {request.get('character_race')}"
+
         character = None
-        
+
         # Try AI generation first
         if hasattr(game_session, 'generator') and game_session.generator:
             try:
@@ -113,29 +186,28 @@ async def create_character(
             except Exception as e:
                 game_session.logger.warning(f"AI generation failed: {e}, using procedural fallback")
                 character = None
-        
+
         # Fallback to procedural generation
         if not character:
             character = _procedural_generate_character(
-                name=request.character_name,
-                prompt=request.character_prompt,
-                char_class=request.character_class,
-                race=request.character_race
+                name=character_name,
+                prompt=character_prompt,
+                char_class=request.get('character_class'),
+                race=request.get('character_race')
             )
             game_session.logger.info(f"Procedural character generated: {character.name}")
-        
+
         # Create player orchestrator
         player_orchestrator = Orchestrator(
             generator=game_session.generator,
             logger=game_session.logger.getChild("player_orchestrator")
         )
         player_orchestrator.add_state(game_session)
-        
+
         # Subscribe to events
         event_queue = game_session.event_pool.subscribe(character.name)
-        
+
         # Create player
-        from core.entity.player import Player
         player = Player(
             character=character,
             event_queuee=event_queue,
@@ -143,16 +215,13 @@ async def create_character(
             orchestrator=player_orchestrator
         )
         player.inject_state(game_session)
-        
+
         # Add to session
         game_session.players.append(player)
 
-        # Notify all players via delivery (includes the new character in session state)
+        # Notify all players via delivery
         game_session.delivery.session_updated(game_session)
-        
-        # Log success
-        game_session.logger.info(f"Character '{character.name}' added to session. Total players: {len(game_session.players)}")
-        
+
         # Extract stats
         stats = getattr(character, 'stats', None)
         stats_dict = {
@@ -166,29 +235,30 @@ async def create_character(
             "strength": 10, "dexterity": 10, "constitution": 10,
             "intelligence": 10, "wisdom": 10, "charisma": 10,
         }
-        
-        return CharacterResponse(
-            success=True,
-            character_name=character.name,
-            character_class=str(getattr(character, 'char_class', 'Unknown')),
-            character_race=getattr(character, 'race', 'Human'),
-            level=getattr(character, 'level', 1),
-            max_hp=getattr(character, 'max_hp', 10),
-            current_hp=getattr(character, 'current_hp', 10),
-            armor_class=getattr(character, 'armor_class', 10),
-            stats=stats_dict,
-            abilities=getattr(character, 'abilities', []),
-            inventory=[item if isinstance(item, dict) else item.model_dump() if hasattr(item, 'model_dump') else str(item) for item in getattr(character, 'inventory', [])],
-            message=f"Character '{character.name}' created successfully and added to session."
-        )
-        
+
+        return {
+            "success": True,
+            "character_name": character.name,
+            "character_class": str(getattr(character, 'char_class', 'Unknown')),
+            "character_race": getattr(character, 'race', 'Human'),
+            "level": getattr(character, 'level', 1),
+            "max_hp": getattr(character, 'max_hp', 10),
+            "current_hp": getattr(character, 'current_hp', 10),
+            "armor_class": getattr(character, 'armor_class', 10),
+            "stats": stats_dict,
+            "abilities": getattr(character, 'abilities', []),
+            "inventory": [item if isinstance(item, dict) else item.model_dump() if hasattr(item, 'model_dump') else str(item) for item in getattr(character, 'inventory', [])],
+            "message": f"Character '{character.name}' created successfully and added to session."
+        }
+
     except Exception as e:
         game_session.logger.error(f"Error creating character: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error creating character: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error creating character: {str(e)}")
 
+
+# ===================================================================
+# Procedural Generation Helper
+# ===================================================================
 
 def _procedural_generate_character(
     name: str,
@@ -199,8 +269,7 @@ def _procedural_generate_character(
     """Procedurally generate a character when AI is unavailable."""
     import random
     from core.schemas.in_game import Character, CharacterClass, AbilityScores, Coordinate2D
-    
-    # Random stats with some variation
+
     base_stats = 10 + random.randint(-2, 4)
     stats = AbilityScores(
         strength=base_stats + random.randint(-2, 4),
@@ -210,8 +279,7 @@ def _procedural_generate_character(
         wisdom=base_stats + random.randint(-2, 4),
         charisma=base_stats + random.randint(-2, 4),
     )
-    
-    # Determine class
+
     if char_class:
         try:
             character_class = CharacterClass(char_class.upper())
@@ -219,15 +287,11 @@ def _procedural_generate_character(
             character_class = random.choice([CharacterClass.FIGHTER, CharacterClass.WIZARD, CharacterClass.ROGUE, CharacterClass.CLERIC])
     else:
         character_class = random.choice([CharacterClass.FIGHTER, CharacterClass.WIZARD, CharacterClass.ROGUE, CharacterClass.CLERIC])
-    
-    # Generate abilities based on class
+
     abilities = _generate_abilities_for_class(character_class)
-    
-    # Generate inventory based on class
     inventory = _generate_inventory_for_class(character_class)
-    
     max_hp = 25 + stats.constitution + (4 if character_class == CharacterClass.FIGHTER else 0)
-    
+
     return Character(
         name=name,
         race=race or "Human",
@@ -252,7 +316,7 @@ def _procedural_generate_character(
 def _generate_abilities_for_class(char_class) -> list:
     """Generate abilities based on character class."""
     from core.schemas.in_game import CharacterClass
-    
+
     if char_class == CharacterClass.FIGHTER:
         return [
             {"name": "Attack", "short_summary": "Make a melee weapon attack dealing 1d8+3 slashing damage", "level": 0, "type": "action"},
@@ -282,7 +346,7 @@ def _generate_abilities_for_class(char_class) -> list:
 def _generate_inventory_for_class(char_class) -> list:
     """Generate starting inventory based on class."""
     from core.schemas.in_game import CharacterClass
-    
+
     if char_class == CharacterClass.FIGHTER:
         return [
             {"name": "Longsword", "is_equipped": True, "type": "weapon", "damage": "1d8"},

@@ -41,10 +41,16 @@ async def event_stream_sender(
     Работает как отдельная асинхронная задача пока подключен игрок.
     """
     event_count = 0
+    print(f"{Colors.GREEN}   [event_stream_sender] Task started for player {player_id}{Colors.RESET}")
+    print(f"{Colors.CYAN}   [event_stream_sender] Entering main loop{Colors.RESET}")
     try:
         while True:
             # Ждём событие из очереди (неблокирующе)
             event = subscriber_queue.get()
+            
+            # Debug: log first few iterations
+            # if event_count < 3:
+                # print(f"{Colors.CYAN}   [event_stream_sender] Loop iteration, event={event is not None}{Colors.RESET}")
 
             if event:
                 event_count += 1
@@ -57,6 +63,17 @@ async def event_stream_sender(
                     "event_target": event.event_target,
                     "description": event.description,
                 }
+                
+                # Log event being sent to frontend
+                print(f"\n{Colors.CYAN}┌{'─' * 90}{Colors.RESET}")
+                print(f"{Colors.CYAN}│{Colors.RESET} 📤 EVENT SENT TO FRONTEND [{event_count}]")
+                print(f"{Colors.CYAN}│{Colors.RESET}    Session: {session_id}")
+                print(f"{Colors.CYAN}│{Colors.RESET}    Player: {player_id}")
+                print(f"{Colors.CYAN}│{Colors.RESET}    Event Type: {Colors.YELLOW}{event_dict['event_type']}{Colors.RESET}")
+                print(f"{Colors.CYAN}│{Colors.RESET}    Description: {event_dict.get('description', 'N/A')[:100]}")
+                print(f"{Colors.CYAN}│{Colors.RESET}    Journey: EventPool → WebSocket → Frontend")
+                print(f"{Colors.CYAN}└{'─' * 90}{Colors.RESET}\n")
+                
                 await websocket.send_json(event_dict)
             else:
                 # Если событий нет, ждём немного перед следующей проверкой
@@ -64,8 +81,15 @@ async def event_stream_sender(
 
     except WebSocketDisconnect:
         print(f"\n{Colors.YELLOW}⚠️  Player {player_id} disconnected from session {session_id}{Colors.RESET}\n")
+    except RuntimeError as e:
+        # WebSocket was closed when trying to send
+        print(f"\n{Colors.YELLOW}⚠️  Player {player_id} WebSocket runtime error: {e}{Colors.RESET}\n")
     except Exception as e:
-        print(f"\n{Colors.RED}❌ Error sending events to player {player_id}: {e}{Colors.RESET}\n")
+        import traceback
+        print(f"\n{Colors.RED}❌ Error sending events to player {player_id}: {e}{Colors.RESET}")
+        print(f"{Colors.RED}   Traceback:{Colors.RESET}")
+        print(f"{Colors.RED}{traceback.format_exc()}{Colors.RESET}\n")
+        raise  # Re-raise to see the full error
 
 
 async def event_receiver(
@@ -76,12 +100,15 @@ async def event_receiver(
 ):
     """
     Receives events from client (player actions) and processes them through the game engine.
-    
+
     Input pipeline: WebSocket -> Delivery.orchestrator -> Manipulator -> Events -> WebSocket
     """
+    print(f"{Colors.GREEN}   [event_receiver] Task started for player {player_id}{Colors.RESET}")
+    print(f"{Colors.YELLOW}   [event_receiver] Entering main loop, waiting for first message...{Colors.RESET}")
     try:
         while True:
             # Receive message from client
+            print(f"{Colors.YELLOW}   [event_receiver] Calling receive_json()...{Colors.RESET}")
             data = await websocket.receive_json()
 
             # Log received WebSocket message (reduced verbosity)
@@ -100,25 +127,42 @@ async def event_receiver(
             if hasattr(session, 'delivery') and session.delivery:
                 # Handle different message types
                 if event_type in ["PLAYER_ACTION", "ACTION"]:
-                    # Extract action data
-                    action_data = data.get("data", data.get("action", {}))
-                    character_name = action_data.get("character_name", data.get("character_name", ""))
-                    action_text = action_data.get("action", action_data.get("text", ""))
-                    
+                    # Extract action data - handle multiple formats
+                    # Frontend sends: {type: "PLAYER_ACTION", payload: {request_text, character}}
+                    # Also support: {type: "PLAYER_ACTION", data: {character_name, action}}
+                    action_data = data.get("payload", data.get("data", data.get("action", {})))
+                    character_name = action_data.get("character_name", 
+                        data.get("character_name",
+                        action_data.get("character", {}).get("name", "")))
+                    action_text = action_data.get("request_text", 
+                        action_data.get("action", 
+                        action_data.get("text", "")))
+
                     if not character_name or not action_text:
+                        print(f"{Colors.RED}   [event_receiver] Missing character_name or action. Got: {data}{Colors.RESET}")
                         await websocket.send_json({
                             "type": "ERROR",
-                            "message": "Missing character_name or action in request"
+                            "message": f"Missing character_name or action in request. Received: {json.dumps(data)[:200]}"
                         })
                         continue
-                    
+
+                    # Log received player action
+                    print(f"\n{Colors.GREEN}┌{'─' * 90}{Colors.RESET}")
+                    print(f"{Colors.GREEN}│{Colors.RESET} 📥 PLAYER ACTION RECEIVED VIA WEBSOCKET")
+                    print(f"{Colors.GREEN}│{Colors.RESET}    Session: {session_id}")
+                    print(f"{Colors.GREEN}│{Colors.RESET}    Player: {player_id}")
+                    print(f"{Colors.GREEN}│{Colors.RESET}    Character: {Colors.YELLOW}{character_name}{Colors.RESET}")
+                    print(f"{Colors.GREEN}│{Colors.RESET}    Action: {action_text[:100]}")
+                    print(f"{Colors.GREEN}│{Colors.RESET}    Journey: Frontend → WebSocket → Backend")
+                    print(f"{Colors.GREEN}└{'─' * 90}{Colors.RESET}\n")
+
                     # Process through delivery (which routes through orchestrator)
                     result = await session.delivery.process_player_action(
                         character_name=character_name,
                         action_text=action_text,
                         player_id=player_id
                     )
-                    
+
                     # Send result back to player
                     await websocket.send_json({
                         "type": "ACTION_RESULT",
@@ -181,6 +225,9 @@ async def event_receiver(
 
     except WebSocketDisconnect:
         print(f"\n{Colors.YELLOW}⚠️  Player {player_id} disconnected from session {session_id}{Colors.RESET}\n")
+    except RuntimeError as e:
+        # WebSocket was closed when trying to send
+        print(f"\n{Colors.YELLOW}⚠️  Player {player_id} WebSocket runtime error: {e}{Colors.RESET}\n")
     except Exception as e:
         print(f"\n{Colors.RED}❌ Error receiving events from player {player_id}: {e}{Colors.RESET}\n")
 
@@ -224,18 +271,27 @@ async def websocket_endpoint(
         player_id=player_id,
         websocket=websocket
     )
-    
+
     # Подписываем игрока на события (исключаем его собственные события)
     subscriber_queue = session_manager.subscribe_player_to_events(
         session_id=session_id,
         player_id=player_id,
         exclude_self=True
     )
-    
+
     if not subscriber_queue:
         await websocket.send_json({"error": "Failed to subscribe to events"})
         await websocket.close(code=4005, reason="Subscription failed")
         return
+
+    # Log successful subscription
+    print(f"\n{Colors.CYAN}┌{'─' * 90}{Colors.RESET}")
+    print(f"{Colors.CYAN}│{Colors.RESET} 🔔 PLAYER SUBSCRIBED TO EVENTS")
+    print(f"{Colors.CYAN}│{Colors.RESET}    Session: {session_id}")
+    print(f"{Colors.CYAN}│{Colors.RESET}    Player: {player_id}")
+    print(f"{Colors.CYAN}│{Colors.RESET}    Queue ID: {id(subscriber_queue)}")
+    print(f"{Colors.CYAN}│{Colors.RESET}    Journey: WebSocket Connected → Subscribed → Ready")
+    print(f"{Colors.CYAN}└{'─' * 90}{Colors.RESET}\n")
     
     # Отправляем приветственное сообщение
     await websocket.send_json({
@@ -248,27 +304,47 @@ async def websocket_endpoint(
     # Запускаем две параллельные задачи:
     # 1. Отправка событий клиенту
     # 2. Получение действий от клиента
-    send_task = asyncio.create_task(
-        event_stream_sender(websocket, subscriber_queue, session_id, player_id)
-    )
-    
-    receive_task = asyncio.create_task(
-        event_receiver(websocket, session_id, player_id, session_manager)
-    )
-    
-    # Ждём завершения любой из задач (обычно при отключении)
-    done, pending = await asyncio.wait(
-        [send_task, receive_task],
-        return_when=asyncio.FIRST_COMPLETED
-    )
-    
-    # Отменяем оставшиеся задачи
-    for task in pending:
-        task.cancel()
-        try:
-            await task
-        except asyncio.CancelledError:
-            pass
+    try:
+        send_task = asyncio.create_task(
+            event_stream_sender(websocket, subscriber_queue, session_id, player_id)
+        )
+
+        receive_task = asyncio.create_task(
+            event_receiver(websocket, session_id, player_id, session_manager)
+        )
+
+        print(f"{Colors.GREEN}   [websocket_endpoint] Both tasks created successfully{Colors.RESET}")
+
+        # Give tasks a moment to initialize
+        await asyncio.sleep(0.1)
+
+        # Ждём завершения любой из задач (обычно при отключении)
+        done, pending = await asyncio.wait(
+            [send_task, receive_task],
+            return_when=asyncio.FIRST_COMPLETED
+        )
+
+        # Log which task completed
+        for task in done:
+            if task.exception():
+                print(f"{Colors.RED}   [websocket_endpoint] Task completed with exception: {task.exception()}{Colors.RESET}")
+                import traceback
+                print(f"{Colors.RED}   {traceback.format_exc()}{Colors.RESET}")
+            else:
+                print(f"{Colors.GREEN}   [websocket_endpoint] Task completed normally{Colors.RESET}")
+
+        # Отменяем оставшиеся задачи
+        for task in pending:
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                print(f"{Colors.YELLOW}   [websocket_endpoint] Task cancelled successfully{Colors.RESET}")
+    except Exception as e:
+        print(f"{Colors.RED}   [websocket_endpoint] Exception in task management: {e}{Colors.RESET}")
+        import traceback
+        print(f"{Colors.RED}   {traceback.format_exc()}{Colors.RESET}")
+        raise
     
     # Отключаем игрока
     session_manager.unregister_player_websocket(

@@ -23,7 +23,7 @@ if sys.platform == 'win32':
 # Setup comprehensive logging
 setup_logging(
     log_dir='./logs',
-    console_level=logging.INFO,
+    console_level=logging.DEBUG,
     file_level=logging.DEBUG,
     enable_json_logs=True
 )

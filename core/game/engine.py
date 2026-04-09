@@ -622,6 +622,170 @@ Use those ideas to create a story:
         except Exception as e:
             self.logger.error(f"Error loading session: {e}")
 
+    def get_session_state(self) -> dict:
+        """
+        Serialize the current game session state to a dictionary for database storage.
+        This captures all mutable game state that needs to persist across server restarts.
+        Format matches frontend's Session interface expectations.
+        """
+        return {
+            "session_name": self.session_name,
+            "game_mode": self.game_mode.value if hasattr(self.game_mode, 'value') else str(self.game_mode),
+            "current_scene": self.current_scene.model_dump() if self.current_scene else None,
+            "players": [
+                {"character": player.character.model_dump()} for player in self.players if hasattr(player, 'character')
+            ],
+            "npcs": [
+                {"character": npc.character.model_dump() if hasattr(npc, 'character') else npc.model_dump()} # type: ignore
+                for npc in self.npcs
+            ],
+            "messages": [
+                {"sender_name": msg.sender_name, "text": msg.text}
+                for msg in self.messages
+            ],
+            "location_graph": {
+                k: list(v) for k, v in self.location_graph.items()
+            },
+            "all_locations": {
+                name: scene.model_dump() for name, scene in self.all_locations.items()
+            },
+            "current_location_name": self.current_location_name,
+            "turn_queue": [
+                [
+                    {
+                        "entity_type": "player" if isinstance(entity, Player) else "npc" if isinstance(entity, NPC) else "round_determinator",
+                        "entity_name": entity.character.name if hasattr(entity, 'character') else None, # type: ignore
+                    },
+                    time_added,
+                    next_turn,
+                ]
+                for entity, time_added, next_turn in self.turn_queue
+            ],
+            "turn_time": self.turn_time,
+            "turn_distance": self.turn_distance,
+            "spatial_enabled": self.spatial_enabled,
+            "plot": self._plot.model_dump() if hasattr(self, '_plot') and self._plot else None,
+        }
+
+    def restore_session_state(self, state_dict: dict) -> bool:
+        """
+        Restore game session state from a dictionary loaded from database.
+        Returns True if state was restored successfully, False otherwise.
+        """
+        try:
+            # Restore basic settings
+            self.session_name = state_dict.get("session_name", self.session_name)
+            if "game_mode" in state_dict:
+                self.game_mode = GameModes(state_dict["game_mode"])
+            self.turn_time = state_dict.get("turn_time", 0.0)
+            self.turn_distance = state_dict.get("turn_distance", 10)
+            self.spatial_enabled = state_dict.get("spatial_enabled", True)
+
+            # Restore plot if available
+            plot_data = state_dict.get("plot")
+            if plot_data:
+                from core.magg.plot_schemas import Plot
+                self._plot = Plot(**plot_data)
+
+            # Restore current scene
+            scene_data = state_dict.get("current_scene")
+            if scene_data:
+                self.current_scene = SceneNode(**scene_data)
+
+            # Restore location graph
+            location_graph_data = state_dict.get("location_graph", {})
+            self.location_graph = {k: set(v) for k, v in location_graph_data.items()}
+            self.all_locations = {}
+            for name, scene_data in state_dict.get("all_locations", {}).items():
+                self.all_locations[name] = SceneNode(**scene_data)
+            self.current_location_name = state_dict.get("current_location_name")
+
+            # Restore player characters (support both old and new format)
+            player_char_data = state_dict.get("players", state_dict.get("player_characters", []))
+            self.players = []
+            for player_data in player_char_data:
+                # New format: {"character": {...}}
+                # Old format: {...character data directly...}
+                char_data = player_data.get("character", player_data) if isinstance(player_data, dict) else player_data
+                character = Character(**char_data)
+                if hasattr(self, '_orchestrator') and self._orchestrator is not None:
+                    player = self._init_player(character, self.orchestrator)
+                    self.players.append(player)
+                else:
+                    self.logger.warning("Cannot restore players: orchestrator not available")
+                    return False
+
+            # Restore NPCs (support both old and new format)
+            npc_data_list = state_dict.get("npcs", [])
+            self.npcs = []
+            for npc_data in npc_data_list:
+                # New format: {"character": {...}}
+                # Old format: {...npc data directly...}
+                npc_char_data = npc_data.get("character", npc_data) if isinstance(npc_data, dict) else npc_data
+                npc_character = NPCCharacter(**npc_char_data)
+                npc = self._init_npc(npc_character)
+                if not npc.character.current_scene and self.current_scene:
+                    npc.character.current_scene = self.current_scene.name
+                self.npcs.append(npc)
+
+            # Restore messages
+            messages_data = state_dict.get("messages", [])
+            self.messages = [Message(**msg_data) for msg_data in messages_data]
+
+            # Restore turn queue (will be rebuilt with actual entity references)
+            turn_queue_data = state_dict.get("turn_queue", [])
+            self.turn_queue = []
+            for entry in turn_queue_data:
+                # New format: [[entity_info, time_added, next_turn], ...]
+                # Old format: [{entity_type, entity_name, time_added, next_turn}, ...]
+                if isinstance(entry, (list, tuple)) and len(entry) == 3:
+                    # New array format: [entity_info, time_added, next_turn]
+                    entity_info = entry[0]
+                    time_added = entry[1]
+                    next_turn = entry[2]
+                    entity = self._deserialize_turn_queue_entry(entity_info)
+                    if entity:
+                        self.turn_queue.append((entity, time_added, next_turn))
+                elif isinstance(entry, dict) and "time_added" in entry:
+                    # Old dict format
+                    entity = self._deserialize_turn_queue_entry(entry)
+                    if entity:
+                        self.turn_queue.append((entity, entry["time_added"], entry["next_turn"]))
+
+            # Initialize round determinator
+            self._initialize_round_determinator()
+
+            # Reinitialize game master after loading
+            if hasattr(self, 'logger'):
+                self._init_mage(self.logger)
+
+            self.logger.info(f"Session state restored from database: {len(self.players)} players, {len(self.npcs)} NPCs")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Error restoring session state: {e}", exc_info=True)
+            return False
+
+    def _deserialize_turn_queue_entry(self, entry: dict):
+        """Deserialize a character identifier from turn queue entry."""
+        entity_type = entry.get("entity_type")
+        entity_name = entry.get("entity_name")
+
+        if entity_type == "player" and entity_name:
+            for player in self.players:
+                if hasattr(player, 'character') and player.character.name == entity_name:
+                    return player
+        elif entity_type == "npc" and entity_name:
+            for npc in self.npcs:
+                if hasattr(npc, 'character') and npc.character.name == entity_name:
+                    return npc
+        elif entity_type == "round_determinator":
+            if not hasattr(self, 'round_determinator') or self.round_determinator is None:
+                self._initialize_round_determinator()
+            return self.round_determinator
+
+        return None
+
     def _deserialize_character_identifier(self, entity_data):
         """Deserialize a character identifier from storage."""
         entity_type = entity_data["type"]

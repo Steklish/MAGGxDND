@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { characterAPI, Character, CharacterProfile } from '../services/characterAPI';
 import { sessionAPI, GameSession } from '../services/sessionAPI';
+import { webSocketService } from '../services/websocket';
 
 interface GameState {
     // Auth state
@@ -66,6 +67,8 @@ interface GameState {
     leaveSession: (sessionId: string, playerId: string) => Promise<void>;
     setCurrentSession: (session: GameSession | null) => void;
     setActiveSessions: (sessions: GameSession[]) => void;
+    connectWebSocket: (sessionId: string, playerId: string) => Promise<void>;
+    disconnectWebSocket: () => void;
     
     // Actions - UI
     setMode: (mode: 'menu' | 'connecting' | 'playing' | 'error' | null) => void;
@@ -354,6 +357,140 @@ export const useGameStore = create<GameState>((set, get) => ({
         }
     },
 
+    connectWebSocket: async (sessionId: string, playerId: string) => {
+        try {
+            // Check if already connected to this session
+            if (webSocketService.isConnected() && 
+                webSocketService.getSessionId() === sessionId && 
+                webSocketService.getPlayerId() === playerId) {
+                console.log(`%c🔌 [${new Date().toLocaleTimeString()}] WEBSOCKET ALREADY CONNECTED - SKIPPING`, 'background: #27ae60; color: white; padding: 4px 8px; border-radius: 3px;');
+                return; // Already connected to the same session
+            }
+
+            console.log(`%c🔌 [${new Date().toLocaleTimeString()}] CONNECTING TO WEBSOCKET...`, 'background: #3498db; color: white; padding: 4px 8px; border-radius: 3px;');
+            console.log(`   Session: ${sessionId}`);
+            console.log(`   Player: ${playerId}`);
+
+            // Disconnect any existing connection first (only if different session)
+            if (webSocketService.getSessionId() !== sessionId) {
+                console.log(`%c🔌 Disconnecting from previous session...`, 'background: #95a5a6; color: white; padding: 4px 8px; border-radius: 3px;');
+                webSocketService.disconnect();
+            }
+
+            // Connect to WebSocket with message handler
+            await webSocketService.connect(sessionId, playerId, (message) => {
+                console.log(`%c📨 [${new Date().toLocaleTimeString()}] WEBSOCKET MESSAGE`, 'background: #16a085; color: white; padding: 4px 8px; border-radius: 3px;');
+                console.log('   Type:', message.type);
+                console.log('   Payload:', message.payload);
+
+                const state = useGameStore.getState();
+
+                // Handle different message types
+                switch (message.type) {
+                    case 'MASTER_MESSAGE':
+                        // DM narration - add to chat
+                        const dmMsg = {
+                            sender_name: 'DM',
+                            text: message.payload?.text || '',
+                            type: 'dm',
+                            timestamp: new Date().toISOString(),
+                        };
+                        state.addMessage(dmMsg);
+                        state.setIsDMThinking(false);
+                        break;
+
+                    case 'GAME_EVENT':
+                        // Game event - add to events and chat
+                        const event = message.payload?.event;
+                        if (event) {
+                            state.addEvent(event);
+                            
+                            // Also add as chat message for visibility
+                            const eventMsg = {
+                                sender_name: 'Game',
+                                text: event.description || `${event.event_type} occurred`,
+                                type: 'event',
+                                timestamp: new Date().toISOString(),
+                                event_type: event.event_type,
+                            };
+                            state.addMessage(eventMsg);
+                        }
+                        break;
+
+                    case 'SESSION_UPDATE':
+                        // Session state update
+                        if (message.payload?.session) {
+                            // Update scene if provided
+                            if (message.payload.session.current_scene) {
+                                state.setCurrentScene(message.payload.session.current_scene);
+                            }
+                        }
+                        break;
+
+                    case 'SCENE_UPDATE':
+                        // Scene changed
+                        if (message.payload?.scene) {
+                            state.setCurrentScene(message.payload.scene);
+                        }
+                        break;
+
+                    case 'TURN_QUEUE_UPDATE':
+                        // Turn queue updated
+                        if (message.payload?.turn_queue) {
+                            set({ turnQueue: message.payload.turn_queue });
+                        }
+                        break;
+
+                    case 'ERROR':
+                        // Error message
+                        console.error('WebSocket error:', message.payload?.message);
+                        const errorMsg = {
+                            sender_name: 'System',
+                            text: message.payload?.message || 'An error occurred',
+                            type: 'environment',
+                            timestamp: new Date().toISOString(),
+                        };
+                        state.addMessage(errorMsg);
+                        state.setIsDMThinking(false);
+                        break;
+
+                    case 'ACTION_RESULT':
+                        // Action result from server
+                        if (message.payload?.dm_response) {
+                            const dmResponse = {
+                                sender_name: 'DM',
+                                text: message.payload.dm_response,
+                                type: 'dm',
+                                timestamp: new Date().toISOString(),
+                            };
+                            state.addMessage(dmResponse);
+                        }
+                        state.setIsDMThinking(false);
+                        break;
+
+                    default:
+                        console.log('Unhandled WebSocket message type:', message.type);
+                }
+
+                console.log('%c─────────────────────────────────────────────────────', 'color: #16a085;');
+            });
+
+            console.log(`%c✅ [${new Date().toLocaleTimeString()}] WEBSOCKET CONNECTED`, 'background: #27ae60; color: white; padding: 4px 8px; border-radius: 3px;');
+            console.log('%c─────────────────────────────────────────────────────', 'color: #27ae60;');
+        } catch (error) {
+            console.error(`%c❌ [${new Date().toLocaleTimeString()}] WEBSOCKET CONNECTION FAILED`, 'background: #e74c3c; color: white; padding: 4px 8px; border-radius: 3px;');
+            console.error('   Error:', error);
+            console.log('%c─────────────────────────────────────────────────────', 'color: #e74c3c;');
+            throw error;
+        }
+    },
+
+    disconnectWebSocket: () => {
+        console.log(`%c🔌 [${new Date().toLocaleTimeString()}] DISCONNECTING WEBSOCKET`, 'background: #95a5a6; color: white; padding: 4px 8px; border-radius: 3px;');
+        webSocketService.disconnect();
+        console.log('%c─────────────────────────────────────────────────────', 'color: #95a5a6;');
+    },
+
     setCurrentSession: (session) => {
         set({
             currentSession: session,
@@ -406,6 +543,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
         const state = useGameStore.getState();
         const sessionId = localStorage.getItem('currentSessionId') || 'unknown';
+        const playerId = localStorage.getItem('currentPlayerId');
 
         // Log player action flow - sent
         console.log(`%c📤 [${new Date().toLocaleTimeString()}] PLAYER ACTION SENT`, 'background: #3498db; color: white; padding: 4px 8px; border-radius: 3px;');
@@ -427,63 +565,83 @@ export const useGameStore = create<GameState>((set, get) => ({
         // Set DM thinking state
         state.setIsDMThinking(true);
 
-        // Send to backend for AI processing
+        // Send via WebSocket if connected, otherwise fallback to REST
         try {
-            console.log(`%c🌐 [${new Date().toLocaleTimeString()}] SENDING TO BACKEND...`, 'background: #9b59b6; color: white; padding: 4px 8px; border-radius: 3px;');
-            
-            const response = await fetch(`/api/v1/sessions/${sessionId}/action`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'X-Trace-ID': traceId || '',
-                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                },
-                body: JSON.stringify({
-                    character_name: character.name,
-                    action: actionText,
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            const data = await response.json();
-            
-            console.log(`%c✅ [${new Date().toLocaleTimeString()}] BACKEND RESPONSE RECEIVED`, 'background: #27ae60; color: white; padding: 4px 8px; border-radius: 3px;');
-            console.log(`   Status: ${response.status}`);
-            console.log(`   Success: ${data.success}`);
-            console.log(`   Events: ${data.events?.length || 0}`);
-            console.log(`   DM Response Length: ${data.dm_response?.length || 0}`);
-            console.log('%c─────────────────────────────────────────────────────', 'color: #27ae60;');
-
-            // Clear thinking state
-            state.setIsDMThinking(false);
-
-            // Add AI response from backend
-            const dmResponse = {
-                sender_name: 'DM',
-                text: data.response || data.dm_response || 'The DM considers your action...',
-                type: 'dm',
-                timestamp: new Date().toISOString(),
-            };
-            state.addMessage(dmResponse);
-            
-            // Log events if any
-            if (data.events && data.events.length > 0) {
-                console.log(`%c⚡ [${new Date().toLocaleTimeString()}] GAME EVENTS RECEIVED`, 'background: #f39c12; color: white; padding: 4px 8px; border-radius: 3px;');
-                data.events.forEach((event: any, i: number) => {
-                    console.log(`   Event ${i+1}: ${event.event_type}`);
+            if (webSocketService.isConnected() && character) {
+                console.log(`%c🌐 [${new Date().toLocaleTimeString()}] SENDING VIA WEBSOCKET...`, 'background: #9b59b6; color: white; padding: 4px 8px; border-radius: 3px;');
+                
+                // Send action through WebSocket
+                webSocketService.sendAction(actionText, character);
+                
+                console.log(`%c✅ [${new Date().toLocaleTimeString()}] ACTION SENT VIA WEBSOCKET`, 'background: #27ae60; color: white; padding: 4px 8px; border-radius: 3px;');
+                console.log('%c─────────────────────────────────────────────────────', 'color: #27ae60;');
+            } else {
+                console.log(`%c⚠️ [${new Date().toLocaleTimeString()}] WEBSOCKET NOT CONNECTED - USING REST FALLBACK`, 'background: #f39c12; color: white; padding: 4px 8px; border-radius: 3px;');
+                
+                // Fallback to REST API
+                const response = await fetch(`/api/v1/sessions/${sessionId}/action`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Trace-ID': traceId || '',
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    },
+                    body: JSON.stringify({
+                        character_name: character.name,
+                        action: actionText,
+                    }),
                 });
-                console.log('%c─────────────────────────────────────────────────────', 'color: #f39c12;');
-            }
 
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                console.log(`%c✅ [${new Date().toLocaleTimeString()}] BACKEND RESPONSE RECEIVED (REST)`, 'background: #27ae60; color: white; padding: 4px 8px; border-radius: 3px;');
+                console.log(`   Status: ${response.status}`);
+                console.log(`   Success: ${data.success}`);
+                console.log(`   Events: ${data.events?.length || 0}`);
+                console.log(`   DM Response Length: ${data.dm_response?.length || 0}`);
+                console.log('%c─────────────────────────────────────────────────────', 'color: #27ae60;');
+
+                // Clear thinking state
+                state.setIsDMThinking(false);
+
+                // Add AI response from backend
+                const dmResponse = {
+                    sender_name: 'DM',
+                    text: data.response || data.dm_response || 'The DM considers your action...',
+                    type: 'dm',
+                    timestamp: new Date().toISOString(),
+                };
+                state.addMessage(dmResponse);
+
+                // Process and display game events
+                if (data.events && data.events.length > 0) {
+                    console.log(`%c⚡ [${new Date().toLocaleTimeString()}] GAME EVENTS RECEIVED`, 'background: #f39c12; color: white; padding: 4px 8px; border-radius: 3px;');
+                    data.events.forEach((event: any, i: number) => {
+                        console.log(`   Event ${i+1}: ${event.event_type} - ${event.description}`);
+                        state.addEvent(event);
+
+                        const eventMessage = {
+                            sender_name: 'Game',
+                            text: event.description || `${event.event_type} occurred`,
+                            type: 'event',
+                            timestamp: new Date().toISOString(),
+                            event_type: event.event_type,
+                        };
+                        state.addMessage(eventMessage);
+                    });
+                    console.log('%c─────────────────────────────────────────────────────', 'color: #f39c12;');
+                }
+            }
         } catch (error) {
             console.error(`%c❌ [${new Date().toLocaleTimeString()}] ACTION PROCESSING FAILED`, 'background: #e74c3c; color: white; padding: 4px 8px; border-radius: 3px;');
             console.error('   Error:', error);
             console.error('   Trace ID:', traceId);
             console.log('%c─────────────────────────────────────────────────────', 'color: #e74c3c;');
-            
+
             state.setIsDMThinking(false);
 
             // Show error message

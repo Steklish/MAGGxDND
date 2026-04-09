@@ -65,8 +65,8 @@ def get_session_is_public(db_session) -> bool:
     return (db_session.session_data or {}).get('is_public', False)
 
 def get_session_gemini_model(db_session) -> str:
-    """Extract gemini_model from session_data JSON, default gemini-2.0-flash"""
-    return (db_session.session_data or {}).get('gemini_model', 'gemini-2.0-flash')
+    """Extract gemini_model from session_data JSON, default gemini-flash-latest"""
+    return (db_session.session_data or {}).get('gemini_model', 'gemini-flash-latest')
 
 
 # === Procedural Generation Helpers (Fallback when AI unavailable) ===
@@ -313,11 +313,17 @@ class ProceduralGenerator:
             resources={},
             position=Coordinate2D(x=15.0, y=15.0),
             abilities=[
-                {"name": "Help", "short_summary": "Give advantage to an ally's next ability check or attack", "level": 0, "type": "action"},
+                {
+                    "name": "Help",
+                    "description": "Give advantage to an ally's next ability check or attack within 30 feet",
+                    "short_summary": "Give advantage to an ally's next ability check or attack",
+                    "level": 0,
+                    "type": "action"
+                },
             ],
             motivation=random.choice(["To earn a living", "To protect their family", "To gain knowledge", "To survive"]),
             memory="",
-            current_scene=None,  # Will be set by caller
+            current_scene="",  # Empty string - will be set by caller when NPC is placed in scene
         )
 
 
@@ -337,7 +343,7 @@ class SessionCreateRequest(BaseModel):
     is_public: bool = Field(default=False, description="Публичная сессия")
     
     # Настройки AI (опционально)
-    gemini_model: str = Field(default="gemini-2.0-flash", description="Модель Gemini")
+    gemini_model: str = Field(default="gemini-flash-latest", description="Модель Gemini")
 
     @validator('session_name')
     def validate_session_name(cls, v):
@@ -533,6 +539,17 @@ class SessionStateResponse(BaseModel):
     npcs: List[Dict[str, Any]]
     messages: List[Dict[str, Any]]
     turn_queue: List[Any]
+
+
+class SessionStartResponse(BaseModel):
+    """Response for session start/restart."""
+    success: bool
+    session_id: str
+    scene_name: Optional[str] = None
+    player_count: int = 0
+    npc_count: int = 0
+    game_mode: str = "STORY"
+    message: Optional[str] = None
 
 
 # === Helper Functions ===
@@ -877,7 +894,7 @@ async def delete_session(
     repository.delete_session(session_id, owner_id=current_user.id)
 
 
-@router.post("/{session_id}/start", response_model=SessionResponse)
+@router.post("/{session_id}/start", response_model=SessionStartResponse)
 async def start_session(
     session_id: str,
     request: SessionStartRequest,
@@ -893,7 +910,7 @@ async def start_session(
     logger = logging.getLogger(__name__)
     
     logger.info(f"[START] Session {session_id} - Request data: {request.dict()}")
-    
+
     repository = get_session_repository(db)
 
     db_session = get_session_by_uuid_or_404(session_id, repository)
@@ -902,6 +919,9 @@ async def start_session(
     # Get or create game session
     game_session = session_manager.get_session(session_id)
     logger.info(f"[START] Session check: {session_id} - found: {game_session is not None}")
+
+    # Check if we have saved game state in the database
+    has_saved_state = bool(db_session.session_data and db_session.session_data.get("current_scene"))
 
     if not game_session:
         # Session exists in DB but not in memory - need to initialize it
@@ -915,11 +935,43 @@ async def start_session(
                 max_players=get_session_max_players(db_session),
                 description=get_session_description(db_session),
                 guide=get_session_guide(db_session),
-                gemini_model=get_session_gemini_model(db_session) or "gemini-2.0-flash"
+                gemini_model=get_session_gemini_model(db_session) or "gemini-flash-latest"
             )
             logger.info(f"[START] Creating session factory config: {config.session_name}")
             game_session = session_factory.create_session(config, session_id=session_id)
             logger.info(f"[START] Session {session_id} created with generator: {hasattr(game_session, 'generator')}")
+
+            # Try to restore saved game state if it exists
+            if has_saved_state:
+                logger.info(f"[START] Restoring saved game state from database...")
+                restored = game_session.restore_session_state(db_session.session_data)
+                if restored:
+                    logger.info(f"[START] ✓ Game state restored successfully: {len(game_session.players)} players, {len(game_session.npcs)} NPCs")
+                    logger.info(f"[START] ✓ Session fully restored - skipping fresh generation")
+                    # Session is fully restored - skip fresh generation
+                    # Save restored state to ensure database is in sync
+                    try:
+                        session_state = game_session.get_session_state()
+                        repository.update_session_data(session_id, session_state)
+                        logger.info(f"[START] ✓ Restored state saved to database")
+                    except Exception as save_err:
+                        logger.warning(f"[START] Failed to save restored state: {save_err}")
+                    
+                    # Return success with restored session info
+                    return SessionStartResponse(
+                        success=True,
+                        session_id=session_id,
+                        scene_name=game_session.current_scene.name if game_session.current_scene else None,
+                        player_count=len(game_session.players),
+                        npc_count=len(game_session.npcs),
+                        game_mode=game_session.game_mode.value,
+                        message="Session restored from database"
+                    )
+                else:
+                    logger.warning(f"[START] ✗ Failed to restore game state, will generate fresh session")
+                    has_saved_state = False
+            else:
+                logger.info(f"[START] No saved game state found, will generate fresh session")
         except Exception as e:
             logger.error(f"[START] Failed to create session: {e}", exc_info=True)
             raise HTTPException(
@@ -929,15 +981,31 @@ async def start_session(
     else:
         logger.info(f"[START] Session {session_id} found in memory")
 
-    logger.info(f"[START] Game session found, starting with wishes={request.wishes}, character_description={request.character_description}")
+        # Check if we should restore saved state (server restart scenario)
+        if has_saved_state and not game_session.current_scene:
+            logger.info(f"[START] Restoring saved game state to existing session...")
+            restored = game_session.restore_session_state(db_session.session_data)
+            if restored:
+                logger.info(f"[START] ✓ Game state restored: {len(game_session.players)} players, {len(game_session.npcs)} NPCs")
+                has_saved_state = True
+                logger.info(f"[START] ✓ Session restored from database - skipping fresh generation")
+                
+                # Return success with restored session info
+                return SessionStartResponse(
+                    success=True,
+                    session_id=session_id,
+                    scene_name=game_session.current_scene.name if game_session.current_scene else None,
+                    player_count=len(game_session.players),
+                    npc_count=len(game_session.npcs),
+                    game_mode=game_session.game_mode.value,
+                    message="Session restored from database"
+                )
 
-    # FORCE fresh generation - clear any existing session data
-    logger.info(f"[START] === FORCING FRESH GENERATION - Clearing old session data ===")
-    game_session.current_scene = None
-    if hasattr(game_session, 'players'):
-        game_session.players.clear()
-    if hasattr(game_session, 'npcs'):
-        game_session.npcs.clear()
+    logger.info(f"[START] Game session found, saved_state={has_saved_state}, wishes={request.wishes}")
+
+    # Only generate fresh scene if no saved state exists
+    if not has_saved_state:
+        logger.info(f"[START] === Generating fresh session content ===")
     
     try:
         # Initialize scene and characters using AI
@@ -1099,7 +1167,7 @@ async def start_session(
                 # Use procedural generator for NPCs
                 npc_character = procedural_gen.generate_npc(role=None, prompt=prompt)
                 npc_character.current_scene = scene.name
-                logger.info(f"[START] ✓ Procedural NPC generated: {npc_character.name} ({npc_character.occupation})")
+                logger.info(f"[START] ✓ Procedural NPC generated: {npc_character.name} ({npc_character.char_class.value})")
                 
                 logger.info(f"[START] Adding NPC to session...")
                 game_session._init_npc(npc_character)
@@ -1114,6 +1182,14 @@ async def start_session(
             f"Welcome to {scene.name}! {scene.description}"
         )
         game_session.delivery.session_updated(game_session)
+
+        # Save game state to database
+        try:
+            session_state = game_session.get_session_state()
+            repository.update_session_data(session_id, session_state, owner_id=current_user.id)
+            logger.info(f"[START] ✓ Game state saved to database")
+        except Exception as e:
+            logger.warning(f"[START] Failed to save game state to database: {e}")
 
         # Build NPCs list for response
         npcs_response = []
@@ -1175,27 +1251,14 @@ async def start_session(
                     inventory=inventory_data,
                 ))
 
-        return SessionResponse(
+        return SessionStartResponse(
+            success=True,
             session_id=session_id,
-            session_name=db_session.session_name,
-            game_mode=db_session.game_mode.value,
+            scene_name=game_session.current_scene.name if game_session.current_scene else None,
             player_count=len(game_session.players),
-            status="running",
-            description=get_session_description(db_session),
-            owner_id=db_session.owner_id,
-            owner_name=current_user.username,
-            created_at=db_session.created_at.isoformat(),
-            is_owner=True,
-            players=[
-                PlayerResponse(
-                    player_id=f"player_{i}",
-                    player_name=getattr(p.character, 'name', 'Unknown') if hasattr(p, 'character') else f"Player_{i}",
-                    character_name=getattr(p.character, 'name', None) if hasattr(p, 'character') else None,
-                    connected=True,
-                    role="player"
-                ) for i, p in enumerate(game_session.players)
-            ],
-            npcs=npcs_response
+            npc_count=len(game_session.npcs),
+            game_mode=game_session.game_mode.value,
+            message="Session started successfully"
         )
         
     except Exception as e:
@@ -1497,77 +1560,19 @@ async def get_session_game_info(
         db_participants = repository.get_session_participants(session_id)
         db_player_names = {p.get('player_name') for p in db_participants}
         
-        # Build players data from game engine
+        # Build players data from game engine - use model_dump() for complete data
         players_data = []
         for player in game_session.players:
             if hasattr(player, 'character'):
                 char = player.character
-                stats = getattr(char, 'stats', None)
-                
-                # Convert abilities to dict format
-                abilities_data = []
-                if hasattr(char, 'abilities') and char.abilities:
-                    for ability in char.abilities:
-                        if isinstance(ability, dict):
-                            abilities_data.append(ability)
-                        else:
-                            abilities_data.append({
-                                "name": getattr(ability, 'name', 'Unknown'),
-                                "short_summary": getattr(ability, 'short_summary', ''),
-                                "level": getattr(ability, 'level', 0),
-                                "type": getattr(ability, 'type', 'action'),
-                            })
-                
-                # Convert inventory to dict format
-                inventory_data = []
-                if hasattr(char, 'inventory') and char.inventory:
-                    for item in char.inventory:
-                        if isinstance(item, dict):
-                            inventory_data.append(item)
-                        else:
-                            inventory_data.append({
-                                "name": getattr(item, 'name', 'Unknown'),
-                                "is_equipped": getattr(item, 'is_equipped', False),
-                                "type": getattr(item, 'type', 'item'),
-                            })
-                
-                # Convert conditions to string
-                conditions_str = ""
-                if hasattr(char, 'active_conditions_list') and char.active_conditions_list:
-                    conditions_str = '\n'.join(char.active_conditions_list)
-                elif hasattr(char, 'active_conditions') and char.active_conditions:
-                    conditions_str = char.active_conditions
-                
-                players_data.append({
-                    "name": getattr(char, 'name', 'Unknown'),
-                    "race": getattr(char, 'race', 'Human'),
-                    "char_class": str(getattr(char, 'char_class', 'Fighter')),
-                    "level": getattr(char, 'level', 1),
-                    "current_hp": getattr(char, 'current_hp', 10),
-                    "max_hp": getattr(char, 'max_hp', 10),
-                    "armor_class": getattr(char, 'armor_class', 10),
-                    "speed": getattr(char, 'speed', 30),
-                    "proficiency_bonus": getattr(char, 'proficiency_bonus', 2),
-                    "initiative_bonus": getattr(char, 'initiative_bonus', 0),
-                    "is_alive": getattr(char, 'is_alive', True),
-                    "stats": {
-                        "strength": getattr(stats, 'strength', 10) if stats else 10,
-                        "dexterity": getattr(stats, 'dexterity', 10) if stats else 10,
-                        "constitution": getattr(stats, 'constitution', 10) if stats else 10,
-                        "intelligence": getattr(stats, 'intelligence', 10) if stats else 10,
-                        "wisdom": getattr(stats, 'wisdom', 10) if stats else 10,
-                        "charisma": getattr(stats, 'charisma', 10) if stats else 10,
-                    } if stats else {
-                        "strength": 10, "dexterity": 10, "constitution": 10,
-                        "intelligence": 10, "wisdom": 10, "charisma": 10,
-                    },
-                    "abilities": abilities_data,
-                    "inventory": inventory_data,
-                    "active_conditions": conditions_str,
-                })
-        
+                # Use model_dump() to get ALL fields including inventory, conditions, position, resources
+                players_data.append(char.model_dump(mode='json'))
+            else:
+                # Player object without character attribute
+                players_data.append(player.model_dump(mode='json') if hasattr(player, 'model_dump') else {})
+
         # Add DB participants who don't have characters yet (waiting room players)
-        engine_player_names = {p.get('name') for p in players_data}
+        engine_player_names = {p.get('name') for p in players_data if p.get('name')}
         for participant in db_participants:
             if participant.get('player_name') not in engine_player_names:
                 # Player joined but doesn't have a character yet
@@ -1578,6 +1583,7 @@ async def get_session_game_info(
                     "level": 1,
                     "current_hp": 10,
                     "max_hp": 10,
+                    "temp_hp": 0,
                     "armor_class": 10,
                     "speed": 30,
                     "proficiency_bonus": 2,
@@ -1587,85 +1593,70 @@ async def get_session_game_info(
                         "strength": 10, "dexterity": 10, "constitution": 10,
                         "intelligence": 10, "wisdom": 10, "charisma": 10,
                     },
+                    "inventory": [],
+                    "active_conditions_list": [],
+                    "active_conditions": "",
+                    "resources": {},
+                    "position": {"x": 0, "y": 0},
+                    "abilities": [],
+                    "backstory_summary": "",
+                    "personality_traits": [],
                 })
 
-        # Build NPCs data
+        # Build NPCs data - use model_dump() for complete data
         npcs_data = []
         for npc in game_session.npcs:
             if hasattr(npc, 'character'):
                 char = npc.character
-                stats = getattr(char, 'stats', None)
-                
-                # Convert abilities to dict format
-                abilities_data = []
-                if hasattr(char, 'abilities') and char.abilities:
-                    for ability in char.abilities:
-                        if isinstance(ability, dict):
-                            abilities_data.append(ability)
-                        else:
-                            abilities_data.append({
-                                "name": getattr(ability, 'name', 'Unknown'),
-                                "short_summary": getattr(ability, 'short_summary', ''),
-                                "level": getattr(ability, 'level', 0),
-                                "type": getattr(ability, 'type', 'action'),
-                            })
-                
-                # Convert inventory to dict format
-                inventory_data = []
-                if hasattr(char, 'inventory') and char.inventory:
-                    for item in char.inventory:
-                        if isinstance(item, dict):
-                            inventory_data.append(item)
-                        else:
-                            inventory_data.append({
-                                "name": getattr(item, 'name', 'Unknown'),
-                                "is_equipped": getattr(item, 'is_equipped', False),
-                                "type": getattr(item, 'type', 'item'),
-                            })
-                
-                npcs_data.append({
-                    "name": getattr(char, 'name', 'Unknown'),
-                    "race": getattr(char, 'race', 'Human'),
-                    "char_class": str(getattr(char, 'char_class', 'Commoner')),
-                    "alignment": getattr(char, 'alignment', 'Neutral'),
-                    "current_hp": getattr(char, 'current_hp', 10),
-                    "max_hp": getattr(char, 'max_hp', 10),
-                    "armor_class": getattr(char, 'armor_class', 10),
-                    "speed": getattr(char, 'speed', 30),
-                    "is_alive": getattr(char, 'is_alive', True),
-                    "stats": {
-                        "strength": getattr(stats, 'strength', 10) if stats else 10,
-                        "dexterity": getattr(stats, 'dexterity', 10) if stats else 10,
-                        "constitution": getattr(stats, 'constitution', 10) if stats else 10,
-                        "intelligence": getattr(stats, 'intelligence', 10) if stats else 10,
-                        "wisdom": getattr(stats, 'wisdom', 10) if stats else 10,
-                        "charisma": getattr(stats, 'charisma', 10) if stats else 10,
-                    } if stats else {
-                        "strength": 10, "dexterity": 10, "constitution": 10,
-                        "intelligence": 10, "wisdom": 10, "charisma": 10,
-                    },
-                    "abilities": abilities_data,
-                    "inventory": inventory_data,
-                })
+                # Use model_dump() to get ALL fields
+                npcs_data.append(char.model_dump(mode='json'))
+            else:
+                npcs_data.append(npc.model_dump(mode='json') if hasattr(npc, 'model_dump') else {})
 
         # Build scene data
         scene_data = None
         if game_session.current_scene:
             scene = game_session.current_scene
-            scene_data = {
-                "name": getattr(scene, 'name', 'Unknown'),
-                "description": getattr(scene, 'description', ''),
-            }
+            # Use model_dump() for complete scene data
+            scene_data = scene.model_dump(mode='json') if hasattr(scene, 'model_dump') else {}
 
+        # Build turn queue data
+        turn_queue_data = []
+        if hasattr(game_session, 'turn_queue') and game_session.turn_queue:
+            for char_obj, time_added, next_turn in game_session.turn_queue:
+                char_name = "Unknown"
+                char_type = "unknown"
+                if hasattr(char_obj, 'character'):
+                    char_name = getattr(char_obj.character, 'name', 'Unknown')
+                    char_type = "player" if hasattr(char_obj, '_init_player') else "npc"
+                elif hasattr(char_obj, 'name'):
+                    char_name = char_obj.name
+                    char_type = "npc"
+
+                turn_queue_data.append({
+                    "character_name": char_name,
+                    "type": char_type,
+                    "next_turn": next_turn,
+                })
+
+        # Return complete game info with FULL character data
         return {
-            "session_id": session_id,
-            "session_name": db_session.session_name,
-            "game_mode": db_session.game_mode.value,
-            "status": db_session.status.value,
-            "owner_id": db_session.owner_id,
+            "session_id": game_session.session_id if hasattr(game_session, 'session_id') else session_id,
+            "session_name": getattr(game_session, 'session_name', 'Unknown'),
+            "game_mode": game_session.game_mode.value if hasattr(game_session, 'game_mode') else "STORY",
+            "status": game_session.status.value if hasattr(game_session, 'status') else "running",
+            "player_count": len(game_session.players),
+            "npc_count": len(game_session.npcs),
+            "max_players": 5,
             "players": players_data,
             "npcs": npcs_data,
+            "scene": scene_data,
             "current_scene": scene_data,
+            "turn_queue": turn_queue_data,
+            "messages": [
+                {"sender_name": m.sender_name, "text": m.text, "type": getattr(m, 'tag', 'narration') or "narration", "timestamp": ""}
+                for m in game_session.messages[-20:]
+            ] if hasattr(game_session, 'messages') else [],
         }
 
     except Exception as e:
@@ -1845,7 +1836,7 @@ async def start_game_from_waiting_room(
                 max_players=get_session_max_players(db_session),
                 description=get_session_description(db_session),
                 guide=get_session_guide(db_session),
-                gemini_model=get_session_gemini_model(db_session) or "gemini-2.0-flash"
+                gemini_model=get_session_gemini_model(db_session) or "gemini-flash-latest"
             )
             game_session = session_factory.create_session(config, session_id=session_id)
             logger.info(f"[START-GAME] Session {session_id} restored from DB")
@@ -2004,7 +1995,7 @@ async def ai_initialize_session(
                 max_players=get_session_max_players(db_session),
                 description=get_session_description(db_session),
                 guide=get_session_guide(db_session),
-                gemini_model=get_session_gemini_model(db_session) or "gemini-2.0-flash"
+                gemini_model=get_session_gemini_model(db_session) or "gemini-flash-latest"
             )
             game_session = session_factory.create_session(config, session_id=session_id)
             logger.info(f"[AI-INIT] Session {session_id} created")
@@ -2140,6 +2131,15 @@ async def player_action(
             game_session.delivery.master_message(result['dm_response'])
 
         game_session.delivery.session_updated(game_session)
+
+        # Save game state to database after each action
+        try:
+            repository = get_session_repository(db)
+            session_state = game_session.get_session_state()
+            repository.update_session_data(session_id, session_state)
+            game_session.logger.debug(f"[ACTION] ✓ Game state saved to database")
+        except Exception as e:
+            game_session.logger.warning(f"[ACTION] Failed to save game state: {e}")
         
         # Log response
         print(f"\n{Colors.GREEN}{'='*80}{Colors.RESET}")
@@ -2230,7 +2230,7 @@ async def get_session_state(
                 {
                     'sender': msg.sender_name,
                     'text': msg.text,
-                    'tag': msg.tag,
+                    'tag': getattr(msg, 'tag', 'narration'),
                 }
                 for msg in session.messages
             ],

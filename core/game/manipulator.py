@@ -92,16 +92,7 @@ class Manipulator:
             prompt=prompt_text
         )
         
-        # Add the system notification event to the list of events to be returned
-        # This allows the calling entity to publish all events properly to other entities
-        system_event = Event(
-            event_type=EventTypes.SYSTEM,
-            description=f"SYSTEM required action {prompt}"
-        )
-        
-        # Return both the generated events and the system notification
-        return events.event_list + [system_event]
-        ...
+        return events.event_list
     
     def _external_action_as_an_entity(self, prompt: str, actor : NPC | Player) -> List[Event]:
         """Perform a non-privileged external action within the game session. (Entity moves)"""
@@ -130,15 +121,7 @@ class Manipulator:
             prompt=prompt_text
         )
         
-        # Add the system notification event to the list of events to be returned
-        # This allows the calling entity to publish all events properly to other entities
-        system_event = Event(
-            event_type=EventTypes.SYSTEM,
-            description=f"Character {actor.character.name} required action {prompt}"
-        )
-        
-        # Return both the generated events and the system notification
-        return events.event_list + [system_event]
+        return events.event_list
 
     def execute_events(self, events: list[Event]) -> List[Event]:
         """Executes a list of events in parallel"""

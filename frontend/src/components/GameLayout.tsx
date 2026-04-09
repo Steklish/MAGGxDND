@@ -130,6 +130,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                         console.log('🏰 Scene:', data.current_scene?.name || data.scene?.name);
 
                         // Update session in store with game data
+                        // Pass through COMPLETE character data from backend (includes inventory, conditions, position, etc.)
                         const gameSession = {
                             session_id: data.session_id,
                             session_name: data.session_name,
@@ -139,42 +140,28 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                             max_players: 5,
                             description: undefined,
                             players: (data.players || []).map((p: any) => ({
-                                character: {
-                                    name: p.name,
-                                    race: p.race,
-                                    char_class: p.char_class,
-                                    level: p.level,
-                                    current_hp: p.current_hp,
-                                    max_hp: p.max_hp,
-                                    armor_class: p.armor_class,
-                                    initiative_bonus: p.initiative_bonus,
-                                    speed: p.speed,
-                                    proficiency_bonus: p.proficiency_bonus,
-                                    is_alive: p.is_alive,
-                                    stats: p.stats,
-                                }
+                                // Pass through ALL character fields from backend
+                                character: p,
                             })),
                             npcs: (data.npcs || []).map((n: any) => ({
-                                character: {
-                                    name: n.name,
-                                    race: n.race,
-                                    char_class: n.char_class,
-                                    alignment: n.alignment,
-                                    current_hp: n.current_hp,
-                                    max_hp: n.max_hp,
-                                    armor_class: n.armor_class,
-                                    initiative_bonus: n.initiative_bonus,
-                                    speed: n.speed,
-                                    proficiency_bonus: n.proficiency_bonus,
-                                    is_alive: n.is_alive,
-                                    stats: n.stats || {
-                                        strength: 10, dexterity: 10, constitution: 10,
-                                        intelligence: 10, wisdom: 10, charisma: 10,
-                                    },
-                                }
+                                character: n,
                             })),
                         } as any;
                         setCurrentSession(gameSession);
+                        
+                        console.log('📋 Full character data loaded:', {
+                            playerCount: data.players?.length || 0,
+                            firstPlayer: data.players?.[0] ? {
+                                name: data.players[0].name,
+                                hasInventory: !!data.players[0].inventory,
+                                inventoryCount: data.players[0].inventory?.length || 0,
+                                hasConditions: !!data.players[0].active_conditions_list,
+                                conditionCount: data.players[0].active_conditions_list?.length || 0,
+                                hasPosition: !!data.players[0].position,
+                                hasResources: !!data.players[0].resources,
+                                hasBackstory: !!data.players[0].backstory_summary,
+                            } : null
+                        });
 
                         // Add welcome message from DM
                         const sceneToUse = data.current_scene || data.scene;
@@ -210,33 +197,47 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                             console.log('🏰 Scene set:', sceneToUse.name);
                         }
 
-                        // Set active character (first player)
+                        // Set active character with FULL data from backend
                         if (data.players && data.players.length > 0) {
                             const firstPlayer = data.players[0];
-                            const activeChar = {
+                            // Use the complete character object - includes inventory, conditions, position, etc.
+                            setActiveCharacter(firstPlayer as any);
+                            console.log('🎭 Active character set:', {
                                 name: firstPlayer.name,
-                                race: firstPlayer.race,
-                                char_class: firstPlayer.char_class,
-                                level: firstPlayer.level,
-                                current_hp: firstPlayer.current_hp,
-                                max_hp: firstPlayer.max_hp,
-                                armor_class: firstPlayer.armor_class,
-                                speed: firstPlayer.speed,
-                                proficiency_bonus: firstPlayer.proficiency_bonus,
-                                initiative_bonus: firstPlayer.initiative_bonus,
-                                is_alive: firstPlayer.is_alive,
-                                stats: firstPlayer.stats,
-                            } as any;
-                            setActiveCharacter(activeChar);
-                            console.log('🎭 Active character:', activeChar.name);
+                                inventory: firstPlayer.inventory?.length || 0,
+                                conditions: firstPlayer.active_conditions_list?.length || 0,
+                                position: firstPlayer.position,
+                            });
                         }
 
                         console.log('💬 DM Message added');
                         console.log('💬 System message added');
                     }
+
+                    // Connect to WebSocket for real-time updates
+                    if (sessionId && playerId) {
+                        console.log('🔌 Connecting to WebSocket for real-time updates...');
+                        useGameStore.getState().connectWebSocket(sessionId, playerId)
+                            .then(() => {
+                                console.log('✅ WebSocket connected successfully');
+                            })
+                            .catch((err) => {
+                                console.error('❌ Failed to connect WebSocket:', err);
+                                console.log('⚠️ Game will continue with REST API fallback');
+                            });
+                    }
                 })
                 .catch(err => console.error('Failed to load game info:', err));
         }
+
+        // Cleanup on unmount (but NOT during StrictMode remount)
+        return () => {
+            // Don't disconnect immediately - this might be a StrictMode remount
+            // Only disconnect if the component is truly unmounting (e.g., user navigated away)
+            console.log('🔌 Component unmounting - keeping WebSocket alive for potential remount...');
+            // We'll let the WebSocket service manage the connection lifecycle
+            // It will disconnect when a new session connects or when manually disconnected
+        };
     }, []);
 
     useEffect(() => {
