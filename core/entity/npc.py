@@ -24,7 +24,7 @@ class NPC(GameEntity):
     Multiple events can be processed at a time.
     """
     try:
-        with open(os.path.join(PROJECT_ROOT, "prompts/npc.md"), "r", encoding="utf-8") as f:
+        with open(os.path.join(PROJECT_ROOT, "docs/prompts/npc.md"), "r", encoding="utf-8") as f:
             npc_instruction = f.read()
     except FileNotFoundError:
         # Default instruction if file not found
@@ -42,21 +42,22 @@ class NPC(GameEntity):
        
     
     def run(self):
-        """Process events and decide on an action."""
+        """Process events and decide on an action. Only acts if there are events to respond to."""
 
         events = self.event_queue.get_all()
         self.event_queue.clear()
+
+        if not events:
+            # No events to react to — NPC stays idle this turn
+            self.logger.debug(f"NPC {self.character.name}: no events to respond to, skipping turn")
+            return
+
         action_description = self._handle_events(events, self.session.get_session_context())
         self.logger.debug(f"NPC {self.character.name} processed {len(events)} events.")
 
         # If the NPC decided to act, generate events based on the action
         if action_description:
-            # Generate events from the action description
             generated_events = self.session.manipulator._external_action_as_an_entity(action_description, self)
-
-            # Execute each event through the appropriate manipulator
-            executed_events = []
-                
             for e in self.session.manipulator.execute_events(generated_events):
                 self.event_queue.publish_to_others(e)
 

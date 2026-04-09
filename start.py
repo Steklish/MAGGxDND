@@ -17,9 +17,11 @@ if os.name == 'nt':
     os.system('chcp 65001 >nul')
 sys.stdout.reconfigure(encoding='utf-8') # type: ignore
 
-print("=" * 60)
-print("MAGGxDND Server")
-print("=" * 60)
+logger = logging.getLogger(__name__)
+
+logger.info("=" * 60)
+logger.info("MAGGxDND Server")
+logger.info("=" * 60)
 
 # Change to project root directory
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -53,19 +55,14 @@ root_logger.addHandler(console_handler)
 # Check API key
 api_key = os.getenv("GEMINI_API_KEY", "NO_KEY")
 if api_key == "NO_KEY":
-    print("[WARN] GEMINI_API_KEY not set!")
-    print("       AI features will not work.")
-    print("       Set: set GEMINI_API_KEY=your_key")
-    print()
+    logger.warning("GEMINI_API_KEY not set! AI features will not work. Set: set GEMINI_API_KEY=your_key")
 
-print(f"Project Root: {os.getcwd()}")
-print(f"Log File: {log_file}")
-print()
-print("Starting server on http://localhost:8000")
-print("API Docs: http://localhost:8000/docs")
-print()
-print("Press Ctrl+C to stop")
-print("=" * 60)
+logger.info(f"Project Root: {os.getcwd()}")
+logger.info(f"Log File: {log_file}")
+logger.info("Starting server on http://localhost:8000")
+logger.info("API Docs: http://localhost:8000/docs")
+logger.info("Press Ctrl+C to stop")
+logger.info("=" * 60)
 
 # Import and run uvicorn
 try:
@@ -78,8 +75,7 @@ try:
         log_level="info"
     )
 except ImportError:
-    print("[ERROR] uvicorn not installed!")
-    print("        Run: pip install uvicorn")
+    logger.error("uvicorn not installed! Run: pip install uvicorn")
     sys.exit(1)
 except KeyboardInterrupt:
-    print("\nServer stopped by user")
+    logger.info("Server stopped by user")

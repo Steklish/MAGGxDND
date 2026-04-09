@@ -75,7 +75,16 @@ orchestrator_logger.setLevel(logging.DEBUG)
 npc_logger.setLevel(logging.DEBUG)
 player_logger.setLevel(logging.DEBUG)
 
-print("Starting the game...")
+# Prevent duplicate logging: these loggers should NOT propagate to root logger
+# The root logger already has handlers from setup_unicode_logging()
+main_logger.propagate = False
+engine_logger.propagate = False
+manipulator_logger.propagate = False
+orchestrator_logger.propagate = False
+npc_logger.propagate = False
+player_logger.propagate = False
+
+main_logger.info("Starting the game...")
 
 
 # -- INIT SESSION AND MANIPULATOR --

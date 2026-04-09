@@ -89,8 +89,13 @@ class Player(GameEntity):
                 events = self.session.manipulator._external_action_as_an_entity(verdict.details if verdict.details else request, self)
                 executed_events.extend(self.session.manipulator.execute_events(events))
                 self._input_cache = ""
-                for e in executed_events:
+                # Publish ALL events produced by orchestrator — even if no manipulator
+                # handled them, MAGG should still be able to comment on them.
+                all_to_publish = executed_events if executed_events else events
+                self.logger.info(f"[run_story] Publishing {len(all_to_publish)} events for {self.character.name}")
+                for e in all_to_publish:
                     self.event_queue.publish_to_others(e)
+                self.logger.info(f"[run_story] Events published, event_pool now has {len(self.session.event_pool.get_events())} events")
                 return
             elif verdict.verdict_type == OrchestrationVerdictType.CLAIRIFICATION_NEEDED:
                 # Unclear action - need clarification from user

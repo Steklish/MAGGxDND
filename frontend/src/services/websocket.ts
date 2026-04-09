@@ -415,14 +415,35 @@ export class WebSocketService {
                 };
 
             case 'TURN_QUEUE_UPDATE':
-                console.log('[WebSocket] Turn update received');
-                return {
-                    type: 'TURN_QUEUE_UPDATE',
-                    payload: {
-                        turn_queue: data.payload?.turn_queue || data.turn_queue || [],
-                        turn_time: data.payload?.turn_time || data.turn_time || Date.now() / 1000,
-                    },
-                };
+            case 'TURN_UPDATE':
+                // Both names supported - backend sends TURN_UPDATE (single active player),
+                // frontend also supports TURN_QUEUE_UPDATE (full queue)
+                console.log('[WebSocket] Turn update received:', data);
+                
+                // Check if it's a full queue update or just active player notification
+                if (data.payload?.turn_queue || data.turn_queue) {
+                    // Full queue update
+                    return {
+                        type: 'TURN_QUEUE_UPDATE',
+                        payload: {
+                            turn_queue: data.payload?.turn_queue || data.turn_queue || [],
+                            turn_time: data.payload?.turn_time || data.turn_time || Date.now() / 1000,
+                        },
+                    };
+                } else {
+                    // Active player notification - create a minimal queue entry
+                    const activePlayerName = data.payload?.active_player_name || data.active_player_name || '';
+                    return {
+                        type: 'TURN_QUEUE_UPDATE',
+                        payload: {
+                            turn_queue: activePlayerName ? [{
+                                character_name: activePlayerName,
+                                type: 'player',
+                                is_active: true,
+                            }] : [],
+                        },
+                    };
+                }
 
             case 'ACTION_REQUEST':
                 console.log('[WebSocket] Action request received');
@@ -488,16 +509,13 @@ export class WebSocketService {
 
             case 'CHARACTER_STATUS_UPDATE':
                 console.log('[WebSocket] Character status update received');
+                // Backend sends: {character_name, event_type, description}
+                // This is NOT a full Character object - it's just an event notification
+                // Pass it through as a GAME_EVENT so it gets added to the event log
                 return {
-                    type: 'SESSION_UPDATE',
+                    type: 'GAME_EVENT',
                     payload: {
-                        session: {
-                            players: [
-                                {
-                                    character: data.payload || data.character || {},
-                                },
-                            ],
-                        } as Partial<Session> as Session,
+                        event: data.payload || {},
                     },
                 };
 

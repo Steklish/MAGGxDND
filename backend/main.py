@@ -193,9 +193,7 @@ async def health_live():
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UI_DIST_PATH = os.path.join(PROJECT_ROOT, "frontend", "dist")
 UI_ARTS_PATH = os.path.join(PROJECT_ROOT, "frontend", "arts")
-print(f"PROJECT_ROOT: {PROJECT_ROOT}")
-print(f"UI_DIST_PATH: {UI_DIST_PATH}")
-print(f"UI_DIST_PATH exists: {os.path.exists(UI_DIST_PATH)}")
+logger.debug(f"Static files configuration: PROJECT_ROOT={PROJECT_ROOT}, UI_DIST_PATH={UI_DIST_PATH}, exists={os.path.exists(UI_DIST_PATH)}")
 
 @app.get("/favicon.ico")
 async def serve_favicon():

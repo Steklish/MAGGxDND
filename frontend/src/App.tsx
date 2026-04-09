@@ -38,6 +38,7 @@ function App() {
         loadSessions,
         checkAuthPersistence,
         isGuest,
+        activeSessions,
         setActiveSessions
     } = useGameStore();
 
@@ -196,7 +197,17 @@ function App() {
 
     const handleStartGameSetup = (sessionId: string) => {
         setSelectedSessionId(sessionId);
-        setCurrentPage('waiting-room');
+        
+        // Check if session is already running - if so, go directly to game
+        const session = activeSessions.find(s => s.session_id === sessionId);
+        if (session?.status === 'running') {
+            // Session is already running, go straight to game
+            console.log('🎮 Session is running, navigating directly to game');
+            setCurrentPage('game');
+        } else {
+            // Session is not running yet, go to waiting room
+            setCurrentPage('waiting-room');
+        }
     };
 
     const handleGoToGameSetup = (sessionId: string) => {

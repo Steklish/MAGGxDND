@@ -16,7 +16,7 @@ class Request(BaseModel):
     player_id: str
     request_text: str
     timestamp: float
-    character: Character
+    character: Optional[Character] = None
 
 
 class Delivery(ABC):

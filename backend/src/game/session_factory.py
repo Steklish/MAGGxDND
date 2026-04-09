@@ -184,13 +184,17 @@ class SessionFactory:
     def _create_logger(self, session_name: str, log_dir: str) -> logging.Logger:
         """Создать логгер для сессии."""
         logger_name = f"session.{session_name}"
-        
+
         if logger_name in self._loggers:
             return self._loggers[logger_name]
-        
+
         logger = logging.getLogger(logger_name)
         logger.setLevel(logging.DEBUG)
         
+        # Prevent duplicate logging: session loggers should NOT propagate to root logger
+        # The root logger already has handlers from setup_logging(), so we'd get duplicates
+        logger.propagate = False
+
         # Избегаем дублирования хендлеров
         if not logger.handlers:
             # Создаём директорию для логов

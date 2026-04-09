@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Dict, Any
 import uuid
 import os
+import asyncio
 from datetime import datetime
 
 from sqlalchemy.orm import Session as DBSession
@@ -447,6 +448,20 @@ class PlayerJoinRequest(BaseModel):
         return v
 
 
+class PlayerJoinWithProfileRequest(BaseModel):
+    """Запрос на присоединение игрока с использованием сохранённого профиля персонажа."""
+    player_name: str = Field(..., description="Имя игрока", min_length=2, max_length=100)
+    profile_id: int = Field(..., description="ID сохранённого профиля персонажа")
+
+    @validator('player_name')
+    def validate_player_name(cls, v):
+        v = sanitize_string(v, max_length=100)
+        if len(v) < 2:
+            raise ValueError("Player name must be at least 2 characters")
+        return v
+
+
+
 class SessionStartRequest(BaseModel):
     """Запрос на запуск игровой сессии."""
     scene_prompt: Optional[str] = Field(None, description="Описание начальной сцены", max_length=2000)
@@ -597,19 +612,17 @@ async def create_session(
     """
     import logging
     from backend.src.logging.request_tracing import RequestTracer, get_trace_id
-    
+
     logger = logging.getLogger(__name__)
     trace_id = get_trace_id()
 
     session_uuid = str(uuid.uuid4())
-    
+
     # Log request tracing
-    print(f"\n{Colors.MAGENTA}{'='*70}{Colors.RESET}")
-    print(f"{Colors.MAGENTA}🚀 ENTERING: create_session{Colors.RESET}")
-    print(f"{Colors.MAGENTA}   Trace ID: {trace_id}{Colors.RESET}")
-    print(f"{Colors.MAGENTA}   Session UUID: {session_uuid}{Colors.RESET}")
-    print(f"{Colors.MAGENTA}   User ID: {current_user.id}{Colors.RESET}")
-    print(f"{Colors.MAGENTA}{'='*70}{Colors.RESET}\n")
+    logger.debug(
+        f"ENTERING: create_session | "
+        f"Trace ID: {trace_id} | Session UUID: {session_uuid} | User ID: {current_user.id}"
+    )
     
     logger.info(f"Creating session: {session_uuid} - {request.session_name} for user {current_user.id}")
 
@@ -669,12 +682,10 @@ async def create_session(
             logger.info(f"VERIFIED: Session exists in database with owner_id={verify_session.owner_id}")
 
         # Log success
-        print(f"\n{Colors.GREEN}{'='*70}{Colors.RESET}")
-        print(f"{Colors.GREEN}✅ EXITING: create_session{Colors.RESET}")
-        print(f"{Colors.GREEN}   Trace ID: {trace_id}{Colors.RESET}")
-        print(f"{Colors.GREEN}   Status: SUCCESS{Colors.RESET}")
-        print(f"{Colors.GREEN}   Session ID: {db_session.session_uuid}{Colors.RESET}")
-        print(f"{Colors.GREEN}{'='*70}{Colors.RESET}\n")
+        logger.debug(
+            f"EXITING: create_session | "
+            f"Trace ID: {trace_id} | Status: SUCCESS | Session ID: {db_session.session_uuid}"
+        )
 
         return SessionResponse(
             session_id=db_session.session_uuid,
@@ -690,22 +701,10 @@ async def create_session(
         )
 
     except ImportError as e:
-        logger.error(f"ImportError: {e}")
-        print(f"\n{Colors.RED}{'='*70}{Colors.RESET}")
-        print(f"{Colors.RED}❌ EXITING: create_session{Colors.RESET}")
-        print(f"{Colors.RED}   Trace ID: {trace_id}{Colors.RESET}")
-        print(f"{Colors.RED}   Status: ERROR - ImportError{Colors.RESET}")
-        print(f"{Colors.RED}   Error: {str(e)}{Colors.RESET}")
-        print(f"{Colors.RED}{'='*70}{Colors.RESET}\n")
+        logger.error(f"ImportError creating session: {e}", exc_info=True)
         raise HTTPException(status_code=503, detail=f"SKLS dependencies not installed: {str(e)}")
     except Exception as e:
-        logger.error(f"Exception: {e}", exc_info=True)
-        print(f"\n{Colors.RED}{'='*70}{Colors.RESET}")
-        print(f"{Colors.RED}❌ EXITING: create_session{Colors.RESET}")
-        print(f"{Colors.RED}   Trace ID: {trace_id}{Colors.RESET}")
-        print(f"{Colors.RED}   Status: ERROR - Exception{Colors.RESET}")
-        print(f"{Colors.RED}   Error: {str(e)}{Colors.RESET}")
-        print(f"{Colors.RED}{'='*70}{Colors.RESET}\n")
+        logger.error(f"Exception creating session: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error creating session: {str(e)}")
 
 
@@ -944,9 +943,21 @@ async def start_session(
             # Try to restore saved game state if it exists
             if has_saved_state:
                 logger.info(f"[START] Restoring saved game state from database...")
-                restored = game_session.restore_session_state(db_session.session_data)
+                restored = game_session.restore_session_from_serialized(db_session.session_data)
                 if restored:
                     logger.info(f"[START] ✓ Game state restored successfully: {len(game_session.players)} players, {len(game_session.npcs)} NPCs")
+                    
+                    # Restore player-character mappings if they exist
+                    player_mapping = db_session.session_data.get('player_character_mapping', {})
+                    if player_mapping:
+                        logger.info(f"[START] ✓ Restored {len(player_mapping)} player-character mappings")
+                        # Update participants with their character names
+                        for participant in repository.get_session_participants(session_id):
+                            player_id = participant.get('player_uuid')
+                            if player_id and player_id in player_mapping:
+                                char_name = player_mapping[player_id]
+                                logger.info(f"[START]   Player {player_id} → {char_name}")
+                    
                     logger.info(f"[START] ✓ Session fully restored - skipping fresh generation")
                     # Session is fully restored - skip fresh generation
                     # Save restored state to ensure database is in sync
@@ -956,7 +967,7 @@ async def start_session(
                         logger.info(f"[START] ✓ Restored state saved to database")
                     except Exception as save_err:
                         logger.warning(f"[START] Failed to save restored state: {save_err}")
-                    
+
                     # Return success with restored session info
                     return SessionStartResponse(
                         success=True,
@@ -984,12 +995,18 @@ async def start_session(
         # Check if we should restore saved state (server restart scenario)
         if has_saved_state and not game_session.current_scene:
             logger.info(f"[START] Restoring saved game state to existing session...")
-            restored = game_session.restore_session_state(db_session.session_data)
+            restored = game_session.restore_session_from_serialized(db_session.session_data)
             if restored:
                 logger.info(f"[START] ✓ Game state restored: {len(game_session.players)} players, {len(game_session.npcs)} NPCs")
+                
+                # Restore player-character mappings if they exist
+                player_mapping = db_session.session_data.get('player_character_mapping', {})
+                if player_mapping:
+                    logger.info(f"[START] ✓ Restored {len(player_mapping)} player-character mappings")
+                
                 has_saved_state = True
                 logger.info(f"[START] ✓ Session restored from database - skipping fresh generation")
-                
+
                 # Return success with restored session info
                 return SessionStartResponse(
                     success=True,
@@ -1062,36 +1079,79 @@ async def start_session(
         repository.update_session_scene(session_id, game_session.current_scene.name, owner_id=current_user.id)
         repository.update_session_status(session_id, "running", owner_id=current_user.id)
 
+        # === CRITICAL FIX: Map database participants to engine players ===
+        # Get all participants who joined via the join endpoint
+        db_participants = repository.get_session_participants(session_id)
+        logger.info(f"[START] Found {len(db_participants)} database participants to assign characters to")
+
+        # Build participant info list (exclude owner if they didn't explicitly join)
+        participants_to_assign = []
+        for participant in db_participants:
+            participants_to_assign.append({
+                'player_id': participant.get('player_uuid'),
+                'player_name': participant.get('player_name'),
+                'user_id': participant.get('user_id'),
+                'character_name': participant.get('character_name'),
+                'role': participant.get('role', 'player')
+            })
+
+        logger.info(f"[START] Will assign characters to {len(participants_to_assign)} participants")
+
         # Initialize player characters - ALWAYS create at least one character with random variety
         character_prompts_to_use = request.character_prompts
         if request.character_description and not character_prompts_to_use:
             character_prompts_to_use = [request.character_description]
 
-        # If no character prompts, use a random diverse character prompt
+        # If no character prompts, use participant names or random prompts
         if not character_prompts_to_use or len(character_prompts_to_use) == 0:
-            # Random D&D character prompts for variety
-            random_character_prompts = [
-                "A half-elf bard with a magical lute who knows secrets of the ancient dragons",
-                "A dwarf paladin sworn to protect the innocent, wielding a holy warhammer",
-                "A human wizard specializing in fire magic, seeking the lost spells of power",
-                "An elf ranger with a wolf companion, guardian of the mystical forests",
-                "A tiefling rogue with shadow powers, searching for redemption",
-                "A halfling cleric of the harvest god, spreading joy and healing wherever they go",
-                "A dragonborn sorcerer with lightning breath, destined for greatness",
-                "A gnome artificer with mechanical inventions and a clockwork companion",
-                "A half-orc barbarian with a heart of gold, protecting their adopted family",
-                "A human monk mastering the elements, seeking inner peace through adventure"
-            ]
-            character_prompts_to_use = [random.choice(random_character_prompts)]
-            logger.info(f"[START] Using random character prompt for variety")
+            if participants_to_assign:
+                # Generate one prompt per participant
+                character_prompts_to_use = []
+                for participant in participants_to_assign:
+                    player_name = participant.get('player_name', 'Adventurer')
+                    # Create a diverse prompt based on player name hash
+                    name_hash = hash(player_name) % 10
+                    random_prompts = [
+                        f"A half-elf bard with a magical lute who knows secrets of the ancient dragons, named {player_name}",
+                        f"A dwarf paladin sworn to protect the innocent, wielding a holy warhammer, named {player_name}",
+                        f"A human wizard specializing in fire magic, seeking the lost spells of power, named {player_name}",
+                        f"An elf ranger with a wolf companion, guardian of the mystical forests, named {player_name}",
+                        f"A tiefling rogue with shadow powers, searching for redemption, named {player_name}",
+                        f"A halfling cleric of the harvest god, spreading joy and healing, named {player_name}",
+                        f"A dragonborn sorcerer with lightning breath, destined for greatness, named {player_name}",
+                        f"A gnome artificer with mechanical inventions, named {player_name}",
+                        f"A half-orc barbarian with a heart of gold, named {player_name}",
+                        f"A human monk mastering the elements, seeking inner peace, named {player_name}"
+                    ]
+                    character_prompts_to_use.append(random_prompts[name_hash])
+                logger.info(f"[START] Generated {len(character_prompts_to_use)} prompts for {len(participants_to_assign)} participants")
+            else:
+                # Fallback: random character prompt
+                random_character_prompts = [
+                    "A half-elf bard with a magical lute who knows secrets of the ancient dragons",
+                    "A dwarf paladin sworn to protect the innocent, wielding a holy warhammer",
+                    "A human wizard specializing in fire magic, seeking the lost spells of power",
+                    "An elf ranger with a wolf companion, guardian of the mystical forests",
+                    "A tiefling rogue with shadow powers, searching for redemption",
+                    "A halfling cleric of the harvest god, spreading joy and healing wherever they go",
+                    "A dragonborn sorcerer with lightning breath, destined for greatness",
+                    "A gnome artificer with mechanical inventions and a clockwork companion",
+                    "A half-orc barbarian with a heart of gold, protecting their adopted family",
+                    "A human monk mastering the elements, seeking inner peace through adventure"
+                ]
+                character_prompts_to_use = [random.choice(random_character_prompts)]
+                logger.info(f"[START] No participants found, using random character prompt")
 
         logger.info(f"[START] Generating {len(character_prompts_to_use)} characters...")
+
+        # Track player_id to character_name mapping for persistence
+        player_character_mapping = {}
 
         # Generate characters using AI or procedural generation
         for i, prompt in enumerate(character_prompts_to_use):
             logger.info(f"[START] Generating character {i+1}: {prompt[:100]}...")
             character = None
-            
+
             # Try AI generation first
             if hasattr(game_session, 'generator') and game_session.generator:
                 try:
@@ -1103,7 +1163,7 @@ async def start_session(
                 except Exception as e:
                     logger.warning(f"[START] AI generation failed: {e}, using procedural fallback")
                     character = None
-            
+
             # Use procedural generator if AI failed or unavailable
             if not character:
                 try:
@@ -1132,12 +1192,35 @@ async def start_session(
                 )
                 player.inject_state(game_session)
                 game_session.players.append(player)
+                
+                # Map this character to a participant if available
+                if i < len(participants_to_assign):
+                    participant = participants_to_assign[i]
+                    player_id = participant.get('player_id')
+                    if player_id:
+                        player_character_mapping[player_id] = character.name
+                        logger.info(f"[START] ✓ Mapped player_id {player_id} → character '{character.name}'")
+                
                 logger.info(f"[START] ✓ Character {character.name} added to session. Total players: {len(game_session.players)}")
             except Exception as e:
                 logger.error(f"[START] Failed to create player: {e}", exc_info=True)
                 # Continue anyway - we'll try procedural fallback for next character
 
-        logger.info(f"[START] Session already has {len(game_session.players)} players")
+        # Persist player-character mapping in session_data for restoration
+        if player_character_mapping:
+            logger.info(f"[START] Persisting {len(player_character_mapping)} player-character mappings")
+            try:
+                session_state = game_session.get_session_state()
+                # Add player mapping to session_data
+                if 'player_character_mapping' not in session_state:
+                    session_state['player_character_mapping'] = {}
+                session_state['player_character_mapping'].update(player_character_mapping)
+                repository.update_session_data(session_id, session_state, owner_id=current_user.id)
+                logger.info(f"[START] ✓ Player-character mappings saved to database")
+            except Exception as e:
+                logger.warning(f"[START] Failed to save player-character mapping: {e}")
+
+        logger.info(f"[START] Session has {len(game_session.players)} players")
 
         # Initialize NPCs using procedural generation with random variety
         npc_prompts_to_use = request.npc_prompts
@@ -1258,15 +1341,30 @@ async def start_session(
             player_count=len(game_session.players),
             npc_count=len(game_session.npcs),
             game_mode=game_session.game_mode.value,
-            message="Session started successfully"
+            message="Session started — connect via WebSocket to begin playing"
         )
-        
+
     except Exception as e:
         game_session.logger.error(f"Ошибка при запуске сессии: {e}")
         raise HTTPException(
             status_code=500,
             detail=f"Ошибка при запуске сессии: {str(e)}"
         )
+
+
+# Track which sessions have their game loop running
+_active_game_loops: set = set()
+
+
+async def _run_game_loop(session_id: str, game_session) -> None:
+    """Run the Session game_loop as a background task."""
+    try:
+        await game_session.game_loop()
+    except Exception:
+        game_session.logger.error("Game loop crashed", exc_info=True)
+    finally:
+        _active_game_loops.discard(session_id)
+        game_session.logger.info("Game loop stopped")
 
 
 @router.get("/{session_id}/info", response_model=SessionInfoResponse)
@@ -1404,6 +1502,106 @@ async def join_session(
         player_id=player_id,
         player_name=request.player_name,
         character_name=request.character_name,
+        connected=True,
+        role=role
+    )
+
+
+@router.post("/{session_id}/players/with-profile", response_model=PlayerResponse)
+async def join_session_with_character_profile(
+    session_id: str,
+    request: PlayerJoinWithProfileRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Join a session using a saved character profile as template.
+
+    The character profile will be used to create an in-game Character object
+    that the player will control during the session.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    from core.schemas.in_game import Character, CharacterClass, AbilityScores, Coordinate2D
+    from core.entity.player import Player
+    from core.entity.orchestrator import Orchestrator
+    from backend.src.repositories.character_profile_repository import CharacterProfileRepository
+
+    repository = get_session_repository(db)
+    profile_repo = CharacterProfileRepository(db)
+
+    # Validate session exists
+    db_session = get_session_by_uuid_or_404(session_id, repository)
+
+    # Check if session is active
+    if db_session.status not in [SessionStatusEnum.RUNNING, SessionStatusEnum.CREATED]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Session is not accepting players (status: {db_session.status.value})"
+        )
+
+    # Get character profile
+    profile = profile_repo.get_by_id(request.profile_id, current_user.id)
+    if not profile:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Character profile {request.profile_id} not found or not owned by user"
+        )
+
+    # Check if player already joined
+    existing_participants = repository.get_session_participants(session_id)
+    for participant in existing_participants:
+        if participant.get('user_id') == current_user.id:
+            return PlayerResponse(
+                player_id=participant.get('player_uuid'),
+                player_name=participant.get('player_name'),
+                character_name=participant.get('character_name'),
+                connected=participant.get('is_connected'),
+                role=participant.get('role')
+            )
+
+    # Check max players
+    max_players = get_session_max_players(db_session)
+    if len(existing_participants) >= max_players:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Session is full (max {max_players} players)"
+        )
+
+    # Determine role
+    role = "owner" if db_session.owner_id == current_user.id else "player"
+
+    # Generate player ID
+    player_id = str(uuid.uuid4())
+
+    # Add player to session with character name from profile
+    participant = repository.add_participant(
+        session_uuid=session_id,
+        player_uuid=player_id,
+        player_name=request.player_name,
+        user_id=current_user.id,
+        character_name=profile.name,
+        role=role
+    )
+
+    if not participant:
+        raise HTTPException(status_code=500, detail="Failed to add player to session")
+
+    # Store profile ID in participant data for later character creation
+    # This will be used when the game starts to create the actual Character object
+    session_data = db_session.session_data or {}
+    player_profiles = session_data.get('player_profile_ids', {})
+    player_profiles[player_id] = request.profile_id
+    session_data['player_profile_ids'] = player_profiles
+    repository.update_session_data(session_id, session_data)
+
+    logger.info(f"Player {request.player_name} joined session {session_id} with character profile {profile.name} (ID: {request.profile_id})")
+
+    return PlayerResponse(
+        player_id=player_id,
+        player_name=request.player_name,
+        character_name=profile.name,
         connected=True,
         role=role
     )
@@ -1639,6 +1837,19 @@ async def get_session_game_info(
                     "next_turn": next_turn,
                 })
 
+        # Build participant data with player_id mapping
+        db_participants = repository.get_session_participants(session_id)
+        participant_mapping = {}
+        for participant in db_participants:
+            player_id = participant.get('player_uuid')
+            player_name = participant.get('player_name')
+            character_name = participant.get('character_name')
+            if player_id:
+                participant_mapping[player_name] = {
+                    'player_id': player_id,
+                    'character_name': character_name
+                }
+
         # Return complete game info with FULL character data
         return {
             "session_id": game_session.session_id if hasattr(game_session, 'session_id') else session_id,
@@ -1657,6 +1868,8 @@ async def get_session_game_info(
                 {"sender_name": m.sender_name, "text": m.text, "type": getattr(m, 'tag', 'narration') or "narration", "timestamp": ""}
                 for m in game_session.messages[-20:]
             ] if hasattr(game_session, 'messages') else [],
+            # Include player mapping so frontend can identify which character belongs to which player_id
+            "player_mapping": participant_mapping,
         }
 
     except Exception as e:
@@ -2076,59 +2289,50 @@ async def player_action(
 
     logger = logging.getLogger(__name__)
     trace_id = get_trace_id()
-    
+
     # Log request tracing
-    print(f"\n{Colors.MAGENTA}{'='*80}{Colors.RESET}")
-    print(f"{Colors.MAGENTA}🎮 PLAYER ACTION ENDPOINT{Colors.RESET}")
-    print(f"{Colors.MAGENTA}   Trace ID: {trace_id}{Colors.RESET}")
-    print(f"{Colors.MAGENTA}   Session ID: {session_id}{Colors.RESET}")
-    print(f"{Colors.MAGENTA}   User: {current_user.username} (ID: {current_user.id}){Colors.RESET}")
-    print(f"{Colors.MAGENTA}   Character: {request.character_name}{Colors.RESET}")
-    print(f"{Colors.MAGENTA}   Action: {request.action[:100]}...{Colors.RESET}")
-    print(f"{Colors.MAGENTA}   Journey: Frontend → Backend → Core Engine → AI Processing{Colors.RESET}")
-    print(f"{Colors.MAGENTA}{'='*80}{Colors.RESET}\n")
-    
+    logger.debug(
+        f"PLAYER ACTION ENDPOINT | "
+        f"Trace ID: {trace_id} | Session ID: {session_id} | "
+        f"User: {current_user.username} (ID: {current_user.id}) | "
+        f"Character: {request.character_name} | "
+        f"Action: {request.action[:100]}... | "
+        f"Journey: Frontend → Backend → Core Engine → AI Processing"
+    )
+
     # Get active game session
     game_session = session_manager.get_session(session_id)
 
     if not game_session:
-        print(f"{Colors.RED}❌ Game session not found: {session_id}{Colors.RESET}")
+        logger.error(f"Game session not found: {session_id}")
         raise HTTPException(
             status_code=404,
             detail="Game session not found or not initialized"
         )
 
     try:
-        # Log core engine processing start
-        print(f"\n{Colors.CYAN}┌{'─' * 80}{Colors.RESET}")
-        print(f"{Colors.CYAN}│{Colors.RESET} ⚙️  CORE ENGINE PROCESSING")
-        print(f"{Colors.CYAN}│{Colors.RESET}    Trace ID: {trace_id}")
-        print(f"{Colors.CYAN}│{Colors.RESET}    Session: {session_id}")
-        print(f"{Colors.CYAN}│{Colors.RESET}    Character: {request.character_name}")
-        print(f"{Colors.CYAN}│{Colors.RESET}    Action: {request.action[:100]}...")
-        print(f"{Colors.CYAN}│{Colors.RESET}    Journey: Backend → Core Engine → MAGG → Orchestrator{Colors.RESET}")
-        print(f"{Colors.CYAN}└{'─' * 80}{Colors.RESET}\n")
-
-        # Process action through delivery
-        delivery = game_session.delivery
-        result = await delivery.process_player_action(
-            character_name=request.character_name,
-            action_text=request.action
+        # Enqueue the action for the game loop to pick up via delivery.player_request()
+        from core.interface.delivery import Request
+        import time as _time
+        _req = Request(
+            player_id=request.character_name,
+            request_text=request.action,
+            timestamp=_time.time(),
+            character=None,
         )
-        
-        # Log core engine processing complete
-        print(f"\n{Colors.GREEN}┌{'─' * 80}{Colors.RESET}")
-        print(f"{Colors.GREEN}│{Colors.RESET} ✅ CORE ENGINE PROCESSING COMPLETE")
-        print(f"{Colors.GREEN}│{Colors.RESET}    Trace ID: {trace_id}")
-        print(f"{Colors.GREEN}│{Colors.RESET}    Success: {result.get('success', False)}")
-        print(f"{Colors.GREEN}│{Colors.RESET}    Events: {len(result.get('events', []))}")
-        print(f"{Colors.GREEN}│{Colors.RESET}    DM Response Length: {len(result.get('dm_response', ''))}")
-        print(f"{Colors.GREEN}│{Colors.RESET}    Journey: Core Engine → Backend → Frontend{Colors.RESET}")
-        print(f"{Colors.GREEN}└{'─' * 80}{Colors.RESET}\n")
+        game_session.delivery.put_request(_req)
+        game_session.logger.info(f"[ACTION] Queued action for {request.character_name}: {request.action[:80]}...")
 
-        # Send DM message to all players
-        if result.get('dm_response'):
-            game_session.delivery.master_message(result['dm_response'])
+        result = {
+            "success": True,
+            "dm_response": "",  # Will be delivered via master_message broadcast
+            "events": [],
+            "game_state": {
+                "scene": game_session.current_scene.name if game_session.current_scene else None,
+                "players": len(game_session.players),
+                "npcs": len(game_session.npcs),
+            }
+        }
 
         game_session.delivery.session_updated(game_session)
 
@@ -2140,15 +2344,13 @@ async def player_action(
             game_session.logger.debug(f"[ACTION] ✓ Game state saved to database")
         except Exception as e:
             game_session.logger.warning(f"[ACTION] Failed to save game state: {e}")
-        
+
         # Log response
-        print(f"\n{Colors.GREEN}{'='*80}{Colors.RESET}")
-        print(f"{Colors.GREEN}📤 RESPONSE READY{Colors.RESET}")
-        print(f"{Colors.GREEN}   Trace ID: {trace_id}{Colors.RESET}")
-        print(f"{Colors.GREEN}   Session: {session_id}{Colors.RESET}")
-        print(f"{Colors.GREEN}   Status: SUCCESS{Colors.RESET}")
-        print(f"{Colors.GREEN}   Journey: Backend → Frontend (SENDING){Colors.RESET}")
-        print(f"{Colors.GREEN}{'='*80}{Colors.RESET}\n")
+        logger.debug(
+            f"RESPONSE READY | "
+            f"Trace ID: {trace_id} | Session: {session_id} | "
+            f"Status: SUCCESS | Journey: Backend → Frontend (SENDING)"
+        )
 
         return PlayerActionResponse(
             success=result['success'],
@@ -2159,15 +2361,12 @@ async def player_action(
         )
 
     except Exception as e:
-        print(f"\n{Colors.RED}{'='*80}{Colors.RESET}")
-        print(f"{Colors.RED}❌ PLAYER ACTION ERROR{Colors.RESET}")
-        print(f"{Colors.RED}   Trace ID: {trace_id}{Colors.RESET}")
-        print(f"{Colors.RED}   Session: {session_id}{Colors.RESET}")
-        print(f"{Colors.RED}   Error: {str(e)}{Colors.RESET}")
-        print(f"{Colors.RED}   Journey: Backend → Frontend (ERROR){Colors.RESET}")
-        print(f"{Colors.RED}{'='*80}{Colors.RESET}\n")
-        
-        logger.error(f"[ACTION] Error: {e}", exc_info=True)
+        logger.error(
+            f"PLAYER ACTION ERROR | "
+            f"Trace ID: {trace_id} | Session: {session_id} | "
+            f"Error: {str(e)} | Journey: Backend → Frontend (ERROR)",
+            exc_info=True
+        )
         return PlayerActionResponse(
             success=False,
             dm_response="",

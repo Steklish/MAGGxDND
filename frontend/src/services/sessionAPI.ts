@@ -77,6 +77,11 @@ export interface PlayerJoinRequest {
     character_prompt?: string;
 }
 
+export interface PlayerJoinWithProfileRequest {
+    player_name: string;
+    profile_id: number;
+}
+
 export interface WaitingRoomInfo {
     session_id: string;
     session_name: string;
@@ -141,6 +146,14 @@ export const sessionAPI = {
      */
     joinSession: async (sessionId: string, request: PlayerJoinRequest): Promise<PlayerInfo> => {
         const response = await api.post<PlayerInfo>(`/sessions/${sessionId}/players`, request);
+        return response.data;
+    },
+
+    /**
+     * Join a session using a saved character profile
+     */
+    joinSessionWithProfile: async (sessionId: string, request: PlayerJoinWithProfileRequest): Promise<PlayerInfo> => {
+        const response = await api.post<PlayerInfo>(`/sessions/${sessionId}/players/with-profile`, request);
         return response.data;
     },
 

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { ErrorBoundary } from './common/ErrorBoundary';
+import { CharacterProfileSelector } from './CharacterProfileSelector';
 import './SessionDetail.css';
 
 interface Player {
@@ -42,6 +43,7 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
     const [playerId, setPlayerId] = useState<string | null>(null);
     const [hasJoinedSession, setHasJoinedSession] = useState(false);
     const [isOwner, setIsOwner] = useState(false);
+    const [showProfileSelector, setShowProfileSelector] = useState(false);
 
     // Check if session is already running
     const isRunning = session?.status === 'running';
@@ -163,24 +165,28 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
             alert('You are already connected to this session!');
             return;
         }
-        
+
+        // Show profile selector instead of direct join
+        setShowProfileSelector(true);
+    };
+
+    const handleProfileSelected = async (profileId: number) => {
+        setShowProfileSelector(false);
         setIsJoining(true);
 
         try {
             const playerName = username || localStorage.getItem('username') || 'Player';
-            const response = await fetch(`/api/v1/sessions/${sessionId}/players`, {
+            const response = await fetch(`/api/v1/sessions/${sessionId}/players/with-profile`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ player_name: playerName }),
+                body: JSON.stringify({ player_name: playerName, profile_id: profileId }),
             });
 
             if (response.ok) {
                 const data = await response.json();
                 setPlayerId(data.player_id);
                 setHasJoinedSession(true);
-                // Store player ID in localStorage to persist across page reloads
                 localStorage.setItem(`playerId_${sessionId}`, data.player_id);
-                // Reload session data to show updated player list
                 await loadSessionDetail();
                 await loadPlayers();
             } else {
@@ -188,11 +194,15 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                 alert(`Failed to join: ${errorData.detail || 'Unknown error'}`);
             }
         } catch (err: any) {
-            console.error('Failed to join session:', err);
+            console.error('Failed to join session with profile:', err);
             alert('Network error. Please try again.');
         } finally {
             setIsJoining(false);
         }
+    };
+
+    const handleProfileSelectorCancel = () => {
+        setShowProfileSelector(false);
     };
 
     const handleCopySessionId = () => {
@@ -462,6 +472,17 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                     </div>
                 </div>
             </div>
+
+            {/* Character Profile Selector Modal */}
+            {showProfileSelector && (
+                <CharacterProfileSelector
+                    sessionId={sessionId}
+                    playerName={username || localStorage.getItem('username') || 'Player'}
+                    onSelect={handleProfileSelected}
+                    onCancel={handleProfileSelectorCancel}
+                    isLoading={false}
+                />
+            )}
         </div>
     );
 };

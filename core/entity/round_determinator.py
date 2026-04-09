@@ -46,11 +46,18 @@ class RoundDeterminator:
         self._logger = state.logger.getChild("RounDeterminator")
     
     def run(self):
-        """Analyze game state and determine if mode changes are needed."""
-        events = self.event_queue.get_all() 
+        """Analyze game state and determine if mode changes are needed. Only runs if there are events."""
+        events = self.event_queue.get_all()
         self.event_queue.clear()
+
+        if not events:
+            self.logger.debug(f"Round determinator: no events, skipping")
+            # Still check character conditions — they may need periodic execution
+            self.all_characters_conditions_exec()
+            return
+
         self.logger.debug(f"Running round determinator at game time {self.session.turn_time} for [{len(events)}] events")
-        
+
         run_list_in_parallel(
             funcs=[
                 self.all_characters_conditions_exec,

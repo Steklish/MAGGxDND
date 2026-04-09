@@ -4,8 +4,11 @@ Helps fix common SQLite issues and optimize performance
 """
 import sqlite3
 import os
+import logging
 from pathlib import Path
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 
 def get_database_path(db_url: str = "sqlite:///./data/maggxdnd.db") -> str:
@@ -220,57 +223,63 @@ def get_database_info(db_path: str = None) -> dict: # type: ignore
 
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("MAGGxDND Database Optimization Tool")
-    print("=" * 60)
-    print()
+    # Setup logging for CLI usage
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(message)s'
+    )
     
+    logger.info("=" * 60)
+    logger.info("MAGGxDND Database Optimization Tool")
+    logger.info("=" * 60)
+    logger.info("")
+
     # Get database info
-    print("📊 Database Information:")
+    logger.info("📊 Database Information:")
     info = get_database_info()
     if info["status"] == "success":
-        print(f"   Path: {info['path']}")
-        print(f"   Size: {info['size_mb']} MB")
-        print(f"   Tables: {len(info.get('tables', []))}")
-        print(f"   Journal Mode: {info.get('journal_mode', 'N/A')}")
-        print(f"   Foreign Keys: {'Enabled' if info.get('foreign_keys_enabled') else 'Disabled'}")
-        print()
-        
+        logger.info(f"   Path: {info['path']}")
+        logger.info(f"   Size: {info['size_mb']} MB")
+        logger.info(f"   Tables: {len(info.get('tables', []))}")
+        logger.info(f"   Journal Mode: {info.get('journal_mode', 'N/A')}")
+        logger.info(f"   Foreign Keys: {'Enabled' if info.get('foreign_keys_enabled') else 'Disabled'}")
+        logger.info("")
+
         if 'table_stats' in info:
-            print("   Table Row Counts:")
+            logger.info("   Table Row Counts:")
             for table, count in info['table_stats'].items():
-                print(f"      - {table}: {count}")
-            print()
+                logger.info(f"      - {table}: {count}")
+            logger.info("")
     else:
-        print(f"   Error: {info.get('message', 'Unknown error')}")
-        print()
-    
+        logger.info(f"   Error: {info.get('message', 'Unknown error')}")
+        logger.info("")
+
     # Optimize database
-    print("⚙️  Optimizing Database...")
+    logger.info("⚙️  Optimizing Database...")
     stats = optimize_database()
     if stats["status"] == "success":
         for operation in stats["operations"]:
-            print(f"   ✓ {operation}")
-        print(f"   Size saved: {stats.get('size_saved_mb', 0)} MB")
+            logger.info(f"   ✓ {operation}")
+        logger.info(f"   Size saved: {stats.get('size_saved_mb', 0)} MB")
     else:
-        print(f"   Error: {stats.get('message', 'Unknown error')}")
-    print()
-    
+        logger.info(f"   Error: {stats.get('message', 'Unknown error')}")
+    logger.info("")
+
     # Create backup
-    print("💾 Creating Backup...")
+    logger.info("💾 Creating Backup...")
     try:
         backup_path = backup_database()
-        print(f"   ✓ Backup created: {backup_path}")
+        logger.info(f"   ✓ Backup created: {backup_path}")
     except Exception as e:
-        print(f"   Error: {str(e)}")
-    print()
-    
+        logger.error(f"   Error: {str(e)}")
+    logger.info("")
+
     # Cleanup old backups
-    print("🧹 Cleaning Up Old Backups...")
+    logger.info("🧹 Cleaning Up Old Backups...")
     deleted = cleanup_old_backups(keep_count=5)
-    print(f"   ✓ Deleted {deleted} old backup(s)")
-    print()
-    
-    print("=" * 60)
-    print("Optimization Complete!")
-    print("=" * 60)
+    logger.info(f"   ✓ Deleted {deleted} old backup(s)")
+    logger.info("")
+
+    logger.info("=" * 60)
+    logger.info("Optimization Complete!")
+    logger.info("=" * 60)

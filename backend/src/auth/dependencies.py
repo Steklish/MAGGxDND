@@ -1,4 +1,5 @@
 from fastapi import Cookie, Depends, HTTPException, status, Header
+import logging
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
@@ -181,9 +182,10 @@ def require_group(required_group: str):
     Dependency Factory: Returns a dependency that checks if the current user
     is a member of the specified group.
     """
-    print(f"[DBG] checking user's group - group {required_group} required")
+    logger = logging.getLogger(__name__)
+    logger.debug(f"Checking user's group - group {required_group} required")
     def check_user_group(current_user: User = Depends(get_current_user_from_cookie)) -> User:
-        print(f"[DBG] User {current_user.username} - {current_user.group}/{current_user.group_id}")
+        logger.debug(f"User {current_user.username} - {current_user.group}/{current_user.group_id}")
         if required_group != (current_user.group.name if current_user.group else ''):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

@@ -28,7 +28,7 @@ interface GameLayoutProps {
 }
 
 export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewSession: _onViewSession, onJoinSession }) => {
-    const { session, currentSession, currentScene, activeCharacter, loadSessions, activeSessions, setCurrentSession, setCurrentScene, setActiveCharacter, isGenerating, generationStatus, setIsGenerating, setGenerationStatus, addMessage, isAuthenticated, logout } = useGameStore();
+    const { session, currentSession, currentScene, activeCharacter, loadSessions, activeSessions, setCurrentSession, setCurrentScene, setActiveCharacter, isGenerating, generationStatus, setIsGenerating, setGenerationStatus, addMessage, isAuthenticated, logout, error, setError } = useGameStore();
 
     // Read session info from localStorage directly (not from store) - MUST be before useEffect
     const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
@@ -186,28 +186,65 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                             addMessage(dmMessage);
                             addMessage(systemMessage);
 
-                            // Set current scene
+                            // Set current scene with ALL data from backend (including objects)
                             setCurrentScene({
                                 name: sceneToUse.name || 'Unknown',
                                 description: sceneToUse.description || 'A mysterious place...',
-                                center_position: { x: 10, y: 10 },
-                                dimensions: { x: 20, y: 20 },
-                                objects: [],
+                                center_position: sceneToUse.center_position || { x: 10, y: 10 },
+                                dimensions: sceneToUse.dimensions || { x: 20, y: 20 },
+                                scale_unit: sceneToUse.scale_unit || 'feet',
+                                objects: sceneToUse.objects || [],
                             });
-                            console.log('🏰 Scene set:', sceneToUse.name);
+                            console.log('🏰 Scene set:', sceneToUse.name, 'with', sceneToUse.objects?.length || 0, 'objects');
                         }
 
                         // Set active character with FULL data from backend
-                        if (data.players && data.players.length > 0) {
-                            const firstPlayer = data.players[0];
-                            // Use the complete character object - includes inventory, conditions, position, etc.
-                            setActiveCharacter(firstPlayer as any);
+                        // Use player_mapping to find the correct character for this player
+                        const playerId = localStorage.getItem(`currentPlayerId_${sessionId}`) || localStorage.getItem('currentPlayerId');
+                        const playerMapping = data.player_mapping || {};
+                        
+                        // Find this player's character name from the mapping
+                        let myCharacter = null;
+                        let myCharacterName = null;
+                        
+                        // Try to find character by player_id in mapping
+                        for (const [playerName, mapping] of Object.entries(playerMapping)) {
+                            if ((mapping as any).player_id === playerId) {
+                                myCharacterName = (mapping as any).character_name;
+                                break;
+                            }
+                        }
+                        
+                        // Find the character object in the players list
+                        if (myCharacterName && data.players) {
+                            myCharacter = data.players.find((p: any) => p.name === myCharacterName);
+                        }
+                        
+                        // Fallback: use first player if no mapping found
+                        if (!myCharacter && data.players && data.players.length > 0) {
+                            myCharacter = data.players[0];
+                            console.warn('⚠️ No player-character mapping found, using first player as fallback');
+                        }
+                        
+                        if (myCharacter) {
+                            setActiveCharacter(myCharacter as any);
                             console.log('🎭 Active character set:', {
-                                name: firstPlayer.name,
-                                inventory: firstPlayer.inventory?.length || 0,
-                                conditions: firstPlayer.active_conditions_list?.length || 0,
-                                position: firstPlayer.position,
+                                name: myCharacter.name,
+                                inventory: myCharacter.inventory?.length || 0,
+                                conditions: myCharacter.active_conditions_list?.length || 0,
+                                position: myCharacter.position,
+                                playerId: playerId,
+                                mappedFrom: myCharacterName ? 'player_mapping' : 'fallback'
                             });
+                        } else {
+                            console.warn('⚠️ No character found for this player - character may still be loading');
+                            // Don't set error here, just log it - the UI will handle it
+                        }
+                        
+                        // Show a warning modal if no character is found
+                        if (!myCharacter) {
+                            // We'll handle this with a conditional render in the UI
+                            console.warn('⚠️ Player has no character - will show waiting screen');
                         }
 
                         console.log('💬 DM Message added');
@@ -867,6 +904,19 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
 
             {/* Main content */}
             <div className="game-content">
+                {/* Waiting overlay when player has no character yet */}
+                {!activeCharacter && (
+                    <div className="waiting-overlay">
+                        <div className="waiting-card">
+                            <div className="waiting-icon">⏳</div>
+                            <h2>Waiting for Character</h2>
+                            <p>Your character is being prepared by the game master.</p>
+                            <p className="waiting-hint">Please wait while the session is being initialized...</p>
+                            <div className="waiting-spinner" />
+                        </div>
+                    </div>
+                )}
+                
                 {/* Left Panel - Characters */}
                 <aside
                     className="left-panel"

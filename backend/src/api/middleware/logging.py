@@ -107,21 +107,14 @@ class APILoggingMiddleware(BaseHTTPMiddleware):
 
         # Console output with trace ID and journey info (only in verbose mode)
         if self.verbose:
-            print(f"\n{Colors.CYAN}┌{'─' * 90}{Colors.RESET}")
-            print(f"{Colors.CYAN}│{Colors.RESET} 🚀 {Colors.BOLD}REQUEST JOURNEY START{Colors.RESET}")
-            print(f"{Colors.CYAN}├{'─' * 90}{Colors.RESET}")
-            print(f"{Colors.CYAN}│{Colors.RESET}    Trace ID: {trace_info}")
-            print(f"{Colors.CYAN}│{Colors.RESET}    Request ID: {Colors.MAGENTA}{request_id}{Colors.RESET}")
-            print(f"{Colors.CYAN}│{Colors.RESET}    Method: {Colors.BLUE}{method}{Colors.RESET}")
-            print(f"{Colors.CYAN}│{Colors.RESET}    Path: {Colors.BLUE}{path}{Colors.RESET}")
-            print(f"{Colors.CYAN}│{Colors.RESET}    Client: {client_host}")
-            if user_info:
-                print(f"{Colors.CYAN}│{Colors.RESET}    User: {Colors.GREEN}{user_info}{Colors.RESET}")
-            if query_params:
-                print(f"{Colors.CYAN}│{Colors.RESET}    Query: {Colors.YELLOW}{query_params}{Colors.RESET}")
-            print(f"{Colors.CYAN}│{Colors.RESET}    Journey: {Colors.MAGENTA}Frontend → Backend API (START){Colors.RESET}")
-            print(f"{Colors.CYAN}│{Colors.RESET}    Stage: {Colors.GREEN}1/5{Colors.RESET}")
-            print(f"{Colors.CYAN}└{'─' * 90}{Colors.RESET}")
+            request_logger.debug(
+                f"REQUEST JOURNEY START | "
+                f"Trace ID: {trace_info} | Request ID: {request_id} | "
+                f"Method: {method} | Path: {path} | Client: {client_host} | "
+                f"User: {user_info or 'anonymous'} | "
+                f"Query: {query_params or 'none'} | "
+                f"Journey: Frontend → Backend API (START) | Stage: 1/5"
+            )
         
         # Read and log request body
         request_body = None
@@ -211,21 +204,15 @@ class APILoggingMiddleware(BaseHTTPMiddleware):
             
             # Only print detailed response logging in verbose mode or on errors
             if self.verbose or response.status_code >= 400:
-                print(f"\n{Colors.GREEN}┌{'─' * 90}{Colors.RESET}")
-                print(f"{Colors.GREEN}│{Colors.RESET} ✅ {Colors.BOLD}REQUEST JOURNEY COMPLETE{Colors.RESET}")
-                print(f"{Colors.GREEN}├{'─' * 90}{Colors.RESET}")
-                print(f"{Colors.GREEN}│{Colors.RESET}    Trace ID: {trace_info}")
-                print(f"{Colors.GREEN}│{Colors.RESET}    Request ID: {Colors.MAGENTA}{request_id}{Colors.RESET}")
-                print(f"{Colors.GREEN}│{Colors.RESET}    Status: {status_color} {Colors.BLUE}{response.status_code}{Colors.RESET}")
-                print(f"{Colors.GREEN}│{Colors.RESET}    Method: {Colors.BLUE}{method}{Colors.RESET}")
-                print(f"{Colors.GREEN}│{Colors.RESET}    Path: {Colors.BLUE}{path}{Colors.RESET}")
-                print(f"{Colors.GREEN}│{Colors.RESET}    Processing Time: {Colors.GREEN}{processing_time*1000:.2f}ms{Colors.RESET}")
-                print(f"{Colors.GREEN}│{Colors.RESET}    Total Journey Time: {Colors.GREEN}{total_journey_time:.2f}ms{Colors.RESET}")
-                if journey_log:
-                    print(journey_log)
-                print(f"{Colors.GREEN}│{Colors.RESET}    Journey: {Colors.MAGENTA}Backend → Frontend (COMPLETE){Colors.RESET}")
-                print(f"{Colors.GREEN}│{Colors.RESET}    Stage: {Colors.GREEN}5/5{Colors.RESET}")
-                print(f"{Colors.GREEN}└{'─' * 90}{Colors.RESET}")
+                request_logger.debug(
+                    f"REQUEST JOURNEY COMPLETE | "
+                    f"Trace ID: {trace_info} | Request ID: {request_id} | "
+                    f"Status: {response.status_code} | "
+                    f"Method: {method} | Path: {path} | "
+                    f"Processing Time: {processing_time*1000:.2f}ms | "
+                    f"Total Journey Time: {total_journey_time:.2f}ms | "
+                    f"Journey: Backend → Frontend (COMPLETE) | Stage: 5/5"
+                )
 
             return response
 
@@ -252,19 +239,16 @@ class APILoggingMiddleware(BaseHTTPMiddleware):
             )
 
             # Console output (always show exceptions)
-            print(f"\n{Colors.RED}┌{'─' * 90}{Colors.RESET}")
-            print(f"{Colors.RED}│{Colors.RESET} ❌ {Colors.BOLD}REQUEST JOURNEY FAILED{Colors.RESET}")
-            print(f"{Colors.RED}├{'─' * 90}{Colors.RESET}")
-            print(f"{Colors.RED}│{Colors.RESET}    Trace ID: {trace_info}")
-            print(f"{Colors.RED}│{Colors.RESET}    Request ID: {Colors.MAGENTA}{request_id}{Colors.RESET}")
-            print(f"{Colors.RED}│{Colors.RESET}    Method: {Colors.BLUE}{method}{Colors.RESET}")
-            print(f"{Colors.RED}│{Colors.RESET}    Path: {Colors.BLUE}{path}{Colors.RESET}")
-            print(f"{Colors.RED}│{Colors.RESET}    Error: {Colors.RED}{str(e)}{Colors.RESET}")
-            print(f"{Colors.RED}│{Colors.RESET}    Type: {Colors.YELLOW}{type(e).__name__}{Colors.RESET}")
-            print(f"{Colors.RED}│{Colors.RESET}    Processing Time: {Colors.RED}{processing_time*1000:.2f}ms{Colors.RESET}")
-            print(f"{Colors.RED}│{Colors.RESET}    Total Journey Time: {Colors.RED}{total_journey_time:.2f}ms{Colors.RESET}")
-            print(f"{Colors.RED}│{Colors.RESET}    Journey: {Colors.MAGENTA}Backend → Frontend (FAILED){Colors.RESET}")
-            print(f"{Colors.RED}└{'─' * 90}{Colors.RESET}")
+            request_logger.error(
+                f"REQUEST JOURNEY FAILED | "
+                f"Trace ID: {trace_info} | Request ID: {request_id} | "
+                f"Method: {method} | Path: {path} | "
+                f"Error: {str(e)} | Type: {type(e).__name__} | "
+                f"Processing Time: {processing_time*1000:.2f}ms | "
+                f"Total Journey Time: {total_journey_time:.2f}ms | "
+                f"Journey: Backend → Frontend (FAILED)",
+                exc_info=True
+            )
 
             raise
     

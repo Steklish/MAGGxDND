@@ -1,7 +1,8 @@
 """
 Character Profile Pydantic Schemas
 """
-from pydantic import BaseModel, Field
+import json
+from pydantic import BaseModel, Field, validator
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
@@ -63,6 +64,33 @@ class CharacterProfileResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+    @validator('personality_traits', pre=True)
+    def parse_personality_traits(cls, v):
+        """Parse personality_traits from JSON string if needed."""
+        if v is None:
+            return None
+        if isinstance(v, list):
+            return v
+        if isinstance(v, str):
+            try:
+                parsed = json.loads(v)
+                # If it's a dict, convert to formatted list
+                if isinstance(parsed, dict):
+                    traits_list = []
+                    for key, value in parsed.items():
+                        if value:
+                            traits_list.append(f"{key}: {value}")
+                    return traits_list if traits_list else None
+                # If it's already a list, return it
+                if isinstance(parsed, list):
+                    return parsed
+                # Otherwise return as single-item list
+                return [str(parsed)]
+            except (json.JSONDecodeError, TypeError):
+                # If not valid JSON, return as single-item list
+                return [v] if v else None
+        return v
 
 
 class CharacterProfileListResponse(BaseModel):

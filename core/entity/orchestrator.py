@@ -22,15 +22,12 @@ class Orchestrator:
         self.generator = generator
         self.manipulations : List[BaseManipulation] = []
         self.logger = logger
-        self.logger.info(f"Orchestrator initializing, PROJECT_ROOT={PROJECT_ROOT}")
-
-        # Load prompts from docs/prompts/ directory
-        with open(os.path.join(PROJECT_ROOT, "docs/prompts/character_action_rules.md"), "r", encoding="utf-8") as f:
+        with open("docs/prompts/character_action_rules.md", "r", encoding="utf-8") as f:
             self.character_action_rules = f.read()
 
-        with open(os.path.join(PROJECT_ROOT, "docs/prompts/combat.md"), "r", encoding="utf-8") as f:
+        with open("docs/prompts/combat.md", "r", encoding="utf-8") as f:
             self.combat_rules = f.read()
-        with open(os.path.join(PROJECT_ROOT, "docs/prompts/story.md"), "r", encoding="utf-8") as f:
+        with open("docs/prompts/story.md", "r", encoding="utf-8") as f:
             self.story_rules = f.read()
         
     def add_state(self, state : "Session"):

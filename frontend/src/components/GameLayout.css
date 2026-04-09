@@ -7,6 +7,99 @@
     background: var(--gradient-dark);
 }
 
+/* Waiting Overlay for players without characters */
+.waiting-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.3s ease;
+}
+
+.waiting-card {
+    background: var(--bg-primary);
+    border-radius: 16px;
+    padding: 48px;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    border: 2px solid var(--accent-orange);
+    box-shadow: 0 12px 48px rgba(255, 107, 53, 0.2);
+    animation: slideUp 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.waiting-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.waiting-card h2 {
+    margin: 0 0 16px;
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-yellow) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.waiting-card p {
+    margin: 0 0 12px;
+    font-size: 16px;
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+.waiting-hint {
+    font-size: 14px !important;
+    color: var(--text-muted) !important;
+    font-style: italic;
+}
+
+.waiting-spinner {
+    margin: 24px auto 0;
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 107, 53, 0.2);
+    border-top: 4px solid var(--accent-orange);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 /* No Session Screen */
 .no-session-screen {
     display: block;

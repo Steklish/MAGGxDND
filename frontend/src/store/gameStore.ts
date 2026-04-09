@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { characterAPI, Character, CharacterProfile } from '../services/characterAPI';
+import { characterAPI, characterProfileAPI, Character, CharacterProfile } from '../services/characterAPI';
 import { sessionAPI, GameSession } from '../services/sessionAPI';
 import { webSocketService } from '../services/websocket';
 
@@ -23,7 +23,7 @@ interface GameState {
     currentSession: GameSession | null;
     session: GameSession | null; // Alias for currentSession (for compatibility)
     sessionId: string | null;
-    currentScene: any | null; // Current scene data
+    currentScene: any | null; // Current scene data (includes name, description, dimensions, objects, scale_unit)
     
     // UI state
     mode: 'menu' | 'connecting' | 'playing' | 'error' | null;
@@ -59,11 +59,13 @@ interface GameState {
     createCharacter: (data: any) => Promise<Character>;
     deleteCharacter: (characterId: number) => Promise<void>;
     loadCharacterProfile: (characterId: number) => Promise<CharacterProfile | null>;
-    
+    loadCharacterProfiles: (userId: number) => Promise<void>;
+
     // Actions - Sessions
     loadSessions: () => Promise<void>;
     createSession: (data: any) => Promise<GameSession>;
     joinSession: (sessionId: string, playerName: string) => Promise<void>;
+    joinSessionWithProfile: (sessionId: string, playerName: string, profileId: number) => Promise<void>;
     leaveSession: (sessionId: string, playerId: string) => Promise<void>;
     setCurrentSession: (session: GameSession | null) => void;
     setActiveSessions: (sessions: GameSession[]) => void;
@@ -79,7 +81,7 @@ interface GameState {
     setIsDMThinking: (thinking: boolean) => void;
     setMessages: (messages: any[]) => void;
     setEvents: (events: any[]) => void;
-    setCurrentScene: (scene: any) => void;
+    setCurrentScene: (scene: any | null) => void;
     sendAction: (actionText: string, character: any) => void;
     getMessageType: (senderName: string) => string;
     isActionPending: boolean;
@@ -254,6 +256,26 @@ export const useGameStore = create<GameState>((set, get) => ({
             return null;
         }
     },
+
+    loadCharacterProfiles: async (_userId) => {
+        try {
+            const response = await characterProfileAPI.listProfiles(0, 100);
+            const { characterProfiles } = get();
+            const newProfiles = new Map(characterProfiles);
+            
+            // Clear old profiles and add new ones
+            newProfiles.clear();
+            response.profiles.forEach((profile: CharacterProfile) => {
+                newProfiles.set(profile.id, profile);
+            });
+            
+            set({ characterProfiles: newProfiles });
+            return response.profiles;
+        } catch (error: any) {
+            console.error('Failed to load character profiles:', error);
+            return [];
+        }
+    },
     
     // Session actions
     loadSessions: async () => {
@@ -342,6 +364,16 @@ export const useGameStore = create<GameState>((set, get) => ({
             await get().loadSessions();
         } catch (error: any) {
             console.error('Failed to join session:', error);
+            throw error;
+        }
+    },
+
+    joinSessionWithProfile: async (sessionId: string, playerName: string, profileId: number) => {
+        try {
+            await sessionAPI.joinSessionWithProfile(sessionId, { player_name: playerName, profile_id: profileId });
+            await get().loadSessions();
+        } catch (error: any) {
+            console.error('Failed to join session with profile:', error);
             throw error;
         }
     },
@@ -435,7 +467,8 @@ export const useGameStore = create<GameState>((set, get) => ({
                         break;
 
                     case 'TURN_QUEUE_UPDATE':
-                        // Turn queue updated
+                    case 'TURN_UPDATE':
+                        // Turn queue updated (TURN_UPDATE is legacy name from backend)
                         if (message.payload?.turn_queue) {
                             set({ turnQueue: message.payload.turn_queue });
                         }
@@ -455,16 +488,15 @@ export const useGameStore = create<GameState>((set, get) => ({
                         break;
 
                     case 'ACTION_RESULT':
-                        // Action result from server
-                        if (message.payload?.dm_response) {
-                            const dmResponse = {
-                                sender_name: 'DM',
-                                text: message.payload.dm_response,
-                                type: 'dm',
-                                timestamp: new Date().toISOString(),
-                            };
-                            state.addMessage(dmResponse);
-                        }
+                        // Action result from server - DO NOT add DM response to chat here
+                        // The DM response is sent via MASTER_MESSAGE which handles chat display
+                        // ACTION_RESULT is only for game state updates and clearing UI state
+                        console.log('[WebSocket] ACTION_RESULT received - clearing DM thinking state');
+                        console.log('   Success:', message.payload?.success);
+                        console.log('   Events:', message.payload?.game_state);
+                        console.log('   Error:', message.payload?.error);
+                        
+                        // Only clear the thinking state - DM message will arrive via MASTER_MESSAGE
                         state.setIsDMThinking(false);
                         break;
 

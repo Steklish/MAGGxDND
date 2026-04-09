@@ -8,12 +8,15 @@ Session Manager - Singleton для управления игровыми сес�
 """
 from typing import Dict, Optional, Set
 import asyncio
+import logging
 from fastapi import WebSocket
 import threading
 
 from core.game.engine import Session
 from core.game.event_pool import EventPool, SubscriberQueue
 from core.schemas.orchestration import Event
+
+logger = logging.getLogger(__name__)
 
 
 # ANSI color codes for console
@@ -248,15 +251,14 @@ class SessionManager:
             return
 
         # Log journey stage
-        print(f"\n{Colors.PURPLE}┌{'─' * 90}{Colors.RESET}")
-        print(f"{Colors.PURPLE}│{Colors.RESET} ⚙️ {Colors.BOLD}CORE ENGINE PROCESSING: STAGE 3/5{Colors.RESET}")
-        print(f"{Colors.PURPLE}├{'─' * 90}{Colors.RESET}")
-        print(f"{Colors.PURPLE}│{Colors.RESET}    Session: {session_id}")
-        print(f"{Colors.PURPLE}│{Colors.RESET}    Event Type: {Colors.YELLOW}{event.event_type}{Colors.RESET}")
-        print(f"{Colors.PURPLE}│{Colors.RESET}    Source: {event.source}") # type: ignore
-        print(f"{Colors.PURPLE}│{Colors.RESET}    Journey Stage: {Colors.MAGENTA}Backend → Core Engine → EventPool{Colors.RESET}")
-        print(f"{Colors.PURPLE}│{Colors.RESET}    Next: {Colors.CYAN}EventPool → WebSocket{Colors.RESET}")
-        print(f"{Colors.PURPLE}└{'─' * 90}{Colors.RESET}\n")
+        logger.debug(
+            f"CORE ENGINE PROCESSING: STAGE 3/5 | "
+            f"Session: {session_id} | "
+            f"Event Type: {event.event_type} | "
+            f"Source: {event.event_initiator} | "
+            f"Journey Stage: Backend → Core Engine → EventPool | "
+            f"Next: EventPool → WebSocket"
+        )
 
         if exclude_player_id:
             publisher_id = f"{session_id}:{exclude_player_id}"

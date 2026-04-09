@@ -2,22 +2,6 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './SessionCreation.css';
 
-// Game mode options
-const gameModes = [
-    {
-        value: 'STORY',
-        label: 'Story Mode',
-        icon: '📖',
-        description: 'Focus on narrative and exploration'
-    },
-    {
-        value: 'COMBAT',
-        label: 'Combat Mode',
-        icon: '⚔️',
-        description: 'Turn-based tactical combat'
-    }
-];
-
 interface SessionCreationProps {
     userId: number;
     onComplete: (sessionId: string) => void;
@@ -30,7 +14,6 @@ export const SessionCreation: React.FC<SessionCreationProps> = ({ userId: _userI
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         session_name: '',
-        game_mode: 'STORY',
         max_players: 5,
         description: '',
         is_public: true,
@@ -79,7 +62,6 @@ export const SessionCreation: React.FC<SessionCreationProps> = ({ userId: _userI
         try {
             const sessionData = {
                 session_name: formData.session_name,
-                game_mode: formData.game_mode,
                 max_players: formData.max_players,
                 description: formData.description,
             };
@@ -203,24 +185,6 @@ export const SessionCreation: React.FC<SessionCreationProps> = ({ userId: _userI
                             <h3>Game Settings</h3>
 
                             <div className="form-group">
-                                <label>Game Mode</label>
-                                <div className="mode-grid">
-                                    {gameModes.map(mode => (
-                                        <button
-                                            key={mode.value}
-                                            type="button"
-                                            className={`mode-card ${formData.game_mode === mode.value ? 'selected' : ''}`}
-                                            onClick={() => setFormData(prev => ({ ...prev, game_mode: mode.value }))}
-                                        >
-                                            <span className="mode-icon">{mode.icon}</span>
-                                            <span className="mode-name">{mode.label}</span>
-                                            <span className="mode-desc">{mode.description}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="form-group">
                                 <label>Max Players</label>
                                 <div className="player-count-control">
                                     <button
@@ -263,10 +227,6 @@ export const SessionCreation: React.FC<SessionCreationProps> = ({ userId: _userI
                                 <div className="preview-icon">🎲</div>
                                 <h4>{formData.session_name}</h4>
                                 <div className="preview-details">
-                                    <div className="preview-item">
-                                        <span className="preview-label">Mode:</span>
-                                        <span className="preview-value">{gameModes.find(m => m.value === formData.game_mode)?.label}</span>
-                                    </div>
                                     <div className="preview-item">
                                         <span className="preview-label">Players:</span>
                                         <span className="preview-value">{formData.max_players} max</span>
