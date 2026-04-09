@@ -24,6 +24,15 @@ export const ActionPanel: React.FC = () => {
         }
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        // Submit on Enter (without Shift)
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmit(e);
+        }
+        // Shift+Enter adds a newline (default behavior)
+    };
+
     const getMessageClassName = (type: string, isPlayer: boolean) => {
         const baseClass = 'dialogue-message';
         const alignClass = isPlayer ? 'player-align' : 'npc-align';
@@ -123,7 +132,8 @@ export const ActionPanel: React.FC = () => {
                             id="action-input"
                             value={actionText}
                             onChange={(e) => setActionText(e.target.value)}
-                            placeholder="Describe your action..."
+                            onKeyDown={handleKeyDown}
+                            placeholder="Describe your action... (Enter to send, Shift+Enter for new line)"
                             rows={3}
                             disabled={isActionPending}
                         />

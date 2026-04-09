@@ -332,6 +332,120 @@
     height: 100%;
 }
 
+/* Session ID container */
+.session-id-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.75rem;
+    height: fit-content;
+}
+
+.session-id-container:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent-orange);
+}
+
+.session-id-label {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.session-id {
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+}
+
+.copy-icon {
+    font-size: 0.8rem;
+}
+
+/* Turn Queue - Compact Badges */
+.turn-queue-compact {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
+    padding: 4px 0;
+}
+
+.turn-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    cursor: default;
+}
+
+.turn-badge.active {
+    background: rgba(255, 255, 255, 0.1);
+    border-width: 2px;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+}
+
+.turn-badge.dying {
+    opacity: 0.6;
+}
+
+.turn-order {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.turn-badge.active .turn-order {
+    background: var(--accent-orange);
+    color: white;
+}
+
+.turn-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.turn-death-saves {
+    font-size: 0.6rem;
+    color: var(--accent-red);
+    margin-left: 2px;
+}
+
+.no-turn-queue {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.no-turn-queue p {
+    margin: 0;
+}
+
 .game-title {
     font-size: 2rem;
     font-weight: 700;
@@ -772,11 +886,62 @@
 .right-panel {
     background-color: var(--bg-secondary);
     border-left: 1px solid var(--border-color);
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
     min-width: 5%;
     max-width: 25%;
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Right panel content - tabs */
+.right-panel-with-tabs {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.right-panel-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.right-panel-tab-btn {
+    flex: 1;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.right-panel-tab-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.right-panel-tab-btn.active {
+    color: var(--accent-orange);
+    border-bottom-color: var(--accent-orange);
+    background: rgba(255, 107, 53, 0.05);
+}
+
+.right-panel-tab-content {
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.right-panel-tab-content > * {
+    height: 100%;
 }
 
 /* Resize handles */

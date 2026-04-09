@@ -168,6 +168,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     },
 
     logout: () => {
+        // Clear localStorage
         localStorage.removeItem('access_token');
         localStorage.removeItem('username');
         localStorage.removeItem('userId');
@@ -178,6 +179,11 @@ export const useGameStore = create<GameState>((set, get) => ({
         localStorage.removeItem('currentPlayerId');
         localStorage.removeItem('activeSessionIds');
         localStorage.removeItem('selectedCharacterId');
+        localStorage.removeItem('gameStatus');
+        localStorage.removeItem('guest_token');
+        // Clear auth cookies
+        document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        document.cookie = 'guest_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
         set({
             isAuthenticated: false,
             userId: null,

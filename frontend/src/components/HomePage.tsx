@@ -3,6 +3,7 @@ import { useGameStore } from '../store/gameStore';
 import { CharacterPanel } from './CharacterPanel';
 import { SessionCreation } from './SessionCreation';
 import { QuickPlay } from './QuickPlay';
+import { BrowseSessions } from './BrowseSessions';
 import { Rulebook } from './Rulebook';
 import { LandingFooter } from './LandingFooter';
 import './HomePage.css';
@@ -44,7 +45,7 @@ export const HomePage: React.FC<HomePageProps> = ({
     const [showQuickPlay, setShowQuickPlay] = useState(false);
     const [showRulebook, setShowRulebook] = useState(false);
     const [scrolled, setScrolled] = useState(false);
-    const [activeTab, setActiveTab] = useState<'overview' | 'characters' | 'sessions'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'characters' | 'sessions' | 'browse'>('overview');
     const backgroundRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -193,23 +194,29 @@ export const HomePage: React.FC<HomePageProps> = ({
                     </div>
                     
                     <nav className="header-nav">
-                        <button 
+                        <button
                             className={activeTab === 'overview' ? 'active' : ''}
                             onClick={() => setActiveTab('overview')}
                         >
                             Overview
                         </button>
-                        <button 
+                        <button
                             className={activeTab === 'characters' ? 'active' : ''}
                             onClick={() => setActiveTab('characters')}
                         >
                             Characters
                         </button>
-                        <button 
+                        <button
                             className={activeTab === 'sessions' ? 'active' : ''}
                             onClick={() => setActiveTab('sessions')}
                         >
                             Sessions
+                        </button>
+                        <button
+                            className={activeTab === 'browse' ? 'active browse-highlight' : 'browse-highlight'}
+                            onClick={() => setActiveTab('browse')}
+                        >
+                            🔍 Browse
                         </button>
                     </nav>
 
@@ -459,7 +466,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                     <div className="sessions-section">
                         <div className="section-header">
                             <h2>Game Sessions</h2>
-                            <button 
+                            <button
                                 className="btn-primary"
                                 onClick={() => setShowSessionCreation(true)}
                             >
@@ -495,7 +502,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                                 <span className="empty-icon">📜</span>
                                 <h3>No sessions yet</h3>
                                 <p>Create or join a session to start playing!</p>
-                                <button 
+                                <button
                                     className="btn-primary btn-large"
                                     onClick={() => setShowSessionCreation(true)}
                                 >
@@ -504,6 +511,10 @@ export const HomePage: React.FC<HomePageProps> = ({
                             </div>
                         )}
                     </div>
+                )}
+
+                {activeTab === 'browse' && (
+                    <BrowseSessions onJoinSession={onJoinSession} />
                 )}
             </main>
 

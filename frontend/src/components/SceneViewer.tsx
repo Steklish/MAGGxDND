@@ -12,6 +12,7 @@ interface TooltipInfo {
 export const SceneViewer: React.FC = () => {
     const { currentScene, session, currentSession } = useGameStore();
     const [hoveredObject, setHoveredObject] = useState<{ obj: any; x: number; y: number } | null>(null);
+    const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
     // Use currentSession as primary, session as fallback
     const activeSession = currentSession || session;
@@ -183,8 +184,14 @@ export const SceneViewer: React.FC = () => {
                                     opacity: obj.is_hidden ? 0.5 : 1,
                                     borderColor: obj.state === 'active' ? '#FFC107' : 'rgba(255,255,255,0.3)',
                                 }}
-                                onClick={() => setHoveredObject({ obj, x, y })}
-                                title={`${obj.name}${obj.obj_type ? ` (${obj.obj_type})` : ''}`}
+                                onMouseEnter={(e) => {
+                                    setHoveredObject({ obj, x, y });
+                                    setTooltipPos({ x: e.clientX, y: e.clientY });
+                                }}
+                                onMouseMove={(e) => {
+                                    setTooltipPos({ x: e.clientX, y: e.clientY });
+                                }}
+                                onMouseLeave={() => setHoveredObject(null)}
                             >
                                 {obj.obj_type === 'interactable' ? '⚙️' :
                                  obj.obj_type === 'prop' ? '🎨' :
@@ -232,11 +239,15 @@ export const SceneViewer: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Object Hover Tooltip */}
+                {/* Object Hover Tooltip - follows mouse */}
                 {hoveredObject && (
-                    <div 
+                    <div
                         className="object-tooltip"
-                        dangerouslySetInnerHTML={{ __html: getTooltipContent(hoveredObject.obj).content }}
+                        style={{
+                            left: tooltipPos.x + 15,
+                            top: tooltipPos.y - 10,
+                        }}
+                        dangerouslySetInnerHTML={{ __html: getTooltipContent(hoveredObject.obj) }}
                     />
                 )}
             </div>
@@ -276,10 +287,16 @@ export const SceneViewer: React.FC = () => {
                         {sceneObjects.map((obj: any, idx: number) => {
                             const color = getObjectTypeColor(obj.obj_type);
                             return (
-                                <div 
-                                    key={`object-legend-${idx}`} 
+                                <div
+                                    key={`object-legend-${idx}`}
                                     className="legend-item object"
-                                    onMouseEnter={() => setHoveredObject({ obj, x: obj.position?.x || 0, y: obj.position?.y || 0 })}
+                                    onMouseEnter={(e) => {
+                                        setHoveredObject({ obj, x: obj.position?.x || 0, y: obj.position?.y || 0 });
+                                        setTooltipPos({ x: e.clientX, y: e.clientY });
+                                    }}
+                                    onMouseMove={(e) => {
+                                        setTooltipPos({ x: e.clientX, y: e.clientY });
+                                    }}
                                     onMouseLeave={() => setHoveredObject(null)}
                                 >
                                     <span className="legend-color" style={{ backgroundColor: color }}></span>

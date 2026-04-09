@@ -35,7 +35,7 @@ class SessionRepository:
         session_name: str,
         owner_id: int,
         game_mode: str = "STORY",
-        session_data: Optional[Dict[str, Any]] = None
+        session_data: Optional[Dict[str, Any]] = None,
     ) -> GameSession:
         """
         Create a new game session.
@@ -57,7 +57,7 @@ class SessionRepository:
             game_mode=GameModeEnum(game_mode),
             session_data=session_data or {},
             status=SessionStatusEnum.CREATED,
-            is_active=True
+            is_active=True,
         )
 
         self.db.add(db_session)
@@ -121,33 +121,38 @@ class SessionRepository:
     ) -> List[GameSession]:
         """
         Get all public sessions (for browsing).
-        
+
         Args:
             search: Optional search term (matches session name or description)
             skip: Number of results to skip (pagination)
             limit: Maximum number of results
-            
+
         Returns:
             List of public GameSession objects
         """
         query = select(GameSession).where(
-            GameSession.is_active == True,
-            GameSession.is_public == True
+            GameSession.is_active == True
         )
-        
-        # Add search filter if provided
-        if search:
-            search_pattern = f"%{search}%"
-            query = query.where(
-                (GameSession.session_name.ilike(search_pattern)) |
-                (GameSession.description.ilike(search_pattern))
-            )
-        
+
         query = query.order_by(GameSession.created_at.desc())
         query = query.offset(skip).limit(limit)
-        
+
         result = self.db.execute(query)
-        return list(result.scalars().all())
+        sessions = list(result.scalars().all())
+
+        # Filter in Python since is_public is in session_data JSON
+        public_sessions = [s for s in sessions if (s.session_data or {}).get('is_public', False)]
+
+        # Apply search filter
+        if search:
+            search_lower = search.lower()
+            public_sessions = [
+                s for s in public_sessions
+                if search_lower in s.session_name.lower()
+                or search_lower in (s.session_data or {}).get('description', '').lower()
+            ]
+
+        return public_sessions
 
     # === UPDATE ===
 

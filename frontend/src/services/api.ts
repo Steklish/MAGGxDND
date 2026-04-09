@@ -206,13 +206,20 @@ api.interceptors.response.use(
 
         switch (status) {
             case 401:
-                console.warn('⚠️ 401 Unauthorized - clearing auth and redirecting to landing');
+                console.warn('⚠️ 401 Unauthorized - clearing auth and cookies, redirecting to landing');
+                // Clear localStorage
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('userId');
                 localStorage.removeItem('username');
                 localStorage.removeItem('is_guest');
                 localStorage.removeItem('remember_me');
                 localStorage.removeItem('currentSessionId');
+                localStorage.removeItem('currentPlayerId');
+                localStorage.removeItem('gameStatus');
+                localStorage.removeItem('guest_token');
+                // Clear auth cookies
+                document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+                document.cookie = 'guest_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
                 message = 'Session expired. Please log in again.';
                 // Notify App.tsx to reset state to landing page
                 window.dispatchEvent(new CustomEvent('auth:invalid'));

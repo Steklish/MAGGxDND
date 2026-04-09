@@ -1,11 +1,13 @@
+/* Scene Viewer - Compact mode for sidebar */
 .scene-viewer {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    padding: 20px;
+    padding: 8px;
     background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
     position: relative;
+    height: 100%;
 }
 
 .scene-viewer::before {
@@ -23,14 +25,17 @@
 
 /* Scene Header */
 .scene-header {
-    margin-bottom: 16px;
-    padding-bottom: 12px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
     border-bottom: 2px solid var(--accent-orange);
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
 }
 
 .scene-title {
     margin: 0;
-    font-size: 1.8rem;
+    font-size: 1rem;
     font-weight: 700;
     background: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-yellow) 100%);
     -webkit-background-clip: text;
@@ -38,19 +43,27 @@
     background-clip: text;
 }
 
+.scene-scale {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
 /* Scene Description */
 .scene-description-container {
-    margin-bottom: 20px;
-    padding: 16px;
+    margin-bottom: 8px;
+    padding: 6px 8px;
     background: rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    border-left: 4px solid var(--accent-purple);
+    border-radius: 6px;
+    border-left: 3px solid var(--accent-purple);
+    max-height: 60px;
+    overflow-y: auto;
 }
 
 .scene-description {
     margin: 0;
-    font-size: 1rem;
-    line-height: 1.6;
+    font-size: 0.8rem;
+    line-height: 1.4;
     color: var(--text-primary);
 }
 
@@ -71,25 +84,27 @@
 }
 
 .no-scene .hint {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     margin-top: 8px;
     opacity: 0.7;
 }
 
+/* Scene Content - Grid Area */
 .scene-content {
     flex: 1;
     display: flex;
-    gap: 20px;
+    flex-direction: column;
     overflow: hidden;
     position: relative;
     z-index: 1;
+    min-height: 0;
 }
 
 .grid-container {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 8px;
 }
 
 /* Grid wrapper - provides sizing context */
@@ -97,7 +112,7 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding: 12px;
+    padding: 4px;
 }
 
 /* Main grid - uses CSS Grid for perfect alignment */
@@ -105,7 +120,7 @@
     display: grid;
     gap: 1px;
     background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
-    border-radius: 8px;
+    border-radius: 6px;
     border: 1px solid var(--border-color);
     box-shadow:
         0 4px 16px rgba(0, 0, 0, 0.3),
@@ -131,10 +146,10 @@
 .grid-cell {
     width: 100%;
     aspect-ratio: 1;
-    min-width: 16px;
-    min-height: 16px;
-    max-width: 24px;
-    max-height: 24px;
+    min-width: 14px;
+    min-height: 14px;
+    max-width: 20px;
+    max-height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -143,7 +158,7 @@
     border-radius: 2px;
     transition: all 0.15s ease;
     color: var(--text-muted);
-    font-size: 8px;
+    font-size: 7px;
     font-weight: 700;
     cursor: default;
 }
@@ -172,10 +187,12 @@
 /* Character markers */
 .grid-marker-character {
     border-radius: 50%;
-    border: 2px solid white;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-    font-size: clamp(12px, 1.5vw, 16px);
+    border: 1px solid white;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    font-size: 9px;
     color: white;
+    width: 80%;
+    height: 80%;
 }
 
 .grid-marker-player {
@@ -183,8 +200,8 @@
 }
 
 .grid-marker-player:hover {
-    transform: scale(1.15);
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.6);
+    transform: scale(1.2);
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.7);
     z-index: 20;
 }
 
@@ -193,90 +210,102 @@
 }
 
 .grid-marker-npc:hover {
-    transform: scale(1.15);
-    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.6);
+    transform: scale(1.2);
+    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.7);
     z-index: 20;
 }
 
 /* Object markers */
 .grid-marker-object {
-    border-radius: 6px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-    font-size: clamp(14px, 1.8vw, 20px);
-    padding: 2px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    font-size: 11px;
+    padding: 0;
+    width: 90%;
+    height: 90%;
 }
 
 .grid-marker-object:hover {
-    transform: scale(1.2);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), 0 0 15px rgba(255, 255, 255, 0.2);
+    transform: scale(1.25);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7), 0 0 8px rgba(255, 255, 255, 0.15);
     z-index: 15;
 }
 
 /* Responsive adjustments */
 @media (max-width: 1024px) {
     .grid-cell {
-        min-width: 20px;
-        min-height: 20px;
+        min-width: 12px;
+        min-height: 12px;
+        max-width: 18px;
+        max-height: 18px;
     }
     
     .grid-marker-character {
-        font-size: 12px;
+        font-size: 8px;
+        border-width: 1px;
     }
     
     .grid-marker-object {
-        font-size: 14px;
+        font-size: 10px;
     }
 }
 
 @media (max-width: 768px) {
     .grid-wrapper {
-        padding: 12px;
+        padding: 4px;
     }
     
     .grid-cell {
-        min-width: 16px;
-        min-height: 16px;
+        min-width: 10px;
+        min-height: 10px;
+        max-width: 14px;
+        max-height: 14px;
     }
     
     .grid-marker-character {
-        font-size: 10px;
+        font-size: 7px;
         border-width: 1px;
     }
     
     .grid-marker-object {
-        font-size: 12px;
+        font-size: 9px;
+    }
+    
+    .object-tooltip {
+        max-width: 200px;
+        font-size: 0.75rem;
+        padding: 6px 10px;
     }
 }
 
-/* Object Hover Tooltip */
+/* Object Hover Tooltip - follows mouse */
 .object-tooltip {
     position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 12px 16px;
-    background: rgba(30, 30, 30, 0.95);
+    padding: 8px 12px;
+    background: rgba(20, 20, 35, 0.95);
     border: 1px solid var(--accent-orange);
-    border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-    max-width: 350px;
-    font-size: 0.9rem;
-    line-height: 1.5;
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 8px rgba(255, 107, 53, 0.2);
+    max-width: 280px;
+    font-size: 0.85rem;
+    line-height: 1.4;
     color: var(--text-primary);
-    z-index: 1000;
+    z-index: 10000;
     backdrop-filter: blur(8px);
-    animation: tooltipFade 0.2s ease;
+    animation: tooltipFade 0.15s ease;
+    pointer-events: none;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 @keyframes tooltipFade {
     from {
         opacity: 0;
-        transform: translateX(-50%) translateY(5px);
+        transform: translateY(3px);
     }
     to {
         opacity: 1;
-        transform: translateX(-50%) translateY(0);
+        transform: translateY(0);
     }
 }
 
@@ -290,24 +319,37 @@
 
 /* Objects Legend */
 .objects-legend {
-    margin-top: 12px;
-    padding: 12px;
+    margin-top: 8px;
+    padding: 8px;
     background: rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    border-left: 4px solid var(--accent-purple);
-    max-height: 150px;
+    border-radius: 6px;
+    border-left: 3px solid var(--accent-purple);
+    max-height: 100px;
     overflow-y: auto;
 }
 
 .objects-legend h4 {
-    margin: 0 0 8px 0;
-    font-size: 0.9rem;
+    margin: 0 0 6px 0;
+    font-size: 0.8rem;
     color: var(--text-primary);
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
-.legend-item.object {
+.legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    font-size: 0.75rem;
     border: 1px solid rgba(255, 255, 255, 0.2);
     cursor: pointer;
     transition: all 0.2s ease;
@@ -319,8 +361,8 @@
 }
 
 .object-type-badge {
-    font-size: 0.7rem;
-    padding: 2px 6px;
+    font-size: 0.65rem;
+    padding: 1px 4px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 3px;
     text-transform: uppercase;
@@ -331,18 +373,18 @@
 
 /* Character Legend */
 .character-legend {
-    margin-top: 16px;
-    padding: 12px;
+    margin-top: 8px;
+    padding: 8px;
     background: rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    border-left: 4px solid var(--accent-orange);
-    max-height: 150px;
+    border-radius: 6px;
+    border-left: 3px solid var(--accent-orange);
+    max-height: 100px;
     overflow-y: auto;
 }
 
 .character-legend h4 {
-    margin: 0 0 8px 0;
-    font-size: 0.9rem;
+    margin: 0 0 6px 0;
+    font-size: 0.8rem;
     color: var(--text-primary);
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -351,17 +393,17 @@
 .legend-items {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
 }
 
 .legend-item {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 8px;
+    gap: 5px;
+    padding: 3px 6px;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 4px;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
 }
 
 .legend-item.player {
@@ -373,8 +415,8 @@
 }
 
 .legend-color {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     border: 2px solid white;
     flex-shrink: 0;

@@ -640,6 +640,7 @@ async def create_session(
                 "description": request.description,
                 "guide": request.guide,
                 "gemini_model": request.gemini_model,
+                "is_public": request.is_public,
                 "participants": []
             }
         )
@@ -755,6 +756,94 @@ async def list_sessions(
     )
 
 
+@router.get("/public", response_model=Dict[str, Any])
+async def browse_public_sessions(
+    search: Optional[str] = None,
+    skip: int = 0,
+    limit: int = 50,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Browse all active sessions.
+
+    Returns all active sessions, with optional search by name, description, or session UUID.
+    Any authenticated user can see and join these sessions.
+    """
+    repository = get_session_repository(db)
+
+    # Get all active sessions
+    all_sessions = repository.get_all_active_sessions()
+
+    # Apply search filter by name, description, or UUID
+    if search:
+        search_lower = search.lower()
+        filtered_sessions = []
+        for s in all_sessions:
+            session_data = s.session_data or {}
+            matches = (
+                search_lower in s.session_name.lower()
+                or search_lower in session_data.get('description', '').lower()
+                or search_lower in s.session_uuid.lower()
+            )
+            if matches:
+                filtered_sessions.append(s)
+        sessions_to_show = filtered_sessions
+    else:
+        sessions_to_show = all_sessions
+
+    # Apply pagination
+    total = len(sessions_to_show)
+    paginated_sessions = sessions_to_show[skip:skip + limit]
+
+    # Get user's joined sessions to mark them
+    user_sessions = repository.get_owner_sessions(owner_id=current_user.id, active_only=False)
+    user_session_ids = {s.session_uuid for s in user_sessions}
+
+    # Also get sessions where user is a participant
+    user_participant_sessions = set()
+    for session in all_sessions:
+        participants = repository.get_session_participants(session.session_uuid)
+        for p in participants:
+            if p.get('user_id') == current_user.id:
+                user_participant_sessions.add(session.session_uuid)
+
+    result_sessions = []
+    for db_session in paginated_sessions:
+        # Get participant count
+        participants = repository.get_session_participants(db_session.session_uuid)
+        player_count = len(participants)
+
+        # Get max_players
+        max_players = get_session_max_players(db_session)
+
+        # Get owner name
+        owner = db.query(User).filter(User.id == db_session.owner_id).first()
+        owner_name = owner.username if owner else "Unknown"
+
+        result_sessions.append({
+            "session_id": db_session.session_uuid,
+            "session_name": db_session.session_name,
+            "game_mode": db_session.game_mode.value,
+            "status": db_session.status.value,
+            "description": get_session_description(db_session),
+            "owner_name": owner_name,
+            "player_count": player_count,
+            "max_players": max_players,
+            "created_at": db_session.created_at.isoformat(),
+            "is_owner": db_session.owner_id == current_user.id,
+            "has_joined": db_session.session_uuid in user_participant_sessions or db_session.session_uuid in user_session_ids
+        })
+
+    return {
+        "sessions": result_sessions,
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+        "search": search
+    }
+
+
 @router.get("/{session_id}", response_model=SessionResponse)
 async def get_session(
     session_id: str,
@@ -807,6 +896,25 @@ async def get_session(
         is_owner=(db_session.owner_id == current_user.id),
         players=players
     )
+
+
+# ===================================================================
+# PUBLIC SESSION BROWSING ENDPOINTS
+# ===================================================================
+
+class PublicSessionResponse(BaseModel):
+    """Response for public session listing."""
+    session_id: str
+    session_name: str
+    game_mode: str
+    status: str
+    description: Optional[str] = None
+    owner_name: str
+    player_count: int
+    max_players: int
+    created_at: str
+    is_owner: bool
+    has_joined: bool
 
 
 @router.put("/{session_id}", response_model=SessionResponse)

@@ -24,7 +24,9 @@
     left: 0;
     width: 100%;
     height: 120%;
-    background: url('/arts/backgrounds/bg-home.png') no-repeat center top;
+    background: 
+        linear-gradient(180deg, rgba(15, 15, 20, 0.4) 0%, rgba(20, 20, 30, 0.5) 100%),
+        url('/arts/backgrounds/bg-home.png') no-repeat center top;
     background-size: 100% auto;
     z-index: -1;
     will-change: transform;
@@ -144,6 +146,21 @@ body.has-home-bg #root {
     background: rgba(255, 107, 53, 0.1);
 }
 
+.header-nav button.browse-highlight {
+    color: #4299e1;
+    font-weight: 700;
+}
+
+.header-nav button.browse-highlight:hover {
+    color: #63b3ed;
+    background: rgba(66, 153, 225, 0.1);
+}
+
+.header-nav button.browse-highlight.active {
+    color: #4299e1;
+    background: rgba(66, 153, 225, 0.15);
+}
+
 .header-actions {
     display: flex;
     align-items: center;
@@ -229,7 +246,8 @@ body.has-home-bg #root {
 .home-hero {
     padding: 140px 32px 60px;
     background: transparent;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 2px solid var(--border-color);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .hero-content {
@@ -278,16 +296,20 @@ body.has-home-bg #root {
     align-items: center;
     gap: 16px;
     padding: 20px 24px;
-    background: linear-gradient(135deg, rgba(255, 140, 0, 0.2), rgba(255, 69, 0, 0.15));
-    border: 2px solid var(--accent-orange);
+    background: rgba(20, 20, 30, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     cursor: pointer;
     transition: all 0.3s ease;
     color: var(--text-primary);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .btn-continue-game:hover {
-    background: linear-gradient(135deg, rgba(255, 140, 0, 0.3), rgba(255, 69, 0, 0.25));
+    background: rgba(25, 25, 35, 0.9);
+    border-color: var(--accent-orange);
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(255, 140, 0, 0.3);
 }
@@ -334,20 +356,24 @@ body.has-home-bg #root {
     justify-content: center;
     gap: 32px;
     padding: 32px;
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(20, 20, 30, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .stat-card {
     text-align: center;
-    background: rgba(255, 255, 255, 0.05) !important;
-    backdrop-filter: blur(10px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(20, 20, 30, 0.7) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
     padding: 20px;
     border-radius: var(--radius-lg);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .stat-value {
@@ -366,9 +392,10 @@ body.has-home-bg #root {
 }
 
 .stat-divider {
-    width: 1px;
-    height: 50px;
-    background: var(--border-color);
+    width: 2px;
+    height: 60px;
+    background: linear-gradient(180deg, transparent 0%, var(--border-color) 20%, var(--border-color) 80%, transparent 100%);
+    box-shadow: 0 0 8px rgba(255, 107, 53, 0.2);
 }
 
 /* Main Content */
@@ -399,15 +426,16 @@ body.has-home-bg #root {
 }
 
 .content-card {
-    background: rgba(255, 255, 255, 0.03) !important;
-    backdrop-filter: blur(10px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(20, 20, 30, 0.6) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 2px solid var(--border-color);
     border-radius: var(--radius-lg);
     padding: 24px;
     transition: all 0.3s ease;
     animation: cardFadeIn 0.5s ease-out;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 @keyframes cardFadeIn {
@@ -462,19 +490,22 @@ body.has-home-bg #root {
     align-items: center;
     gap: 16px;
     padding: 16px;
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%) !important;
     backdrop-filter: blur(10px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid #4a5568;
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .session-item:hover {
     border-color: var(--accent-orange);
+    background: linear-gradient(135deg, #3d4758 0%, #2a303c 100%) !important;
     transform: translateX(4px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 107, 53, 0.2);
 }
 
 .session-icon {
@@ -663,6 +694,9 @@ body.has-home-bg #root {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--border-color);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .section-header h2 {
@@ -670,6 +704,7 @@ body.has-home-bg #root {
     font-weight: 700;
     margin: 0;
     color: var(--text-primary);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* Characters Grid Full */
@@ -680,20 +715,23 @@ body.has-home-bg #root {
 }
 
 .character-card-placeholder {
-    background: rgba(255, 255, 255, 0.05) !important;
-    backdrop-filter: blur(10px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(20, 20, 30, 0.7) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 2px solid var(--border-color);
     border-radius: var(--radius-lg);
     padding: 24px;
     transition: all 0.3s ease;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .character-card-placeholder:hover {
     border-color: var(--accent-orange);
+    border-width: 2px;
     transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.2);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3),
+                0 0 0 1px rgba(255, 107, 53, 0.2);
 }
 
 .char-card-inner {
@@ -737,20 +775,23 @@ body.has-home-bg #root {
 
 .session-card-full {
     padding: 24px;
-    background: rgba(255, 255, 255, 0.05) !important;
-    backdrop-filter: blur(10px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(20, 20, 30, 0.7) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 2px solid var(--border-color);
     border-radius: var(--radius-lg);
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .session-card-full:hover {
     border-color: var(--accent-orange);
+    border-width: 2px;
     transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.2);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3),
+                0 0 0 1px rgba(255, 107, 53, 0.2);
 }
 
 .session-header {

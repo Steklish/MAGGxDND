@@ -82,6 +82,28 @@ export interface PlayerJoinWithProfileRequest {
     profile_id: number;
 }
 
+export interface PublicSession {
+    session_id: string;
+    session_name: string;
+    game_mode: string;
+    status: string;
+    description?: string;
+    owner_name: string;
+    player_count: number;
+    max_players: number;
+    created_at: string;
+    is_owner: boolean;
+    has_joined: boolean;
+}
+
+export interface PublicSessionsResponse {
+    sessions: PublicSession[];
+    total: number;
+    skip: number;
+    limit: number;
+    search?: string;
+}
+
 export interface WaitingRoomInfo {
     session_id: string;
     session_name: string;
@@ -154,6 +176,19 @@ export const sessionAPI = {
      */
     joinSessionWithProfile: async (sessionId: string, request: PlayerJoinWithProfileRequest): Promise<PlayerInfo> => {
         const response = await api.post<PlayerInfo>(`/sessions/${sessionId}/players/with-profile`, request);
+        return response.data;
+    },
+
+    /**
+     * Browse all public sessions with optional search
+     */
+    browsePublicSessions: async (search?: string, skip: number = 0, limit: number = 50): Promise<PublicSessionsResponse> => {
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        params.append('skip', skip.toString());
+        params.append('limit', limit.toString());
+        
+        const response = await api.get<PublicSessionsResponse>(`/sessions/public?${params.toString()}`);
         return response.data;
     },
 

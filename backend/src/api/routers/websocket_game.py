@@ -59,8 +59,8 @@ async def event_stream_sender(
                 logger.debug(
                     f"EVENT SENT TO FRONTEND [{event_count}] | "
                     f"Session: {session_id} | Player: {player_id} | "
-                    f"Event Type: {event_dict['event_type']} | "
-                    f"Description: {event_dict.get('description', 'N/A')[:100]} | "
+                    f"Event Type: {event_dict['payload']['event']['event_type']} | "
+                    f"Description: {event_dict['payload']['event'].get('description', 'N/A')[:100]} | "
                     f"Journey: EventPool → WebSocket → Frontend"
                 )
 

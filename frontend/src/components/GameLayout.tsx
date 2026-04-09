@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { ChatPanel } from './ChatPanel';
+import { EventsPanel } from './EventsPanel';
 import { SceneViewer } from './SceneViewer';
 import { CharacterPanel } from './CharacterPanel';
 import { ActionPanel } from './ActionPanel';
@@ -72,6 +73,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     const [showProfile, setShowProfile] = useState(false);
     const [showCreateSession, setShowCreateSession] = useState(false);
     const [sessionNotFound, setSessionNotFound] = useState(false);
+    const [copiedSessionId, setCopiedSessionId] = useState(false);
     const [leftPanelWidth, setLeftPanelWidth] = useState(25);
     const [rightPanelWidth, setRightPanelWidth] = useState(25);
     const [headerHeight, setHeaderHeight] = useState(() => Math.round(window.innerHeight * 0.07));
@@ -82,6 +84,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
     const [isResizingRight, setIsResizingRight] = useState(false);
     const [isResizingHeader, setIsResizingHeader] = useState(false);
     const [isResizingActionPanel, setIsResizingActionPanel] = useState(false);
+    const [rightPanelTab, setRightPanelTab] = useState<'chat' | 'events' | 'grid'>('grid');
     const [turnQueue, setTurnQueue] = useState<TurnEntry[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [dyingCharacters, setDyingCharacters] = useState<string[]>([]);
@@ -800,6 +803,26 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
         }
     };
 
+    const handleCopySessionId = async () => {
+        if (sessionId) {
+            try {
+                await navigator.clipboard.writeText(sessionId);
+                setCopiedSessionId(true);
+                setTimeout(() => setCopiedSessionId(false), 2000);
+            } catch (err) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = sessionId;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                setCopiedSessionId(true);
+                setTimeout(() => setCopiedSessionId(false), 2000);
+            }
+        }
+    };
+
     return (
         <div className="game-layout" ref={containerRef} style={{ '--header-height': `${headerHeight}px` } as React.CSSProperties}>
             {/* Header */}
@@ -816,75 +839,48 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                         <span className="title-x">x</span>
                         <span className="title-dnd">DND</span>
                     </h1>
+                    {/* Session ID with copy button */}
+                    {sessionId && (
+                        <div className="session-id-container" onClick={handleCopySessionId} title="Click to copy session ID">
+                            <span className="session-id-label">Session:</span>
+                            <span className="session-id">{copiedSessionId ? '✓ Copied!' : sessionId.slice(0, 8)}...</span>
+                            <span className="copy-icon">{copiedSessionId ? '✓' : '📋'}</span>
+                        </div>
+                    )}
                 </div>
 
-                {/* Turn Queue with Portraits */}
+                {/* Turn Queue - Compact Badges */}
                 <div className="header-center turn-queue-container">
                     {aliveQueue && aliveQueue.length > 0 ? (
-                        aliveQueue.map((entry, idx) => {
-                            const isCurrentTurn = idx === (currentIndex % aliveQueue.length);
-                            const isDying = entry.isDying;
-                            const color = getAttitudeColor(entry.type);
-                            const bgGradient = getAttitudeBgGradient(entry.type);
-
-                            return (
-                                <React.Fragment key={`${entry.character.name}-${entry.initiative}`}>
-                                    {/* Full Portrait - 16:9 horizontal rectangle */}
+                        <div className="turn-queue-compact">
+                            {aliveQueue.map((entry, idx) => {
+                                const isCurrentTurn = idx === (currentIndex % aliveQueue.length);
+                                const isDying = entry.isDying;
+                                const color = getAttitudeColor(entry.type);
+                                return (
                                     <div
-                                        className={`turn-portrait ${isCurrentTurn ? 'active' : ''} ${isDying ? 'dying' : ''} ${dyingCharacters.includes(entry.character.name) ? 'death-animation' : ''}`}
+                                        key={`turn-${idx}-${entry.character.name}`}
+                                        className={`turn-badge ${isCurrentTurn ? 'active' : ''} ${isDying ? 'dying' : ''}`}
                                         style={{
                                             borderColor: color,
-                                            opacity: isCurrentTurn ? 1 : 0.4,
-                                            background: bgGradient
-                                        } as React.CSSProperties}
+                                            opacity: isCurrentTurn ? 1 : 0.5,
+                                        }}
+                                        title={`${entry.character.name} (${entry.type})`}
                                     >
-                                        <div className="portrait-frame">
-                                            {/* Character name overlay */}
-                                            <div className="portrait-name-overlay">
-                                                {entry.character.name}
-                                            </div>
-                                            {/* Attitude indicator bar */}
-                                            <div
-                                                className="attitude-indicator"
-                                                style={{ backgroundColor: color }}
-                                            />
-                                        </div>
-
-                                        {/* Death save counters */}
+                                        <span className="turn-order">{idx + 1}</span>
+                                        <span className="turn-name">{entry.character.name}</span>
                                         {isDying && (
-                                            <div className="death-saves">
-                                                <div className="death-save-successes">
-                                                    {'✓'.repeat(entry.deathSaveSuccesses)}
-                                                </div>
-                                                <div className="death-save-failures">
-                                                    {'✗'.repeat(entry.deathSaveFailures)}
-                                                </div>
-                                            </div>
+                                            <span className="turn-death-saves">
+                                                {'✓'.repeat(entry.deathSaveSuccesses)}{'✗'.repeat(entry.deathSaveFailures)}
+                                            </span>
                                         )}
                                     </div>
-
-                                    {/* Mini Portrait - for small headers */}
-                                    <div
-                                        className={`mini-portrait ${isCurrentTurn ? 'active' : ''}`}
-                                        style={{
-                                            borderColor: color,
-                                            opacity: isCurrentTurn ? 1 : 0.5
-                                        } as React.CSSProperties}
-                                    >
-                                        <div
-                                            className="mini-portrait-indicator"
-                                            style={{ backgroundColor: color }}
-                                        />
-                                        <span className="mini-portrait-name">{entry.character.name}</span>
-                                    </div>
-                                </React.Fragment>
-                            );
-                        })
+                                );
+                            })}
+                        </div>
                     ) : (
                         <div className="no-turn-queue">
-                            <p>⏳ Waiting for game data...</p>
-                            <p className="hint">Turn queue: {turnQueue?.length || 0} | Alive: {aliveQueue?.length || 0}</p>
-                            <p className="hint">Session players: {session?.players?.length || 0} | NPCs: {session?.npcs?.length || 0}</p>
+                            <p>⏳ Waiting...</p>
                         </div>
                     )}
                 </div>
@@ -931,20 +927,10 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                     onMouseDown={startLeftResize}
                 />
 
-                {/* Center - Action and Scene */}
+                {/* Center - Action Panel Only (Scene moved to sidebar) */}
                 <main className="center-panel">
-                    <div className={`action-panel-container ${isCollapsing ? 'collapsing' : ''}`} style={{ flex: `1 1 ${isSceneCollapsed ? 100 : 100 - actionPanelHeight}%` }}>
+                    <div className={`action-panel-container`} style={{ flex: `1 1 100%` }}>
                         <ActionPanel />
-                    </div>
-                    <div
-                        className={`resize-handle action-panel-resize ${isResizingActionPanel ? 'resizing' : ''} ${isSceneCollapsed ? 'hidden-handle' : ''}`}
-                        onMouseDown={startActionPanelResize}
-                    />
-                    <div className={`scene-container ${isCollapsing ? 'collapsing' : ''} ${isSceneCollapsed ? 'hidden-scene' : ''}`} style={{ flex: `0 0 ${isSceneCollapsed ? 0 : actionPanelHeight}%` }}>
-                        <SceneViewer />
-                    </div>
-                    <div className={`action-panel-collapsed-handle ${isSceneCollapsed ? 'show' : ''}`} onClick={toggleScene}>
-                        <div className="handle-bar" />
                     </div>
                 </main>
 
@@ -954,12 +940,44 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                     onMouseDown={startRightResize}
                 />
 
-                {/* Right Panel - Chat */}
+                {/* Right Panel - Chat + Events + Grid Tabs */}
                 <aside
                     className="right-panel"
                     style={{ width: `${rightPanelWidth}%` }}
                 >
-                    {rightPanelWidth <= 5 ? <MiniChatPanel /> : <ChatPanel />}
+                    {rightPanelWidth <= 5 ? (
+                        <MiniChatPanel />
+                    ) : (
+                        <div className="right-panel-with-tabs">
+                            {/* Tab bar */}
+                            <div className="right-panel-tabs">
+                                <button
+                                    className={`right-panel-tab-btn ${rightPanelTab === 'chat' ? 'active' : ''}`}
+                                    onClick={() => setRightPanelTab('chat')}
+                                >
+                                    💬 Chat
+                                </button>
+                                <button
+                                    className={`right-panel-tab-btn ${rightPanelTab === 'events' ? 'active' : ''}`}
+                                    onClick={() => setRightPanelTab('events')}
+                                >
+                                    ⚡ Events
+                                </button>
+                                <button
+                                    className={`right-panel-tab-btn ${rightPanelTab === 'grid' ? 'active' : ''}`}
+                                    onClick={() => setRightPanelTab('grid')}
+                                >
+                                    🗺️ Grid
+                                </button>
+                            </div>
+                            {/* Tab content */}
+                            <div className="right-panel-tab-content">
+                                {rightPanelTab === 'chat' && <ChatPanel />}
+                                {rightPanelTab === 'events' && <EventsPanel />}
+                                {rightPanelTab === 'grid' && <SceneViewer />}
+                            </div>
+                        </div>
+                    )}
                 </aside>
             </div>
 
