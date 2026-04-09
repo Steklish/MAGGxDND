@@ -459,6 +459,13 @@
     line-height: 1.6;
 }
 
+.summary-note {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 8px;
+}
+
 .btn-start-game {
     width: 100%;
     padding: 20px;

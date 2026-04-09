@@ -215,13 +215,14 @@
 
 /* Title Card */
 .session-title-card {
-    background: transparent !important;
-    backdrop-filter: blur(5px);
+    background: rgba(15, 15, 25, 0.85) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 32px;
     margin-bottom: 32px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .session-title-header {
@@ -247,6 +248,7 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
 }
 
 .session-status {
@@ -447,12 +449,13 @@
 /* Cards */
 .session-info-card,
 .players-card {
-    background: transparent !important;
-    backdrop-filter: blur(5px);
+    background: rgba(15, 15, 25, 0.85) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 24px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .session-info-card h2,
@@ -463,6 +466,7 @@
     color: var(--text-primary);
     padding-bottom: 16px;
     border-bottom: 1px solid var(--border-color);
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .info-grid {

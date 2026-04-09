@@ -27,8 +27,20 @@ export const SceneViewer: React.FC = () => {
     // Ensure x and y exist
     const centerX = typeof centerPos?.x === 'number' ? centerPos.x : 10;
     const centerY = typeof centerPos?.y === 'number' ? centerPos.y : 10;
-    const dimX = typeof dimensions?.x === 'number' ? dimensions.x : 20;
-    const dimY = typeof dimensions?.y === 'number' ? dimensions.y : 20;
+    const dimX = typeof dimensions?.x === 'number' && dimensions.x > 0 ? dimensions.x : 20;
+    const dimY = typeof dimensions?.y === 'number' && dimensions.y > 0 ? dimensions.y : 20;
+
+    // Safety check: prevent rendering with invalid dimensions
+    if (dimX <= 0 || dimY <= 0 || dimX > 100 || dimY > 100) {
+        return (
+            <div className="scene-viewer">
+                <div className="no-scene">
+                    <p>Invalid scene dimensions</p>
+                    <p className="hint">Grid size must be between 1 and 100</p>
+                </div>
+            </div>
+        );
+    }
 
     // Get characters and NPCs from session
     const players = activeSession?.players || [];
@@ -112,169 +124,17 @@ export const SceneViewer: React.FC = () => {
         }
     };
 
-    // Helper function to generate tooltip content
-    const getTooltipContent = (obj: any): TooltipInfo => {
+    // Simple tooltip content generator
+    const getTooltipContent = (obj: any) => {
         const lines: string[] = [];
-        
-        // Name
         lines.push(`<strong>${obj.name || 'Unknown Object'}</strong>`);
-        
-        // Type
-        if (obj.obj_type) {
-            lines.push(`<span style="color: ${getObjectTypeColor(obj.obj_type)}">[${obj.obj_type}]</span>`);
-        }
-        
-        // Description
-        if (obj.description) {
-            lines.push(`<hr style="margin: 4px 0; border-color: #555;">`);
-            lines.push(obj.description);
-        }
-        
-        // State
-        if (obj.state && obj.state !== 'normal') {
-            lines.push(`<span style="color: #FFC107;">State: ${obj.state}</span>`);
-        }
-        
-        // Locked
-        if (obj.is_locked) {
-            lines.push(`<span style="color: #FF5722;">🔒 Locked</span>`);
-        }
-        
-        // Hidden
-        if (obj.is_hidden) {
-            lines.push(`<span style="color: #9E9E9E;">👁️ Hidden</span>`);
-        }
-        
-        // Combat properties
-        if (obj.damage_dice || obj.damage_type) {
-            lines.push(`<hr style="margin: 4px 0; border-color: #555;">`);
-            lines.push(`<span style="color: #F44336;">⚔️ ${obj.damage_dice || '?'} ${obj.damage_type || ''}</span>`);
-        }
-        
-        // Container contents
-        if (obj.content && obj.content.length > 0) {
-            lines.push(`<hr style="margin: 4px 0; border-color: #555;">`);
-            lines.push(`<span style="color: #4CAF50;">📦 Contents: ${obj.content.join(', ')}</span>`);
-        }
-        
-        if (obj.contained_objects && obj.contained_objects.length > 0) {
-            lines.push(`<hr style="margin: 4px 0; border-color: #555;">`);
-            lines.push(`<span style="color: #4CAF50;">📦 Contains: ${obj.contained_objects.map((o: any) => o.name).join(', ')}</span>`);
-        }
-        
-        // Capacity
-        if (obj.capacity !== null && obj.capacity !== undefined) {
-            const contentCount = (obj.content?.length || 0) + (obj.contained_objects?.length || 0);
-            lines.push(`Capacity: ${contentCount}/${obj.capacity}`);
-        }
-        
-        // Quantity
-        if (obj.quantity > 1) {
-            lines.push(`Quantity: ${obj.quantity}`);
-        }
-        
-        // Equipped
-        if (obj.is_equipped) {
-            lines.push(`<span style="color: #2196F3;">🎒 Equipped</span>`);
-        }
-        
-        // Tags
-        if (obj.tags && obj.tags.length > 0) {
-            lines.push(`<hr style="margin: 4px 0; border-color: #555;">`);
-            lines.push(`<span style="color: #FFEB3B;">Tags: ${obj.tags.join(', ')}</span>`);
-        }
-        
-        // Position
-        if (obj.position) {
-            lines.push(`<hr style="margin: 4px 0; border-color: #555;">`);
-            lines.push(`Position: (${obj.position.x}, ${obj.position.y}) ${scaleUnit}`);
-        }
-        
-        return {
-            x: obj.position?.x || 0,
-            y: obj.position?.y || 0,
-            content: lines.join('<br>'),
-            title: obj.name || 'Unknown Object'
-        };
-    };
-
-    // Helper function to render character on grid
-    const renderCharacter = (x: number, y: number, character: any, type: 'player' | 'npc', idx: number) => {
-        const color = type === 'player' ? '#4CAF50' : '#f44336'; // Green for players, red for NPCs
-        const name = character?.character_name || character?.name || 'Unknown';
-        const race = character?.race || '';
-        const charClass = character?.char_class || character?.class || '';
-
-        return (
-            <div
-                key={`${type}-${name}-${idx}`}
-                className="grid-cell-character"
-                title={`${name} (${race} ${charClass})`}
-                style={{
-                    position: 'absolute',
-                    left: `${x * (100 / dimX)}%`,
-                    top: `${y * (100 / dimY)}%`,
-                    width: `${100 / dimX}%`,
-                    height: `${100 / dimY}%`,
-                    backgroundColor: color,
-                    borderRadius: '50%',
-                    border: '2px solid white',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '12px',
-                    color: 'white',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    zIndex: 10
-                }}
-            >
-                {name.charAt(0).toUpperCase()}
-            </div>
-        );
-    };
-
-    // Helper function to render object on grid
-    const renderObject = (obj: any, index: number, x: number, y: number) => {
-        const color = getObjectTypeColor(obj.obj_type);
-        
-        // Determine icon based on type
-        let icon = '📦'; // Default container
-        if (obj.obj_type === 'interactable') icon = '⚙️';
-        else if (obj.obj_type === 'prop') icon = '🎨';
-        else if (obj.damage_dice) icon = '⚔️'; // Weapon
-        else if (obj.is_locked) icon = '🔒';
-        else if (obj.is_hidden) icon = '👁️';
-        
-        return (
-            <div
-                key={`object-${index}-${obj.id || obj.name}`}
-                className="grid-cell-object"
-                onMouseEnter={() => setHoveredObject({ obj, x, y })}
-                onMouseLeave={() => setHoveredObject(null)}
-                style={{
-                    position: 'absolute',
-                    left: `${x * (100 / dimX)}%`,
-                    top: `${y * (100 / dimY)}%`,
-                    width: `${100 / dimX}%`,
-                    height: `${100 / dimY}%`,
-                    backgroundColor: color,
-                    borderRadius: '4px',
-                    border: obj.state === 'active' ? '2px solid #FFC107' : '1px solid rgba(255,255,255,0.3)',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    zIndex: 5,
-                    opacity: obj.is_hidden ? 0.6 : 1,
-                }}
-            >
-                {icon}
-            </div>
-        );
+        if (obj.obj_type) lines.push(`<span style="color: ${getObjectTypeColor(obj.obj_type)}">[${obj.obj_type}]</span>`);
+        if (obj.description) lines.push(obj.description);
+        if (obj.state && obj.state !== 'normal') lines.push(`<span style="color: #FFC107;">State: ${obj.state}</span>`);
+        if (obj.is_locked) lines.push('🔒 Locked');
+        if (obj.is_hidden) lines.push('👁️ Hidden');
+        if (obj.damage_dice) lines.push(`⚔️ ${obj.damage_dice} ${obj.damage_type || ''}`);
+        return lines.join('<br>');
     };
 
     return (
@@ -292,28 +152,83 @@ export const SceneViewer: React.FC = () => {
 
             {/* Grid View */}
             <div className="scene-content">
-                <div className="grid-container">
-                    <div className="grid">
-                        {Array(dimY).fill(null).map((_, y) => (
-                            <div key={`row-${y}`} className="grid-row">
-                                {Array(dimX).fill(null).map((_, x) => (
-                                    <div key={`cell-${x}-${y}`} className="grid-cell" title={`Cell ${x},${y}`}>·</div>
-                                ))}
+                <div className="grid-wrapper">
+                    <div className="grid" style={{
+                        gridTemplateColumns: `repeat(${dimX}, 1fr)`,
+                        gridTemplateRows: `repeat(${dimY}, 1fr)`
+                    }}>
+                        {/* Render grid cells */}
+                        {Array.from({ length: dimY * dimX }).map((_, i) => {
+                            const x = i % dimX;
+                            const y = Math.floor(i / dimX);
+                            return (
+                                <div 
+                                    key={`cell-${x}-${y}`} 
+                                    className="grid-cell"
+                                    data-x={x}
+                                    data-y={y}
+                                />
+                            );
+                        })}
+
+                        {/* Render objects on the grid */}
+                        {objectPositions.map(({ obj, idx, x, y }) => (
+                            <div
+                                key={`object-${idx}-${obj.id || obj.name}`}
+                                className="grid-marker grid-marker-object"
+                                style={{
+                                    gridColumnStart: x + 1,
+                                    gridRowStart: y + 1,
+                                    backgroundColor: getObjectTypeColor(obj.obj_type),
+                                    opacity: obj.is_hidden ? 0.5 : 1,
+                                    borderColor: obj.state === 'active' ? '#FFC107' : 'rgba(255,255,255,0.3)',
+                                }}
+                                onClick={() => setHoveredObject({ obj, x, y })}
+                                title={`${obj.name}${obj.obj_type ? ` (${obj.obj_type})` : ''}`}
+                            >
+                                {obj.obj_type === 'interactable' ? '⚙️' :
+                                 obj.obj_type === 'prop' ? '🎨' :
+                                 obj.damage_dice ? '⚔️' :
+                                 obj.is_locked ? '🔒' :
+                                 obj.is_hidden ? '👁️' : '📦'}
                             </div>
                         ))}
 
-                        {/* Render objects on the grid - using memoized positions */}
-                        {objectPositions.map(({ obj, idx, x, y }) => renderObject(obj, idx, x, y))}
+                        {/* Render players on the grid */}
+                        {playerPositions.map(({ character, idx, x, y }) => {
+                            const name = character?.character_name || character?.name || 'Unknown';
+                            return (
+                                <div
+                                    key={`player-${idx}-${name}`}
+                                    className="grid-marker grid-marker-character grid-marker-player"
+                                    style={{
+                                        gridColumnStart: x + 1,
+                                        gridRowStart: y + 1,
+                                    }}
+                                    title={`${name} (${character?.race || ''} ${character?.char_class || ''})`}
+                                >
+                                    {name.charAt(0).toUpperCase()}
+                                </div>
+                            );
+                        })}
 
-                        {/* Render players on the grid - using memoized positions */}
-                        {playerPositions.map(({ character, idx, x, y }) => 
-                            renderCharacter(x, y, character, 'player', idx)
-                        )}
-
-                        {/* Render NPCs on the grid - using memoized positions */}
-                        {npcPositions.map(({ character, idx, x, y }) => 
-                            renderCharacter(x, y, character, 'npc', idx)
-                        )}
+                        {/* Render NPCs on the grid */}
+                        {npcPositions.map(({ character, idx, x, y }) => {
+                            const name = character?.character_name || character?.name || 'Unknown';
+                            return (
+                                <div
+                                    key={`npc-${idx}-${name}`}
+                                    className="grid-marker grid-marker-character grid-marker-npc"
+                                    style={{
+                                        gridColumnStart: x + 1,
+                                        gridRowStart: y + 1,
+                                    }}
+                                    title={`${name} (${character?.race || ''} ${character?.char_class || ''})`}
+                                >
+                                    {name.charAt(0).toUpperCase()}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
 

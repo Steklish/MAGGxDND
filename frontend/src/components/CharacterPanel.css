@@ -34,6 +34,7 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
     animation: pulse 3s infinite;
+    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.6));
 }
 
 @keyframes pulse {

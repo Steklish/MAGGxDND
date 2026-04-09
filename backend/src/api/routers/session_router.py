@@ -1084,15 +1084,25 @@ async def start_session(
         db_participants = repository.get_session_participants(session_id)
         logger.info(f"[START] Found {len(db_participants)} database participants to assign characters to")
 
+        # Get player profile IDs mapping (if players joined with profiles)
+        session_data = db_session.session_data or {}
+        player_profile_ids = session_data.get('player_profile_ids', {})
+        if player_profile_ids:
+            logger.info(f"[START] Found {len(player_profile_ids)} player profile mappings")
+
         # Build participant info list (exclude owner if they didn't explicitly join)
         participants_to_assign = []
         for participant in db_participants:
+            player_id = participant.get('player_uuid')
+            profile_id = player_profile_ids.get(player_id)
+            
             participants_to_assign.append({
-                'player_id': participant.get('player_uuid'),
+                'player_id': player_id,
                 'player_name': participant.get('player_name'),
                 'user_id': participant.get('user_id'),
                 'character_name': participant.get('character_name'),
-                'role': participant.get('role', 'player')
+                'role': participant.get('role', 'player'),
+                'profile_id': profile_id  # Include profile ID if exists
             })
 
         logger.info(f"[START] Will assign characters to {len(participants_to_assign)} participants")
@@ -1144,34 +1154,63 @@ async def start_session(
 
         logger.info(f"[START] Generating {len(character_prompts_to_use)} characters...")
 
+        # Import profile converter for creating characters from profiles
+        from backend.src.utils.character_converter import profile_to_character
+        from backend.src.repositories.character_profile_repository import CharacterProfileRepository
+        profile_repo = CharacterProfileRepository(db)
+
         # Track player_id to character_name mapping for persistence
         player_character_mapping = {}
 
-        # Generate characters using AI or procedural generation
+        # Generate characters using AI/procedural OR from profiles
         for i, prompt in enumerate(character_prompts_to_use):
             logger.info(f"[START] Generating character {i+1}: {prompt[:100]}...")
             character = None
 
-            # Try AI generation first
-            if hasattr(game_session, 'generator') and game_session.generator:
-                try:
-                    character = game_session.generator.generate_one_shot(
-                        pydantic_model=Character,
-                        prompt=prompt
-                    )
-                    logger.info(f"[START] ✓ AI Character generated: {character.name}")
-                except Exception as e:
-                    logger.warning(f"[START] AI generation failed: {e}, using procedural fallback")
-                    character = None
+            # Check if this participant has a saved profile
+            participant_has_profile = False
+            if i < len(participants_to_assign):
+                participant = participants_to_assign[i]
+                profile_id = participant.get('profile_id')
+                
+                if profile_id:
+                    logger.info(f"[START] Participant has profile ID {profile_id}, converting to character...")
+                    try:
+                        # Get profile from database
+                        profile = profile_repo.get_by_id(profile_id, current_user.id)
+                        if profile:
+                            # Convert profile to Character
+                            character = profile_to_character(profile)
+                            participant_has_profile = True
+                            logger.info(f"[START] ✓ Character created from profile: {character.name} ({profile.race} {profile.char_class})")
+                        else:
+                            logger.warning(f"[START] Profile {profile_id} not found, falling back to generation")
+                    except Exception as e:
+                        logger.error(f"[START] Failed to convert profile to character: {e}", exc_info=True)
+                        # Fall through to AI/procedural generation
 
-            # Use procedural generator if AI failed or unavailable
-            if not character:
-                try:
-                    character = procedural_gen.generate_character(name=None, prompt=prompt)
-                    logger.info(f"[START] ✓ Procedural character generated: {character.name} ({character.char_class.value})")
-                except Exception as e:
-                    logger.error(f"[START] Procedural generation failed: {e}")
-                    continue  # Skip this character
+            # If no profile or profile conversion failed, use AI/procedural generation
+            if not participant_has_profile:
+                # Try AI generation first
+                if hasattr(game_session, 'generator') and game_session.generator:
+                    try:
+                        character = game_session.generator.generate_one_shot(
+                            pydantic_model=Character,
+                            prompt=prompt
+                        )
+                        logger.info(f"[START] ✓ AI Character generated: {character.name}")
+                    except Exception as e:
+                        logger.warning(f"[START] AI generation failed: {e}, using procedural fallback")
+                        character = None
+
+                # Use procedural generator if AI failed or unavailable
+                if not character:
+                    try:
+                        character = procedural_gen.generate_character(name=None, prompt=prompt)
+                        logger.info(f"[START] ✓ Procedural character generated: {character.name} ({character.char_class.value})")
+                    except Exception as e:
+                        logger.error(f"[START] Procedural generation failed: {e}")
+                        continue  # Skip this character
 
             # Create player with character
             try:
@@ -2093,30 +2132,57 @@ async def start_game_from_waiting_room(
         repository.update_session_scene(session_id, scene.name, owner_id=current_user.id)
         repository.update_session_status(session_id, "running", owner_id=current_user.id)
 
+        # Get player profile IDs mapping (if players joined with profiles)
+        session_data = db_session.session_data or {}
+        player_profile_ids = session_data.get('player_profile_ids', {})
+        if player_profile_ids:
+            logger.info(f"[START-GAME] Found {len(player_profile_ids)} player profile mappings")
+
+        # Import profile converter
+        from backend.src.utils.character_converter import profile_to_character
+        from backend.src.repositories.character_profile_repository import CharacterProfileRepository
+        profile_repo = CharacterProfileRepository(db)
+
         # Initialize player characters from ALL connected players
         for i, participant in enumerate(connected_players):
-            character = Character(
-                name=participant.get('character_name') or participant.get('player_name'),
-                race="Human",
-                char_class=CharacterClass.FIGHTER,
-                level=1,
-                backstory_summary=f"{participant.get('player_name')}'s character",
-                personality_traits=["Brave"],
-                max_hp=30,
-                current_hp=30,
-                temp_hp=0,
-                armor_class=12,
-                speed=30,
-                stats=AbilityScores(
-                    strength=15, dexterity=12, constitution=14,
-                    intelligence=10, wisdom=10, charisma=10
-                ),
-                inventory=[],
-                active_conditions_list=[],
-                resources={},
-                position=Coordinate2D(x=float(i*2), y=float(i*2)),
-                abilities=[],
-            )
+            player_id = participant.get('player_uuid')
+            profile_id = player_profile_ids.get(player_id)
+            character = None
+
+            # Check if player has a saved profile
+            if profile_id:
+                try:
+                    profile = profile_repo.get_by_id(profile_id, current_user.id)
+                    if profile:
+                        character = profile_to_character(profile, position=Coordinate2D(x=float(i*2), y=float(i*2)))
+                        logger.info(f"[START-GAME] ✓ Created character from profile: {character.name}")
+                except Exception as e:
+                    logger.warning(f"[START-GAME] Failed to convert profile, using default: {e}")
+
+            # Fallback to default character if no profile or conversion failed
+            if not character:
+                character = Character(
+                    name=participant.get('character_name') or participant.get('player_name'),
+                    race="Human",
+                    char_class=CharacterClass.FIGHTER,
+                    level=1,
+                    backstory_summary=f"{participant.get('player_name')}'s character",
+                    personality_traits=["Brave"],
+                    max_hp=30,
+                    current_hp=30,
+                    temp_hp=0,
+                    armor_class=12,
+                    speed=30,
+                    stats=AbilityScores(
+                        strength=15, dexterity=12, constitution=14,
+                        intelligence=10, wisdom=10, charisma=10
+                    ),
+                    inventory=[],
+                    active_conditions_list=[],
+                    resources={},
+                    position=Coordinate2D(x=float(i*2), y=float(i*2)),
+                    abilities=[],
+                )
 
             player_orchestrator = Orchestrator(
                 generator=game_session.generator,

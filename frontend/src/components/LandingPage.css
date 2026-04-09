@@ -300,12 +300,13 @@ html::-webkit-scrollbar-thumb:hover {
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(30, 30, 45, 0.75);
     backdrop-filter: blur(10px) saturate(180%);
     -webkit-backdrop-filter: blur(10px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     color: var(--text-primary);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
@@ -313,7 +314,7 @@ html::-webkit-scrollbar-thumb:hover {
 .btn-register:hover,
 .btn-quick-start:hover {
     border-color: var(--accent-orange);
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(40, 40, 60, 0.85);
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
 }
@@ -393,17 +394,18 @@ html::-webkit-scrollbar-thumb:hover {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(30, 30, 45, 0.8);
     backdrop-filter: blur(10px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     padding: 8px 16px;
     border-radius: 50px;
     font-size: 13px;
     font-weight: 500;
     color: var(--accent-gold);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
     margin-bottom: 24px;
     animation: fadeInUp 0.8s ease;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2),
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
@@ -816,16 +818,16 @@ html::-webkit-scrollbar-thumb:hover {
 }
 
 .feature-card {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: rgba(25, 25, 40, 0.75) !important;
     backdrop-filter: blur(10px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: var(--radius-lg);
     padding: 32px;
     transition: all 0.4s ease;
     opacity: 0;
     transform: translateY(30px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .feature-card.visible {
@@ -836,7 +838,7 @@ html::-webkit-scrollbar-thumb:hover {
 .feature-card:hover {
     border-color: var(--accent-orange);
     transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
 }
 
 .feature-icon {
@@ -846,6 +848,7 @@ html::-webkit-scrollbar-thumb:hover {
     display: block;
     line-height: 1;
     color: var(--text-primary);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .feature-card h3 {
@@ -853,6 +856,7 @@ html::-webkit-scrollbar-thumb:hover {
     font-weight: 600;
     margin-bottom: 12px;
     color: var(--text-primary);
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
 .feature-card p {
@@ -860,6 +864,7 @@ html::-webkit-scrollbar-thumb:hover {
     color: var(--text-secondary);
     line-height: 1.7;
     margin-bottom: 20px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .feature-tags {

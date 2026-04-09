@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import './GameSetup.css';
 
 interface GameSetupProps {
@@ -9,21 +8,19 @@ interface GameSetupProps {
 }
 
 export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onBack }) => {
-    const [step, setStep] = useState<1 | 2 | 3>(1);
+    const [step, setStep] = useState<1 | 2>(1);
     const [wishes, setWishes] = useState('');
-    const [characterChoice, setCharacterChoice] = useState<'existing' | 'ai-create' | 'ai-random'>('existing');
-    const [characterDescription, setCharacterDescription] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
 
     const handleContinue = () => {
-        if (step < 3) {
-            setStep((prev) => (prev + 1) as 2 | 3);
+        if (step < 2) {
+            setStep(2);
         }
     };
 
     const handleBack = () => {
         if (step > 1) {
-            setStep(step as 1 | 2);
+            setStep(1);
         } else {
             onBack();
         }
@@ -41,21 +38,12 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
             localStorage.removeItem('activeSessionIds');
             console.log('[GameSetup] Cleared old session data from localStorage');
 
-            // Build character prompt based on selection
-            let characterPrompt = '';
-            if (characterChoice === 'ai-create' && characterDescription) {
-                characterPrompt = characterDescription;
-            } else if (characterChoice === 'ai-random') {
-                characterPrompt = 'Create a random D&D character with interesting backstory and abilities';
-            }
-
-            // Use the existing /start endpoint which initializes the session
+            // Build request - characters are auto-assigned from database participants
             const gameSetup = {
                 wishes: wishes || 'Create an exciting adventure with interesting NPCs and challenging encounters',
                 scene_prompt: undefined,
-                character_prompts: characterPrompt ? [characterPrompt] : [],
-                character_description: characterPrompt,
-                npc_prompts: [] // Empty = backend will use random variety
+                character_prompts: [],  // Empty = backend auto-generates for each participant
+                npc_prompts: []  // Empty = backend uses random variety
             };
 
             console.log('[GameSetup] Starting session with:', gameSetup);
@@ -92,7 +80,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
                     localStorage.setItem('currentPlayerId', playerId);
                     localStorage.setItem('playerId', playerId);
                     console.log('✓ PlayerId saved to localStorage:', playerId);
-                    
+
                     // Also update the game status
                     localStorage.setItem('gameStatus', 'running');
                     localStorage.setItem('sessionId', sessionId);
@@ -103,7 +91,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
                     localStorage.setItem('currentPlayerId', playerId);
                     localStorage.setItem('playerId', playerId);
                 }
-                
+
                 // Pass session ID to parent for navigation
                 onComplete(sessionId);
             } else {
@@ -126,7 +114,6 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
 
     const handleUseAI = () => {
         setWishes('Create an exciting adventure with interesting NPCs and challenging encounters');
-        setCharacterChoice('ai-random');
     };
 
     return (
@@ -135,17 +122,13 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
                 <div className="header-spacer"></div>
                 <h2>Game Setup</h2>
                 <div className="setup-progress">
-                    <div className="progress-fill" style={{ width: step === 1 ? '0%' : step === 2 ? '50%' : '100%' }}></div>
+                    <div className="progress-fill" style={{ width: step === 1 ? '0%' : '100%' }}></div>
                     <div className={`step ${step >= 1 ? (step > 1 ? 'completed' : 'active') : ''}`}>
                         <span className="step-number">1</span>
                         <span className="step-label">Adventure</span>
                     </div>
-                    <div className={`step ${step >= 2 ? (step > 2 ? 'completed' : 'active') : ''}`}>
+                    <div className={`step ${step >= 2 ? 'completed' : ''}`}>
                         <span className="step-number">2</span>
-                        <span className="step-label">Character</span>
-                    </div>
-                    <div className={`step ${step >= 3 ? 'completed' : ''}`}>
-                        <span className="step-number">3</span>
                         <span className="step-label">Ready</span>
                     </div>
                 </div>
@@ -156,10 +139,10 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
                     <div className="setup-step fade-in">
                         <h3>🎭 What kind of adventure do you want?</h3>
                         <p className="step-description">
-                            Tell us what you're looking for in this gaming session. 
+                            Tell us what you're looking for in this gaming session.
                             The AI will use your preferences to create an unforgettable experience.
                         </p>
-                        
+
                         <textarea
                             className="wishes-input"
                             placeholder="Describe your desired adventure... (e.g., 'A dark mystery in a haunted castle', 'Epic dragon battle', 'Political intrigue in the capital')"
@@ -167,7 +150,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
                             onChange={(e) => setWishes(e.target.value)}
                             maxLength={1000}
                         />
-                        
+
                         <div className="char-count">{wishes.length}/1000</div>
 
                         <div className="quick-options">
@@ -209,56 +192,6 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
 
                 {step === 2 && (
                     <div className="setup-step fade-in">
-                        <h3>🧙 Character Selection</h3>
-                        <p className="step-description">
-                            How would you like to play?
-                        </p>
-
-                        <div className="character-options">
-                            <button
-                                type="button"
-                                className={`option-card ${characterChoice === 'existing' ? 'selected' : ''}`}
-                                onClick={() => setCharacterChoice('existing')}
-                            >
-                                <div className="option-icon">📋</div>
-                                <h4>Use Existing Character</h4>
-                                <p>Select from your created characters</p>
-                            </button>
-
-                            <button
-                                type="button"
-                                className={`option-card ${characterChoice === 'ai-create' ? 'selected' : ''}`}
-                                onClick={() => setCharacterChoice('ai-create')}
-                            >
-                                <div className="option-icon">🎨</div>
-                                <h4>AI Create Character</h4>
-                                <p>Describe your ideal character and AI will create it</p>
-                                {characterChoice === 'ai-create' && (
-                                    <textarea
-                                        className="char-desc-input"
-                                        placeholder="Describe your character... (e.g., 'A wise old wizard who seeks ancient knowledge')"
-                                        value={characterDescription}
-                                        onChange={(e) => setCharacterDescription(e.target.value)}
-                                        onClick={(e) => e.stopPropagation()}
-                                    />
-                                )}
-                            </button>
-
-                            <button
-                                type="button"
-                                className={`option-card ${characterChoice === 'ai-random' ? 'selected' : ''}`}
-                                onClick={() => setCharacterChoice('ai-random')}
-                            >
-                                <div className="option-icon">🎲</div>
-                                <h4>Random Character</h4>
-                                <p>Let AI create a completely random character for you</p>
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {step === 3 && (
-                    <div className="setup-step fade-in">
                         <h3>✅ Ready to Begin</h3>
                         <p className="step-description">
                             Review your choices and start the adventure!
@@ -271,12 +204,14 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
                             </div>
 
                             <div className="summary-card">
-                                <h4>🧙 Character</h4>
-                                <p>
-                                    {characterChoice === 'existing' && 'Use your existing character'}
-                                    {characterChoice === 'ai-create' && 'AI will create character based on your description'}
-                                    {characterChoice === 'ai-random' && 'AI will create a random character'}
-                                </p>
+                                <h4>👥 Characters & Players</h4>
+                                <p>Characters will be automatically assigned to all joined players</p>
+                                <p className="summary-note">Each player will receive a unique character based on their name</p>
+                            </div>
+
+                            <div className="summary-card">
+                                <h4>🎭 NPCs & World</h4>
+                                <p>AI will generate interesting NPCs and encounters for your adventure</p>
                             </div>
                         </div>
 
@@ -301,7 +236,7 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
                 )}
             </div>
 
-            {step < 3 && (
+            {step < 2 && (
                 <div className="setup-footer">
                     <button
                         type="button"

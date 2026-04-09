@@ -90,64 +90,32 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    position: relative; /* Add this to create positioning context */
 }
 
-/* Ensure grid is the base layer */
-.grid {
-    display: inline-grid;
-    gap: 2px;
-    padding: 16px;
-    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
-    align-self: center;
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    transition: all 0.3s ease;
-    position: relative; /* Ensure grid can contain absolutely positioned children */
-}
-
-.grid:hover {
-    box-shadow: 
-        0 12px 40px rgba(0, 0, 0, 0.5),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08),
-        0 0 20px rgba(255, 107, 53, 0.1);
-}
-
-.grid-row {
-    display: grid;
-    grid-template-columns: repeat(20, 1fr);
-    gap: 2px;
-}
-
-.grid-cell {
-    width: 20px;
-    height: 20px;
+/* Grid wrapper - provides sizing context */
+.grid-wrapper {
     display: flex;
-    align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: default;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 2px;
-    transition: all 0.2s ease;
-    color: var(--text-muted);
+    align-items: flex-start;
+    padding: 12px;
 }
 
-.grid-cell:hover {
-    background: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(244, 162, 97, 0.15) 100%);
-    border-color: rgba(255, 107, 53, 0.4);
-    border-radius: 4px;
-    transform: scale(1.1);
-    box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
-    z-index: 10;
+/* Main grid - uses CSS Grid for perfect alignment */
+.grid {
+    display: grid;
+    gap: 1px;
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    animation: gridAppear 0.5s ease;
+    /* Smaller sizing: compact grid */
+    width: fit-content;
+    max-width: 100%;
 }
 
-/* Grid animation for initialization */
 @keyframes gridAppear {
     from {
         opacity: 0;
@@ -159,55 +127,126 @@
     }
 }
 
-.grid {
-    animation: gridAppear 0.5s ease;
+/* Grid cells */
+.grid-cell {
+    width: 100%;
+    aspect-ratio: 1;
+    min-width: 16px;
+    min-height: 16px;
+    max-width: 24px;
+    max-height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 2px;
+    transition: all 0.15s ease;
+    color: var(--text-muted);
+    font-size: 8px;
+    font-weight: 700;
+    cursor: default;
+}
+
+.grid-cell:hover {
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.15) 0%, rgba(244, 162, 97, 0.1) 100%);
+    border-color: rgba(255, 107, 53, 0.3);
+    border-radius: 3px;
+    transform: scale(1.1);
+    box-shadow: 0 0 6px rgba(255, 107, 53, 0.2);
+    z-index: 10;
+}
+
+/* Grid markers (characters and objects) */
+.grid-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10;
+    font-weight: bold;
+    will-change: transform;
+}
+
+/* Character markers */
+.grid-marker-character {
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    font-size: clamp(12px, 1.5vw, 16px);
+    color: white;
+}
+
+.grid-marker-player {
+    background-color: #4CAF50;
+}
+
+.grid-marker-player:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.6);
+    z-index: 20;
+}
+
+.grid-marker-npc {
+    background-color: #f44336;
+}
+
+.grid-marker-npc:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.6);
+    z-index: 20;
+}
+
+/* Object markers */
+.grid-marker-object {
+    border-radius: 6px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    font-size: clamp(14px, 1.8vw, 20px);
+    padding: 2px;
+}
+
+.grid-marker-object:hover {
+    transform: scale(1.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), 0 0 15px rgba(255, 255, 255, 0.2);
+    z-index: 15;
 }
 
 /* Responsive adjustments */
 @media (max-width: 1024px) {
     .grid-cell {
-        width: 16px;
-        height: 16px;
+        min-width: 20px;
+        min-height: 20px;
+    }
+    
+    .grid-marker-character {
         font-size: 12px;
+    }
+    
+    .grid-marker-object {
+        font-size: 14px;
     }
 }
 
 @media (max-width: 768px) {
-    .grid-cell {
-        width: 12px;
-        height: 12px;
-        font-size: 10px;
-    }
-
-    .grid {
+    .grid-wrapper {
         padding: 12px;
     }
-}
-
-/* Grid Characters Layer - inside grid, absolutely positioned */
-.grid-cell-character {
-    transition: all 0.2s ease;
-    pointer-events: auto;
-    will-change: left, top; /* Optimize for GPU to prevent flickering */
-}
-
-.grid-cell-character:hover {
-    transform: scale(1.3);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    z-index: 20;
-}
-
-/* Grid Cell Object Styles */
-.grid-cell-object {
-    transition: all 0.2s ease;
-    pointer-events: auto;
-    will-change: left, top; /* Optimize for GPU to prevent flickering */
-}
-
-.grid-cell-object:hover {
-    transform: scale(1.4);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.6), 0 0 15px rgba(255, 255, 255, 0.3);
-    z-index: 15;
+    
+    .grid-cell {
+        min-width: 16px;
+        min-height: 16px;
+    }
+    
+    .grid-marker-character {
+        font-size: 10px;
+        border-width: 1px;
+    }
+    
+    .grid-marker-object {
+        font-size: 12px;
+    }
 }
 
 /* Object Hover Tooltip */

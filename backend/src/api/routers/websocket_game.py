@@ -72,14 +72,13 @@ async def event_stream_sender(
     except WebSocketDisconnect:
         logger.info(f"Player {player_id} disconnected from session {session_id}")
     except RuntimeError as e:
-        # WebSocket was closed when trying to send
-        logger.warning(f"Player {player_id} WebSocket runtime error: {e}")
+        # WebSocket was closed when trying to send — normal during disconnect
+        logger.debug(f"Player {player_id} WebSocket closed during send: {e}")
     except Exception as e:
         logger.error(
             f"Error sending events to player {player_id}: {e}",
             exc_info=True
         )
-        raise
 
 
 async def event_receiver(
@@ -170,8 +169,8 @@ async def event_receiver(
     except WebSocketDisconnect:
         logger.info(f"Player {player_id} disconnected from session {session_id}")
     except RuntimeError as e:
-        # WebSocket was closed when trying to send
-        logger.warning(f"Player {player_id} WebSocket runtime error: {e}")
+        # WebSocket was closed — normal during disconnect
+        logger.debug(f"Player {player_id} WebSocket closed during receive: {e}")
     except Exception as e:
         logger.error(f"Error receiving events from player {player_id}: {e}", exc_info=True)
 

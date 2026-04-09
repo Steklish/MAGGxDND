@@ -379,13 +379,19 @@ Return a PlotFollowingIntervention response with the appropriate action and deta
 
 
     async def handle_events(self):
-        """Handles events produced after each game turn in any game mode and creates Game Master commnts 
-        on events produced by the game. It also initiates external wold changes triggered by the game master."""
+        """Handles events produced after each game turn in any game mode and creates Game Master comments
+        on events produced by the game. It also initiates external world changes triggered by the game master."""
         events = self.event_queue.get_all()
         self.event_queue.clear()
+
+        if not events:
+            # Nothing to process — don't waste AI calls on empty input
+            self.logger.debug("[MAGG] handle_events: no events to process, skipping")
+            return None
+
         self.logger.debug("running world_intervention, comment, and check_plot_following in parallel")
         comment = None
-        
+
         async for result in run_list_in_parallel_generator(
             funcs=[
                 self.world_intervention,
@@ -400,6 +406,9 @@ Return a PlotFollowingIntervention response with the appropriate action and deta
         ):
             if isinstance(result, Event):
                 self.logger.debug(f"Event produced {result.description[:10]}...")
+                # Publish to OTHER subscribers only — do NOT re-add to MAGG's own queue
+                # (world_intervention's execute_events already adds to the global pool;
+                # we only need to notify other subscribers like the frontend)
                 self.event_queue.publish_to_others(result)
             elif isinstance(result, str):
                 self.logger.debug(f"Comment produced {result[:10]}...")

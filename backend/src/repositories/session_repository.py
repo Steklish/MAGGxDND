@@ -113,6 +113,42 @@ class SessionRepository:
         )
         return list(result.scalars().all())
 
+    def get_public_sessions(
+        self,
+        search: Optional[str] = None,
+        skip: int = 0,
+        limit: int = 50
+    ) -> List[GameSession]:
+        """
+        Get all public sessions (for browsing).
+        
+        Args:
+            search: Optional search term (matches session name or description)
+            skip: Number of results to skip (pagination)
+            limit: Maximum number of results
+            
+        Returns:
+            List of public GameSession objects
+        """
+        query = select(GameSession).where(
+            GameSession.is_active == True,
+            GameSession.is_public == True
+        )
+        
+        # Add search filter if provided
+        if search:
+            search_pattern = f"%{search}%"
+            query = query.where(
+                (GameSession.session_name.ilike(search_pattern)) |
+                (GameSession.description.ilike(search_pattern))
+            )
+        
+        query = query.order_by(GameSession.created_at.desc())
+        query = query.offset(skip).limit(limit)
+        
+        result = self.db.execute(query)
+        return list(result.scalars().all())
+
     # === UPDATE ===
 
     def update_session(
