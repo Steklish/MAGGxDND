@@ -66,8 +66,8 @@ def get_session_is_public(db_session) -> bool:
     return (db_session.session_data or {}).get('is_public', False)
 
 def get_session_gemini_model(db_session) -> str:
-    """Extract gemini_model from session_data JSON, default gemini-flash-latest"""
-    return (db_session.session_data or {}).get('gemini_model', 'gemini-flash-latest')
+    """Extract gemini_model from session_data JSON, default gemini-flash-lite-latest"""
+    return (db_session.session_data or {}).get('gemini_model', 'gemini-flash-lite-latest')
 
 
 # === Procedural Generation Helpers (Fallback when AI unavailable) ===
@@ -345,7 +345,7 @@ class SessionCreateRequest(BaseModel):
     is_public: bool = Field(default=False, description="Публичная сессия")
     
     # Настройки AI (опционально)
-    gemini_model: str = Field(default="gemini-flash-latest", description="Модель Gemini")
+    gemini_model: str = Field(default="gemini-flash-lite-latest", description="Модель Gemini")
 
     @validator('session_name')
     def validate_session_name(cls, v):
@@ -1068,7 +1068,7 @@ async def start_session(
                 max_players=get_session_max_players(db_session),
                 description=get_session_description(db_session),
                 guide=get_session_guide(db_session),
-                gemini_model=get_session_gemini_model(db_session) or "gemini-flash-latest"
+                gemini_model=get_session_gemini_model(db_session) or "gemini-flash-lite-latest"
             )
             logger.info(f"[START] Creating session factory config: {config.session_name}")
             game_session = session_factory.create_session(config, session_id=session_id)
@@ -2405,7 +2405,7 @@ async def start_game_from_waiting_room(
                 max_players=get_session_max_players(db_session),
                 description=get_session_description(db_session),
                 guide=get_session_guide(db_session),
-                gemini_model=get_session_gemini_model(db_session) or "gemini-flash-latest"
+                gemini_model=get_session_gemini_model(db_session) or "gemini-flash-lite-latest"
             )
             game_session = session_factory.create_session(config, session_id=session_id)
             logger.info(f"[START-GAME] Session {session_id} restored from DB")
@@ -2591,7 +2591,7 @@ async def ai_initialize_session(
                 max_players=get_session_max_players(db_session),
                 description=get_session_description(db_session),
                 guide=get_session_guide(db_session),
-                gemini_model=get_session_gemini_model(db_session) or "gemini-flash-latest"
+                gemini_model=get_session_gemini_model(db_session) or "gemini-flash-lite-latest"
             )
             game_session = session_factory.create_session(config, session_id=session_id)
             logger.info(f"[AI-INIT] Session {session_id} created")

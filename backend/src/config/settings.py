@@ -84,7 +84,7 @@ class Settings:
     MODEL_ROLE: str = os.getenv("MODEL_ROLE", "model")
     LLAMACPP_CHAT_BASE: str = os.getenv("LLAMACPP_CHAT_BASE", "http://localhost:8080")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-flash-lite-latest")
 
     # ===================================================================
     # LOGGING SETTINGS

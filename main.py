@@ -96,7 +96,7 @@ generator = Generator(
     GoogleGenAI(
         api_key=os.getenv("GEMINI_API_KEY", "NO_KEY"), 
         logger=main_logger,
-        model_name="gemini-flash-latest"
+        model_name="gemini-flash-lite-latest"
     ), 
     logger_instance=main_logger)
 event_pool = EventPool()

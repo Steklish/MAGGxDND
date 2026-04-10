@@ -265,7 +265,7 @@ from skls_embeddings.embedding_client import EmbeddingClient
 ```python
 # .env
 GEMINI_API_KEY=xxx
-GEMINI_MODEL=gemini-flash-latest
+GEMINI_MODEL=gemini-flash-lite-latest
 LLAMACPP_CHAT_BASE=http://localhost:8080  # опционально
 AI_GEN_RETRIES=3
 ```

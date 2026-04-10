@@ -55,7 +55,7 @@ class SessionConfig:
         llamacpp_embed_base: str = "localhost:12345",
         llamacpp_chat_base: str = "http://localhost:8080",
         gemini_api_key: Optional[str] = None,
-        gemini_model: str = "gemini-flash-latest",
+        gemini_model: str = "gemini-flash-lite-latest",
         log_dir: str = "./log",
         chroma_db_path: str = "./chroma_db/data.db",
     ):
