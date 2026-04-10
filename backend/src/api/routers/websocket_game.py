@@ -43,9 +43,9 @@ async def event_stream_sender(
             if event:
                 event_count += 1
 
-                # Handle PLAYER_MESSAGE events specially - send as direct PLAYER_MESSAGE type
+                # Handle special event types that need direct message format
                 event_type_str = event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type)
-                
+
                 if event_type_str == "PLAYER_MESSAGE":
                     # Send as direct PLAYER_MESSAGE so frontend chat shows it properly
                     event_dict = {
@@ -55,6 +55,20 @@ async def event_stream_sender(
                             "text": event.description or "",
                             "timestamp": ""
                         }
+                    }
+                elif event_type_str == "DM_THINKING":
+                    # Send as GAME_EVENT with DM_THINKING type so frontend shows thinking indicator
+                    event_dict = {
+                        "type": "GAME_EVENT",
+                        "payload": {
+                            "event": {
+                                "event_type": event_type_str,
+                                "event_initiator": event.event_initiator,
+                                "event_subject": event.event_subject,
+                                "event_target": event.event_target,
+                                "description": event.description,
+                            }
+                        },
                     }
                 else:
                     # Regular game event
@@ -75,8 +89,8 @@ async def event_stream_sender(
                 logger.debug(
                     f"EVENT SENT TO FRONTEND [{event_count}] | "
                     f"Session: {session_id} | Player: {player_id} | "
-                    f"Event Type: {event_dict['payload']['event']['event_type']} | "
-                    f"Description: {event_dict['payload']['event'].get('description', 'N/A')[:100]} | "
+                    f"Event Type: {event_type_str} | "
+                    f"Description: {event.description[:100] if event.description else 'N/A'} | "
                     f"Journey: EventPool → WebSocket → Frontend"
                 )
 
@@ -165,8 +179,8 @@ async def event_receiver(
                 await session_manager.broadcast_to_session(
                     session_id=session_id,
                     event=Event(
-                        event_type="SYSTEM",
-                        event_initiator=player_id,
+                        event_type="DM_THINKING",
+                        event_initiator=character_name,
                         description=f"{character_name} is waiting for DM response..."
                     ),
                     exclude_player_id=player_id

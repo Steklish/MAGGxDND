@@ -53,6 +53,8 @@ class EventTypes(str, Enum):
     CHARACTER_RANGED_ATTACK = "CHARACTER_RANGED_ATTACK", "Ranged attack by a character"
 
     SYSTEM = "SYSTEM", "Messages, provided by the system"
+    PLAYER_MESSAGE = "PLAYER_MESSAGE", "Message from a player visible to others"
+    DM_THINKING = "DM_THINKING", "Indicates DM is processing a player action"
     @classmethod
     def get_event_descriptions(cls):
         """Returns a dictionary of event types and their descriptions."""

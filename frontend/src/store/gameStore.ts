@@ -459,7 +459,7 @@ export const useGameStore = create<GameState>((set, get) => ({
                                 // Extract sender and text from event
                                 const senderName = event.event_initiator || 'Player';
                                 const text = event.description || event.event_subject || '';
-                                
+
                                 const playerChatMsg = {
                                     sender_name: senderName,
                                     text: text,
@@ -467,6 +467,11 @@ export const useGameStore = create<GameState>((set, get) => ({
                                     timestamp: new Date().toISOString(),
                                 };
                                 state.addMessage(playerChatMsg);
+                            }
+                            // Handle DM thinking indicator - show when another player is waiting
+                            else if (event.event_type === 'DM_THINKING') {
+                                console.log(`🧠 ${event.event_initiator} is waiting for DM response...`);
+                                state.setIsDMThinking(true);
                             } else {
                                 // Also add as chat message for visibility
                                 const eventMsg = {
