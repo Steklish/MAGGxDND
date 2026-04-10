@@ -10,24 +10,14 @@ interface BrowseSessionsProps {
 
 export const BrowseSessions: React.FC<BrowseSessionsProps> = ({ onJoinSession }) => {
     const navigate = useNavigate();
-    const { username, joinSessionWithProfile, characterProfiles, loadCharacterProfiles, joinSession } = useGameStore();
-    
+
     const [sessions, setSessions] = useState<PublicSession[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [joiningSession, setJoiningSession] = useState<string | null>(null);
-    const [selectedSession, setSelectedSession] = useState<PublicSession | null>(null);
-    const [showProfileModal, setShowProfileModal] = useState(false);
 
     useEffect(() => {
         loadSessions();
-        
-        // Load character profiles for profile selection
-        const userId = useGameStore.getState().userId;
-        if (userId) {
-            loadCharacterProfiles(userId);
-        }
     }, []);
 
     const loadSessions = async (search?: string) => {
@@ -50,62 +40,8 @@ export const BrowseSessions: React.FC<BrowseSessionsProps> = ({ onJoinSession })
     };
 
     const handleJoinClick = (session: PublicSession) => {
-        setSelectedSession(session);
-        
-        // Check if user has character profiles
-        const profiles = Array.from(characterProfiles.values());
-        if (profiles.length > 0) {
-            // Show profile selection
-            setShowProfileModal(true);
-        } else {
-            // Join directly without profile
-            handleJoinDirect(session.session_id);
-        }
-    };
-
-    const handleJoinDirect = async (sessionId: string) => {
-        if (!selectedSession) return;
-        
-        setJoiningSession(sessionId);
-        try {
-            const playerName = username || localStorage.getItem('username') || 'Player';
-            await joinSession(sessionId, playerName);
-            
-            if (onJoinSession) {
-                onJoinSession(sessionId);
-            } else {
-                navigate(`/session/${sessionId}`);
-            }
-        } catch (err: any) {
-            console.error('Failed to join session:', err);
-            alert(err.response?.data?.detail || 'Failed to join session');
-        } finally {
-            setJoiningSession(null);
-            setShowProfileModal(false);
-            setSelectedSession(null);
-        }
-    };
-
-    const handleJoinWithProfile = async (profileId: number) => {
-        if (!selectedSession) return;
-        
-        setJoiningSession(selectedSession.session_id);
-        try {
-            const playerName = username || localStorage.getItem('username') || 'Player';
-            await joinSessionWithProfile(selectedSession.session_id, playerName, profileId);
-            
-            if (onJoinSession) {
-                onJoinSession(selectedSession.session_id);
-            } else {
-                navigate(`/session/${selectedSession.session_id}`);
-            }
-        } catch (err: any) {
-            console.error('Failed to join session with profile:', err);
-            alert(err.response?.data?.detail || 'Failed to join session');
-        } finally {
-            setJoiningSession(null);
-            setShowProfileModal(false);
-            setSelectedSession(null);
+        if (onJoinSession) {
+            onJoinSession(session.session_id);
         }
     };
 
@@ -232,19 +168,18 @@ export const BrowseSessions: React.FC<BrowseSessionsProps> = ({ onJoinSession })
 
                             <div className="session-card-actions">
                                 {session.has_joined ? (
-                                    <button 
+                                    <button
                                         className="btn-continue"
-                                        onClick={() => navigate(`/session/${session.session_id}`)}
+                                        onClick={() => handleJoinClick(session)}
                                     >
                                         Continue Game
                                     </button>
                                 ) : session.status === 'created' || session.status === 'running' ? (
-                                    <button 
+                                    <button
                                         className="btn-join"
                                         onClick={() => handleJoinClick(session)}
-                                        disabled={joiningSession === session.session_id}
                                     >
-                                        {joiningSession === session.session_id ? 'Joining...' : 'Join Session'}
+                                        Join Session
                                     </button>
                                 ) : (
                                     <button className="btn-disabled" disabled>
@@ -254,62 +189,6 @@ export const BrowseSessions: React.FC<BrowseSessionsProps> = ({ onJoinSession })
                             </div>
                         </div>
                     ))}
-                </div>
-            )}
-
-            {/* Profile Selection Modal */}
-            {showProfileModal && selectedSession && (
-                <div className="modal-overlay">
-                    <div className="profile-selection-modal">
-                        <div className="modal-header">
-                            <h3>Choose How to Join</h3>
-                            <button className="btn-close" onClick={() => setShowProfileModal(false)}>✕</button>
-                        </div>
-                        
-                        <p className="modal-description">
-                            Join "{selectedSession.session_name}" as:
-                        </p>
-
-                        <div className="modal-actions">
-                            <button 
-                                className="btn-option"
-                                onClick={() => handleJoinDirect(selectedSession.session_id)}
-                                disabled={joiningSession !== null}
-                            >
-                                <div className="option-icon">🎭</div>
-                                <div className="option-text">
-                                    <strong>Quick Join</strong>
-                                    <span>Use default character</span>
-                                </div>
-                            </button>
-
-                            <div className="or-divider">- OR -</div>
-
-                            <div className="profile-list">
-                                <h4>Use Saved Character:</h4>
-                                {Array.from(characterProfiles.values()).map(profile => (
-                                    <button
-                                        key={profile.id}
-                                        className="profile-option"
-                                        onClick={() => handleJoinWithProfile(profile.id)}
-                                        disabled={joiningSession !== null}
-                                    >
-                                        <div className="profile-icon">📜</div>
-                                        <div className="profile-info">
-                                            <strong>{profile.name}</strong>
-                                            <span>{profile.race} {profile.char_class} (Lv. {profile.level})</span>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="modal-footer">
-                            <button className="btn-cancel" onClick={() => setShowProfileModal(false)}>
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
                 </div>
             )}
         </div>

@@ -75,9 +75,15 @@ export const CharacterProfileSelector: React.FC<CharacterProfileSelectorProps> =
                         <p className="hint">
                             Create a character in the Character Creation screen to save profiles for future sessions.
                         </p>
-                        <button className="btn-cancel" onClick={onCancel}>
-                            Go Back
-                        </button>
+                        <div className="no-profiles-actions">
+                            <button className="btn-cancel" onClick={onCancel}>
+                                Go Back
+                            </button>
+                            <p className="or-divider">— or —</p>
+                            <p className="hint">
+                                You can also join with an AI-generated character once inside the session.
+                            </p>
+                        </div>
                     </div>
                 ) : (
                     <>

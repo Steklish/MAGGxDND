@@ -437,21 +437,47 @@ export const useGameStore = create<GameState>((set, get) => ({
                         state.setIsDMThinking(false);
                         break;
 
+                    case 'PLAYER_MESSAGE':
+                        // Another player's message - add to chat
+                        const playerMsg = {
+                            sender_name: message.payload?.sender_name || message.payload?.event_initiator || 'Player',
+                            text: message.payload?.text || '',
+                            type: 'player',
+                            timestamp: message.payload?.timestamp || new Date().toISOString(),
+                        };
+                        state.addMessage(playerMsg);
+                        break;
+
                     case 'GAME_EVENT':
                         // Game event - add to events and chat
                         const event = message.payload?.event;
                         if (event) {
                             state.addEvent(event);
-                            
-                            // Also add as chat message for visibility
-                            const eventMsg = {
-                                sender_name: 'Game',
-                                text: event.description || `${event.event_type} occurred`,
-                                type: 'event',
-                                timestamp: new Date().toISOString(),
-                                event_type: event.event_type,
-                            };
-                            state.addMessage(eventMsg);
+
+                            // Handle player messages specially - show in chat
+                            if (event.event_type === 'PLAYER_MESSAGE') {
+                                // Extract sender and text from event
+                                const senderName = event.event_initiator || 'Player';
+                                const text = event.description || event.event_subject || '';
+                                
+                                const playerChatMsg = {
+                                    sender_name: senderName,
+                                    text: text,
+                                    type: 'player',
+                                    timestamp: new Date().toISOString(),
+                                };
+                                state.addMessage(playerChatMsg);
+                            } else {
+                                // Also add as chat message for visibility
+                                const eventMsg = {
+                                    sender_name: 'Game',
+                                    text: event.description || `${event.event_type} occurred`,
+                                    type: 'event',
+                                    timestamp: new Date().toISOString(),
+                                    event_type: event.event_type,
+                                };
+                                state.addMessage(eventMsg);
+                            }
                         }
                         break;
 
@@ -491,6 +517,11 @@ export const useGameStore = create<GameState>((set, get) => ({
                         };
                         state.addMessage(errorMsg);
                         state.setIsDMThinking(false);
+                        break;
+
+                    case 'MESSAGE_SENT':
+                        // Acknowledgment that player message was sent
+                        console.log('✓ Player message sent acknowledged');
                         break;
 
                     case 'ACTION_RESULT':
@@ -607,10 +638,13 @@ export const useGameStore = create<GameState>((set, get) => ({
         try {
             if (webSocketService.isConnected() && character) {
                 console.log(`%c🌐 [${new Date().toLocaleTimeString()}] SENDING VIA WEBSOCKET...`, 'background: #9b59b6; color: white; padding: 4px 8px; border-radius: 3px;');
-                
+
+                // First, broadcast player message to other players so they can see it
+                webSocketService.sendPlayerMessage(character.name, actionText);
+
                 // Send action through WebSocket
                 webSocketService.sendAction(actionText, character);
-                
+
                 console.log(`%c✅ [${new Date().toLocaleTimeString()}] ACTION SENT VIA WEBSOCKET`, 'background: #27ae60; color: white; padding: 4px 8px; border-radius: 3px;');
                 console.log('%c─────────────────────────────────────────────────────', 'color: #27ae60;');
             } else {

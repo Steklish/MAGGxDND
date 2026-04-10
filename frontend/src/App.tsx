@@ -9,7 +9,7 @@ import { SessionCreation } from './components/SessionCreation';
 import { SessionDetail } from './components/SessionDetail';
 import { CharacterDetail } from './components/CharacterDetail';
 import { GameSetup } from './components/GameSetup';
-import { WaitingRoom } from './components/WaitingRoom';
+import { JoinSession } from './components/JoinSession';
 import { GameLayout } from './components/GameLayout';
 import { LoadingPage } from './components/LoadingPage';
 import { ErrorPage } from './components/ErrorPage';
@@ -25,7 +25,7 @@ type Page =
   | 'session-detail'
   | 'character-detail'
   | 'game-setup'
-  | 'waiting-room'
+  | 'join'
   | 'game';
 
 function App() {
@@ -55,7 +55,6 @@ function App() {
     const [selectedCharacterId, setSelectedCharacterId] = useState<number | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
     const [isLoadingAfterAuth, setIsLoadingAfterAuth] = useState(false);
-    const [isWaitingRoomReady, setIsWaitingRoomReady] = useState(false);
 
     // Initialize auth on mount
     useEffect(() => {
@@ -171,43 +170,31 @@ function App() {
     };
 
     const handleJoinSession = async (sessionId: string) => {
+        setSelectedSessionId(sessionId);
+        setCurrentPage('join');
+    };
+
+    const handleStartGameSetup = async (sessionId: string) => {
+        // Start the game session first (generates scene + NPCs), then go to JoinSession
         try {
-            const username = localStorage.getItem('username') || 'Player';
+            localStorage.setItem('gameStatus', 'running');
+            localStorage.setItem('currentSessionId', sessionId);
             const token = localStorage.getItem('access_token');
-            const response = await fetch(`/api/v1/sessions/${sessionId}/players`, {
+            await fetch(`/api/v1/sessions/${sessionId}/start`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ player_name: username }),
+                body: JSON.stringify({
+                    wishes: 'An exciting adventure awaits',
+                })
             });
-
-            if (response.ok) {
-                const data = await response.json();
-                localStorage.setItem('currentSessionId', sessionId);
-                localStorage.setItem('currentPlayerId', data.player_id);
-                // Navigate to session detail page
-                handleShowSessionDetail(sessionId);
-            }
-        } catch (error) {
-            console.error('Failed to join session:', error);
+        } catch (e) {
+            console.warn('Game start may have failed, proceeding anyway:', e);
         }
-    };
-
-    const handleStartGameSetup = (sessionId: string) => {
         setSelectedSessionId(sessionId);
-        
-        // Check if session is already running - if so, go directly to game
-        const session = activeSessions.find(s => s.session_id === sessionId);
-        if (session?.status === 'running') {
-            // Session is already running, go straight to game
-            console.log('🎮 Session is running, navigating directly to game');
-            setCurrentPage('game');
-        } else {
-            // Session is not running yet, go to waiting room
-            setCurrentPage('waiting-room');
-        }
+        setCurrentPage('join');
     };
 
     const handleGoToGameSetup = (sessionId: string) => {
@@ -216,19 +203,10 @@ function App() {
     };
 
     const handleStartGame = (sessionId: string) => {
-        // Update localStorage with ALL required fields
-        localStorage.setItem('currentSessionId', sessionId);
-        localStorage.setItem('gameStatus', 'running');
-        
-        console.log('🎮 Game started, session:', sessionId);
-        console.log('📋 localStorage:', {
-            sessionId: localStorage.getItem('currentSessionId'),
-            playerId: localStorage.getItem('currentPlayerId'),
-            gameStatus: localStorage.getItem('gameStatus')
-        });
-        
-        // Navigate to game page
-        setCurrentPage('game');
+        // After starting the session, navigate to JoinSession so the owner
+        // can choose their character (template, AI, or random) just like other players.
+        setSelectedSessionId(sessionId);
+        setCurrentPage('join');
     };
 
     const handleCharacterComplete = () => {
@@ -239,14 +217,15 @@ function App() {
     };
 
     const handleSessionComplete = (sessionId: string) => {
-        // Persist session ID to localStorage immediately
+        // Session was already started by SessionCreation (scene + NPCs generated)
+        // Go directly to JoinSession so the owner can pick their character
         if (sessionId) {
             localStorage.setItem('currentSessionId', sessionId);
+            localStorage.setItem('gameStatus', 'running');
             console.log('✓ Session persisted to localStorage:', sessionId);
         }
-        // Navigate to waiting room instead of home
         setSelectedSessionId(sessionId);
-        setCurrentPage('waiting-room');
+        setCurrentPage('join');
         loadSessions();
     };
 
@@ -338,13 +317,12 @@ function App() {
                     </div>
                 );
 
-            case 'waiting-room':
+            case 'join':
                 return selectedSessionId ? (
-                    <WaitingRoom
+                    <JoinSession
                         sessionId={selectedSessionId}
-                        onGameStart={handleStartGame}
+                        onJoined={() => setCurrentPage('game')}
                         onBack={() => setCurrentPage('home')}
-                        onGoToSetup={handleGoToGameSetup}
                     />
                 ) : (
                     <div className="app-loading">

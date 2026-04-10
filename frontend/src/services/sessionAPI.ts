@@ -180,6 +180,22 @@ export const sessionAPI = {
     },
 
     /**
+     * Join a session with an AI-generated character
+     */
+    joinSessionAIGenerate: async (sessionId: string, request: { player_name: string; character_description: string }): Promise<PlayerInfo> => {
+        const response = await api.post<PlayerInfo>(`/sessions/${sessionId}/players/ai-generate`, request);
+        return response.data;
+    },
+
+    /**
+     * Join a session with a random character
+     */
+    joinSessionRandom: async (sessionId: string, request: { player_name: string }): Promise<PlayerInfo> => {
+        const response = await api.post<PlayerInfo>(`/sessions/${sessionId}/players/random`, request);
+        return response.data;
+    },
+
+    /**
      * Browse all public sessions with optional search
      */
     browsePublicSessions: async (search?: string, skip: number = 0, limit: number = 50): Promise<PublicSessionsResponse> => {

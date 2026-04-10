@@ -166,7 +166,7 @@ class ProceduralGenerator:
     @classmethod
     def generate_character(cls, name: Optional[str] = None, prompt: str = ""):
         """Generate a character procedurally."""
-        from core.schemas.in_game import Character, CharacterClass, AbilityScores, Item, SpellAbility
+        from core.schemas.in_game import Character, AbilityScores, Item, SpellAbility, Coordinate2D
         
         char_name = name or f"{random.choice(cls.CHARACTER_NAMES)} {random.choice(cls.CHARACTER_SURNAMES)}"
         
@@ -215,6 +215,7 @@ class ProceduralGenerator:
     @classmethod
     def _generate_abilities_for_class(cls, char_class):
         """Generate abilities based on character class."""
+        from core.schemas.in_game import CharacterClass
         if char_class == CharacterClass.FIGHTER:
             return [
                 {"name": "Attack", "short_summary": "Make a melee weapon attack dealing 1d8+3 slashing damage", "level": 0, "type": "action"},
@@ -452,6 +453,31 @@ class PlayerJoinWithProfileRequest(BaseModel):
     """Запрос на присоединение игрока с использованием сохранённого профиля персонажа."""
     player_name: str = Field(..., description="Имя игрока", min_length=2, max_length=100)
     profile_id: int = Field(..., description="ID сохранённого профиля персонажа")
+
+    @validator('player_name')
+    def validate_player_name(cls, v):
+        v = sanitize_string(v, max_length=100)
+        if len(v) < 2:
+            raise ValueError("Player name must be at least 2 characters")
+        return v
+
+
+class PlayerJoinAIGeneratedRequest(BaseModel):
+    """Запрос на присоединение с AI-генерацией персонажа."""
+    player_name: str = Field(..., description="Имя игрока", min_length=2, max_length=100)
+    character_description: str = Field(..., description="Краткое описание персонажа для AI", min_length=5, max_length=500)
+
+    @validator('player_name')
+    def validate_player_name(cls, v):
+        v = sanitize_string(v, max_length=100)
+        if len(v) < 2:
+            raise ValueError("Player name must be at least 2 characters")
+        return v
+
+
+class PlayerJoinRandomRequest(BaseModel):
+    """Запрос на присоединение со случайным персонажем."""
+    player_name: str = Field(..., description="Имя игрока", min_length=2, max_length=100)
 
     @validator('player_name')
     def validate_player_name(cls, v):
@@ -1046,7 +1072,6 @@ async def start_session(
             )
             logger.info(f"[START] Creating session factory config: {config.session_name}")
             game_session = session_factory.create_session(config, session_id=session_id)
-            logger.info(f"[START] Session {session_id} created with generator: {hasattr(game_session, 'generator')}")
 
             # Try to restore saved game state if it exists
             if has_saved_state:
@@ -1198,67 +1223,34 @@ async def start_session(
         if player_profile_ids:
             logger.info(f"[START] Found {len(player_profile_ids)} player profile mappings")
 
-        # Build participant info list (exclude owner if they didn't explicitly join)
+        # Build participant info list
         participants_to_assign = []
         for participant in db_participants:
             player_id = participant.get('player_uuid')
             profile_id = player_profile_ids.get(player_id)
-            
+
             participants_to_assign.append({
                 'player_id': player_id,
                 'player_name': participant.get('player_name'),
                 'user_id': participant.get('user_id'),
                 'character_name': participant.get('character_name'),
                 'role': participant.get('role', 'player'),
-                'profile_id': profile_id  # Include profile ID if exists
+                'profile_id': profile_id
             })
 
-        logger.info(f"[START] Will assign characters to {len(participants_to_assign)} participants")
+        # Filter out participants who ALREADY have Player objects in the engine
+        # (they joined while the game was running and created their own characters)
+        engine_player_names = {p.character.name for p in game_session.players if hasattr(p, 'character')}
+        participants_to_assign = [p for p in participants_to_assign if p['player_name'] not in engine_player_names]
 
-        # Initialize player characters - ALWAYS create at least one character with random variety
-        character_prompts_to_use = request.character_prompts
-        if request.character_description and not character_prompts_to_use:
-            character_prompts_to_use = [request.character_description]
+        logger.info(f"[START] Will assign characters to {len(participants_to_assign)} participants (not yet in engine)")
 
-        # If no character prompts, use participant names or random prompts
-        if not character_prompts_to_use or len(character_prompts_to_use) == 0:
-            if participants_to_assign:
-                # Generate one prompt per participant
-                character_prompts_to_use = []
-                for participant in participants_to_assign:
-                    player_name = participant.get('player_name', 'Adventurer')
-                    # Create a diverse prompt based on player name hash
-                    name_hash = hash(player_name) % 10
-                    random_prompts = [
-                        f"A half-elf bard with a magical lute who knows secrets of the ancient dragons, named {player_name}",
-                        f"A dwarf paladin sworn to protect the innocent, wielding a holy warhammer, named {player_name}",
-                        f"A human wizard specializing in fire magic, seeking the lost spells of power, named {player_name}",
-                        f"An elf ranger with a wolf companion, guardian of the mystical forests, named {player_name}",
-                        f"A tiefling rogue with shadow powers, searching for redemption, named {player_name}",
-                        f"A halfling cleric of the harvest god, spreading joy and healing, named {player_name}",
-                        f"A dragonborn sorcerer with lightning breath, destined for greatness, named {player_name}",
-                        f"A gnome artificer with mechanical inventions, named {player_name}",
-                        f"A half-orc barbarian with a heart of gold, named {player_name}",
-                        f"A human monk mastering the elements, seeking inner peace, named {player_name}"
-                    ]
-                    character_prompts_to_use.append(random_prompts[name_hash])
-                logger.info(f"[START] Generated {len(character_prompts_to_use)} prompts for {len(participants_to_assign)} participants")
-            else:
-                # Fallback: random character prompt
-                random_character_prompts = [
-                    "A half-elf bard with a magical lute who knows secrets of the ancient dragons",
-                    "A dwarf paladin sworn to protect the innocent, wielding a holy warhammer",
-                    "A human wizard specializing in fire magic, seeking the lost spells of power",
-                    "An elf ranger with a wolf companion, guardian of the mystical forests",
-                    "A tiefling rogue with shadow powers, searching for redemption",
-                    "A halfling cleric of the harvest god, spreading joy and healing wherever they go",
-                    "A dragonborn sorcerer with lightning breath, destined for greatness",
-                    "A gnome artificer with mechanical inventions and a clockwork companion",
-                    "A half-orc barbarian with a heart of gold, protecting their adopted family",
-                    "A human monk mastering the elements, seeking inner peace through adventure"
-                ]
-                character_prompts_to_use = [random.choice(random_character_prompts)]
-                logger.info(f"[START] No participants found, using random character prompt")
+        # DO NOT auto-generate characters during start_session.
+        # All players (including the owner) pick their characters through JoinSession
+        # after the game is running. This gives everyone full control over their character.
+        character_prompts_to_use = []
+        if participants_to_assign:
+            logger.info(f"[START] {len(participants_to_assign)} participant(s) waiting — they will join via JoinSession to pick characters")
 
         logger.info(f"[START] Generating {len(character_prompts_to_use)} characters...")
 
@@ -1347,7 +1339,16 @@ async def start_session(
                     if player_id:
                         player_character_mapping[player_id] = character.name
                         logger.info(f"[START] ✓ Mapped player_id {player_id} → character '{character.name}'")
-                
+
+                        # Update database participant with character_name
+                        try:
+                            repository.update_participant_character_name(
+                                session_id, player_id, character.name, owner_id=current_user.id
+                            )
+                            logger.info(f"[START] ✓ Updated database participant with character_name: {character.name}")
+                        except Exception as db_err:
+                            logger.warning(f"[START] Failed to update participant character_name in DB: {db_err}")
+
                 logger.info(f"[START] ✓ Character {character.name} added to session. Total players: {len(game_session.players)}")
             except Exception as e:
                 logger.error(f"[START] Failed to create player: {e}", exc_info=True)
@@ -1735,13 +1736,28 @@ async def join_session_with_character_profile(
     if not participant:
         raise HTTPException(status_code=500, detail="Failed to add player to session")
 
-    # Store profile ID in participant data for later character creation
-    # This will be used when the game starts to create the actual Character object
-    session_data = db_session.session_data or {}
-    player_profiles = session_data.get('player_profile_ids', {})
-    player_profiles[player_id] = request.profile_id
-    session_data['player_profile_ids'] = player_profiles
-    repository.update_session_data(session_id, session_data)
+    # If game session is already running, create in-memory Player object immediately
+    game_session = session_manager.get_session(session_id)
+    if game_session:
+        from core.schemas.in_game import Coordinate2D
+        from backend.src.utils.character_converter import profile_to_character
+        character = profile_to_character(profile)
+        character.position = Coordinate2D(x=0.0, y=0.0)
+        orchestrator = Orchestrator(
+            generator=game_session.generator,
+            logger=game_session.logger.getChild("player_orchestrator")
+        )
+        orchestrator.add_state(game_session)
+        player = game_session._init_player(character, orchestrator)
+        game_session.players.append(player)
+        logger.info(f"[JOIN-PROFILE] ✓ Player {request.player_name} added to running session with character {character.name}")
+    else:
+        # Store profile ID for later character creation when game starts
+        session_data = db_session.session_data or {}
+        player_profiles = session_data.get('player_profile_ids', {})
+        player_profiles[player_id] = request.profile_id
+        session_data['player_profile_ids'] = player_profiles
+        repository.update_session_data(session_id, session_data)
 
     logger.info(f"Player {request.player_name} joined session {session_id} with character profile {profile.name} (ID: {request.profile_id})")
 
@@ -1749,6 +1765,199 @@ async def join_session_with_character_profile(
         player_id=player_id,
         player_name=request.player_name,
         character_name=profile.name,
+        connected=True,
+        role=role
+    )
+
+
+@router.post("/{session_id}/players/ai-generate", response_model=PlayerResponse)
+async def join_session_with_ai_character(
+    session_id: str,
+    request: PlayerJoinAIGeneratedRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Join a session with an AI-generated character based on a description.
+
+    The character will be created using the session's AI generator.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    from core.schemas.in_game import Character, Coordinate2D
+    from core.entity.player import Player
+    from core.entity.orchestrator import Orchestrator
+
+    repository = get_session_repository(db)
+
+    # Validate session exists
+    db_session = get_session_by_uuid_or_404(session_id, repository)
+
+    # Check if session is active
+    if db_session.status not in [SessionStatusEnum.RUNNING, SessionStatusEnum.CREATED]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Session is not accepting players (status: {db_session.status.value})"
+        )
+
+    # Check if player already joined
+    existing_participants = repository.get_session_participants(session_id)
+    for participant in existing_participants:
+        if participant.get('user_id') == current_user.id:
+            return PlayerResponse(
+                player_id=participant.get('player_uuid'),
+                player_name=participant.get('player_name'),
+                character_name=participant.get('character_name'),
+                connected=participant.get('is_connected'),
+                role=participant.get('role')
+            )
+
+    # Check max players
+    if len(existing_participants) >= get_session_max_players(db_session):
+        raise HTTPException(status_code=400, detail=f"Session is full")
+
+    # Get or create in-memory session
+    game_session = session_manager.get_session(session_id)
+    if not game_session:
+        raise HTTPException(status_code=400, detail="Game session not initialized. Ask the owner to start it.")
+
+    role = "owner" if db_session.owner_id == current_user.id else "player"
+    player_id = str(uuid.uuid4())
+
+    try:
+        # Generate character via AI
+        logger.info(f"[JOIN-AI] Generating character for {request.player_name} from description: {request.character_description[:80]}...")
+        character: Character = game_session.generator.generate_one_shot(
+            pydantic_model=Character,
+            prompt=f"""
+            Create a D&D 5e character based on this description: {request.character_description}
+
+            Requirements:
+            - Name: Use a fitting fantasy name
+            - Level: 1
+            - Starting position: Coordinate2D(x=0.0, y=0.0)
+            - backstory_summary: Based on the description provided
+            - personality_traits: 2-3 traits matching the concept
+            - All stats, HP, AC, inventory, abilities should be valid D&D 5e values
+            """
+        )
+        character.position = Coordinate2D(x=0.0, y=0.0)
+        logger.info(f"[JOIN-AI] ✓ AI Character generated: {character.name}")
+    except Exception as e:
+        logger.warning(f"[JOIN-AI] AI generation failed: {e}, using procedural fallback")
+        character = ProceduralGenerator.generate_character(name=None, prompt=request.character_description)
+
+    # Add player to DB
+    participant = repository.add_participant(
+        session_uuid=session_id,
+        player_uuid=player_id,
+        player_name=request.player_name,
+        user_id=current_user.id,
+        character_name=character.name,
+        role=role
+    )
+
+    # Create in-memory player object
+    orchestrator = Orchestrator(
+        generator=game_session.generator,
+        logger=game_session.logger.getChild("player_orchestrator")
+    )
+    orchestrator.add_state(game_session)
+    player = game_session._init_player(character, orchestrator)
+    game_session.players.append(player)
+
+    logger.info(f"[JOIN-AI] ✓ Player {request.player_name} joined with character {character.name}")
+
+    return PlayerResponse(
+        player_id=player_id,
+        player_name=request.player_name,
+        character_name=character.name,
+        connected=True,
+        role=role
+    )
+
+
+@router.post("/{session_id}/players/random", response_model=PlayerResponse)
+async def join_session_with_random_character(
+    session_id: str,
+    request: PlayerJoinRandomRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Join a session with a randomly generated character.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    from core.schemas.in_game import Character
+    from core.entity.player import Player
+    from core.entity.orchestrator import Orchestrator
+
+    repository = get_session_repository(db)
+
+    # Validate session exists
+    db_session = get_session_by_uuid_or_404(session_id, repository)
+
+    # Check if session is active
+    if db_session.status not in [SessionStatusEnum.RUNNING, SessionStatusEnum.CREATED]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Session is not accepting players (status: {db_session.status.value})"
+        )
+
+    # Check if player already joined
+    existing_participants = repository.get_session_participants(session_id)
+    for participant in existing_participants:
+        if participant.get('user_id') == current_user.id:
+            return PlayerResponse(
+                player_id=participant.get('player_uuid'),
+                player_name=participant.get('player_name'),
+                character_name=participant.get('character_name'),
+                connected=participant.get('is_connected'),
+                role=participant.get('role')
+            )
+
+    # Check max players
+    if len(existing_participants) >= get_session_max_players(db_session):
+        raise HTTPException(status_code=400, detail=f"Session is full")
+
+    # Get in-memory session
+    game_session = session_manager.get_session(session_id)
+    if not game_session:
+        raise HTTPException(status_code=400, detail="Game session not initialized. Ask the owner to start it.")
+
+    role = "owner" if db_session.owner_id == current_user.id else "player"
+    player_id = str(uuid.uuid4())
+
+    # Generate random character
+    character = ProceduralGenerator.generate_character(name=None, prompt="")
+    logger.info(f"[JOIN-RANDOM] ✓ Random character: {character.name} for {request.player_name}")
+
+    # Add player to DB
+    participant = repository.add_participant(
+        session_uuid=session_id,
+        player_uuid=player_id,
+        player_name=request.player_name,
+        user_id=current_user.id,
+        character_name=character.name,
+        role=role
+    )
+
+    # Create in-memory player object
+    orchestrator = Orchestrator(
+        generator=game_session.generator,
+        logger=game_session.logger.getChild("player_orchestrator")
+    )
+    orchestrator.add_state(game_session)
+    player = game_session._init_player(character, orchestrator)
+    game_session.players.append(player)
+
+    return PlayerResponse(
+        player_id=player_id,
+        player_name=request.player_name,
+        character_name=character.name,
         connected=True,
         role=role
     )

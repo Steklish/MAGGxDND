@@ -15,6 +15,7 @@ from datetime import datetime
 from backend.src.game.session_manager import session_manager, SessionManager
 from core.game.event_pool import SubscriberQueue
 from core.schemas.orchestration import Event, EventTypes
+from core.schemas.in_game import Character
 
 logger = logging.getLogger(__name__)
 
@@ -42,18 +43,33 @@ async def event_stream_sender(
             if event:
                 event_count += 1
 
-                event_dict = {
-                    "type": "GAME_EVENT",
-                    "payload": {
-                        "event": {
-                            "event_type": event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type),
-                            "event_initiator": event.event_initiator,
-                            "event_subject": event.event_subject,
-                            "event_target": event.event_target,
-                            "description": event.description,
+                # Handle PLAYER_MESSAGE events specially - send as direct PLAYER_MESSAGE type
+                event_type_str = event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type)
+                
+                if event_type_str == "PLAYER_MESSAGE":
+                    # Send as direct PLAYER_MESSAGE so frontend chat shows it properly
+                    event_dict = {
+                        "type": "PLAYER_MESSAGE",
+                        "payload": {
+                            "sender_name": event.event_initiator or "Player",
+                            "text": event.description or "",
+                            "timestamp": ""
                         }
-                    },
-                }
+                    }
+                else:
+                    # Regular game event
+                    event_dict = {
+                        "type": "GAME_EVENT",
+                        "payload": {
+                            "event": {
+                                "event_type": event_type_str,
+                                "event_initiator": event.event_initiator,
+                                "event_subject": event.event_subject,
+                                "event_target": event.event_target,
+                                "description": event.description,
+                            }
+                        },
+                    }
 
                 # Log event being sent to frontend
                 logger.debug(
@@ -143,6 +159,48 @@ async def event_receiver(
                 )
                 session.delivery.put_request(request)
                 logger.debug(f"Request queued for {character_name}")
+
+                # Notify OTHER players that this player is waiting for DM response
+                # This allows all players to see that someone is waiting
+                await session_manager.broadcast_to_session(
+                    session_id=session_id,
+                    event=Event(
+                        event_type="SYSTEM",
+                        event_initiator=player_id,
+                        description=f"{character_name} is waiting for DM response..."
+                    ),
+                    exclude_player_id=player_id
+                )
+
+            elif event_type == "PLAYER_MESSAGE":
+                # Player chat message - broadcast to other players
+                payload = data.get("payload", {})
+                sender_name = payload.get("sender_name", "Unknown")
+                text = payload.get("text", "")
+                
+                logger.info(
+                    f"PLAYER MESSAGE | "
+                    f"Session: {session_id} | Player: {player_id} | "
+                    f"Sender: {sender_name} | "
+                    f"Text: {text[:100]}"
+                )
+                
+                # Broadcast to other players via EventPool
+                await session_manager.broadcast_to_session(
+                    session_id=session_id,
+                    event=Event(
+                        event_type="PLAYER_MESSAGE",
+                        event_initiator=sender_name,
+                        description=text
+                    ),
+                    exclude_player_id=player_id
+                )
+                
+                # Send acknowledgment to sender
+                await websocket.send_json({
+                    "type": "MESSAGE_SENT",
+                    "payload": {"sender_name": sender_name, "text": text}
+                })
 
             elif event_type == "PING":
                 await websocket.send_json({

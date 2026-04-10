@@ -359,6 +359,24 @@
     letter-spacing: 0.5px;
 }
 
+.btn-enter-game {
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    border-radius: 8px;
+    color: var(--bg-primary);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 15px;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-enter-game:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+}
+
 .btn-continue {
     padding: 12px 28px;
     background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);

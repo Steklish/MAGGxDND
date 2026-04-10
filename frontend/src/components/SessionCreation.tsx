@@ -73,21 +73,34 @@ export const SessionCreation: React.FC<SessionCreationProps> = ({ userId: _userI
 
             if (response.data && response.data.session_id) {
                 console.log('Session ID received:', response.data.session_id);
-                // Auto-join the session as owner
+                const newSessionId = response.data.session_id;
+
+                // Auto-start the game engine and generate scene + NPCs
                 try {
-                    const username = localStorage.getItem('username') || 'Owner';
-                    console.log('Joining session as:', username);
-                    await axios.post(`/api/v1/sessions/${response.data.session_id}/players`, {
-                        player_name: username
-                    });
-                    console.log('✓ Owner joined session:', response.data.session_id);
-                } catch (joinError) {
-                    console.warn('Failed to auto-join session:', joinError);
+                    console.log('Starting game engine and generating scene...');
+                    await axios.post(
+                        `/api/v1/sessions/${newSessionId}/start`,
+                        {
+                            wishes: formData.description || `A new adventure in ${formData.session_name}`,
+                            scene_prompt: formData.description || undefined,
+                            character_prompts: [],
+                            npc_prompts: [],
+                        },
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                            }
+                        }
+                    );
+                    console.log('✓ Game engine started, scene generated');
+                    localStorage.setItem('gameStatus', 'running');
+                } catch (startError: any) {
+                    console.warn('Failed to start game engine:', startError);
                 }
 
                 console.log('Calling onComplete with session ID');
                 setIsLoading(false);
-                onComplete(response.data.session_id);
+                onComplete(newSessionId);
             } else {
                 console.error('No session_id in response:', response.data);
                 setErrors({ submit: 'Session created but no session ID returned' });

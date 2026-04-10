@@ -297,29 +297,51 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
 
         try {
             const response = await axios.post('/api/v1/characters/', characterData);
-            if (response.data.id) {
-                await axios.post('/api/v1/profiles/', {
-                    character_id: response.data.id,
-                    alignment: formData.alignment,
-                    background: formData.background,
-                    appearance_description: formData.appearance,
-                    deity: null, homeland: null,
-                    hit_dice: `1d${classData?.hitDie || 8}`,
-                    passive_wisdom: 10 + getModifier(finalWis),
-                    inspiration: false,
-                    saving_throws: { str: classData?.savingThrows.includes('Strength') ? proficiencyBonus : 0, dex: classData?.savingThrows.includes('Dexterity') ? proficiencyBonus : 0, con: classData?.savingThrows.includes('Constitution') ? proficiencyBonus : 0, int: classData?.savingThrows.includes('Intelligence') ? proficiencyBonus : 0, wis: classData?.savingThrows.includes('Wisdom') ? proficiencyBonus : 0, cha: classData?.savingThrows.includes('Charisma') ? proficiencyBonus : 0 },
-                    skills: allSkills,
-                    equipment: classData?.startingEquipment?.weapons.concat(classData?.startingEquipment?.equipment, backgroundData?.equipment || []) || [],
-                    attacks: classData?.startingEquipment?.weapons || [],
-                    spell_slots: {},
-                    features_traits: racialTraits,
-                    notes: `Personality: ${formData.personalityTrait}\nIdeal: ${formData.ideal}\nBond: ${formData.bond}\nFlaw: ${formData.flaw}`,
-                });
-                onComplete();
+            // Response has profile_id (not id) from CharacterProfileResponse schema
+            const profileId = response.data.profile_id || response.data.id;
+            if (profileId) {
+                try {
+                    // Create extended profile data with all character details
+                    await axios.post('/api/v1/profiles/', {
+                        name: formData.name,
+                        race: formData.subrace ? `${formData.race} (${formData.subrace})` : formData.race,
+                        char_class: formData.char_class,
+                        level: 1,
+                        alignment: formData.alignment,
+                        background: formData.background,
+                        appearance_description: formData.appearance,
+                        backstory_summary: formData.backstory || `${formData.background} seeking adventure`,
+                        personality_traits: JSON.stringify({
+                            trait: formData.personalityTrait, ideal: formData.ideal, bond: formData.bond, flaw: formData.flaw,
+                        }),
+                        max_hp: calculateHP(),
+                        armor_class: calculateAC(),
+                        speed: raceData?.speed || 30,
+                        character_data: {
+                            stats: { strength: finalStr, dexterity: finalDex, constitution: finalCon, intelligence: finalInt, wisdom: finalWis, charisma: finalCha },
+                            skills: allSkills,
+                            saving_throws: { str: classData?.savingThrows.includes('Strength') ? proficiencyBonus : 0, dex: classData?.savingThrows.includes('Dexterity') ? proficiencyBonus : 0, con: classData?.savingThrows.includes('Constitution') ? proficiencyBonus : 0, int: classData?.savingThrows.includes('Intelligence') ? proficiencyBonus : 0, wis: classData?.savingThrows.includes('Wisdom') ? proficiencyBonus : 0, cha: classData?.savingThrows.includes('Charisma') ? proficiencyBonus : 0 },
+                            hit_dice: `1d${classData?.hitDie || 8}`,
+                            passive_wisdom: 10 + getModifier(finalWis),
+                            equipment: classData?.startingEquipment?.weapons.concat(classData?.startingEquipment?.equipment, backgroundData?.equipment || []) || [],
+                            attacks: classData?.startingEquipment?.weapons || [],
+                            abilities: racialTraits,
+                            features_traits: racialTraits,
+                            notes: `Personality: ${formData.personalityTrait}\nIdeal: ${formData.ideal}\nBond: ${formData.bond}\nFlaw: ${formData.flaw}`,
+                        },
+                    });
+                    onComplete();
+                } catch (profileError: any) {
+                    console.warn('Profile creation failed, but character was created:', profileError);
+                    // Character was still created successfully, so call onComplete
+                    onComplete();
+                }
             }
         } catch (error: any) {
             setIsLoading(false);
-            setErrors({ submit: error.response?.data?.detail || 'Failed to create character' });
+            const errorMsg = error.response?.data?.detail || error.message || 'Failed to create character';
+            console.error('Character save error:', error);
+            setErrors({ submit: errorMsg });
         }
     };
 

@@ -466,6 +466,36 @@ class SessionRepository:
         self.db.commit()
         return True
 
+    def update_participant_character_name(
+        self,
+        session_uuid: str,
+        player_uuid: str,
+        character_name: str,
+        owner_id: Optional[int] = None
+    ) -> bool:
+        """Update a participant's character name in session_data JSON."""
+        session = self.get_session_by_uuid(session_uuid)
+
+        if not session:
+            return False
+
+        if owner_id is not None and session.owner_id != owner_id:
+            return False
+
+        session_data = session.session_data or {}
+        participants = session_data.get("participants", [])
+
+        # Find and update the participant
+        for p in participants:
+            if p.get("player_uuid") == player_uuid:
+                p["character_name"] = character_name
+                session.session_data = session_data
+                session.updated_at = datetime.now()
+                self.db.commit()
+                return True
+
+        return False
+
     def update_participant_connection(
         self,
         session_uuid: str,

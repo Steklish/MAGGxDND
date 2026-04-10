@@ -45,8 +45,17 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
     const [isOwner, setIsOwner] = useState(false);
     const [showProfileSelector, setShowProfileSelector] = useState(false);
 
-    // Check if session is already running
-    const isRunning = session?.status === 'running';
+    // Check if session is already running (from active sessions in memory)
+    const activeSession = activeSessions.find(s => s.session_id === sessionId);
+    const isRunning = session?.status === 'running' || activeSession !== undefined;
+    const isInMemory = activeSession !== undefined;
+
+    // Navigate to game directly if session is running
+    const handleEnterGame = () => {
+        if (onStartGame) {
+            onStartGame(sessionId);
+        }
+    };
 
     // Navigate to waiting room for game setup
     const handleGoToWaitingRoom = () => {
@@ -341,17 +350,19 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack,
                                 </span>
                             </div>
                             <div className="session-title-actions">
-                                {session.status === 'created' && (
+                                {isRunning ? (
+                                    <button
+                                        className="btn-enter-game"
+                                        onClick={handleEnterGame}
+                                    >
+                                        🎮 Enter Game
+                                    </button>
+                                ) : (
                                     <button
                                         className="btn-waiting-room"
                                         onClick={handleGoToWaitingRoom}
                                     >
                                         🎲 Go to Waiting Room
-                                    </button>
-                                )}
-                                {session.status === 'running' && (
-                                    <button className="btn-continue" onClick={() => onStartGame && onStartGame(sessionId)}>
-                                        🎮 Continue Game
                                     </button>
                                 )}
                             </div>

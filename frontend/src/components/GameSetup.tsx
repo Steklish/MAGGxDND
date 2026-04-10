@@ -67,30 +67,10 @@ export const GameSetup: React.FC<GameSetupProps> = ({ sessionId, onComplete, onB
                 const data = JSON.parse(responseText);
                 console.log('[GameSetup] Session started successfully:', data);
 
-                // Save playerId from response - try multiple sources
-                let playerId = data.player_id;
-
-                // If no player_id at root, try to get from players array (first player)
-                if (!playerId && data.players && data.players.length > 0) {
-                    playerId = data.players[0].player_id;
-                    console.log('✓ PlayerId extracted from players array:', playerId);
-                }
-
-                if (playerId) {
-                    localStorage.setItem('currentPlayerId', playerId);
-                    localStorage.setItem('playerId', playerId);
-                    console.log('✓ PlayerId saved to localStorage:', playerId);
-
-                    // Also update the game status
-                    localStorage.setItem('gameStatus', 'running');
-                    localStorage.setItem('sessionId', sessionId);
-                } else {
-                    console.warn('⚠️ No playerId found in response, using session_id as fallback');
-                    // Fallback: use session_id + timestamp as player identifier
-                    playerId = `player_${sessionId}_${Date.now()}`;
-                    localStorage.setItem('currentPlayerId', playerId);
-                    localStorage.setItem('playerId', playerId);
-                }
+                // The session is now running but the owner hasn't chosen a character yet.
+                // Navigate to JoinSession so the owner can pick their character.
+                localStorage.setItem('currentSessionId', sessionId);
+                localStorage.setItem('gameStatus', 'running');
 
                 // Pass session ID to parent for navigation
                 onComplete(sessionId);

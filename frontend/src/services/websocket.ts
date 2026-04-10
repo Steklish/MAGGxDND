@@ -207,6 +207,28 @@ export class WebSocketService {
     }
 
     /**
+     * Broadcast a player message to all other players in the session
+     */
+    sendPlayerMessage(senderName: string, text: string): void {
+        if (!this.ws || !this.playerId) {
+            console.error('[WebSocket] Cannot send player message: not connected');
+            return;
+        }
+
+        const message = {
+            type: 'PLAYER_MESSAGE',
+            payload: {
+                sender_name: senderName,
+                text: text,
+                timestamp: new Date().toISOString(),
+            }
+        };
+
+        console.log('[WebSocket] → Broadcasting player message:', message);
+        this.send(message);
+    }
+
+    /**
      * Send a player action to the server
      */
     sendAction(requestText: string, character: Character): void {

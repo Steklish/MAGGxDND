@@ -99,6 +99,20 @@
     margin: 16px auto;
 }
 
+.no-profiles-actions {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.or-divider {
+    font-size: 14px;
+    color: #718096;
+    margin: 8px 0;
+}
+
 .profiles-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
