@@ -134,9 +134,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
             className={`tooltip tooltip-${position}`}
             style={{
                 ...tooltipStyle,
-                borderColor: borderColor || 'var(--accent-yellow)',
-                backgroundColor: background || 'var(--bg-tertiary)',
-                boxShadow: `var(--shadow-lg), 0 0 20px ${borderColor ? borderColor.replace('var(--accent-', 'rgba(').replace(')', ', 0.2)') : 'rgba(233, 196, 106, 0.2)'}`
+                borderColor: borderColor || 'var(--color-creme, #e1d3a9)',
+                backgroundColor: background || 'var(--bg-secondary, #212226)',
+                boxShadow: `var(--shadow-lg), 0 0 16px ${borderColor ? borderColor.replace('var(--accent-', 'rgba(').replace(')', ', 0.25)') : 'rgba(225, 211, 169, 0.2)'}`
             }}
             ref={contentRef}
         >

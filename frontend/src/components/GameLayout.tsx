@@ -1,13 +1,9 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { ChatPanel } from './ChatPanel';
-import { EventsPanel } from './EventsPanel';
 import { SceneViewer } from './SceneViewer';
 import { CharacterPanel } from './CharacterPanel';
-import { ActionPanel } from './ActionPanel';
 import { Footer } from './Footer';
-import { MiniCharacterPanel } from './MiniCharacterPanel';
-import { MiniChatPanel } from './MiniChatPanel';
 import { ProfilePage } from './ProfilePage';
 import { SessionCreation } from './SessionCreation';
 import './GameLayout.css';
@@ -28,39 +24,48 @@ interface GameLayoutProps {
     onJoinSession?: (sessionId: string) => void;
 }
 
-export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewSession: _onViewSession, onJoinSession }) => {
-    const { session, currentSession, currentScene, activeCharacter, loadSessions, activeSessions, setCurrentSession, setCurrentScene, setActiveCharacter, isGenerating, generationStatus, setIsGenerating, setGenerationStatus, addMessage, isAuthenticated, logout, error, setError } = useGameStore();
+export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewSession: _onViewSession, onJoinSession: _onJoinSession }) => {
+    const {
+        session,
+        currentSession,
+        currentScene,
+        activeCharacter,
+        loadSessions,
+        activeSessions,
+        setCurrentSession,
+        setActiveCharacter,
+        isGenerating,
+        generationStatus,
+        setIsGenerating,
+        setGenerationStatus,
+        sendAction
+    } = useGameStore();
 
-    // Read session info from localStorage directly (not from store) - MUST be before useEffect
+    // Read session info from localStorage directly
     const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
     const sessionId = typeof window !== 'undefined' ? localStorage.getItem('currentSessionId') : null;
     const playerId = typeof window !== 'undefined' ? localStorage.getItem('currentPlayerId') : null;
     const gameStatus = typeof window !== 'undefined' ? localStorage.getItem('gameStatus') : null;
 
-    // Check if user is authenticated - redirect to landing page if not
+    // Check if user is authenticated
     useEffect(() => {
         const token = localStorage.getItem('access_token');
         const isGuest = localStorage.getItem('is_guest') === 'true';
         const hasValidSession = sessionId && playerId;
-        
-        // If no token AND no active game session - redirect to landing
+
         if (!token && !hasValidSession) {
             console.log('⚠️ No auth token and no active session - redirecting to landing page');
-            // Clear any stale session data
             localStorage.removeItem('currentSessionId');
             localStorage.removeItem('currentPlayerId');
             localStorage.removeItem('gameStatus');
             window.location.href = '/';
             return;
         }
-        
-        // If guest token expired - redirect to landing
+
         if (isGuest) {
             try {
-                // Guest tokens expire in 24 hours - check if still valid
-                const guestToken = localStorage.getItem('guest_token');
+                const guestToken = localStorage.getItem('guest_token') || localStorage.getItem('access_token');
                 if (!guestToken) {
-                    console.log('⚠️ Guest token missing - redirecting to landing page');
                     window.location.href = '/';
                 }
             } catch (e) {
@@ -69,302 +74,124 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
         }
     }, [sessionId, playerId]);
 
-    // ALL HOOKS MUST BE AT THE TOP - before any conditional returns
+    // UI state
     const [showProfile, setShowProfile] = useState(false);
     const [showCreateSession, setShowCreateSession] = useState(false);
     const [sessionNotFound, setSessionNotFound] = useState(false);
     const [copiedSessionId, setCopiedSessionId] = useState(false);
-    const [leftPanelWidth, setLeftPanelWidth] = useState(25);
-    const [rightPanelWidth, setRightPanelWidth] = useState(25);
-    const [headerHeight, setHeaderHeight] = useState(() => Math.round(window.innerHeight * 0.07));
-    const [actionPanelHeight, setActionPanelHeight] = useState(() => Math.round(window.innerHeight * 0.07));
-    const [isSceneCollapsed, setIsSceneCollapsed] = useState(false);
-    const [isCollapsing, setIsCollapsing] = useState(false);
-    const [isResizingLeft, setIsResizingLeft] = useState(false);
-    const [isResizingRight, setIsResizingRight] = useState(false);
-    const [isResizingHeader, setIsResizingHeader] = useState(false);
-    const [isResizingActionPanel, setIsResizingActionPanel] = useState(false);
-    const [rightPanelTab, setRightPanelTab] = useState<'chat' | 'events' | 'grid'>('grid');
+    const [layoutMode, setLayoutMode] = useState<'split' | 'map' | 'story'>('split');
+    const [showCharacterDrawer, setShowCharacterDrawer] = useState(false);
     const [turnQueue, setTurnQueue] = useState<TurnEntry[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [dyingCharacters, setDyingCharacters] = useState<string[]>([]);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const startX = useRef(0);
-    const startY = useRef(0);
-    const startLeftWidth = useRef(0);
-    const startRightWidth = useRef(0);
-    const startHeaderHeight = useRef(0);
-    const startActionPanelHeight = useRef(0);
-    const prevActionPanelHeight = useRef(70);
-    const containerWidth = useRef(0);
-    const containerHeight = useRef(0);
 
-    // ALL useEffect MUST BE BEFORE ANY CONDITIONAL RETURNS
+    // Initial load
     useEffect(() => {
-        // Check authentication before loading anything
         const token = localStorage.getItem('access_token');
         if (!token && !(sessionId && playerId)) {
-            console.log('⚠️ Not authenticated on mount - redirecting to landing page');
             window.location.href = '/';
             return;
         }
-        
+
         loadSessions();
-        console.log('🔍 GameLayout mounted:', { sessionId, playerId, currentSession, isGenerating });
-        
-        // If game is running, try to load game data from server
+
         if (sessionId && playerId && gameStatus === 'running') {
-            console.log('📡 Loading game data for session:', sessionId);
             fetch(`/api/v1/sessions/${sessionId}/game_info`)
                 .then(res => res.json())
                 .then(data => {
-                    console.log('📦 Game info loaded:', data);
                     if (data.detail === 'Session not found') {
-                        console.warn('⚠️ Session not found on server - may have been lost');
-                        // Clear invalid session
                         localStorage.removeItem('gameStatus');
                         setGenerationStatus('');
                         setIsGenerating(false);
                         setSessionNotFound(true);
                     } else {
-                        // Handle both empty and populated player lists
-                        console.log('🎭 Players loaded:', data.players?.length || 0);
-                        console.log('🎭 NPCs loaded:', data.npcs?.length || 0);
-                        console.log('🏰 Scene:', data.current_scene?.name || data.scene?.name);
-
-                        // Update session in store with game data
-                        // Pass through COMPLETE character data from backend (includes inventory, conditions, position, etc.)
                         const gameSession = {
                             session_id: data.session_id,
                             session_name: data.session_name,
                             game_mode: data.game_mode,
                             status: data.status,
-                            player_count: data.players?.length || 0,
-                            max_players: 5,
-                            description: undefined,
-                            players: (data.players || []).map((p: any) => ({
-                                // Pass through ALL character fields from backend
-                                character: p,
-                            })),
-                            npcs: (data.npcs || []).map((n: any) => ({
-                                character: n,
-                            })),
-                        } as any;
-                        setCurrentSession(gameSession);
-                        
-                        console.log('📋 Full character data loaded:', {
-                            playerCount: data.players?.length || 0,
-                            firstPlayer: data.players?.[0] ? {
-                                name: data.players[0].name,
-                                hasInventory: !!data.players[0].inventory,
-                                inventoryCount: data.players[0].inventory?.length || 0,
-                                hasConditions: !!data.players[0].active_conditions_list,
-                                conditionCount: data.players[0].active_conditions_list?.length || 0,
-                                hasPosition: !!data.players[0].position,
-                                hasResources: !!data.players[0].resources,
-                                hasBackstory: !!data.players[0].backstory_summary,
-                            } : null
-                        });
+                            player_count: data.player_count,
+                            max_players: data.max_players,
+                            description: data.description,
+                            players: data.players || [],
+                            npcs: data.npcs || [],
+                        };
+                        setCurrentSession(gameSession as any);
 
-                        // Add welcome message from DM
-                        const sceneToUse = data.current_scene || data.scene;
-                        console.log('🏰 Scene loaded:', sceneToUse?.name);
-
-                        // Add initial game messages
-                        if (sceneToUse) {
-                            const dmMessage = {
-                                sender_name: 'DM',
-                                text: `Welcome to ${sceneToUse.name || 'the adventure'}! ${sceneToUse.description || ''}`,
-                                type: 'dm',
-                                timestamp: new Date().toISOString(),
-                            };
-                            const systemMessage = {
-                                sender_name: 'System',
-                                text: `Game started with ${data.players?.length || 0} player(s) and ${data.npcs?.length || 0} NPC(s).`,
-                                type: 'environment',
-                                timestamp: new Date().toISOString(),
-                            };
-
-                            // Add messages to store
-                            addMessage(dmMessage);
-                            addMessage(systemMessage);
-
-                            // Set current scene with ALL data from backend (including objects)
-                            setCurrentScene({
-                                name: sceneToUse.name || 'Unknown',
-                                description: sceneToUse.description || 'A mysterious place...',
-                                center_position: sceneToUse.center_position || { x: 10, y: 10 },
-                                dimensions: sceneToUse.dimensions || { x: 20, y: 20 },
-                                scale_unit: sceneToUse.scale_unit || 'feet',
-                                objects: sceneToUse.objects || [],
-                            });
-                            console.log('🏰 Scene set:', sceneToUse.name, 'with', sceneToUse.objects?.length || 0, 'objects');
+                        // Set active character if not set
+                        const currentUser = localStorage.getItem('username');
+                        const myPlayer = (data.players || []).find((p: any) =>
+                            p.player_name === currentUser || p.character?.name === currentUser
+                        );
+                        if (myPlayer && myPlayer.character) {
+                            setActiveCharacter(myPlayer.character);
+                        } else if (data.players && data.players[0] && data.players[0].character) {
+                            setActiveCharacter(data.players[0].character);
                         }
-
-                        // Set active character with FULL data from backend
-                        // Use player_mapping to find the correct character for this player
-                        const playerId = localStorage.getItem(`currentPlayerId_${sessionId}`) || localStorage.getItem('currentPlayerId');
-                        const playerMapping = data.player_mapping || {};
-                        
-                        // Find this player's character name from the mapping
-                        let myCharacter = null;
-                        let myCharacterName = null;
-                        
-                        // Try to find character by player_id in mapping
-                        for (const [playerName, mapping] of Object.entries(playerMapping)) {
-                            if ((mapping as any).player_id === playerId) {
-                                myCharacterName = (mapping as any).character_name;
-                                break;
-                            }
-                        }
-                        
-                        // Find the character object in the players list
-                        if (myCharacterName && data.players) {
-                            myCharacter = data.players.find((p: any) => p.name === myCharacterName);
-                        }
-                        
-                        // Fallback: use first player if no mapping found
-                        if (!myCharacter && data.players && data.players.length > 0) {
-                            myCharacter = data.players[0];
-                            console.warn('⚠️ No player-character mapping found, using first player as fallback');
-                        }
-                        
-                        if (myCharacter) {
-                            setActiveCharacter(myCharacter as any);
-                            console.log('🎭 Active character set:', {
-                                name: myCharacter.name,
-                                inventory: myCharacter.inventory?.length || 0,
-                                conditions: myCharacter.active_conditions_list?.length || 0,
-                                position: myCharacter.position,
-                                playerId: playerId,
-                                mappedFrom: myCharacterName ? 'player_mapping' : 'fallback'
-                            });
-                        } else {
-                            console.warn('⚠️ No character found for this player - character may still be loading');
-                            // Don't set error here, just log it - the UI will handle it
-                        }
-                        
-                        // Show a warning modal if no character is found
-                        if (!myCharacter) {
-                            // We'll handle this with a conditional render in the UI
-                            console.warn('⚠️ Player has no character - will show waiting screen');
-                        }
-
-                        console.log('💬 DM Message added');
-                        console.log('💬 System message added');
-                    }
-
-                    // Connect to WebSocket for real-time updates
-                    if (sessionId && playerId) {
-                        console.log('🔌 Connecting to WebSocket for real-time updates...');
-                        useGameStore.getState().connectWebSocket(sessionId, playerId)
-                            .then(() => {
-                                console.log('✅ WebSocket connected successfully');
-                            })
-                            .catch((err) => {
-                                console.error('❌ Failed to connect WebSocket:', err);
-                                console.log('⚠️ Game will continue with REST API fallback');
-                            });
                     }
                 })
-                .catch(err => console.error('Failed to load game info:', err));
+                .catch(err => {
+                    console.warn('Could not load game_info:', err);
+                });
         }
+    }, [sessionId, playerId, gameStatus]);
 
-        // Cleanup on unmount (but NOT during StrictMode remount)
-        return () => {
-            // Don't disconnect immediately - this might be a StrictMode remount
-            // Only disconnect if the component is truly unmounting (e.g., user navigated away)
-            console.log('🔌 Component unmounting - keeping WebSocket alive for potential remount...');
-            // We'll let the WebSocket service manage the connection lifecycle
-            // It will disconnect when a new session connects or when manually disconnected
-        };
-    }, []);
-
+    // Initialize turn queue from session players & NPCs
     useEffect(() => {
-        console.log('🔍 Initializing turn queue, session:', session);
-        console.log('🔍 currentSession:', currentSession);
-        if (!session && !currentSession) {
-            console.log('⚠️ No session available');
-            return;
-        }
-        const activeSession = session || currentSession;
-        if (!activeSession) {
-            console.log('⚠️ No active session');
-            return;
-        }
-        console.log('📊 Session players:', activeSession.players?.length || 0);
-        console.log('📊 Session npcs:', activeSession.npcs?.length || 0);
+        const activeSession = currentSession || session;
+        if (!activeSession) return;
 
         const queue: TurnEntry[] = [];
         activeSession.players?.forEach((p: any) => {
-            if (!p?.character) return;
-            const char = p.character;
+            const char = p.character || p;
+            if (!char || !char.name) return;
             queue.push({
                 character: char,
                 type: 'player',
-                initiative: char.initiative_bonus || 10,
-                isDead: char.current_hp <= 0 && char.is_alive === false,
-                isDying: char.current_hp <= 0 && char.is_alive !== false,
+                initiative: char.stats?.dexterity || 10,
+                isDead: (char.current_hp ?? 10) <= 0 && char.is_alive === false,
+                isDying: (char.current_hp ?? 10) <= 0 && char.is_alive !== false,
                 deathSaveSuccesses: 0,
-                deathSaveFailures: 0
+                deathSaveFailures: 0,
             });
         });
+
         activeSession.npcs?.forEach((n: any) => {
-            if (!n?.character) return;
-            const char = n.character;
-            let type: 'hostile' | 'neutral' | 'ally' = 'hostile';
-            if (char.alignment?.includes('Good')) type = 'ally';
-            else if (char.alignment?.includes('Neutral')) type = 'neutral';
+            const char = n.character || n;
+            if (!char || !char.name) return;
+            const isGood = (char.alignment || '').includes('Good');
             queue.push({
                 character: char,
-                type,
-                initiative: char.initiative_bonus || 10,
-                isDead: char.current_hp <= 0 && char.is_alive === false,
-                isDying: char.current_hp <= 0 && char.is_alive !== false,
+                type: isGood ? 'ally' : 'hostile',
+                initiative: char.stats?.dexterity || 10,
+                isDead: (char.current_hp ?? 10) <= 0 && char.is_alive === false,
+                isDying: (char.current_hp ?? 10) <= 0 && char.is_alive !== false,
                 deathSaveSuccesses: 0,
-                deathSaveFailures: 0
+                deathSaveFailures: 0,
             });
         });
+
         queue.sort((a, b) => b.initiative - a.initiative);
         setTurnQueue(queue);
-        setCurrentIndex(0);
-        console.log('🎯 Turn queue initialized with', queue.length, 'entries');
-        console.log('📋 Turn queue entries:', queue.map(e => ({
-            name: e.character?.name,
-            type: e.type,
-            initiative: e.initiative,
-            hasCharacter: !!e.character,
-            characterKeys: e.character ? Object.keys(e.character) : 'none'
-        })));
     }, [session, currentSession]);
 
-    const handleSessionCreated = (newSessionId: string) => {
-        setShowCreateSession(false);
-        // Auto-join the created session
-        const username = localStorage.getItem('username') || 'Player';
-        fetch(`/api/v1/sessions/${newSessionId}/players`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ player_name: username }),
-        }).then(res => res.json()).then(data => {
-            localStorage.setItem('currentSessionId', newSessionId);
-            localStorage.setItem('currentPlayerId', data.player_id);
-            alert(`Session created and joined!\nPlayer ID: ${data.player_id}`);
-            window.location.reload();
-        }).catch(err => {
-            console.error('Failed to auto-join:', err);
-            localStorage.setItem('currentSessionId', newSessionId);
-        });
+    const handleCopySessionId = async () => {
+        if (sessionId) {
+            try {
+                await navigator.clipboard.writeText(sessionId);
+                setCopiedSessionId(true);
+                setTimeout(() => setCopiedSessionId(false), 2000);
+            } catch (err) {
+                setCopiedSessionId(true);
+                setTimeout(() => setCopiedSessionId(false), 2000);
+            }
+        }
     };
 
     const handleStartGame = async () => {
         if (!sessionId) return;
         try {
-            // Set generating state
             setIsGenerating(true);
             setGenerationStatus('🎲 Инициализация игрового мира...');
-
-            // Get username for character name
             const username = localStorage.getItem('username') || 'Adventurer';
 
             const response = await fetch(`/api/v1/sessions/${sessionId}/start`, {
@@ -374,60 +201,25 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
                     'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                 },
                 body: JSON.stringify({
-                    wishes: 'A medieval tavern with adventurers',
-                    scene_prompt: 'A bustling medieval tavern filled with adventurers, merchants, and mysterious strangers',
-                    character_prompts: [
-                        `A brave ${username}, level 1 adventurer ready for quests`,
-                    ],
-                    npc_prompts: [
-                        'A friendly tavern keeper who knows all the local rumors',
-                        'A mysterious hooded figure sitting in the corner',
-                    ],
+                    wishes: 'A medieval fantasy dungeon quest with mysteries and encounters',
+                    scene_prompt: 'A ruined underground temple chamber bathed in eerie blue torchlight',
+                    character_prompts: [`A brave ${username}, level 1 adventurer ready for quests`],
+                    npc_prompts: ['A cunning goblin scout hiding in the shadows'],
                 }),
             });
+
             const data = await response.json();
-
             if (response.ok) {
-                setGenerationStatus('✨ Генерация персонажа...');
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                setGenerationStatus('🧙 Создание NPC...');
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                // Update localStorage with new session ID and mark as running
                 localStorage.setItem('currentSessionId', sessionId);
                 localStorage.setItem('gameStatus', 'running');
-                console.log('🎮 Game started:', data);
-
-                setGenerationStatus('🌍 Загрузка мира...');
-                await new Promise(resolve => setTimeout(resolve, 800));
-
-                // Update store with player data from response
-                setCurrentSession({
-                    session_id: sessionId,
-                    session_name: data.session_name,
-                    game_mode: data.game_mode,
-                    status: 'running',
-                    player_count: data.player_count,
-                    max_players: 5,
-                    description: undefined,
-                    players: data.players || [],
-                    npcs: data.npcs || [],
-                } as any);
-
-                // Reset generating state
                 setIsGenerating(false);
                 setGenerationStatus('');
-
-                // Pass session data to parent and navigate to game
                 if (onCreateSession) {
-                    onCreateSession(); // This will trigger the callback to navigate
+                    onCreateSession();
                 } else {
-                    // Fallback: reload to update UI
                     window.location.reload();
                 }
             } else {
-                console.error('Failed to start game:', data.detail);
                 setIsGenerating(false);
                 setGenerationStatus('');
             }
@@ -442,559 +234,250 @@ export const GameLayout: React.FC<GameLayoutProps> = ({ onCreateSession, onViewS
         localStorage.removeItem('currentSessionId');
         localStorage.removeItem('currentPlayerId');
         localStorage.removeItem('gameStatus');
-        // Update store to clear session
         setCurrentSession(null);
-        // Force re-render by updating local state
         window.location.reload();
     };
 
-    // ALL useCallback MUST BE BEFORE ANY CONDITIONAL RETURNS
-    const getAliveQueue = useCallback(() => {
-        const result = turnQueue.filter(entry => !entry.isDead);
-        console.log('🔍 getAliveQueue:', {
-            turnQueueLength: turnQueue.length,
-            aliveLength: result.length,
-            entries: result.map(e => ({ name: e.character?.name, isDead: e.isDead, type: e.type }))
-        });
-        return result;
-    }, [turnQueue]);
-
-    const handleDeathAnimation = useCallback((characterName: string) => {
-        setDyingCharacters(prev => [...prev, characterName]);
-        setTimeout(() => {
-            setDyingCharacters(prev => prev.filter(name => name !== characterName));
-        }, 1000);
-    }, []);
-
-    const performDeathSave = useCallback((characterName: string) => {
-        const roll = Math.floor(Math.random() * 20) + 1;
-        console.log(`${characterName} death save roll: ${roll}`);
-    }, []);
-
-    const advanceTurn = useCallback(() => {
-        const queue = turnQueue.filter(entry => !entry.isDead);
-        if (queue.length === 0) return;
-        const currentChar = queue[currentIndex % queue.length];
-        if (currentChar?.isDying) {
-            performDeathSave(currentChar.character.name);
+    const handleNextTurn = () => {
+        if (turnQueue.length === 0) return;
+        const nextIdx = (currentIndex + 1) % turnQueue.length;
+        setCurrentIndex(nextIdx);
+        const nextActor = turnQueue[nextIdx];
+        if (nextActor?.character && nextActor.type === 'player') {
+            setActiveCharacter(nextActor.character);
         }
-        setCurrentIndex(prev => (prev + 1) % queue.length);
-    }, [turnQueue, currentIndex, performDeathSave]);
+    };
 
-    const handleMouseMove = useCallback((e: MouseEvent) => {
-        if (!isResizingLeft && !isResizingRight && !isResizingHeader && !isResizingActionPanel) return;
-        if (!containerRef.current) return;
-        const container = containerRef.current;
-        const containerRect = container.getBoundingClientRect();
-        if (isResizingHeader) {
-            const deltaY = e.clientY - startY.current;
-            const newHeight = startHeaderHeight.current + deltaY;
-            const minHeight = window.innerHeight * 0.05;
-            const maxHeight = window.innerHeight * 0.10;
-            setHeaderHeight(Math.max(minHeight, Math.min(maxHeight, newHeight)));
-        } else if (isResizingActionPanel) {
-            const deltaY = e.clientY - startY.current;
-            const deltaPercent = (deltaY / containerRect.height) * 100;
-            const newHeight = startActionPanelHeight.current + deltaPercent;
-            if (newHeight < 10) {
-                setIsSceneCollapsed(true);
-                prevActionPanelHeight.current = actionPanelHeight;
-                setActionPanelHeight(0);
-            } else {
-                setIsSceneCollapsed(false);
-                setActionPanelHeight(Math.max(10, Math.min(60, newHeight)));
-            }
-        } else {
-            const deltaX = e.clientX - startX.current;
-            const deltaPercent = (deltaX / containerWidth.current) * 100;
-            if (isResizingLeft) {
-                const newWidth = startLeftWidth.current + deltaPercent;
-                setLeftPanelWidth(Math.max(5, Math.min(25, newWidth)));
-            }
-            if (isResizingRight) {
-                const newWidth = startRightWidth.current - deltaPercent;
-                setRightPanelWidth(Math.max(5, Math.min(25, newWidth)));
-            }
-        }
-    }, [isResizingLeft, isResizingRight, isResizingHeader, isResizingActionPanel]);
-
-    const handleMouseUp = useCallback(() => {
-        if (isResizingHeader) {
-            const minHeight = window.innerHeight * 0.05;
-            const maxHeight = window.innerHeight * 0.10;
-            const midpoint = (minHeight + maxHeight) / 2;
-            if (headerHeight > midpoint) {
-                setHeaderHeight(maxHeight);
-            } else {
-                setHeaderHeight(minHeight);
-            }
-        }
-        if (isResizingActionPanel) {
-            const collapseThreshold = 10;
-            if (actionPanelHeight < collapseThreshold) {
-                setIsSceneCollapsed(true);
-                setActionPanelHeight(0);
-            } else {
-                setIsSceneCollapsed(false);
-                setActionPanelHeight(70);
-            }
-        }
-        setIsResizingLeft(false);
-        setIsResizingRight(false);
-        setIsResizingHeader(false);
-        setIsResizingActionPanel(false);
-    }, [isResizingHeader, isResizingActionPanel, headerHeight, actionPanelHeight]);
-
-    useEffect(() => {
-        if (isResizingLeft || isResizingRight || isResizingHeader || isResizingActionPanel) {
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', handleMouseUp);
-            return () => {
-                document.removeEventListener('mousemove', handleMouseMove);
-                document.removeEventListener('mouseup', handleMouseUp);
-            };
-        }
-    }, [isResizingLeft, isResizingRight, isResizingHeader, isResizingActionPanel, handleMouseMove, handleMouseUp]);
-
-    // Variables derived from hooks (must be after ALL hooks)
-    const aliveQueue = getAliveQueue();
-    const currentTurnChar = aliveQueue[currentIndex % aliveQueue.length];
-
-    // Show session creation overlay
+    // Overlay for session creation
     if (showCreateSession && userId) {
-        return <SessionCreation userId={parseInt(userId)} onComplete={handleSessionCreated} onBack={() => setShowCreateSession(false)} />;
+        return <SessionCreation userId={parseInt(userId)} onComplete={() => setShowCreateSession(false)} onBack={() => setShowCreateSession(false)} />;
     }
 
-    // Show profile page
+    // Overlay for profile
     if (showProfile && userId) {
-        return (
-            <ProfilePage
-                userId={parseInt(userId)}
-                onBack={() => setShowProfile(false)}
-                onGoHome={() => {
-                    setShowProfile(false);
-                    // Navigate to home page
-                }}
-            />
-        );
+        return <ProfilePage userId={parseInt(userId)} onBack={() => setShowProfile(false)} onGoHome={() => setShowProfile(false)} />;
     }
 
-    // Check if user has active session (from localStorage)
     const hasActiveSession = sessionId && playerId;
-
-    // Check if game was started (session is running)
-    // Only consider game started if we have both sessionId AND playerId
     const isGameStarted = hasActiveSession && gameStatus === 'running';
-    
-    // Show message if session was lost
+
+    // Session not found fallback
     if (sessionNotFound) {
         return (
-            <div className="game-layout">
-                <div className="no-session-screen">
-                    <div className="no-session-content">
-                        <h1>⚠️ Session Not Found</h1>
-                        <p>The game session could not be loaded from the server.</p>
-                        <p className="hint">This may happen if the server was restarted or the session expired.</p>
-                        <div className="no-session-actions">
-                            <button className="btn-create-session" onClick={() => {
-                                localStorage.removeItem('currentSessionId');
-                                localStorage.removeItem('currentPlayerId');
-                                localStorage.removeItem('gameStatus');
-                                setSessionNotFound(false);
-                                window.location.reload();
-                            }}>
-                                🔄 Clear & Start Fresh
-                            </button>
-                            <button className="btn-join-session" onClick={onCreateSession}>
-                                ✨ Create New Session
-                            </button>
-                        </div>
+            <div className="ergonomic-game-layout error-state">
+                <div className="status-modal-card">
+                    <h2>⚠️ Session Not Found</h2>
+                    <p>The game session was not found on the server.</p>
+                    <div className="modal-actions-row">
+                        <button className="primary-btn" onClick={handleLeaveSession}>Start Fresh</button>
+                        <button className="secondary-btn" onClick={onCreateSession}>Create New</button>
                     </div>
                 </div>
             </div>
         );
     }
 
-    console.log('🔍 GameLayout render:', { hasActiveSession, isGameStarted, sessionId, playerId, gameStatus });
-
-    // Show loading screen during game generation
+    // Loading overlay
     if (isGenerating) {
         return (
-            <div className="game-layout">
-                <div className="loading-screen">
-                    <div className="loading-content">
-                        <div className="loading-animation">
-                            <div className="loading-spinner"></div>
-                            <div className="loading-spinner-delay"></div>
-                            <div className="loading-spinner-delay-2"></div>
-                        </div>
-                        <h2>🎮 Создание игры...</h2>
-                        <p className="loading-status">{generationStatus}</p>
-                        <p className="loading-hint">Пожалуйста, подождите. Это может занять несколько секунд.</p>
-                    </div>
+            <div className="ergonomic-game-layout loading-state">
+                <div className="status-modal-card">
+                    <div className="pulse-spinner" />
+                    <h2>🎮 Initializing Adventure...</h2>
+                    <p className="status-text">{generationStatus || 'Summoning world and entities...'}</p>
                 </div>
             </div>
         );
     }
 
-    // Show game interface when game is started (even without currentScene from WebSocket)
-    if (hasActiveSession && isGameStarted) {
-        // Game is running - show the full game interface
-        // currentScene will be populated when WebSocket connects
-        console.log('🎮 Showing game interface for running session');
-        // Continue to render the game interface below
-    } else if (hasActiveSession && !isGameStarted) {
+    // Lobby state
+    if (hasActiveSession && !isGameStarted) {
         return (
-            <div className="game-layout">
-                <div className="no-session-screen">
-                    <div className="no-session-content">
-                        <h1>🎮 Connected to Session</h1>
-                        <p>You are connected to session: <strong>{sessionId}</strong></p>
-                        <p>Player ID: <strong>{playerId}</strong></p>
-                        <div className="no-session-actions">
-                            <button className="btn-create-session" onClick={handleStartGame}>
-                                ▶️ Start Game
-                            </button>
-                            <button className="btn-join-session" onClick={handleLeaveSession}>
-                                🚪 Leave Session
-                            </button>
-                        </div>
-                        <p className="text-muted">Note: Full game integration requires backend to initialize scene data.</p>
+            <div className="ergonomic-game-layout lobby-state">
+                <div className="status-modal-card lobby-card">
+                    <span className="lobby-icon">🎲</span>
+                    <h2>Adventure Ready to Begin</h2>
+                    <p>Connected to Session: <strong>{sessionId?.slice(0, 8)}...</strong></p>
+                    <p className="lobby-hint">Click below when your party is ready to step into the world.</p>
+                    <div className="modal-actions-row">
+                        <button className="primary-btn glow" onClick={handleStartGame}>▶️ Launch Game Session</button>
+                        <button className="secondary-btn" onClick={handleLeaveSession}>🚪 Leave Lobby</button>
                     </div>
                 </div>
             </div>
         );
     }
 
-    // Show "no session" state when not in active game AND game not started
+    // No session state
     if ((!hasActiveSession || !isGameStarted) && (!session || !currentScene)) {
         return (
-            <div className="game-layout">
-                <div className="no-session-screen">
-                    <div className="no-session-content">
-                        <h1>🎲 No Active Game Session</h1>
-                        <p>You are not currently in an active game session.</p>
-                        <div className="no-session-actions">
-                            <button
-                                className="btn-create-session"
-                                onClick={onCreateSession}
-                            >
-                                ✨ Create New Session
-                            </button>
-                            <button
-                                className="btn-join-session"
-                                onClick={() => {/* TODO: Join session */}}
-                            >
-                                🚪 Join Existing Session
-                            </button>
-                            <button
-                                className="btn-back-landing"
-                                onClick={() => {
-                                    // Redirect to profile page
-                                    const event = new CustomEvent('show-profile');
-                                    window.dispatchEvent(event);
-                                }}
-                            >
-                                ← Back to Profile
-                            </button>
-                        </div>
-                        {activeSessions && activeSessions.length > 0 && (
-                            <div className="available-sessions">
-                                <h3>Available Sessions:</h3>
-                                <div className="sessions-list">
-                                    {activeSessions.map(sess => (
-                                        <div key={sess.session_id} className="session-item">
-                                            <div className="session-item-info">
-                                                <span className="session-name">{sess.session_name}</span>
-                                                <span className="session-players">{sess.player_count}/{sess.max_players} players</span>
-                                            </div>
-                                            <button
-                                                className="btn-join-session"
-                                                onClick={() => onJoinSession && onJoinSession(sess.session_id)}
-                                            >
-                                                🚪 Join
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+            <div className="ergonomic-game-layout empty-state">
+                <div className="status-modal-card">
+                    <span className="lobby-icon">⚔️</span>
+                    <h2>No Active Session</h2>
+                    <p>Create or join an adventure session to begin playing.</p>
+                    <div className="modal-actions-row">
+                        <button className="primary-btn glow" onClick={onCreateSession}>✨ Create Session</button>
+                        <button className="secondary-btn" onClick={() => window.location.href = '/'}>← Back to Home</button>
                     </div>
                 </div>
             </div>
         );
     }
 
-    const startLeftResize = (e: React.MouseEvent) => {
-        e.preventDefault();
-        setIsResizingLeft(true);
-        startX.current = e.clientX;
-        startLeftWidth.current = leftPanelWidth;
-        if (containerRef.current) {
-            containerWidth.current = containerRef.current.getBoundingClientRect().width;
-        }
-    };
-
-    const startRightResize = (e: React.MouseEvent) => {
-        e.preventDefault();
-        setIsResizingRight(true);
-        startX.current = e.clientX;
-        startRightWidth.current = rightPanelWidth;
-        if (containerRef.current) {
-            containerWidth.current = containerRef.current.getBoundingClientRect().width;
-        }
-    };
-
-    const startHeaderResize = (e: React.MouseEvent) => {
-        e.preventDefault();
-        setIsResizingHeader(true);
-        startY.current = e.clientY;
-        startHeaderHeight.current = headerHeight;
-    };
-
-    const startActionPanelResize = (e: React.MouseEvent) => {
-        e.preventDefault();
-        setIsResizingActionPanel(true);
-        startY.current = e.clientY;
-        startActionPanelHeight.current = isSceneCollapsed ? (prevActionPanelHeight.current || 50) : actionPanelHeight;
-        if (containerRef.current) {
-            containerHeight.current = containerRef.current.getBoundingClientRect().height;
-        }
-    };
-
-    const toggleScene = () => {
-        if (isSceneCollapsed) {
-            // Expand scene with animation
-            setIsCollapsing(true);
-            setActionPanelHeight(70);
-            setIsSceneCollapsed(false);
-            setTimeout(() => setIsCollapsing(false), 300);
-        } else {
-            // Collapse scene with animation
-            setIsCollapsing(true);
-            prevActionPanelHeight.current = actionPanelHeight;
-            setActionPanelHeight(0);
-            setIsSceneCollapsed(true);
-            setTimeout(() => setIsCollapsing(false), 300);
-        }
-    };
-
-    if (!session) {
-        return <div className="loading">Loading game...</div>;
-    }
-
-    const getAttitudeColor = (type: string) => {
-        switch (type) {
-            case 'player': return 'var(--accent-purple)';
-            case 'ally': return 'var(--accent-green)';
-            case 'neutral': return 'var(--accent-yellow)';
-            case 'hostile': return 'var(--accent-red)';
-            default: return 'var(--text-muted)';
-        }
-    };
-
-    const getAttitudeBgGradient = (type: string) => {
-        switch (type) {
-            case 'player': return 'linear-gradient(135deg, rgba(157, 78, 221, 0.3) 0%, rgba(157, 78, 221, 0.1) 100%)';
-            case 'ally': return 'linear-gradient(135deg, rgba(42, 157, 143, 0.3) 0%, rgba(42, 157, 143, 0.1) 100%)';
-            case 'neutral': return 'linear-gradient(135deg, rgba(233, 196, 106, 0.3) 0%, rgba(233, 196, 106, 0.1) 100%)';
-            case 'hostile': return 'linear-gradient(135deg, rgba(230, 57, 70, 0.3) 0%, rgba(230, 57, 70, 0.1) 100%)';
-            default: return 'linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%)';
-        }
-    };
-
-    const handleCopySessionId = async () => {
-        if (sessionId) {
-            try {
-                await navigator.clipboard.writeText(sessionId);
-                setCopiedSessionId(true);
-                setTimeout(() => setCopiedSessionId(false), 2000);
-            } catch (err) {
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = sessionId;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                setCopiedSessionId(true);
-                setTimeout(() => setCopiedSessionId(false), 2000);
-            }
-        }
-    };
+    const currentActor = turnQueue[currentIndex % Math.max(1, turnQueue.length)];
+    const activeGameMode = (currentSession as any)?.game_mode || 'STORY';
 
     return (
-        <div className="game-layout" ref={containerRef} style={{ '--header-height': `${headerHeight}px` } as React.CSSProperties}>
-            {/* Header */}
-            <header
-                className="game-header"
-                style={{
-                    height: `${headerHeight}px`,
-                    '--header-height': `${headerHeight}px`
-                } as React.CSSProperties}
-            >
-                <div className="header-left">
-                    <h1 className="game-title">
-                        <span className="title-magg">MAGG</span>
-                        <span className="title-x">x</span>
-                        <span className="title-dnd">DND</span>
+        <div className="ergonomic-game-layout">
+            {/* Top Navigation & Initiative HUD */}
+            <header className="ergonomic-game-header">
+                {/* Brand & Session */}
+                <div className="header-brand-section">
+                    <h1 className="brand-logo">
+                        <span className="logo-gold">MAGG</span>
+                        <span className="logo-dim">×</span>
+                        <span className="logo-white">DND</span>
                     </h1>
-                    {/* Session ID with copy button */}
+
                     {sessionId && (
-                        <div className="session-id-container" onClick={handleCopySessionId} title="Click to copy session ID">
-                            <span className="session-id-label">Session:</span>
-                            <span className="session-id">{copiedSessionId ? '✓ Copied!' : sessionId.slice(0, 8)}...</span>
-                            <span className="copy-icon">{copiedSessionId ? '✓' : '📋'}</span>
+                        <div
+                            className="session-id-pill"
+                            onClick={handleCopySessionId}
+                            title="Click to copy full Session ID"
+                        >
+                            <span className="pill-dot" />
+                            <span className="pill-text">{copiedSessionId ? '✓ Copied' : `Session: ${sessionId.slice(0, 8)}`}</span>
                         </div>
                     )}
+
+                    <div className={`mode-badge ${activeGameMode.toLowerCase()}`}>
+                        {activeGameMode === 'COMBAT' ? '⚔️ COMBAT' : '📜 STORY'}
+                    </div>
                 </div>
 
-                {/* Turn Queue - Compact Badges */}
-                <div className="header-center turn-queue-container">
-                    {aliveQueue && aliveQueue.length > 0 ? (
-                        <div className="turn-queue-compact">
-                            {aliveQueue.map((entry, idx) => {
-                                const isCurrentTurn = idx === (currentIndex % aliveQueue.length);
-                                const isDying = entry.isDying;
-                                const color = getAttitudeColor(entry.type);
+                {/* Center: Dynamic Initiative Strip */}
+                <div className="header-initiative-strip">
+                    {turnQueue.length > 0 ? (
+                        <div className="initiative-tokens-list">
+                            {turnQueue.map((entry, idx) => {
+                                const isCurrent = idx === (currentIndex % turnQueue.length);
+                                const isAlly = entry.type === 'player' || entry.type === 'ally';
                                 return (
                                     <div
                                         key={`turn-${idx}-${entry.character.name}`}
-                                        className={`turn-badge ${isCurrentTurn ? 'active' : ''} ${isDying ? 'dying' : ''}`}
-                                        style={{
-                                            borderColor: color,
-                                            opacity: isCurrentTurn ? 1 : 0.5,
-                                        }}
-                                        title={`${entry.character.name} (${entry.type})`}
+                                        className={`turn-token-pill ${isCurrent ? 'active' : ''} ${isAlly ? 'ally' : 'hostile'}`}
+                                        title={`${entry.character.name} (Initiative: ${entry.initiative})`}
                                     >
-                                        <span className="turn-order">{idx + 1}</span>
+                                        <span className="turn-rank">{idx + 1}</span>
                                         <span className="turn-name">{entry.character.name}</span>
-                                        {isDying && (
-                                            <span className="turn-death-saves">
-                                                {'✓'.repeat(entry.deathSaveSuccesses)}{'✗'.repeat(entry.deathSaveFailures)}
-                                            </span>
-                                        )}
+                                        {isCurrent && <span className="turn-active-indicator">NOW</span>}
                                     </div>
                                 );
                             })}
                         </div>
                     ) : (
-                        <div className="no-turn-queue">
-                            <p>⏳ Waiting...</p>
-                        </div>
+                        <span className="free-exploration-text">🕊️ Free Party Exploration</span>
+                    )}
+
+                    {turnQueue.length > 0 && (
+                        <button
+                            type="button"
+                            className="next-turn-btn"
+                            onClick={handleNextTurn}
+                            title="Advance to next turn"
+                        >
+                            Next Turn ❯
+                        </button>
                     )}
                 </div>
 
-                <div className="header-right">
-                    <button className="profile-btn" title="Profile" onClick={() => setShowProfile(true)}>
-                        <span className="profile-icon">👤</span>
+                {/* Right: Layout Switchers & Quick Tools */}
+                <div className="header-tools-section">
+                    {/* View mode toggle */}
+                    <div className="layout-mode-group">
+                        <button
+                            type="button"
+                            className={`layout-btn ${layoutMode === 'map' ? 'active' : ''}`}
+                            onClick={() => setLayoutMode('map')}
+                            title="Tactical Map Focus"
+                        >
+                            🗺️
+                        </button>
+                        <button
+                            type="button"
+                            className={`layout-btn ${layoutMode === 'split' ? 'active' : ''}`}
+                            onClick={() => setLayoutMode('split')}
+                            title="Split Map & Chronicle"
+                        >
+                            ⚖️
+                        </button>
+                        <button
+                            type="button"
+                            className={`layout-btn ${layoutMode === 'story' ? 'active' : ''}`}
+                            onClick={() => setLayoutMode('story')}
+                            title="Chronicle Story Focus"
+                        >
+                            📜
+                        </button>
+                    </div>
+
+                    {/* Quick Tools */}
+                    <button
+                        type="button"
+                        className={`tool-icon-btn ${showCharacterDrawer ? 'active' : ''}`}
+                        onClick={() => setShowCharacterDrawer(!showCharacterDrawer)}
+                        title="Toggle Hero Sheet Drawer"
+                    >
+                        👤
+                    </button>
+
+                    <button
+                        type="button"
+                        className="tool-icon-btn"
+                        onClick={() => setShowProfile(true)}
+                        title="User Profile"
+                    >
+                        ⚙️
                     </button>
                 </div>
-
-                {/* Header resize handle */}
-                <div
-                    className="header-resize-handle"
-                    onMouseDown={startHeaderResize}
-                />
             </header>
 
-            {/* Main content */}
-            <div className="game-content">
-                {/* Waiting overlay when player has no character yet */}
-                {!activeCharacter && (
-                    <div className="waiting-overlay">
-                        <div className="waiting-card">
-                            <div className="waiting-icon">⏳</div>
-                            <h2>Waiting for Character</h2>
-                            <p>Your character is being prepared by the game master.</p>
-                            <p className="waiting-hint">Please wait while the session is being initialized...</p>
-                            <div className="waiting-spinner" />
-                        </div>
+            {/* Main Interactive Arena */}
+            <div className={`ergonomic-workspace ${layoutMode}`}>
+                {/* Tactical Scene Viewer */}
+                {(layoutMode === 'split' || layoutMode === 'map') && (
+                    <div className={`workspace-pane map-pane ${layoutMode === 'map' ? 'fullscreen' : ''}`}>
+                        <SceneViewer />
                     </div>
                 )}
-                
-                {/* Left Panel - Characters */}
-                <aside
-                    className="left-panel"
-                    style={{ width: `${leftPanelWidth}%` }}
-                >
-                    {leftPanelWidth <= 5 ? <MiniCharacterPanel /> : <CharacterPanel />}
-                </aside>
 
-                {/* Left resize handle */}
-                <div
-                    className={`resize-handle left-resize ${isResizingLeft ? 'resizing' : ''}`}
-                    onMouseDown={startLeftResize}
-                />
-
-                {/* Center - Action Panel Only (Scene moved to sidebar) */}
-                <main className="center-panel">
-                    <div className={`action-panel-container`} style={{ flex: `1 1 100%` }}>
-                        <ActionPanel />
+                {/* Narrative Chronicle Log with Integrated Input */}
+                {(layoutMode === 'split' || layoutMode === 'story') && (
+                    <div className={`workspace-pane chronicle-pane ${layoutMode === 'story' ? 'fullscreen' : ''}`}>
+                        <ChatPanel />
                     </div>
-                </main>
+                )}
 
-                {/* Right resize handle */}
-                <div
-                    className={`resize-handle right-resize ${isResizingRight ? 'resizing' : ''}`}
-                    onMouseDown={startRightResize}
-                />
-
-                {/* Right Panel - Chat + Events + Grid Tabs */}
-                <aside
-                    className="right-panel"
-                    style={{ width: `${rightPanelWidth}%` }}
-                >
-                    {rightPanelWidth <= 5 ? (
-                        <MiniChatPanel />
-                    ) : (
-                        <div className="right-panel-with-tabs">
-                            {/* Tab bar */}
-                            <div className="right-panel-tabs">
-                                <button
-                                    className={`right-panel-tab-btn ${rightPanelTab === 'chat' ? 'active' : ''}`}
-                                    onClick={() => setRightPanelTab('chat')}
-                                >
-                                    💬 Chat
-                                </button>
-                                <button
-                                    className={`right-panel-tab-btn ${rightPanelTab === 'events' ? 'active' : ''}`}
-                                    onClick={() => setRightPanelTab('events')}
-                                >
-                                    ⚡ Events
-                                </button>
-                                <button
-                                    className={`right-panel-tab-btn ${rightPanelTab === 'grid' ? 'active' : ''}`}
-                                    onClick={() => setRightPanelTab('grid')}
-                                >
-                                    🗺️ Grid
-                                </button>
-                            </div>
-                            {/* Tab content */}
-                            <div className="right-panel-tab-content">
-                                {rightPanelTab === 'chat' && <ChatPanel />}
-                                {rightPanelTab === 'events' && <EventsPanel />}
-                                {rightPanelTab === 'grid' && <SceneViewer />}
-                            </div>
+                {/* Slide-out Character Sheet Drawer */}
+                {showCharacterDrawer && (
+                    <aside className="character-sheet-drawer">
+                        <div className="drawer-header-bar">
+                            <h3>Hero Details</h3>
+                            <button
+                                type="button"
+                                className="close-drawer-btn"
+                                onClick={() => setShowCharacterDrawer(false)}
+                            >
+                                ✕
+                            </button>
                         </div>
-                    )}
-                </aside>
+                        <div className="drawer-body">
+                            <CharacterPanel />
+                        </div>
+                    </aside>
+                )}
             </div>
-
-            {/* Footer */}
-            <Footer />
-
-            {/* Profile Page Modal */}
-            {showProfile && userId && (
-                <ProfilePage
-                    userId={parseInt(userId)}
-                    onBack={() => setShowProfile(false)}
-                    onGoHome={() => {
-                        setShowProfile(false);
-                        // Navigate to home page
-                    }}
-                />
-            )}
         </div>
     );
 };

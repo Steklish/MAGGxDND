@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { CharacterProfile } from '../services/characterAPI';
+import { VectorIcon } from './common/VectorIcon';
 import './CharacterProfileSelector.css';
 
 interface CharacterProfileSelectorProps {
@@ -69,7 +70,7 @@ export const CharacterProfileSelector: React.FC<CharacterProfileSelectorProps> =
 
                 {profiles.length === 0 ? (
                     <div className="no-profiles">
-                        <div className="no-profiles-icon">📜</div>
+                        <div className="no-profiles-icon"><VectorIcon name="banner" size={48} /></div>
                         <h3>No Saved Characters</h3>
                         <p>You don't have any saved character profiles yet.</p>
                         <p className="hint">
@@ -96,7 +97,11 @@ export const CharacterProfileSelector: React.FC<CharacterProfileSelectorProps> =
                                 >
                                     <div className="profile-card-header">
                                         <h3>{profile.name}</h3>
-                                        {profile.is_favorite && <span className="favorite-badge">⭐</span>}
+                                        {profile.is_favorite && (
+                                            <span className="favorite-badge">
+                                                <VectorIcon name="crown" size={14} />
+                                            </span>
+                                        )}
                                     </div>
                                     
                                     <div className="profile-info">

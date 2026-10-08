@@ -12,6 +12,7 @@ from core.game.manipulators.movement_manipulator import MovementManipulator
 from core.game.manipulators.scene_object_movement_manipulator import SceneObjectMovementManipulator
 from core.game.manipulators.object_transfer_manipulator import ObjectTransferManipulator
 from core.game.manipulators.item_interaction_manipulator import ItemInteractionManipulator
+from core.game.manipulators.location_manipulator import LocationManipulator
 from core.utils.threads import run_in_parallel_args
 
 
@@ -64,6 +65,9 @@ class Manipulator:
 
         # Add item interaction manipulator
         self.manipulations.append(ItemInteractionManipulator(self.session))
+
+        # Add location/scene transition manipulator
+        self.manipulations.append(LocationManipulator(self.session))
 
         self.logger.info(f"Initialized {len(self.manipulations)} manipulations")
         

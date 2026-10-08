@@ -13,6 +13,7 @@ SessionFactory - фабрика для создания игровых сесс�
 import os
 import logging
 from logging.handlers import RotatingFileHandler
+from backend.src.logging.config import SafeRotatingFileHandler
 from typing import Optional, List
 import uuid
 
@@ -55,11 +56,13 @@ class SessionConfig:
         llamacpp_embed_base: str = "localhost:12345",
         llamacpp_chat_base: str = "http://localhost:8080",
         gemini_api_key: Optional[str] = None,
-        gemini_model: str = "gemini-flash-lite-latest",
+        gemini_model: str = "gemini-3.5-flash-lite",
         log_dir: str = "./log",
         chroma_db_path: str = "./chroma_db/data.db",
+        language: str = "ru",
     ):
         self.session_name = session_name
+        self.language = language or "ru"
         self.game_mode = game_mode
         self.max_players = max_players
         self.description = description
@@ -135,7 +138,8 @@ class SessionFactory:
             logger=logger.getChild("engine"),
             generator=generator,
             event_pool=event_pool,
-            delivery=None  # type: ignore  # Будет создан и инжектирован ниже
+            delivery=None,  # type: ignore  # Будет создан и инжектирован ниже
+            language=config.language
         )
         
         # 7. Создаём GameDelivery с прямой ссылкой на Session
@@ -150,7 +154,8 @@ class SessionFactory:
         session.delivery = delivery
         
         # 9. Устанавливаем режим игры
-        session.game_mode = GameModes(config.game_mode)
+        mode_str = config.game_mode.upper() if isinstance(config.game_mode, str) else config.game_mode
+        session.game_mode = GameModes(mode_str)
         
         # 10. Создаём и инжектируем Manipulator
         manipulator = self._create_manipulator(config, session, logger)
@@ -160,13 +165,25 @@ class SessionFactory:
         orchestrator = self._create_orchestrator(config, session, logger)
         session._init_orchestrator(orchestrator)
 
-        # 12. Инициализируем сюжет (если есть guide) - OPTIONAL, don't fail if AI unavailable
-        if config.guide:
-            try:
-                session._init_plot(config.guide)
-            except Exception as e:
-                logger.warning(f"⚠️ Plot initialization failed (AI may be unavailable): {e}")
-                logger.info("Continuing without plot initialization")
+        # 12. Инициализируем стартовую локацию/сцену
+        try:
+            from backend.src.api.routers.session_router import procedural_gen, ensure_scene_battlemap
+            scene_prompt = config.guide or config.description or config.session_name or "A heroic fantasy dungeon chamber"
+            starting_scene = procedural_gen.generate_scene(scene_prompt, language=config.language)
+            ensure_scene_battlemap(starting_scene)
+            session.current_scene = starting_scene
+            session.add_location_to_graph(starting_scene.name, starting_scene)
+            logger.info(f"Initialized starting scene: '{starting_scene.name}' in location graph")
+        except Exception as e:
+            logger.warning(f"Starting scene initialization failed: {e}")
+
+        # 13. Инициализируем сюжет
+        try:
+            plot_prompt = config.guide or config.description or config.session_name
+            session._init_plot(plot_prompt)
+            logger.info("Session plot initialized successfully")
+        except Exception as e:
+            logger.warning(f"Plot initialization fallback: {e}")
 
         # 13. Регистрируем сессию в SessionManager
         # Импортируем singleton экземпляр
@@ -202,7 +219,7 @@ class SessionFactory:
             log_file = os.path.join(log_dir, f"{session_name}.log")
             
             # File handler
-            file_handler = RotatingFileHandler(
+            file_handler = SafeRotatingFileHandler(
                 log_file,
                 maxBytes=10*1024*1024,
                 backupCount=5,
@@ -228,16 +245,39 @@ class SessionFactory:
         self._loggers[logger_name] = logger
         return logger
     
-    def _create_chroma_client(self, config: SessionConfig, logger: logging.Logger) -> ChromaClient: # type: ignore
-        """Создать ChromaClient для векторной базы данных."""
-        embedding_client = EmbeddingClient(config.llamacpp_embed_base) # type: ignore
-        chroma_client = ChromaClient(
-            embedding_client,
-            path=config.chroma_db_path,
-            logger_instance=logger
-        ) # type: ignore
-        logger.info(f"ChromaClient инициализирован: {config.chroma_db_path}")
-        return chroma_client
+    def _create_chroma_client(self, config: SessionConfig, logger: logging.Logger):
+        """Создать ChromaClient для векторной базы данных с отказоустойчивым fallback."""
+        try:
+            db_dir = config.chroma_db_path
+            if db_dir.endswith(".db"):
+                db_dir = os.path.dirname(db_dir) or "./chroma_db"
+            os.makedirs(db_dir, exist_ok=True)
+            embedding_client = EmbeddingClient(config.llamacpp_embed_base)
+            chroma_client = ChromaClient(
+                embedding_client,
+                path=db_dir,
+                logger_instance=logger
+            )
+            logger.info(f"ChromaClient инициализирован: {db_dir}")
+            return chroma_client
+        except BaseException as e:
+            logger.warning(f"⚠️ Persistent ChromaClient failed ({e}), falling back to in-memory Client")
+            try:
+                import chromadb
+                class InMemoryChromaWrapper:
+                    def __init__(self):
+                        self.client = chromadb.Client()
+                        self.logger = logger
+                    def get_or_create_collection(self, name):
+                        return self.client.get_or_create_collection(name)
+                    def __getattr__(self, item):
+                        return getattr(self.client, item)
+                return InMemoryChromaWrapper()
+            except BaseException:
+                class DummyChromaClient:
+                    def __getattr__(self, name):
+                        return lambda *args, **kwargs: None
+                return DummyChromaClient()
     
     def _create_generator(self, config: SessionConfig, logger: logging.Logger) -> Generator: # type: ignore
         """Создать Generator для AI генерации."""

@@ -84,7 +84,8 @@ class Settings:
     MODEL_ROLE: str = os.getenv("MODEL_ROLE", "model")
     LLAMACPP_CHAT_BASE: str = os.getenv("LLAMACPP_CHAT_BASE", "http://localhost:8080")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-flash-lite-latest")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+    IMAGEN_MODEL: str = os.getenv("IMAGEN_MODEL", "gemini-3.1-flash-lite-image")
 
     # ===================================================================
     # LOGGING SETTINGS
@@ -101,10 +102,12 @@ class Settings:
     WS_MAX_MESSAGE_SIZE: int = int(os.getenv("WS_MAX_MESSAGE_SIZE", "1048576"))  # 1MB
 
     # ===================================================================
-    # SESSION SETTINGS
+    # SESSION & LANGUAGE SETTINGS
     # ===================================================================
     SESSION_MAX_PLAYERS: int = int(os.getenv("SESSION_MAX_PLAYERS", "5"))
     SESSION_TIMEOUT_MINUTES: int = int(os.getenv("SESSION_TIMEOUT_MINUTES", "120"))
+    DEFAULT_LANGUAGE: str = os.getenv("DEFAULT_LANGUAGE", "ru")  # Russian by default
+    SUPPORTED_LANGUAGES: List[str] = ["ru", "en"]
 
     # ===================================================================
     # OAUTH SETTINGS

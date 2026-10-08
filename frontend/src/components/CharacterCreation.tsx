@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import axios from 'axios';
+import { VectorIcon } from './common/VectorIcon';
 import './CharacterCreation.css';
 
 interface CharacterCreationProps {
@@ -362,7 +363,10 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                 </div>
 
                 {errors.submit && (
-                    <div className="cc-error"><span>⚠️</span><span>{errors.submit}</span></div>
+                    <div className="cc-error">
+                        <VectorIcon name="shield-warrior" size={14} style={{ marginRight: 6 }} />
+                        <span>{errors.submit}</span>
+                    </div>
                 )}
 
                 <form className="cc-form" onSubmit={handleSubmit}>
@@ -408,8 +412,16 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                         >
                                             <span className="race-name">{race.name}</span>
                                             <span className="race-bonus">{Object.entries(race.abilityBonuses).map(([s, v]) => `${s.toUpperCase()} +${v}`).join(', ')}</span>
-                                            <span className="race-detail">⚡ {race.speed} ft • {race.size}</span>
-                                            {race.darkvision && <span className="race-detail">👁️ Darkvision</span>}
+                                            <span className="race-detail">
+                                                <VectorIcon name="horse" size={13} style={{ marginRight: 4, display: 'inline-block', verticalAlign: 'middle' }} />
+                                                {race.speed} ft • {race.size}
+                                            </span>
+                                            {race.darkvision && (
+                                                <span className="race-detail">
+                                                    <VectorIcon name="rune-circle" size={13} style={{ marginRight: 4, display: 'inline-block', verticalAlign: 'middle' }} />
+                                                    Darkvision
+                                                </span>
+                                            )}
                                         </button>
                                     );
                                 })}
@@ -439,9 +451,29 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                 </div>
                             )}
                             <div className="race-preview">
-                                <div className="race-preview-item"><span>⚡ Speed</span><span>{raceData?.speed || 30} ft</span></div>
-                                <div className="race-preview-item"><span>📏 Size</span><span>{raceData?.size || 'Medium'}</span></div>
-                                {raceData?.darkvision && <div className="race-preview-item"><span>👁️ Darkvision</span><span>60 ft</span></div>}
+                                <div className="race-preview-item">
+                                    <span>
+                                        <VectorIcon name="horse" size={13} style={{ marginRight: 4, display: 'inline-block', verticalAlign: 'middle' }} />
+                                        Speed
+                                    </span>
+                                    <span>{raceData?.speed || 30} ft</span>
+                                </div>
+                                <div className="race-preview-item">
+                                    <span>
+                                        <VectorIcon name="banner" size={13} style={{ marginRight: 4, display: 'inline-block', verticalAlign: 'middle' }} />
+                                        Size
+                                    </span>
+                                    <span>{raceData?.size || 'Medium'}</span>
+                                </div>
+                                {raceData?.darkvision && (
+                                    <div className="race-preview-item">
+                                        <span>
+                                            <VectorIcon name="rune-circle" size={13} style={{ marginRight: 4, display: 'inline-block', verticalAlign: 'middle' }} />
+                                            Darkvision
+                                        </span>
+                                        <span>60 ft</span>
+                                    </div>
+                                )}
                             </div>
                             <div className="traits-list">
                                 {(raceData?.traits || []).map(t => (<span key={t} className="trait-tag">✦ {t}</span>))}
@@ -501,7 +533,10 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                         >
                                             <span className="bg-name">{key}</span>
                                             <span className="bg-skills">Skills: {bg.skills.join(', ')}</span>
-                                            <span className="bg-feature-preview">⭐ {bg.feature}</span>
+                                            <span className="bg-feature-preview">
+                                                <VectorIcon name="crown" size={13} style={{ marginRight: 4, display: 'inline-block', verticalAlign: 'middle' }} />
+                                                {bg.feature}
+                                            </span>
                                         </button>
                                     );
                                 })}
@@ -606,12 +641,48 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                             <div className="stat-summary">
                                 <h4>Combat Preview</h4>
                                 <div className="derived-stats">
-                                    <div className="derived-stat"><span>❤️ HP</span><span className="value">{calculateHP()}</span></div>
-                                    <div className="derived-stat"><span>🛡️ AC</span><span className="value">{calculateAC()}</span></div>
-                                    <div className="derived-stat"><span>⚡ Initiative</span><span className="value">{getModifier(finalDex) >= 0 ? '+' : ''}{getModifier(finalDex)}</span></div>
-                                    <div className="derived-stat"><span>👁️ Passive Wis</span><span className="value">{10 + getModifier(finalWis)}</span></div>
-                                    <div className="derived-stat"><span>🏃 Speed</span><span className="value">{raceData?.speed || 30} ft</span></div>
-                                    <div className="derived-stat"><span>🎯 Proficiency</span><span className="value">+{proficiencyBonus}</span></div>
+                                    <div className="derived-stat">
+                                        <span>
+                                            <VectorIcon name="potion" size={13} style={{ marginRight: 4, display: 'inline-block', verticalAlign: 'middle' }} />
+                                            HP
+                                        </span>
+                                        <span className="value">{calculateHP()}</span>
+                                    </div>
+                                    <div className="derived-stat">
+                                        <span>
+                                            <VectorIcon name="shield" size={13} style={{ marginRight: 4, display: 'inline-block', verticalAlign: 'middle' }} />
+                                            AC
+                                        </span>
+                                        <span className="value">{calculateAC()}</span>
+                                    </div>
+                                    <div className="derived-stat">
+                                        <span>
+                                            <VectorIcon name="sword" size={13} style={{ marginRight: 4, display: 'inline-block', verticalAlign: 'middle' }} />
+                                            Initiative
+                                        </span>
+                                        <span className="value">{getModifier(finalDex) >= 0 ? '+' : ''}{getModifier(finalDex)}</span>
+                                    </div>
+                                    <div className="derived-stat">
+                                        <span>
+                                            <VectorIcon name="rune-circle" size={13} style={{ marginRight: 4, display: 'inline-block', verticalAlign: 'middle' }} />
+                                            Passive Wis
+                                        </span>
+                                        <span className="value">{10 + getModifier(finalWis)}</span>
+                                    </div>
+                                    <div className="derived-stat">
+                                        <span>
+                                            <VectorIcon name="horse" size={13} style={{ marginRight: 4, display: 'inline-block', verticalAlign: 'middle' }} />
+                                            Speed
+                                        </span>
+                                        <span className="value">{raceData?.speed || 30} ft</span>
+                                    </div>
+                                    <div className="derived-stat">
+                                        <span>
+                                            <VectorIcon name="sharp-halberd" size={13} style={{ marginRight: 4, display: 'inline-block', verticalAlign: 'middle' }} />
+                                            Proficiency
+                                        </span>
+                                        <span className="value">+{proficiencyBonus}</span>
+                                    </div>
                                 </div>
                             </div>
                             <p className="stat-points">
@@ -837,7 +908,8 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                         className="url-input"
                                     />
                                     <button type="button" className="upload-btn" onClick={() => portraitInputRef.current?.click()}>
-                                        📁 Upload File
+                                        <VectorIcon name="banner" size={14} style={{ marginRight: 6, display: 'inline-block', verticalAlign: 'middle' }} />
+                                        Upload File
                                     </button>
                                     <input
                                         type="file"
@@ -862,7 +934,12 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                         onClick={() => handleAIGenerate('portrait')}
                                         disabled={isGeneratingPortrait || !aiPortraitDesc.trim()}
                                     >
-                                        {isGeneratingPortrait ? 'Generating...' : '✨ AI Generate'}
+                                        {isGeneratingPortrait ? 'Generating...' : (
+                                            <>
+                                                <VectorIcon name="magic" size={14} style={{ marginRight: 6, display: 'inline-block', verticalAlign: 'middle' }} />
+                                                AI Generate
+                                            </>
+                                        )}
                                     </button>
                                     {formData.portrait_url && (
                                         <button
@@ -871,7 +948,8 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                             onClick={() => handleAIGenerate('portrait')}
                                             disabled={isGeneratingPortrait}
                                         >
-                                            🔄 Regenerate
+                                            <VectorIcon name="magic-swirl" size={14} style={{ marginRight: 6, display: 'inline-block', verticalAlign: 'middle' }} />
+                                            Regenerate
                                         </button>
                                     )}
                                 </div>
@@ -896,7 +974,8 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                         className="url-input"
                                     />
                                     <button type="button" className="upload-btn" onClick={() => bgInputRef.current?.click()}>
-                                        📁 Upload File
+                                        <VectorIcon name="banner" size={14} style={{ marginRight: 6, display: 'inline-block', verticalAlign: 'middle' }} />
+                                        Upload File
                                     </button>
                                     <input
                                         type="file"
@@ -921,7 +1000,12 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                         onClick={() => handleAIGenerate('background')}
                                         disabled={isGeneratingBg || !aiBgDesc.trim()}
                                     >
-                                        {isGeneratingBg ? 'Generating...' : '✨ AI Generate'}
+                                        {isGeneratingBg ? 'Generating...' : (
+                                            <>
+                                                <VectorIcon name="magic" size={14} style={{ marginRight: 6, display: 'inline-block', verticalAlign: 'middle' }} />
+                                                AI Generate
+                                            </>
+                                        )}
                                     </button>
                                     {formData.background_image_url && (
                                         <button
@@ -930,7 +1014,8 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                                             onClick={() => handleAIGenerate('background')}
                                             disabled={isGeneratingBg}
                                         >
-                                            🔄 Regenerate
+                                            <VectorIcon name="magic-swirl" size={14} style={{ marginRight: 6, display: 'inline-block', verticalAlign: 'middle' }} />
+                                            Regenerate
                                         </button>
                                     )}
                                 </div>
@@ -945,7 +1030,12 @@ export const CharacterCreation: React.FC<CharacterCreationProps> = ({ userId, on
                             <div className="cc-actions">
                                 <button type="button" className="cc-back" onClick={() => setStep(12)}>← Back</button>
                                 <button type="submit" className="cc-submit" disabled={isLoading}>
-                                    {isLoading ? 'Creating...' : '✨ Create Character'}
+                                    {isLoading ? 'Creating...' : (
+                                        <>
+                                            <VectorIcon name="magic" size={14} style={{ marginRight: 6, display: 'inline-block', verticalAlign: 'middle' }} />
+                                            Create Character
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </div>

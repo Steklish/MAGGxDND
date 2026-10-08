@@ -69,9 +69,16 @@ class NPC(GameEntity):
         # Enhance context with spatial information
         spatial_context = self._get_spatial_context(events)
 
+        lang = getattr(self.session, "language", "ru") if self.session else "ru"
+        lang_directive = (
+            "### ЯЗЫКОВАЯ ДИРЕКТИВА: Описывай действие и мысли NPC СТРОГО НА РУССКОМ ЯЗЫКЕ!\n"
+            if lang == "ru"
+            else "### LANGUAGE DIRECTIVE: Describe the NPC action and reasoning strictly in ENGLISH!\n"
+        )
+
         decision = self.session.generator.generate_one_shot(
             pydantic_model=NPCActDecision,
-            prompt=f"""
+            prompt=f"""{lang_directive}
             ##  Scene context:
             {context}
             ## You are an NPC named {self.character.name} in this scene.

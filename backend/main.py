@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -7,14 +7,24 @@ from slowapi.util import get_remote_address
 from backend.src.api.routers import dev, login, user, access_group, oauth  # , compendium
 from backend.src.api.routers.session_router import router as session_router
 from backend.src.api.routers.websocket_game import router as websocket_router
-from backend.src.api.routers import character, profile, character_profile
+from backend.src.api.routers import character, profile, character_profile, assets_router
 from backend.src.api.middleware import APILoggingMiddleware, SlowRequestMiddleware
 from backend.src.config import settings
 from backend.src.database import init_db, engine
 from backend.src.logging import setup_logging, get_logger
+from backend.src.services.asset_manager import asset_manager
+from fastapi.staticfiles import StaticFiles
 import os
 import sys
 import logging
+import mimetypes
+
+# Register explicit MIME types for Windows compatibility
+mimetypes.add_type("image/svg+xml", ".svg")
+mimetypes.add_type("image/webp", ".webp")
+mimetypes.add_type("image/png", ".png")
+mimetypes.add_type("image/jpeg", ".jpg")
+mimetypes.add_type("image/jpeg", ".jpeg")
 
 # Fix Unicode encoding for Windows console
 if sys.platform == 'win32':
@@ -63,7 +73,11 @@ sub_app.include_router(character.router)
 sub_app.include_router(character_profile.router)
 sub_app.include_router(profile.router)
 sub_app.include_router(oauth.router)
+sub_app.include_router(assets_router.router)
 # sub_app.include_router(compendium.router)  # Temporarily disabled
+
+# Mount StaticFiles on sub_app for /api/v1/assets/...
+sub_app.mount("/assets", StaticFiles(directory=str(asset_manager.base_dir), html=False), name="api_assets")
 
 # Apply rate limiting to auth endpoints
 login.router.dependencies.insert(0, limiter.limit(settings.RATE_LIMIT_AUTH)) # type: ignore
@@ -118,6 +132,11 @@ async def on_startup():
     # Initialize the database tables
     init_db(engine)
     logger.info(f"✓ Database initialized: {settings.DATABASE_URL}")
+
+    # Initialize static visual asset infrastructure
+    asset_manager.initialize()
+    logger.info(f"✓ Static asset infrastructure initialized: {asset_manager.base_dir}")
+
     logger.info(f"✓ CORS origins configured: {settings.CORS_ORIGINS}")
     logger.info(f"✓ Rate limiting: {settings.RATE_LIMIT_ENABLED} ({settings.RATE_LIMIT_DEFAULT})")
     logger.info(f"✓ Server running on {settings.SERVER_HOST}:{settings.SERVER_PORT}")
@@ -195,6 +214,17 @@ UI_DIST_PATH = os.path.join(PROJECT_ROOT, "frontend", "dist")
 UI_ARTS_PATH = os.path.join(PROJECT_ROOT, "frontend", "arts")
 logger.debug(f"Static files configuration: PROJECT_ROOT={PROJECT_ROOT}, UI_DIST_PATH={UI_DIST_PATH}, exists={os.path.exists(UI_DIST_PATH)}")
 
+@app.get("/assets/{asset_path:path}")
+async def serve_assets(asset_path: str):
+    """Serve assets from Vite dist directory first, falling back to dynamic asset storage."""
+    dist_asset = os.path.join(UI_DIST_PATH, "assets", asset_path)
+    if os.path.isfile(dist_asset):
+        return FileResponse(dist_asset)
+    data_asset = os.path.join(asset_manager.base_dir, asset_path)
+    if os.path.isfile(data_asset):
+        return FileResponse(data_asset)
+    raise HTTPException(status_code=404, detail="Asset not found")
+
 @app.get("/favicon.ico")
 async def serve_favicon():
     """Serve favicon from arts folder."""
@@ -218,9 +248,14 @@ async def serve_ui_root():
 @app.get("/{full_path:path}")
 async def serve_ui(full_path: str):
     """Serve UI files for all non-API routes."""
-    # Skip API and docs routes
-    if full_path.startswith("api/") or full_path in ["docs", "redoc", "openapi.json"]:
-        return None
+    # Skip API, assets, code files, and docs routes
+    if (
+        full_path.startswith("api/")
+        or full_path.startswith("assets/")
+        or full_path.endswith((".py", ".env", ".db", ".log", ".ini", ".cfg", ".lock", ".toml", ".jsonl"))
+        or full_path in ["docs", "redoc", "openapi.json"]
+    ):
+        raise HTTPException(status_code=404, detail="Not found")
     
     # Build file path
     file_path = os.path.join(UI_DIST_PATH, full_path)

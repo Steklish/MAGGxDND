@@ -7,6 +7,7 @@ Sessions store complete game state as JSON in session_data field.
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from sqlalchemy.orm import Session as DBSession
+from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy import select, update, delete
 
 from backend.src.models.session import (
@@ -217,7 +218,9 @@ class SessionRepository:
         if owner_id is not None and session.owner_id != owner_id:
             return False
 
-        session.session_data = session_data
+        existing = session.session_data or {}
+        merged = {**existing, **session_data}
+        session.session_data = merged
         session.updated_at = datetime.now()
         session.last_active_at = datetime.now()
 
@@ -401,8 +404,8 @@ class SessionRepository:
             return None
 
         # Get or initialize participants list in session_data
-        session_data = session.session_data or {}
-        participants = session_data.get("participants", [])
+        session_data = dict(session.session_data or {})
+        participants = list(session_data.get("participants", []))
 
         # Check if already a participant
         existing = next((p for p in participants if p.get("player_uuid") == player_uuid), None)
@@ -428,6 +431,7 @@ class SessionRepository:
         session.session_data = session_data
         session.updated_at = datetime.now()
         session.last_active_at = datetime.now()
+        flag_modified(session, "session_data")
 
         self.db.commit()
         
@@ -449,8 +453,8 @@ class SessionRepository:
         if owner_id is not None and session.owner_id != owner_id:
             return False
 
-        session_data = session.session_data or {}
-        participants = session_data.get("participants", [])
+        session_data = dict(session.session_data or {})
+        participants = list(session_data.get("participants", []))
 
         # Filter out the participant
         original_count = len(participants)
@@ -462,6 +466,7 @@ class SessionRepository:
         session_data["participants"] = participants
         session.session_data = session_data
         session.updated_at = datetime.now()
+        flag_modified(session, "session_data")
 
         self.db.commit()
         return True
@@ -482,15 +487,17 @@ class SessionRepository:
         if owner_id is not None and session.owner_id != owner_id:
             return False
 
-        session_data = session.session_data or {}
-        participants = session_data.get("participants", [])
+        session_data = dict(session.session_data or {})
+        participants = list(session_data.get("participants", []))
 
         # Find and update the participant
         for p in participants:
             if p.get("player_uuid") == player_uuid:
                 p["character_name"] = character_name
+                session_data["participants"] = participants
                 session.session_data = session_data
                 session.updated_at = datetime.now()
+                flag_modified(session, "session_data")
                 self.db.commit()
                 return True
 
@@ -512,8 +519,8 @@ class SessionRepository:
         if owner_id is not None and session.owner_id != owner_id:
             return False
 
-        session_data = session.session_data or {}
-        participants = session_data.get("participants", [])
+        session_data = dict(session.session_data or {})
+        participants = list(session_data.get("participants", []))
 
         participant = next((p for p in participants if p.get("player_uuid") == player_uuid), None)
 
@@ -527,6 +534,7 @@ class SessionRepository:
         session_data["participants"] = participants
         session.session_data = session_data
         session.updated_at = datetime.now()
+        flag_modified(session, "session_data")
 
         self.db.commit()
         return True

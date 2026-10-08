@@ -1,112 +1,130 @@
-/* Landing Footer Styles - matches main Footer component */
+/* ==========================================================================
+   LANDING FOOTER - Strict Medieval Codex Style
+   MAGGxDND Design System (Stone Slate, Almond Cream, Taupe, Dark Coffee)
+   ========================================================================== */
 
 .landing-footer {
     position: relative;
     z-index: 1;
-    background-color: rgba(20, 20, 20, 0.5);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-top: 1px solid var(--border-color);
-    padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
-    font-family: 'Rajdhani', sans-serif;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
-    margin-top: 80px;
+    background-color: rgba(24, 25, 28, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border-hairline);
+    padding: 36px 32px 20px;
+    font-family: var(--font-body);
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5);
+    margin-top: 60px;
 }
 
-.footer-content {
+.landing-footer .footer-content {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: var(--spacing-lg);
+    gap: 32px;
     max-width: 1400px;
     margin: 0 auto;
-    padding-bottom: var(--spacing-lg);
-    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-hairline);
 }
 
-.footer-section {
+.landing-footer .footer-section {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-sm);
+    gap: 10px;
 }
 
-.footer-title {
-    color: var(--accent-orange);
-    font-size: 1rem;
-    font-weight: 600;
+.landing-footer .footer-title {
+    color: var(--color-almond);
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.1em;
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
-.footer-links {
+.landing-footer .footer-title::before {
+    content: '✦';
+    font-size: 10px;
+    color: var(--color-taupe);
+}
+
+.landing-footer .footer-links {
     list-style: none;
     padding: 0;
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xs);
+    gap: 6px;
 }
 
-.footer-links li {
+.landing-footer .footer-links li {
     margin: 0;
 }
 
-.footer-links a {
-    color: var(--text-secondary);
+.landing-footer .footer-links a {
+    color: var(--color-taupe);
     text-decoration: none;
-    font-size: 0.9rem;
-    transition: all 0.2s;
+    font-size: 13px;
+    transition: all 0.2s ease;
     display: inline-block;
 }
 
-.footer-links a:hover,
-.footer-link-btn {
-    color: #9ca3af;
-    transform: translateX(4px);
+.landing-footer .footer-links a:hover,
+.landing-footer .footer-link-btn {
+    color: var(--color-snow);
+    transform: translateX(3px);
     background: none;
     border: none;
     cursor: pointer;
     padding: 0;
     font-family: inherit;
-    font-size: inherit;
+    font-size: 13px;
     text-align: left;
     width: 100%;
 }
 
-.footer-link-btn:hover {
-    color: #6b7280;
-    transform: translateX(4px);
+.landing-footer .footer-link-btn:hover {
+    color: var(--color-almond);
+    transform: translateX(3px);
 }
 
-.footer-bottom {
-    padding-top: var(--spacing-md);
+.landing-footer .footer-bottom {
+    padding-top: 16px;
     text-align: center;
-    color: var(--text-muted);
-    font-size: 0.85rem;
+    color: var(--color-taupe);
+    font-family: var(--font-heading);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
 }
 
-.footer-bottom p {
-    margin: var(--spacing-xs) 0;
+.landing-footer .footer-bottom p {
+    margin: 4px 0;
 }
 
-.footer-disclaimer {
-    font-size: 0.8rem;
+.landing-footer .footer-disclaimer {
+    font-family: var(--font-ui);
+    font-size: 11px;
     opacity: 0.7;
+    text-transform: none;
 }
 
 /* Responsive */
 @media (max-width: 900px) {
-    .footer-content {
+    .landing-footer .footer-content {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 600px) {
-    .footer-content {
+    .landing-footer .footer-content {
         grid-template-columns: 1fr;
     }
 
     .landing-footer {
-        padding: var(--spacing-md);
+        padding: 24px 20px 16px;
     }
 }

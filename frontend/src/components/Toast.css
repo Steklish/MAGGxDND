@@ -1,28 +1,33 @@
-/* Toast Notifications */
+/* ==========================================================================
+   TOAST NOTIFICATIONS - Strict Medieval Plaque Style
+   MAGGxDND Design System (Stone Slate, Almond Cream, Taupe, Dark Coffee)
+   ========================================================================== */
+
 .toast-container {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    top: 24px;
+    right: 24px;
     z-index: 10000;
     display: flex;
     flex-direction: column;
     gap: 10px;
     pointer-events: none;
+    font-family: var(--font-body);
 }
 
 .toast {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 14px 18px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
+    padding: 12px 18px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-xs);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
     min-width: 300px;
-    max-width: 500px;
+    max-width: 460px;
     pointer-events: auto;
-    animation: slideIn 0.3s ease forwards;
+    animation: slideIn 0.25s ease forwards;
     position: relative;
     overflow: hidden;
 }
@@ -44,30 +49,50 @@
     justify-content: center;
     width: 24px;
     height: 24px;
-    border-radius: 50%;
+    border-radius: var(--radius-xs);
+    font-family: var(--font-heading);
     font-weight: 700;
-    font-size: 14px;
+    font-size: 13px;
     flex-shrink: 0;
+    background: var(--bg-coffee);
+    border: 1px solid var(--border-hairline);
+    color: var(--color-almond);
+}
+
+.toast-success {
+    border-left: 3px solid var(--color-almond);
 }
 
 .toast-success .toast-icon {
-    background: var(--accent-green);
-    color: #fff;
+    border-color: var(--color-almond);
+    color: var(--color-almond);
+}
+
+.toast-error {
+    border-left: 3px solid #e28a8a;
 }
 
 .toast-error .toast-icon {
-    background: var(--accent-red);
-    color: #fff;
+    border-color: rgba(180, 60, 60, 0.6);
+    color: #e28a8a;
+}
+
+.toast-info {
+    border-left: 3px solid var(--color-taupe);
 }
 
 .toast-info .toast-icon {
-    background: var(--accent-blue);
-    color: #fff;
+    border-color: var(--color-taupe);
+    color: var(--color-snow);
+}
+
+.toast-warning {
+    border-left: 3px solid var(--color-almond);
 }
 
 .toast-warning .toast-icon {
-    background: var(--accent-yellow);
-    color: #1a1a1a;
+    border-color: var(--color-almond);
+    color: var(--color-almond);
 }
 
 .toast-content {
@@ -77,59 +102,60 @@
 
 .toast-message {
     margin: 0;
+    font-family: var(--font-reading);
     font-size: 14px;
     font-weight: 500;
-    color: var(--text-primary);
-    line-height: 1.4;
+    color: var(--color-snow);
+    line-height: 1.45;
     word-wrap: break-word;
 }
 
 .toast-dismiss {
     background: transparent;
     border: none;
-    color: var(--text-muted);
-    font-size: 20px;
+    color: var(--color-taupe);
+    font-size: 16px;
     cursor: pointer;
     padding: 0;
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: var(--radius-xs);
     transition: all 0.2s ease;
     flex-shrink: 0;
 }
 
 .toast-dismiss:hover {
-    background: var(--bg-accent);
-    color: var(--text-primary);
+    background: var(--bg-coffee);
+    color: var(--color-almond);
 }
 
 .toast-progress {
     position: absolute;
     bottom: 0;
     left: 0;
-    height: 3px;
+    height: 2px;
     width: 100%;
     transform-origin: left;
     animation: progress linear forwards;
 }
 
 .toast-progress-success {
-    background: var(--accent-green);
+    background: var(--color-almond);
 }
 
 .toast-progress-error {
-    background: var(--accent-red);
+    background: #e28a8a;
 }
 
 .toast-progress-info {
-    background: var(--accent-blue);
+    background: var(--color-taupe);
 }
 
 .toast-progress-warning {
-    background: var(--accent-yellow);
+    background: var(--color-almond);
 }
 
 @keyframes progress {
@@ -141,7 +167,6 @@
     }
 }
 
-/* Toast animation durations match toast duration */
 .toast-progress {
     animation-duration: 5s;
 }

@@ -34,7 +34,12 @@ function copyDirRecursive(src, dest) {
 try {
     copyDirRecursive(srcArts, distArts);
     console.log('✓ Copied arts folder to dist');
+
+    const srcWebBg = join(__dirname, '..', 'data', 'assets', 'web-backgrounds');
+    const destWebBg = join(__dirname, 'dist', 'assets', 'web-backgrounds');
+    copyDirRecursive(srcWebBg, destWebBg);
+    console.log('✓ Copied web-backgrounds folder to dist');
 } catch (error) {
-    console.error('⚠ Could not copy arts folder:', error.message);
+    console.error('⚠ Could not copy arts or web-backgrounds folder:', error.message);
     process.exit(1);
 }

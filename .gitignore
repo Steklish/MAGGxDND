@@ -13,6 +13,7 @@ Desktop.ini
 *~
 *.swp
 *.swo
+*.svg
 
 # --- Build Artifacts ---
 node_modules/
@@ -61,3 +62,8 @@ __pycache__/
 *.log
 logs/
 *log*
+
+.agents
+.github
+.vite
+.vscode

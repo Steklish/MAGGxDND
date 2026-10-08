@@ -1,11 +1,16 @@
-/* Loading Spinner Container */
+/* ==========================================================================
+   LOADING SPINNER - Strict Medieval Astrolabe Style
+   MAGGxDND Design System (Stone Slate, Almond Cream, Taupe, Dark Coffee)
+   ========================================================================== */
+
 .loading-spinner-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 16px;
-    padding: var(--spacing-md);
+    gap: 14px;
+    padding: 16px;
+    font-family: var(--font-body);
 }
 
 .loading-spinner-fullscreen {
@@ -14,7 +19,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: var(--bg-primary);
+    background: radial-gradient(circle at 50% 30%, rgba(54, 36, 23, 0.4) 0%, rgba(24, 25, 28, 0.96) 70%, #121315 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -23,21 +28,21 @@
 
 /* Spinner Sizes */
 .spinner-small {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
 }
 
 .spinner-medium {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
 }
 
 .spinner-large {
-    width: 64px;
-    height: 64px;
+    width: 60px;
+    height: 60px;
 }
 
-/* Loading Spinner with Multiple Rings */
+/* Loading Spinner */
 .loading-spinner {
     position: relative;
     display: inline-block;
@@ -50,12 +55,10 @@
     height: 100%;
     border-radius: 50%;
     border: 2px solid transparent;
-    animation: spinnerPulse 1.5s ease-in-out infinite;
 }
 
 .ring-1 {
-    border-top-color: var(--accent-orange);
-    animation-delay: 0s;
+    border-top-color: var(--color-almond);
 }
 
 .ring-2 {
@@ -63,8 +66,8 @@
     height: 75%;
     top: 12.5%;
     left: 12.5%;
-    border-right-color: var(--accent-purple);
-    animation-delay: 0.2s;
+    border-right-color: var(--color-taupe);
+    animation: spinnerRotate 1.5s linear infinite reverse;
 }
 
 .ring-3 {
@@ -72,8 +75,7 @@
     height: 50%;
     top: 25%;
     left: 25%;
-    border-bottom-color: var(--accent-green);
-    animation-delay: 0.4s;
+    border-bottom-color: var(--color-snow);
 }
 
 @keyframes spinnerRotate {
@@ -85,59 +87,36 @@
     }
 }
 
-@keyframes spinnerPulse {
-    0%, 100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.6;
-        transform: scale(0.9);
-    }
-}
-
 /* Spinner Text */
 .spinner-text {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    color: var(--color-almond);
     text-transform: uppercase;
-    letter-spacing: 1px;
-    animation: textPulse 1.5s ease-in-out infinite;
-}
-
-@keyframes textPulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
+    letter-spacing: 0.1em;
+    font-weight: 600;
 }
 
 /* Color Variants */
-.spinner-orange .ring-1 {
-    border-top-color: var(--accent-orange);
+.spinner-orange .ring-1,
+.spinner-yellow .ring-1 {
+    border-top-color: var(--color-almond);
 }
 
 .spinner-purple .ring-1 {
-    border-top-color: var(--accent-purple);
+    border-top-color: var(--color-snow);
 }
 
 .spinner-green .ring-1 {
-    border-top-color: var(--accent-green);
+    border-top-color: var(--color-almond);
 }
 
-.spinner-yellow .ring-1 {
-    border-top-color: var(--accent-yellow);
-}
-
-/* Alternative Simple Spinner */
+/* Simple Spinner */
 .loading-spinner-simple {
-    width: 40px;
-    height: 40px;
-    border: 3px solid var(--bg-tertiary);
-    border-top-color: var(--accent-orange);
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--border-hairline);
+    border-top-color: var(--color-almond);
     border-radius: 50%;
     animation: spinnerRotate 1s linear infinite;
 }

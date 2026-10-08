@@ -1,67 +1,148 @@
-@import url('https://fonts.googleapis.com/css2?family=Playwrite+New+Zealand+Basic:wght@400;700&family=Rajdhani:wght@400;500;600;700&family=Nunito:wght@400;700&display=swap');
+/* ==========================================================================
+   MAGGxDND DESIGN SYSTEM - Strict Medieval / Fantasy Editorial
+   Palette: Snow (#FFFBFF), Almond Cream (#F1DABF), Taupe (#92817A),
+            Dark Coffee (#362417), Ink Black (#08080A),
+            Stone Gray Backgrounds (#18191C, #212226, #28292E)
+   ========================================================================== */
 
-/* Nurito font - using Nunito as fallback */
-@font-face {
-    font-family: 'Nurito';
-    src: local('Nunito'), local('Nunito-Regular'), url('https://fonts.gstatic.com/s/nunito/v25/XRXV3I6Li01BKofINeaBTMn8.woff2') format('woff2');
-    font-display: swap;
-}
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Cinzel+Decorative:wght@700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-    /* Assiko-inspired color scheme */
-    --bg-primary: #0a0a0a;
-    --bg-secondary: #141414;
-    --bg-tertiary: #1f1f1f;
-    --bg-accent: #2a2a2a;
+    /* === PALETTE FROM SPECIFICATION & SWATCH INSPIRATION === */
+    --color-snow: #fffbff;
+    --color-almond: #f1dabf;
+    --color-taupe: #92817a;
+    --color-dark-coffee: #362417;
+    --color-black: #08080a;
 
-    --border-color: #333333;
-    --border-light: #444444;
+    /* 8 Swatches from Specification: Coffee, Maroon, Clay Dust, Creme, Leather Couch, Deep Peach, Guave, River Pine */
+    --color-coffee: #371e13;
+    --color-maroon: #5e2a25;
+    --color-clay-dust: #c0aa8a;
+    --color-creme: #e1d3a9;
+    --color-leather: #37504d;
+    /* Leather & Parchment accent tint (#37504d) */
+    --color-deep-peach: #a85530;
+    --color-guave: #8f7c3a;
+    --color-river-pine: #534b31;
 
-    --text-primary: #ffffff;
-    --text-secondary: #a0a0a0;
-    --text-muted: #666666;
+    /* === STRICT STONE GRAY BACKGROUND SYSTEM === */
+    --bg-primary: #18191c;
+    /* Deep fortress slate / ash granite */
+    --bg-secondary: #212226;
+    /* Stone slab panel surface */
+    --bg-tertiary: #28292e;
+    /* Elevated stone / inputs / inner wells */
+    --bg-accent: #3c4849;
+    /* Leather & parchment accent surface (#37504d) */
+    --bg-card: #202125;
+    /* Card container stone */
+    --bg-card-hover: #26272c;
+    --bg-modal: #1c1d21;
+    /* Strict sanctuary modal backdrop */
 
-    /* Accent colors - inspired by fireworks */
-    --accent-orange: #ff6b35;
-    --accent-orange-glow: rgba(255, 107, 53, 0.4);
-    --accent-gold: #f4a261;
-    --accent-gold-glow: rgba(244, 162, 97, 0.4);
-    --accent-red: #e63946;
-    --accent-red-glow: rgba(230, 57, 70, 0.4);
-    --accent-blue: #457b9d;
-    --accent-blue-glow: rgba(69, 123, 157, 0.4);
-    --accent-purple: #9d4edd;
-    --accent-purple-glow: rgba(157, 78, 221, 0.4);
-    --accent-green: #2a9d8f;
-    --accent-green-glow: rgba(42, 157, 143, 0.4);
-    --accent-yellow: #e9c46a;
-    --accent-yellow-glow: rgba(233, 196, 106, 0.4);
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, #ff6b35 0%, #f4a261 100%);
-    --gradient-dark: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
-    --gradient-purple: linear-gradient(135deg, rgba(157, 78, 221, 0.2) 0%, rgba(157, 78, 221, 0.05) 100%);
-    --gradient-green: linear-gradient(135deg, rgba(42, 157, 143, 0.2) 0%, rgba(42, 157, 143, 0.05) 100%);
-    --gradient-orange: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(255, 107, 53, 0.05) 100%);
-    --gradient-yellow: linear-gradient(135deg, rgba(233, 196, 106, 0.2) 0%, rgba(233, 196, 106, 0.05) 100%);
+    /* Leather & parchment tints */
+    --bg-coffee: #3e2a23;
+    --bg-coffee-dark: #22120a;
+    --bg-coffee-light: #52311f;
+    --bg-leather: #37504d;
+    --bg-leather-subtle: rgba(55, 80, 77, 0.22);
+    --bg-parchment-accent: rgba(58, 80, 78, 0.16);
+    --bg-maroon: #5e2a25;
+    --bg-river-pine: #534b31;
+    --bg-almond-subtle: rgba(225, 211, 169, 0.06);
+    --bg-taupe-subtle: rgba(146, 129, 122, 0.08);
 
-    /* Shadows */
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
-    --shadow-glow: 0 0 20px rgba(255, 107, 53, 0.3);
-    --shadow-glow-purple: 0 0 20px rgba(157, 78, 221, 0.3);
-    --shadow-glow-green: 0 0 20px rgba(42, 157, 143, 0.3);
-    --shadow-glow-yellow: 0 0 20px rgba(233, 196, 106, 0.3);
+    /* === STRICT HAIRLINE BORDERS === */
+    --border-color: #383940;
+    /* Chiselled stone seam */
+    --border-subtle: #292a30;
+    --border-light: #4c4d56;
+    --border-taupe: #92817a;
+    /* Weathered taupe masonry line */
+    --border-almond: #e1d3a9;
+    /* Creme / Illuminated manuscript gold rule */
+    --border-coffee: #4d3524;
+    /* Tooled leather trim */
+    --border-leather: #37504d;
+    /* Medieval leather border (#37504d) */
+    --border-highlight: rgba(225, 211, 169, 0.4);
 
-    /* Border radius */
+    /* === TYPOGRAPHIC HIERARCHY COLORS === */
+    --text-primary: #fffbff;
+    /* Snow - illuminated high-contrast text */
+    --text-secondary: #e1d3a9;
+    /* Creme - parchment headers & warm copy */
+    --text-muted: #c0aa8a;
+    /* Clay Dust - weathered stone labels & metadata */
+    --text-dim: #7a7067;
+    /* Subdued stone engravings */
+    --text-coffee: #371e13;
+    /* Dark coffee ink */
+    --text-inverse: #18191c;
+
+    /* === MEDIEVAL HERALDIC ACCENTS (Strict Non-Acid Warm Palette) === */
+    --accent-orange: #a85530;
+    /* Deep Peach warm terracotta */
+    --accent-orange-glow: rgba(168, 85, 48, 0.25);
+    --accent-gold: #e1d3a9;
+    /* Creme gold */
+    --accent-gold-glow: rgba(225, 211, 169, 0.25);
+    --accent-red: #5e2a25;
+    /* Maroon seal / danger */
+    --accent-red-glow: rgba(94, 42, 37, 0.35);
+    --accent-blue: #4a617a;
+    /* Deep weathered steel */
+    --accent-blue-glow: rgba(74, 97, 122, 0.3);
+    --accent-purple: #5c4a6a;
+    /* Arcane amethyst */
+    --accent-purple-glow: rgba(92, 74, 106, 0.3);
+    --accent-green: #534b31;
+    /* River pine olive / forest earth */
+    --accent-green-glow: rgba(83, 75, 49, 0.3);
+    --accent-yellow: #8f7c3a;
+    /* Guave antique brass / earth gold (NO acid yellow) */
+    --accent-yellow-glow: rgba(143, 124, 58, 0.25);
+    --accent-taupe: #c0aa8a;
+    /* Clay Dust */
+    --accent-leather: #37504d;
+    /* Leather & parchment accent (#37504d) */
+    --accent-leather-glow: rgba(55, 80, 77, 0.35);
+
+    /* === NOBLE GRADIENTS === */
+    --gradient-primary: linear-gradient(135deg, #e1d3a9 0%, #c0aa8a 100%);
+    --gradient-dark: linear-gradient(180deg, #222328 0%, #18191c 100%);
+    --gradient-coffee: linear-gradient(135deg, #371e13 0%, #22120a 100%);
+    --gradient-leather: linear-gradient(135deg, #37504d 0%, #1c2725 100%);
+    --gradient-maroon: linear-gradient(135deg, #5e2a25 0%, #371e13 100%);
+    --gradient-stone: linear-gradient(180deg, #28292f 0%, #1a1b1e 100%);
+    --gradient-parchment: linear-gradient(135deg, rgba(55, 80, 77, 0.22) 0%, rgba(33, 34, 38, 0.85) 100%);
+
+    /* === PATTERN TEXTURE BACKGROUNDS (pattern.jpg) === */
+    --bg-pattern-image: url('/assets/web-backgrounds/pattern.jpg');
+    --bg-tile-pattern-dark: linear-gradient(135deg, rgba(33, 34, 38, 0.88) 0%, rgba(24, 25, 28, 0.94) 100%), var(--bg-pattern-image);
+    --bg-tile-pattern-coffee: linear-gradient(135deg, rgba(43, 34, 29, 0.86) 0%, rgba(28, 21, 17, 0.94) 100%), var(--bg-pattern-image);
+    --bg-tile-pattern-elevated: linear-gradient(135deg, rgba(40, 41, 46, 0.86) 0%, rgba(28, 29, 33, 0.94) 100%), var(--bg-pattern-image);
+    --bg-menu-pattern: linear-gradient(180deg, rgba(33, 34, 38, 0.92) 0%, rgba(24, 25, 28, 0.96) 100%), var(--bg-pattern-image);
+    --bg-menu-coffee-pattern: linear-gradient(135deg, rgba(54, 36, 23, 0.92) 0%, rgba(34, 22, 14, 0.97) 100%), var(--bg-pattern-image);
+
+    /* === ATMOSPHERIC RECESSED SHADOWS === */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.7);
+    --shadow-glow: 0 0 16px rgba(225, 211, 169, 0.15);
+    --shadow-coffee: 0 4px 16px rgba(55, 30, 19, 0.45);
+    --shadow-inset: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+
+    /* === STRICT GEOMETRIC RADII === */
     --radius-sm: 2px;
-    --radius-md: 4px;
-    --radius-lg: 8px;
-    --radius-xl: 12px;
-    --radius-xxl: 16px;
+    --radius-md: 3px;
+    --radius-lg: 4px;
+    --radius-xl: 6px;
+    --radius-xxl: 8px;
 
-    /* Spacing */
+    /* === SPACING SYSTEM === */
     --spacing-xs: 4px;
     --spacing-sm: 8px;
     --spacing-md: 16px;
@@ -69,12 +150,24 @@
     --spacing-xl: 32px;
     --spacing-xxl: 48px;
 
-    /* Transitions */
+    /* === REFINED TRANSITIONS === */
     --transition-fast: 0.15s ease;
-    --transition-normal: 0.3s ease;
-    --transition-slow: 0.5s ease;
+    --transition-normal: 0.25s ease;
+    --transition-slow: 0.4s ease;
 
-    font-family: 'Rajdhani', 'Nurito', Nunito, Inter, system-ui, sans-serif;
+    /* === TYPOGRAPHY TOKENS === */
+    --font-title: 'Cinzel', 'Cormorant Garamond', Georgia, serif;
+    --font-heading: 'Cormorant Garamond', 'Cinzel', Georgia, serif;
+    --font-body: 'EB Garamond', Georgia, serif;
+    --font-ui: 'Cinzel', Georgia, serif;
+    --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+    --font-lore: 'Cormorant Garamond', Georgia, serif;
+
+    /* Legacy compatibility */
+    --font-family: var(--font-ui), var(--font-body), sans-serif;
+    --scrollbar-color: var(--color-taupe);
+
+    font-family: var(--font-body), Georgia, serif;
     line-height: 1.6;
     font-weight: 400;
     font-size: 16px;
@@ -89,7 +182,10 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
-* {
+/* === UNIVERSAL RESET === */
+*,
+*::before,
+*::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -100,73 +196,371 @@ body {
     min-width: 320px;
     min-height: 100vh;
     height: auto;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-body), Georgia, serif;
+    background-image:
+        radial-gradient(circle at 50% 0%, rgba(54, 36, 23, 0.28) 0%, transparent 60%),
+        radial-gradient(circle at 50% 100%, rgba(24, 25, 28, 0.85) 0%, transparent 70%),
+        linear-gradient(180deg, rgba(24, 25, 28, 0.72) 0%, rgba(24, 25, 28, 0.92) 100%),
+        url('/assets/web-backgrounds/Magg_background_main.jpg');
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 }
 
 #root {
     width: 100%;
     min-height: 100vh;
     height: auto;
+    background-color: transparent;
 }
 
-/* Lore and descriptive text font */
-.lore-font, .lore-text, .scene-description, .ability-item-desc, .event-text {
-    font-family: 'Playwrite New Zealand Basic', cursive !important;
-}
-
-/* Assiko-style button */
-.btn-assiko {
-    background: var(--gradient-primary);
-    color: var(--text-primary);
-    border: none;
-    padding: 12px 24px;
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 600;
-    font-size: 14px;
+/* === STRICT TYPOGRAPHIC HEADINGS === */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-title);
+    color: var(--text-secondary);
+    font-weight: 700;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    line-height: 1.3;
+}
+
+h1 {
+    font-size: 2.2rem;
+    color: var(--text-primary);
+    letter-spacing: 0.12em;
+}
+
+h2 {
+    font-size: 1.6rem;
+    letter-spacing: 0.09em;
+}
+
+h3 {
+    font-size: 1.25rem;
+    letter-spacing: 0.07em;
+}
+
+h4 {
+    font-size: 1.05rem;
+    letter-spacing: 0.05em;
+}
+
+p {
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: rgba(255, 251, 255, 0.88);
+}
+
+/* === LORE & NARRATIVE SCRIPTO-TYPOGRAPHY === */
+.lore-font,
+.lore-text,
+.scene-description,
+.ability-item-desc,
+.event-text {
+    font-family: var(--font-lore) !important;
+    font-size: 1.15rem;
+    line-height: 1.7;
+    font-style: italic;
+    color: var(--color-almond) !important;
+    letter-spacing: 0.02em;
+}
+
+/* === MEDIEVAL ORNAMENTAL UTILITIES === */
+.ornament-star::before {
+    content: "✦ ";
+    color: var(--color-almond);
+    font-size: 0.9em;
+}
+
+.ornament-star::after {
+    content: " ✦";
+    color: var(--color-almond);
+    font-size: 0.9em;
+}
+
+.ornament-cross::before {
+    content: "❖ ";
+    color: var(--color-taupe);
+}
+
+.section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, var(--color-taupe) 30%, var(--color-almond) 50%, var(--color-taupe) 70%, transparent 100%);
+    margin: var(--spacing-lg) 0;
+    position: relative;
+    border: none;
+    opacity: 0.7;
+}
+
+.section-divider::after {
+    content: "✦";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-primary);
+    padding: 0 8px;
+    color: var(--color-almond);
+    font-size: 0.75rem;
+}
+
+/* === STRICT MEDIEVAL BUTTON (btn-assiko & btn-medieval) === */
+.btn-assiko,
+.btn-medieval-primary {
+    background: var(--bg-coffee);
+    color: var(--color-almond);
+    border: 1px solid var(--color-almond);
+    padding: 10px 22px;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
     border-radius: var(--radius-sm);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--transition-normal);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(241, 218, 191, 0.15);
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-assiko::before,
+.btn-medieval-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(241, 218, 191, 0.15), transparent);
+    transition: left var(--transition-slow);
+}
+
+.btn-assiko:hover,
+.btn-medieval-primary:hover {
+    background: var(--bg-coffee-light);
+    color: var(--color-snow);
+    border-color: var(--color-snow);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6), 0 0 16px rgba(241, 218, 191, 0.2);
+    transform: translateY(-1px);
+}
+
+.btn-assiko:hover::before,
+.btn-medieval-primary:hover::before {
+    left: 100%;
+}
+
+.btn-assiko:active,
+.btn-medieval-primary:active {
+    transform: translateY(0);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.btn-assiko:disabled,
+.btn-medieval-primary:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    border-color: var(--color-taupe);
+    color: var(--color-taupe);
+}
+
+/* Secondary Button */
+.btn-medieval-secondary {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 10px 20px;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.btn-medieval-secondary:hover {
+    border-color: var(--color-taupe);
+    background: var(--bg-tertiary);
+    color: var(--color-almond);
+}
+
+/* === STRICT MEDIEVAL CARD (card-assiko & card-medieval) === */
+.card-assiko,
+.card-medieval {
+    background: var(--bg-card);
+    background-image: var(--bg-tile-pattern-dark);
+    background-size: cover;
+    background-position: center;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-md);
+    transition: all var(--transition-normal);
+    position: relative;
     box-shadow: var(--shadow-md);
 }
 
-.btn-assiko:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-glow);
-}
-
-/* Assiko-style card */
-.card-assiko {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-md);
-    transition: all 0.3s ease;
-}
-
-.card-assiko:hover {
-    border-color: var(--accent-orange);
-    box-shadow: var(--shadow-glow);
-}
-
-/* Section divider */
-.section-divider {
+.card-assiko::before,
+.card-medieval::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--border-color), transparent);
-    margin: var(--spacing-lg) 0;
+    background: linear-gradient(90deg, transparent, var(--color-almond), transparent);
+    transform: scaleX(0);
+    transition: transform var(--transition-normal);
 }
 
-/* Global Animations */
+.card-assiko:hover,
+.card-medieval:hover {
+    border-color: var(--color-taupe);
+    box-shadow: var(--shadow-lg), 0 0 12px rgba(54, 36, 23, 0.4);
+}
+
+.card-assiko:hover::before,
+.card-medieval:hover::before {
+    transform: scaleX(1);
+}
+
+/* === UNIVERSAL TILES & MENUS PATTERN UTILITIES === */
+.tile-pattern,
+.message-tile {
+    background-image: var(--bg-tile-pattern-dark) !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+.menu-pattern,
+.menu-tile {
+    background-image: var(--bg-menu-pattern) !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+.menu-coffee-pattern {
+    background-image: var(--bg-menu-coffee-pattern) !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+/* === ATMOSPHERIC GLASS & CANDLELIGHT (replaces harsh neon) === */
+.glass {
+    background: rgba(33, 34, 38, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md);
+}
+
+.neon-text,
+.candle-glow-text {
+    color: var(--color-almond);
+    text-shadow: 0 0 10px rgba(241, 218, 191, 0.35);
+}
+
+.neon-text-purple {
+    color: #c4b5fd;
+    text-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+}
+
+.neon-text-green {
+    color: #86efac;
+    text-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
+}
+
+/* === STRICT FORM CONTROLS === */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+textarea,
+select {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--color-almond);
+    box-shadow: 0 0 0 1px var(--color-almond), 0 0 8px rgba(241, 218, 191, 0.15);
+}
+
+/* === LOADING SPINNER === */
+.loading-spinner {
+    display: inline-block;
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--border-color);
+    border-top-color: var(--color-almond);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.spinner-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 2px solid transparent;
+    border-top-color: var(--color-almond);
+    border-radius: 50%;
+    animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+/* === ANIMATIONS === */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(16px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -176,8 +570,9 @@ body {
 @keyframes fadeInDown {
     from {
         opacity: 0;
-        transform: translateY(-20px);
+        transform: translateY(-16px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -187,8 +582,9 @@ body {
 @keyframes slideInLeft {
     from {
         opacity: 0;
-        transform: translateX(-30px);
+        transform: translateX(-20px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -198,29 +594,12 @@ body {
 @keyframes slideInRight {
     from {
         opacity: 0;
-        transform: translateX(30px);
+        transform: translateX(20px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
-    }
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
-}
-
-@keyframes pulse-glow {
-    0%, 100% {
-        box-shadow: 0 0 5px var(--accent-orange);
-    }
-    50% {
-        box-shadow: 0 0 20px var(--accent-orange), 0 0 30px var(--accent-orange-glow);
     }
 }
 
@@ -228,53 +607,36 @@ body {
     0% {
         background-position: -1000px 0;
     }
+
     100% {
         background-position: 1000px 0;
     }
 }
 
-@keyframes bounce {
-    0%, 100% {
-        transform: translateY(0);
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
     }
+
     50% {
-        transform: translateY(-5px);
+        opacity: 0.55;
     }
 }
 
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 6px rgba(241, 218, 191, 0.2);
     }
-    to {
-        transform: rotate(360deg);
+
+    50% {
+        box-shadow: 0 0 16px rgba(241, 218, 191, 0.4), 0 0 24px rgba(54, 36, 23, 0.5);
     }
 }
 
-/* Loading spinner */
-.loading-spinner {
-    display: inline-block;
-    width: 40px;
-    height: 40px;
-    border: 3px solid var(--bg-tertiary);
-    border-top-color: var(--accent-orange);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-/* Shimmer effect for loading states */
-.shimmer {
-    background: linear-gradient(
-        90deg,
-        var(--bg-secondary) 0%,
-        var(--bg-tertiary) 50%,
-        var(--bg-secondary) 100%
-    );
-    background-size: 1000px 100%;
-    animation: shimmer 2s infinite;
-}
-
-/* Fade in animations */
 .fade-in {
     animation: fadeIn var(--transition-normal) forwards;
 }
@@ -295,142 +657,160 @@ body {
     animation: slideInRight var(--transition-slow) forwards;
 }
 
-/* Enhanced Assiko-style button */
-.btn-assiko {
-    background: var(--gradient-primary);
-    color: var(--text-primary);
-    border: none;
-    padding: 12px 24px;
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 600;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: all var(--transition-normal);
-    box-shadow: var(--shadow-md);
-    position: relative;
-    overflow: hidden;
+.shimmer {
+    background: linear-gradient(90deg,
+            var(--bg-secondary) 0%,
+            var(--bg-tertiary) 50%,
+            var(--bg-secondary) 100%);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
 }
 
-.btn-assiko::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left var(--transition-slow);
-}
-
-.btn-assiko:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-glow);
-}
-
-.btn-assiko:hover::before {
-    left: 100%;
-}
-
-.btn-assiko:active {
-    transform: translateY(0);
-}
-
-.btn-assiko:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-}
-
-/* Enhanced Assiko-style card */
-.card-assiko {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-md);
-    transition: all var(--transition-normal);
-    position: relative;
-    overflow: hidden;
-}
-
-.card-assiko::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--gradient-primary);
-    transform: scaleX(0);
-    transition: transform var(--transition-normal);
-}
-
-.card-assiko:hover {
-    border-color: var(--accent-orange);
-    box-shadow: var(--shadow-glow);
-}
-
-.card-assiko:hover::before {
-    transform: scaleX(1);
-}
-
-/* Glass morphism effect */
-.glass {
-    background: rgba(20, 20, 20, 0.7);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Neon glow effect */
-.neon-text {
-    text-shadow: 
-        0 0 5px var(--accent-orange),
-        0 0 10px var(--accent-orange),
-        0 0 20px var(--accent-orange-glow),
-        0 0 40px var(--accent-orange-glow);
-}
-
-.neon-text-purple {
-    text-shadow: 
-        0 0 5px var(--accent-purple),
-        0 0 10px var(--accent-purple),
-        0 0 20px var(--accent-purple-glow),
-        0 0 40px var(--accent-purple-glow);
-}
-
-.neon-text-green {
-    text-shadow:
-        0 0 5px var(--accent-green),
-        0 0 10px var(--accent-green),
-        0 0 20px var(--accent-green-glow),
-        0 0 40px var(--accent-green-glow);
-}
-
-/* Global Scrollbar Styling */
+/* === STRICT MEDIEVAL SCROLLBARS === */
 html {
-    scrollbar-width: 10px;
-    scrollbar-color: var(--accent-orange) transparent;
-    transition: scrollbar-color 0.3s ease;
+    scrollbar-width: 8px;
+    scrollbar-color: var(--color-taupe) var(--bg-primary);
 }
 
-html::-webkit-scrollbar {
-    width: 10px;
+html::-webkit-scrollbar,
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
 }
 
-html::-webkit-scrollbar-track {
-    background: transparent;
+html::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track {
+    background: var(--bg-primary);
 }
 
-html::-webkit-scrollbar-thumb {
-    background: var(--accent-orange);
-    border-radius: 5px;
-    transition: background 0.3s ease;
+html::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb {
+    background: var(--color-taupe);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--bg-primary);
 }
 
-html::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-gold);
-    filter: brightness(1.2);
+html::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:hover {
+    background: var(--color-almond);
+}
+
+/* === REVEAL HIGHLIGHT SYSTEM === */
+.reveal-highlight {
+    position: relative;
+    overflow: hidden;
+}
+
+.reveal-highlight::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(220px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+            rgba(225, 211, 169, 0.16),
+            transparent 70%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    border-radius: inherit;
+    z-index: 2;
+}
+
+.reveal-highlight:hover::before {
+    opacity: 1;
+}
+
+/* === GEOMETRIC TRANSFORMATIONS (CURSOR-DEPENDENT 3D PERSPECTIVE) === */
+.geometric-tilt {
+    perspective: 800px;
+    transform-style: preserve-3d;
+    transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
+}
+
+.geometric-tilt:hover {
+    transform: perspective(800px) rotateX(calc((var(--mouse-y-norm, 0.5) - 0.5) * -12deg)) rotateY(calc((var(--mouse-x-norm, 0.5) - 0.5) * 12deg)) scale3d(1.025, 1.025, 1.025);
+    box-shadow: 0 8px 24px rgba(55, 30, 19, 0.45);
+}
+
+/* === KEYWORD TAGS & EMPHASIS SYSTEM === */
+.kw-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 6px;
+    margin: 0 2px;
+    border-radius: var(--radius-sm, 2px);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.9em;
+    cursor: help;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+    vertical-align: baseline;
+}
+
+.kw-tag:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Entity / Character / Foe - Maroon / Deep Peach */
+.kw-tag.kw-entity {
+    background: rgba(94, 42, 37, 0.4);
+    border-color: rgba(168, 85, 48, 0.6);
+    color: #ffcad4;
+}
+
+.kw-tag.kw-entity:hover {
+    background: rgba(94, 42, 37, 0.65);
+    border-color: var(--color-deep-peach);
+}
+
+/* Location / Environment - River Pine / Guave */
+.kw-tag.kw-location {
+    background: rgba(83, 75, 49, 0.4);
+    border-color: rgba(143, 124, 58, 0.6);
+    color: #e2e8b0;
+}
+
+.kw-tag.kw-location:hover {
+    background: rgba(83, 75, 49, 0.7);
+    border-color: var(--color-guave);
+}
+
+/* Item / Artifact / Loot - Creme / Clay Dust / Leather (#37504d) */
+.kw-tag.kw-item {
+    background: rgba(55, 80, 77, 0.45);
+    border-color: rgba(55, 80, 77, 0.75);
+    color: var(--color-creme);
+}
+
+.kw-tag.kw-item:hover {
+    background: rgba(55, 80, 77, 0.7);
+    border-color: var(--color-almond);
+}
+
+/* Action / Spell / Combat Mechanic - Deep Peach / Guave */
+.kw-tag.kw-action {
+    background: rgba(168, 85, 48, 0.3);
+    border-color: rgba(168, 85, 48, 0.6);
+    color: #ffd8be;
+}
+
+.kw-tag.kw-action:hover {
+    background: rgba(168, 85, 48, 0.5);
+    border-color: var(--color-deep-peach);
+}
+
+/* Dice / Damage calculation - Coffee / Gold */
+.kw-tag.kw-dice {
+    background: rgba(55, 30, 19, 0.7);
+    border-color: rgba(225, 211, 169, 0.45);
+    color: var(--color-creme);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85em;
+}
+
+.kw-tag.kw-dice:hover {
+    border-color: var(--color-creme);
+    box-shadow: 0 0 10px rgba(225, 211, 169, 0.35);
 }

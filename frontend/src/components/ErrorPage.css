@@ -1,4 +1,7 @@
-/* Error Page Styles */
+/* ==========================================================================
+   ERROR PAGE - Strict Medieval Codex Style
+   MAGGxDND Design System (Stone Slate, Almond Cream, Taupe, Dark Coffee)
+   ========================================================================== */
 
 .error-page {
     position: fixed;
@@ -13,6 +16,7 @@
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
+    font-family: var(--font-body);
 }
 
 .error-page.visible {
@@ -20,7 +24,6 @@
     pointer-events: auto;
 }
 
-/* Error background overlay (dark, no image) */
 .error-background {
     position: absolute;
     top: 0;
@@ -28,7 +31,8 @@
     width: 100%;
     height: 100%;
     z-index: 0;
-    background: rgba(5, 5, 10, 0.85);
+    background: radial-gradient(ellipse at top, rgba(80, 20, 20, 0.45) 0%, rgba(24, 25, 28, 0.96) 75%, rgba(18, 19, 21, 0.98) 100%),
+                url('/assets/web-backgrounds/Background_error_red_accent.jpg') center / cover no-repeat fixed;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
 }
@@ -37,24 +41,24 @@
     position: relative;
     z-index: 1;
     text-align: center;
-    max-width: 600px;
-    padding: 48px;
-    background: url('/arts/backgrounds/bg-error.png') no-repeat center center;
-    background-size: cover;
-    border-radius: 24px;
-    box-shadow: 0 20px 80px rgba(0, 0, 0, 0.7), 0 0 60px rgba(34, 197, 94, 0.15);
-    animation: errorSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    max-width: 580px;
+    padding: 40px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
     overflow: hidden;
 }
 
 .error-content::before {
     content: '';
     position: absolute;
-    inset: 0;
-    background: rgba(10, 15, 10, 0.75);
-    border-radius: 24px;
-    z-index: 0;
-    pointer-events: none;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--color-almond), transparent);
+    opacity: 0.6;
 }
 
 .error-content > * {
@@ -62,104 +66,61 @@
     z-index: 1;
 }
 
-@keyframes errorSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(30px) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
 .error-icon {
-    font-size: 64px;
-    margin-bottom: 24px;
+    font-size: 48px;
+    margin-bottom: 20px;
     display: block;
-    animation: errorPulse 2s ease-in-out infinite;
-}
-
-@keyframes errorPulse {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.1);
-    }
+    color: var(--color-almond);
+    opacity: 0.8;
 }
 
 .error-title {
-    font-size: 36px;
+    font-family: var(--font-heading);
+    font-size: 26px;
     font-weight: 700;
-    color: #ff6b35;
-    margin-bottom: 16px;
-    text-shadow: 0 0 20px rgba(255, 107, 53, 0.5);
-    font-family: 'Rajdhani', sans-serif;
-    letter-spacing: 2px;
+    color: var(--color-snow);
+    margin-bottom: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
 }
 
 .error-message {
-    font-size: 18px;
-    color: #a0a0a0;
-    margin-bottom: 32px;
+    font-family: var(--font-reading);
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin-bottom: 28px;
     line-height: 1.6;
 }
 
 .error-retry-btn {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 14px 32px;
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(22, 163, 74, 0.4));
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(34, 197, 94, 0.5);
-    border-radius: 12px;
-    color: #ffffff;
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 16px;
+    gap: 8px;
+    padding: 12px 32px;
+    background: var(--bg-coffee);
+    border: 1px solid var(--color-almond);
+    border-radius: var(--radius-xs);
+    color: var(--color-almond);
+    font-family: var(--font-heading);
+    font-size: 13px;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 32px;
-    position: relative;
-    overflow: hidden;
-}
-
-.error-retry-btn::before {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    background: conic-gradient(from 0deg, transparent, rgba(34, 197, 94, 0.6), transparent, rgba(34, 197, 94, 0.3), transparent);
-    border-radius: 14px;
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    animation: retrySpin 3s linear infinite;
-}
-
-.error-retry-btn:hover::before {
-    opacity: 1;
+    letter-spacing: 0.1em;
+    margin-bottom: 28px;
 }
 
 .error-retry-btn:hover {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.4), rgba(22, 163, 74, 0.5));
-    border-color: rgba(34, 197, 94, 0.7);
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 30px rgba(34, 197, 94, 0.35);
-}
-
-.error-retry-btn:active {
-    transform: translateY(0) scale(0.98);
-    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.25);
+    background: var(--color-almond);
+    color: var(--color-ink);
+    box-shadow: 0 2px 14px rgba(241, 218, 191, 0.25);
 }
 
 .error-retry-btn.retrying {
     pointer-events: none;
-    opacity: 0.7;
+    opacity: 0.5;
 }
 
 .error-retry-btn.retrying .retry-icon {
@@ -172,27 +133,27 @@
 }
 
 .retry-icon {
-    font-size: 20px;
+    font-size: 16px;
     display: inline-block;
-    transition: transform 0.3s ease;
-}
-
-.error-retry-btn:hover .retry-icon {
-    transform: rotate(180deg);
 }
 
 .error-hints {
     text-align: left;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 18px 20px;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border-hairline);
+    border-left: 3px solid var(--color-almond);
 }
 
 .error-hints p {
-    color: #f4a261;
-    margin-bottom: 12px;
-    font-size: 15px;
+    font-family: var(--font-heading);
+    color: var(--color-almond);
+    margin-bottom: 10px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
 }
 
 .error-hints ul {
@@ -202,36 +163,35 @@
 }
 
 .error-hints li {
-    color: #a0a0a0;
+    font-family: var(--font-reading);
+    color: var(--text-secondary);
     font-size: 14px;
-    padding: 6px 0;
-    padding-left: 20px;
+    padding: 4px 0;
+    padding-left: 18px;
     position: relative;
+    line-height: 1.5;
 }
 
 .error-hints li::before {
-    content: '•';
+    content: '✦';
     position: absolute;
-    left: 8px;
-    color: #ff6b35;
+    left: 4px;
+    color: var(--color-taupe);
+    font-size: 10px;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
     .error-content {
         margin: 20px;
-        padding: 32px 24px;
+        padding: 28px 20px;
     }
 
     .error-title {
-        font-size: 28px;
+        font-size: 22px;
     }
 
     .error-message {
-        font-size: 16px;
-    }
-
-    .error-icon {
-        font-size: 48px;
+        font-size: 15px;
     }
 }

@@ -56,6 +56,23 @@ class JSONFormatter(logging.Formatter):
         return json.dumps(log_data, ensure_ascii=False, default=str)
 
 
+class SafeRotatingFileHandler(RotatingFileHandler):
+    """
+    A Windows-safe RotatingFileHandler that gracefully handles file locks during rollover.
+    On Windows, os.rename fails with WinError 32 if another process (e.g. uvicorn reloader/workers)
+    holds the log file open. This handler recovers the stream to avoid PermissionError crashes or stderr noise.
+    """
+    def doRollover(self):
+        try:
+            super().doRollover()
+        except (PermissionError, OSError):
+            if not self.stream:
+                try:
+                    self.stream = self._open()
+                except Exception:
+                    pass
+
+
 def setup_logging(
     log_dir: str = './logs',
     console_level: int = logging.INFO,
@@ -104,7 +121,7 @@ def setup_logging(
     
     # Main file handler (rotating)
     main_log_file = log_path / 'application.log'
-    file_handler = RotatingFileHandler(
+    file_handler = SafeRotatingFileHandler(
         main_log_file,
         maxBytes=max_bytes,
         backupCount=backup_count,
@@ -121,7 +138,7 @@ def setup_logging(
     # JSON file handler for structured logging
     if enable_json_logs:
         json_log_file = log_path / 'application.json'
-        json_handler = RotatingFileHandler(
+        json_handler = SafeRotatingFileHandler(
             json_log_file,
             maxBytes=max_bytes,
             backupCount=backup_count,
@@ -133,7 +150,7 @@ def setup_logging(
     
     # Error file handler (separate file for errors)
     error_log_file = log_path / 'errors.log'
-    error_handler = RotatingFileHandler(
+    error_handler = SafeRotatingFileHandler(
         error_log_file,
         maxBytes=max_bytes,
         backupCount=backup_count,
@@ -166,7 +183,7 @@ def setup_specialized_loggers(
     # API Logger
     api_logger = logging.getLogger('api')
     api_logger.setLevel(logging.DEBUG)
-    api_handler = RotatingFileHandler(
+    api_handler = SafeRotatingFileHandler(
         log_path / 'api' / 'api.log',
         maxBytes=max_bytes,
         backupCount=backup_count,
@@ -213,7 +230,7 @@ def setup_specialized_loggers(
     # Database Logger
     db_logger = logging.getLogger('database')
     db_logger.setLevel(logging.DEBUG)
-    db_handler = RotatingFileHandler(
+    db_handler = SafeRotatingFileHandler(
         log_path / 'database' / 'database.log',
         maxBytes=max_bytes,
         backupCount=backup_count,
@@ -228,7 +245,7 @@ def setup_specialized_loggers(
     # Game Logger
     game_logger = logging.getLogger('game')
     game_logger.setLevel(logging.DEBUG)
-    game_handler = RotatingFileHandler(
+    game_handler = SafeRotatingFileHandler(
         log_path / 'game' / 'game.log',
         maxBytes=max_bytes,
         backupCount=backup_count,
@@ -243,7 +260,7 @@ def setup_specialized_loggers(
     # WebSocket Logger
     ws_logger = logging.getLogger('websocket')
     ws_logger.setLevel(logging.DEBUG)
-    ws_handler = RotatingFileHandler(
+    ws_handler = SafeRotatingFileHandler(
         log_path / 'websocket' / 'websocket.log',
         maxBytes=max_bytes,
         backupCount=backup_count,

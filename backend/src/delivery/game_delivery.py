@@ -75,7 +75,15 @@ class GameDelivery(Delivery):
 
     def master_message(self, text: str, tag: Optional[str] = None) -> None:
         """Broadcast a GM narration to all connected players."""
-        message = {"type": "MASTER_MESSAGE", "text": text, "tag": tag}
+        message = {
+            "type": "MASTER_MESSAGE",
+            "text": text,
+            "tag": tag,
+            "payload": {
+                "text": text,
+                "tag": tag,
+            }
+        }
         self.session.logger.info(f"[MASTER] {text}")
         asyncio.create_task(self._broadcast_to_session(message))
 
@@ -114,7 +122,27 @@ class GameDelivery(Delivery):
         Falls back to the first player if no input is queued yet.
         """
         if not session.players:
-            raise ValueError("No players in session")
+            # Self-healing fallback: inspect request to find acting character name
+            fallback_name = "Adventurer"
+            if not self.request_queue.empty():
+                try:
+                    req_peek = self.request_queue.queue[0]
+                    if req_peek and getattr(req_peek, 'player_id', None):
+                        fallback_name = req_peek.player_id
+                except Exception:
+                    pass
+
+            from backend.src.api.routers.session_router import procedural_gen
+            from core.entity.orchestrator import Orchestrator
+            char_obj = procedural_gen.generate_character(name=fallback_name, prompt="")
+            orchestrator = Orchestrator(
+                generator=session.generator,
+                logger=session.logger.getChild("player_orchestrator")
+            )
+            orchestrator.add_state(session)
+            fallback_player = session._init_player(char_obj, orchestrator)
+            session.players.append(fallback_player)
+            self.session.logger.warning(f"[CHOOSE_PLAYER] Auto-initialized player for {fallback_name} to keep game running")
 
         # Peek into the queue to find which player sent input
         best_player = session.players[0]

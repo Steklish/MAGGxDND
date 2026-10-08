@@ -1,15 +1,20 @@
-/* Mini Character Panel - Collapsed state */
+/* ==========================================================================
+   MINI CHARACTER PANEL (Collapsed State) - Strict Medieval Style
+   MAGGxDND Design System (Stone Slate, Almond Cream, Taupe, Dark Coffee)
+   ========================================================================== */
+
 .mini-character-panel {
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 12px 4px;
-    gap: 16px;
+    gap: 14px;
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     width: 100%;
     box-sizing: border-box;
+    font-family: var(--font-body);
 }
 
 .mini-panel-section {
@@ -21,41 +26,39 @@
 }
 
 .mini-section-icon {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     cursor: default;
-    padding: 8px;
-    background-color: var(--bg-tertiary);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-color);
+    padding: 6px;
+    background-color: var(--bg-coffee);
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border-hairline);
+    color: var(--color-almond);
     transition: all 0.2s ease;
 }
 
 .mini-section-icon:hover {
-    border-color: var(--accent-yellow);
-    box-shadow: 0 0 10px rgba(233, 196, 106, 0.2);
+    border-color: var(--color-almond);
 }
 
 .mini-icons-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
 }
 
 /* Mini Character Icon */
 .mini-character-icon {
     position: relative;
-    width: calc(4vw * (var(--header-height, 140) / 140));
-    height: calc(4vw * (var(--header-height, 140) / 140));
+    width: 36px;
+    height: 36px;
     min-width: 32px;
     min-height: 32px;
-    max-width: 48px;
-    max-height: 48px;
-    border-radius: var(--radius-md);
-    background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
-    border: 2px solid var(--border-color);
+    border-radius: var(--radius-xs);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-hairline);
     cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -63,28 +66,20 @@
 }
 
 .mini-character-icon:hover {
-    border-color: var(--accent-yellow);
-    box-shadow: 0 0 8px rgba(233, 196, 106, 0.3);
+    border-color: var(--color-almond);
+    background: var(--bg-coffee);
 }
 
 .mini-character-icon.active {
-    border-color: var(--accent-yellow);
-    box-shadow: 0 0 10px rgba(233, 196, 106, 0.5);
+    border-color: var(--color-almond);
+    background: var(--bg-coffee);
+    box-shadow: 0 0 8px rgba(241, 218, 191, 0.2);
 }
 
 .mini-character-icon.current-turn {
-    border-color: var(--accent-purple);
-    box-shadow: 0 0 10px rgba(157, 78, 221, 0.5);
-    animation: turnPulse 2s infinite;
-}
-
-@keyframes turnPulse {
-    0%, 100% {
-        box-shadow: 0 0 20px rgba(157, 78, 221, 0.5);
-    }
-    50% {
-        box-shadow: 0 0 30px rgba(157, 78, 221, 0.8);
-    }
+    border-color: var(--color-snow);
+    background: var(--bg-coffee);
+    box-shadow: 0 0 10px rgba(255, 251, 255, 0.3);
 }
 
 .mini-icon-portrait {
@@ -94,15 +89,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-xs);
     overflow: hidden;
 }
 
 .mini-icon-initial {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: 700;
-    font-family: 'Rajdhani', sans-serif;
-    color: var(--text-primary);
+    font-family: var(--font-heading);
+    color: var(--color-snow);
     text-transform: uppercase;
 }
 
@@ -111,60 +106,53 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 4px;
+    height: 3px;
+    background: var(--color-almond);
 }
 
 .mini-turn-indicator {
     position: absolute;
-    top: -4px;
+    top: -3px;
     left: 50%;
     transform: translateX(-50%);
-    width: 8px;
-    height: 8px;
-    background-color: var(--accent-purple);
-    border-radius: 50%;
-    animation: turnIndicatorPulse 1.5s infinite;
-}
-
-@keyframes turnIndicatorPulse {
-    0%, 100% {
-        opacity: 1;
-        transform: translateX(-50%) scale(1);
-    }
-    50% {
-        opacity: 0.5;
-        transform: translateX(-50%) scale(1.3);
-    }
+    width: 6px;
+    height: 6px;
+    background-color: var(--color-almond);
+    border-radius: 1px;
 }
 
 /* Mini Preview Tooltip */
 .character-mini-preview {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    max-width: 280px;
-    font-family: 'Rajdhani', sans-serif;
+    gap: 8px;
+    max-width: 260px;
+    font-family: var(--font-body);
 }
 
 .mini-preview-header {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border-color);
+    gap: 2px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border-hairline);
 }
 
 .mini-preview-name {
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 700;
-    color: var(--accent-yellow);
+    font-family: var(--font-heading);
+    color: var(--color-snow);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.06em;
 }
 
 .mini-preview-subtitle {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-family: var(--font-heading);
+    color: var(--color-almond);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 .mini-preview-hp {
@@ -175,36 +163,38 @@
 
 .mini-preview-hp-bar {
     flex: 1;
-    height: 8px;
+    height: 6px;
     background-color: var(--bg-primary);
-    border-radius: var(--radius-sm);
+    border-radius: 1px;
     overflow: hidden;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-hairline);
 }
 
 .mini-preview-hp-fill {
     height: 100%;
+    background-color: var(--color-almond);
     transition: width 0.3s ease;
 }
 
 .mini-preview-hp-text {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-snow);
     white-space: nowrap;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-mono);
 }
 
 .mini-preview-stats {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    font-size: 0.8rem;
-    color: var(--text-secondary);
+    font-size: 0.75rem;
+    color: var(--color-taupe);
 }
 
 .mini-preview-stats strong {
-    color: var(--text-primary);
+    color: var(--color-snow);
+    font-family: var(--font-mono);
 }
 
 .mini-preview-conditions {
@@ -214,19 +204,22 @@
 }
 
 .mini-preview-condition-title {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
+    font-size: 0.7rem;
+    font-family: var(--font-heading);
+    color: var(--color-taupe);
     text-transform: uppercase;
+    letter-spacing: 0.06em;
     width: 100%;
 }
 
 .mini-preview-condition {
-    font-size: 0.7rem;
-    color: var(--accent-yellow);
-    background-color: rgba(233, 196, 106, 0.1);
-    padding: 3px 6px;
-    border-radius: var(--radius-sm);
-    border: 1px solid rgba(233, 196, 106, 0.2);
+    font-size: 0.65rem;
+    font-family: var(--font-heading);
+    color: var(--color-almond);
+    background-color: var(--bg-coffee);
+    padding: 2px 5px;
+    border-radius: 1px;
+    border: 1px solid var(--border-hairline);
     font-weight: 600;
     text-transform: uppercase;
 }

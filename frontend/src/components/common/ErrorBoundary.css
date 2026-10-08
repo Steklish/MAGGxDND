@@ -1,71 +1,61 @@
-/* Error Boundary - Full Screen Error Page */
+/* ==========================================================================
+   ERROR BOUNDARY - Strict Medieval Codex Style
+   MAGGxDND Design System (Stone Slate, Almond Cream, Taupe, Dark Coffee)
+   ========================================================================== */
+
 .error-boundary {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(5, 5, 10, 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: radial-gradient(ellipse at top, rgba(80, 20, 20, 0.45) 0%, rgba(24, 25, 28, 0.96) 75%, rgba(18, 19, 21, 0.98) 100%),
+                url('/assets/web-backgrounds/Background_error_red_accent.jpg') center / cover no-repeat fixed;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9999;
-    padding: var(--spacing-lg);
+    padding: 24px;
+    font-family: var(--font-body);
 }
 
 /* Hide scrollbars when error boundary is shown */
-html:has(.error-boundary) {
-    overflow: hidden !important;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-
-html:has(.error-boundary)::-webkit-scrollbar {
-    display: none;
-}
-
+html:has(.error-boundary),
 body:has(.error-boundary) {
     overflow: hidden !important;
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
 
+html:has(.error-boundary)::-webkit-scrollbar,
 body:has(.error-boundary)::-webkit-scrollbar {
     display: none;
-}
-
-.error-boundary::before {
-    display: none;
-}
-
-.error-boundary.no-session,
-.error-boundary.connection-error {
-    /* Same base styles, bg-error.png is on the content window */
 }
 
 .error-content {
     position: relative;
     max-width: 600px;
+    width: 100%;
     text-align: center;
-    padding: var(--spacing-xxl);
-    background: url('/arts/backgrounds/bg-error.png') no-repeat center center;
-    background-size: cover;
-    border-radius: var(--radius-lg);
-    box-shadow: 0 20px 80px rgba(0, 0, 0, 0.7), 0 0 60px rgba(34, 197, 94, 0.15);
-    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    padding: 36px 32px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
     overflow: hidden;
 }
 
 .error-content::before {
     content: '';
     position: absolute;
-    inset: 0;
-    background: rgba(10, 15, 10, 0.75);
-    border-radius: var(--radius-lg);
-    z-index: 0;
-    pointer-events: none;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--color-almond), transparent);
+    opacity: 0.6;
 }
 
 .error-content > * {
@@ -74,145 +64,120 @@ body:has(.error-boundary)::-webkit-scrollbar {
 }
 
 .error-code {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 4rem;
+    font-family: var(--font-heading);
+    font-size: 3rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 8px;
-    color: #ffffff;
-    margin-bottom: var(--spacing-lg);
-    text-shadow: 0 0 30px rgba(42, 157, 143, 0.8);
+    letter-spacing: 0.15em;
+    color: var(--color-snow);
+    margin-bottom: 12px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
 }
 
 .error-description {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 1.4rem;
-    color: #000000;
-    background: rgba(42, 157, 143, 0.3);
-    padding: var(--spacing-md);
-    border-radius: var(--radius-md);
-    margin-bottom: var(--spacing-lg);
+    font-family: var(--font-reading);
+    font-size: 1.15rem;
+    color: var(--color-almond);
+    background: var(--bg-coffee);
+    border: 1px solid var(--border-hairline);
+    padding: 12px 18px;
+    border-radius: var(--radius-xs);
+    margin-bottom: 20px;
     line-height: 1.6;
-    text-shadow: 0 0 10px rgba(42, 157, 143, 0.5);
-    font-weight: 500;
 }
 
 .error-stack {
-    background: rgba(0, 0, 0, 0.6);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-md);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-xs);
+    padding: 14px;
     text-align: left;
     font-size: 0.8rem;
-    color: var(--text-muted);
+    color: var(--color-taupe);
     overflow-x: auto;
-    max-height: 300px;
+    max-height: 240px;
     overflow-y: auto;
-    margin-bottom: var(--spacing-lg);
-    font-family: 'Courier New', monospace;
+    margin-bottom: 24px;
+    font-family: var(--font-mono);
+    line-height: 1.5;
 }
 
 .error-actions {
     display: flex;
-    gap: var(--spacing-md);
+    gap: 14px;
     justify-content: center;
-    margin-top: var(--spacing-lg);
+    margin-top: 16px;
 }
 
 .error-retry-btn {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(22, 163, 74, 0.4));
-    color: #fff;
-    border: 1px solid rgba(34, 197, 94, 0.5);
-    padding: 12px 32px;
-    font-family: 'Rajdhani', sans-serif;
+    background: var(--bg-coffee);
+    color: var(--color-almond);
+    border: 1px solid var(--color-almond);
+    padding: 10px 28px;
+    font-family: var(--font-heading);
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 0.85rem;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    border-radius: var(--radius-md);
+    letter-spacing: 0.1em;
+    border-radius: var(--radius-xs);
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: var(--shadow-md);
-    position: relative;
-    overflow: hidden;
-}
-
-.error-retry-btn::before {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    background: conic-gradient(from 0deg, transparent, rgba(34, 197, 94, 0.6), transparent, rgba(34, 197, 94, 0.3), transparent);
-    border-radius: 14px;
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    animation: ebRetrySpin 3s linear infinite;
-}
-
-.error-retry-btn:hover::before {
-    opacity: 1;
+    transition: all 0.2s ease;
 }
 
 .error-retry-btn:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 0 25px rgba(34, 197, 94, 0.45);
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.4), rgba(22, 163, 74, 0.5));
-    border-color: rgba(34, 197, 94, 0.7);
-}
-
-.error-retry-btn:active {
-    transform: translateY(0) scale(0.98);
+    background: var(--color-almond);
+    color: var(--color-ink);
+    box-shadow: 0 2px 12px rgba(241, 218, 191, 0.25);
 }
 
 .error-retry-btn.retrying {
     pointer-events: none;
-    opacity: 0.7;
-}
-
-@keyframes ebRetrySpin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    opacity: 0.5;
 }
 
 .error-home-btn {
-    background: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    padding: 12px 32px;
-    font-family: 'Rajdhani', sans-serif;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-hairline);
+    color: var(--color-taupe);
+    padding: 10px 28px;
+    font-family: var(--font-heading);
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 0.85rem;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    border-radius: var(--radius-md);
+    letter-spacing: 0.08em;
+    border-radius: var(--radius-xs);
     cursor: pointer;
-    transition: all var(--transition-normal);
+    transition: all 0.2s ease;
 }
 
 .error-home-btn:hover {
-    border-color: var(--accent-green);
-    color: var(--accent-green);
-    box-shadow: 0 0 15px rgba(42, 157, 143, 0.3);
+    border-color: var(--color-almond);
+    color: var(--color-almond);
+    background: var(--bg-coffee);
 }
 
-/* Inline error boundary (non-fullscreen) */
+/* Inline error boundary */
 .error-boundary-inline {
-    padding: var(--spacing-lg);
+    padding: 24px;
     background: var(--bg-secondary);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--accent-red);
+    border-radius: var(--radius-xs);
+    border: 1px solid rgba(180, 60, 60, 0.5);
+    border-left: 3px solid #e28a8a;
     text-align: center;
+    font-family: var(--font-body);
 }
 
 .error-boundary-inline .error-code {
-    font-size: 2rem;
+    font-size: 1.5rem;
+    margin-bottom: 8px;
 }
 
 .error-boundary-inline .error-description {
-    font-size: 1rem;
+    font-size: 0.95rem;
+    margin-bottom: 14px;
 }
 
 .error-boundary-inline .error-retry-btn {
-    padding: 8px 24px;
-    font-size: 0.9rem;
+    padding: 8px 20px;
+    font-size: 0.8rem;
 }

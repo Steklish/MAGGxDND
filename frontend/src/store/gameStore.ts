@@ -59,7 +59,7 @@ interface GameState {
     createCharacter: (data: any) => Promise<Character>;
     deleteCharacter: (characterId: number) => Promise<void>;
     loadCharacterProfile: (characterId: number) => Promise<CharacterProfile | null>;
-    loadCharacterProfiles: (userId: number) => Promise<void>;
+    loadCharacterProfiles: (userId: number) => Promise<CharacterProfile[]>;
 
     // Actions - Sessions
     loadSessions: () => Promise<void>;
@@ -68,6 +68,9 @@ interface GameState {
     joinSessionWithProfile: (sessionId: string, playerName: string, profileId: number) => Promise<void>;
     leaveSession: (sessionId: string, playerId: string) => Promise<void>;
     setCurrentSession: (session: GameSession | null) => void;
+    sessionRoster: any[];
+    loadSessionRoster: (sessionId: string) => Promise<any[]>;
+    claimCharacter: (sessionId: string, characterName: string, playerName?: string) => Promise<any>;
     setActiveSessions: (sessions: GameSession[]) => void;
     connectWebSocket: (sessionId: string, playerId: string) => Promise<void>;
     disconnectWebSocket: () => void;
@@ -82,10 +85,13 @@ interface GameState {
     setMessages: (messages: any[]) => void;
     setEvents: (events: any[]) => void;
     setCurrentScene: (scene: any | null) => void;
+    setTurnQueue: (turnQueue: any[]) => void;
     sendAction: (actionText: string, character: any) => void;
     getMessageType: (senderName: string) => string;
     isActionPending: boolean;
     clarificationText: string;
+    language: 'ru' | 'en';
+    setLanguage: (lang: 'ru' | 'en') => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -106,6 +112,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     currentSession: null,
     session: null,
     sessionId: null,
+    sessionRoster: [],
 
     mode: 'menu',
     error: null,
@@ -117,6 +124,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     events: [],
     turnQueue: [],
     currentScene: null,
+    language: (typeof window !== 'undefined' && localStorage.getItem('app_language') === 'en') ? 'en' : 'ru',
     
     // Auth actions
     checkAuthPersistence: () => {
@@ -387,10 +395,54 @@ export const useGameStore = create<GameState>((set, get) => ({
     leaveSession: async (sessionId: string, playerId: string) => {
         try {
             await sessionAPI.leaveSession(sessionId, playerId);
-            set({ currentSession: null, sessionId: null });
+            set({ currentSession: null, sessionId: null, activeCharacter: null });
             await get().loadSessions();
         } catch (error: any) {
             console.error('Failed to leave session:', error);
+            throw error;
+        }
+    },
+
+    loadSessionRoster: async (sessionId: string) => {
+        try {
+            const roster = await sessionAPI.getSessionRoster(sessionId);
+            set({ sessionRoster: roster });
+            return roster;
+        } catch (error: any) {
+            console.warn('Failed to load session roster:', error);
+            return [];
+        }
+    },
+
+    claimCharacter: async (sessionId: string, characterName: string, playerName?: string) => {
+        try {
+            const result = await sessionAPI.claimCharacter(sessionId, {
+                character_name: characterName,
+                player_name: playerName || get().username || 'Adventurer',
+            });
+            // Update active character
+            if (result && result.character_name) {
+                const charObj = {
+                    id: 1,
+                    user_id: get().userId || 1,
+                    name: result.character_name,
+                    race: 'Human',
+                    char_class: 'Fighter',
+                    level: 1,
+                    max_hp: 10,
+                    current_hp: 10,
+                    armor_class: 10,
+                    speed: 30,
+                    stats: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 },
+                    abilities: [],
+                    inventory: [],
+                };
+                set({ activeCharacter: charObj });
+            }
+            await get().loadSessionRoster(sessionId);
+            return result;
+        } catch (error: any) {
+            console.error('Failed to claim character:', error);
             throw error;
         }
     },
@@ -425,38 +477,43 @@ export const useGameStore = create<GameState>((set, get) => ({
 
                 // Handle different message types
                 switch (message.type) {
-                    case 'MASTER_MESSAGE':
+                    case 'MASTER_MESSAGE': {
                         // DM narration - add to chat
-                        const dmMsg = {
-                            sender_name: 'DM',
-                            text: message.payload?.text || '',
-                            type: 'dm',
-                            timestamp: new Date().toISOString(),
-                        };
-                        state.addMessage(dmMsg);
+                        const dmText = (message as any).payload?.text || (message as any).text || '';
+                        if (dmText) {
+                            const dmMsg = {
+                                sender_name: 'DM',
+                                text: dmText,
+                                type: 'dm',
+                                timestamp: new Date().toISOString(),
+                            };
+                            state.addMessage(dmMsg);
+                        }
+                        set({ isActionPending: false });
                         state.setIsDMThinking(false);
                         break;
+                    }
 
-                    case 'PLAYER_MESSAGE':
+                    case 'PLAYER_MESSAGE': {
                         // Another player's message - add to chat
                         const playerMsg = {
-                            sender_name: message.payload?.sender_name || message.payload?.event_initiator || 'Player',
-                            text: message.payload?.text || '',
+                            sender_name: (message as any).payload?.sender_name || (message as any).payload?.event_initiator || 'Player',
+                            text: (message as any).payload?.text || '',
                             type: 'player',
-                            timestamp: message.payload?.timestamp || new Date().toISOString(),
+                            timestamp: (message as any).payload?.timestamp || new Date().toISOString(),
                         };
                         state.addMessage(playerMsg);
                         break;
+                    }
 
-                    case 'GAME_EVENT':
+                    case 'GAME_EVENT': {
                         // Game event - add to events and chat
-                        const event = message.payload?.event;
+                        const event = (message as any).payload?.event;
                         if (event) {
                             state.addEvent(event);
 
                             // Handle player messages specially - show in chat
                             if (event.event_type === 'PLAYER_MESSAGE') {
-                                // Extract sender and text from event
                                 const senderName = event.event_initiator || 'Player';
                                 const text = event.description || event.event_subject || '';
 
@@ -472,75 +529,98 @@ export const useGameStore = create<GameState>((set, get) => ({
                             else if (event.event_type === 'DM_THINKING') {
                                 console.log(`🧠 ${event.event_initiator} is waiting for DM response...`);
                                 state.setIsDMThinking(true);
-                            } else {
-                                // Also add as chat message for visibility
-                                const eventMsg = {
-                                    sender_name: 'Game',
-                                    text: event.description || `${event.event_type} occurred`,
-                                    type: 'event',
-                                    timestamp: new Date().toISOString(),
-                                    event_type: event.event_type,
-                                };
-                                state.addMessage(eventMsg);
                             }
                         }
                         break;
+                    }
 
-                    case 'SESSION_UPDATE':
-                        // Session state update
-                        if (message.payload?.session) {
-                            // Update scene if provided
-                            if (message.payload.session.current_scene) {
-                                state.setCurrentScene(message.payload.session.current_scene);
+                    case 'SESSION_UPDATE': {
+                        // Full session state update from engine
+                        const sessionData: any = (message as any).payload?.session || (message as any).session;
+                        if (sessionData) {
+                            if (sessionData.current_scene) {
+                                state.setCurrentScene(sessionData.current_scene);
+                            }
+                            if (sessionData.player_characters && Array.isArray(sessionData.player_characters)) {
+                                set({ characters: sessionData.player_characters });
+                                const currentActive = get().activeCharacter;
+                                if (currentActive) {
+                                    const updated = sessionData.player_characters.find(
+                                        (c: any) => c.name === currentActive.name
+                                    );
+                                    if (updated) {
+                                        set({ activeCharacter: updated });
+                                    }
+                                } else if (sessionData.player_characters.length > 0) {
+                                    set({ activeCharacter: sessionData.player_characters[0] });
+                                }
+                            }
+                            if (sessionData.turn_queue) {
+                                set({ turnQueue: sessionData.turn_queue });
+                            }
+                            // Keep currentSession updated with latest plot and chapter
+                            const current = get().currentSession;
+                            if (current) {
+                                set({
+                                    currentSession: {
+                                        ...current,
+                                        ...sessionData,
+                                        plot: sessionData.plot || (current as any).plot,
+                                        current_chapter: sessionData.current_chapter || (current as any).current_chapter,
+                                    }
+                                });
                             }
                         }
+                        set({ isActionPending: false });
+                        state.setIsDMThinking(false);
                         break;
+                    }
 
-                    case 'SCENE_UPDATE':
+                    case 'SCENE_UPDATE': {
                         // Scene changed
-                        if (message.payload?.scene) {
-                            state.setCurrentScene(message.payload.scene);
+                        if ((message as any).payload?.scene) {
+                            state.setCurrentScene((message as any).payload.scene);
                         }
                         break;
+                    }
 
                     case 'TURN_QUEUE_UPDATE':
-                    case 'TURN_UPDATE':
-                        // Turn queue updated (TURN_UPDATE is legacy name from backend)
-                        if (message.payload?.turn_queue) {
-                            set({ turnQueue: message.payload.turn_queue });
+                    case 'TURN_UPDATE': {
+                        // Turn queue updated
+                        const tq = (message as any).payload?.turn_queue || (message as any).turn_queue;
+                        if (tq) {
+                            set({ turnQueue: tq });
                         }
                         break;
+                    }
 
-                    case 'ERROR':
+                    case 'ERROR': {
                         // Error message
-                        console.error('WebSocket error:', message.payload?.message);
+                        const errText = (message as any).payload?.message || (message as any).message || 'An error occurred';
+                        console.error('WebSocket error:', errText);
                         const errorMsg = {
                             sender_name: 'System',
-                            text: message.payload?.message || 'An error occurred',
+                            text: errText,
                             type: 'environment',
                             timestamp: new Date().toISOString(),
                         };
                         state.addMessage(errorMsg);
+                        set({ isActionPending: false });
                         state.setIsDMThinking(false);
                         break;
+                    }
 
                     case 'MESSAGE_SENT':
                         // Acknowledgment that player message was sent
                         console.log('✓ Player message sent acknowledged');
                         break;
 
-                    case 'ACTION_RESULT':
-                        // Action result from server - DO NOT add DM response to chat here
-                        // The DM response is sent via MASTER_MESSAGE which handles chat display
-                        // ACTION_RESULT is only for game state updates and clearing UI state
-                        console.log('[WebSocket] ACTION_RESULT received - clearing DM thinking state');
-                        console.log('   Success:', message.payload?.success);
-                        console.log('   Events:', message.payload?.game_state);
-                        console.log('   Error:', message.payload?.error);
-                        
-                        // Only clear the thinking state - DM message will arrive via MASTER_MESSAGE
+                    case 'ACTION_RESULT': {
+                        console.log('[WebSocket] ACTION_RESULT received - clearing action pending & DM thinking state');
+                        set({ isActionPending: false });
                         state.setIsDMThinking(false);
                         break;
+                    }
 
                     default:
                         console.log('Unhandled WebSocket message type:', message.type);
@@ -566,11 +646,18 @@ export const useGameStore = create<GameState>((set, get) => ({
     },
 
     setCurrentSession: (session) => {
-        set({
+        const updates: any = {
             currentSession: session,
             session: session, // Also update alias
             sessionId: session?.session_id || null,
-        });
+        };
+        if (session?.language === 'ru' || session?.language === 'en') {
+            updates.language = session.language;
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('app_language', session.language);
+            }
+        }
+        set(updates);
         // Persist to localStorage
         if (session?.session_id) {
             localStorage.setItem('currentSessionId', session.session_id);
@@ -579,6 +666,14 @@ export const useGameStore = create<GameState>((set, get) => ({
             localStorage.removeItem('currentSessionId');
             localStorage.removeItem('currentSessionName');
         }
+    },
+
+    setLanguage: (lang: 'ru' | 'en') => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('app_language', lang);
+        }
+        set({ language: lang });
+        // Session language is immutable once created. UI translation reflects current active language.
     },
 
     setActiveSessions: (sessions) => {
@@ -595,19 +690,47 @@ export const useGameStore = create<GameState>((set, get) => ({
     setMessages: (messages) => set({ messages }),
     setEvents: (events) => set({ events }),
     addMessage: (message) => set((state) => {
-        // Prevent duplicate messages
-        const isDuplicate = state.messages.some(
-            m => m.sender_name === message.sender_name && 
-                 m.text === message.text && 
-                 Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 1000
-        );
+        const trimmedText = (message.text || '').trim();
+        if (!trimmedText) return state;
+
+        // Prevent duplicate messages: check recent messages within 60s window or identical text
+        const isDMSender = (s: string) => ['dm', 'gm', 'mage', 'master', 'game master'].includes((s || '').toLowerCase().trim());
+        const incomingIsDM = isDMSender(message.sender_name);
+
+        const recentMessages = state.messages.slice(-20);
+        const isDuplicate = recentMessages.some(m => {
+            if ((m.text || '').trim() !== trimmedText) return false;
+            const existingIsDM = isDMSender(m.sender_name);
+            if (incomingIsDM && existingIsDM) return true;
+            if (m.sender_name === message.sender_name) return true;
+            return false;
+        });
         if (isDuplicate) {
             return state;
         }
         return { messages: [...state.messages, message] };
     }),
-    addEvent: (event) => set((state) => ({ events: [...state.events, event] })),
+    addEvent: (event) => set((state) => {
+        const trimmedDesc = (event.description || '').trim();
+        if (!trimmedDesc) return state;
+
+        // Prevent duplicate events within recent events
+        const recentEvents = state.events.slice(-20);
+        const isDuplicate = recentEvents.some(e => {
+            return (e.description || '').trim() === trimmedDesc &&
+                   e.event_type === event.event_type;
+        });
+        if (isDuplicate) {
+            return state;
+        }
+        const eventWithTs = {
+            ...event,
+            timestamp: (event as any).timestamp || new Date().toISOString(),
+        };
+        return { events: [...state.events, eventWithTs] };
+    }),
     setCurrentScene: (scene) => set({ currentScene: scene }),
+    setTurnQueue: (turnQueue) => set({ turnQueue }),
 
     // Send action to backend for AI processing
     sendAction: async (actionText: string, character: any) => {
@@ -618,10 +741,11 @@ export const useGameStore = create<GameState>((set, get) => ({
         const state = useGameStore.getState();
         const sessionId = localStorage.getItem('currentSessionId') || 'unknown';
         const playerId = localStorage.getItem('currentPlayerId');
+        const effectiveCharacter = character || state.activeCharacter || { name: state.username || 'Hero' };
 
         // Log player action flow - sent
         console.log(`%c📤 [${new Date().toLocaleTimeString()}] PLAYER ACTION SENT`, 'background: #3498db; color: white; padding: 4px 8px; border-radius: 3px;');
-        console.log(`   Character: ${character.name}`);
+        console.log(`   Character: ${effectiveCharacter.name}`);
         console.log(`   Session: ${sessionId}`);
         console.log(`   Action: ${actionText}`);
         console.log(`   Trace ID: ${traceId}`);
@@ -629,26 +753,46 @@ export const useGameStore = create<GameState>((set, get) => ({
 
         // Add player message to store immediately
         const playerMessage = {
-            sender_name: character.name,
+            sender_name: effectiveCharacter.name,
             text: actionText,
             type: 'player',
             timestamp: new Date().toISOString(),
         };
         state.addMessage(playerMessage);
 
-        // Set DM thinking state
+        // Set DM thinking and action pending state
+        set({ isActionPending: true });
         state.setIsDMThinking(true);
+
+        // Safety timeout to prevent infinite UI freeze if connection or DM hangs
+        setTimeout(() => {
+            const current = useGameStore.getState();
+            if (current.isActionPending || current.isDMThinking) {
+                console.warn('Safety timeout reached for action: resetting pending states');
+                set({ isActionPending: false });
+                current.setIsDMThinking(false);
+                const isRu = current.language === 'ru';
+                current.addMessage({
+                    sender_name: 'System',
+                    text: isRu
+                        ? '⚠️ Мастер подземелий задержался с ответом. Управление действием восстановлено.'
+                        : '⚠️ The Dungeon Master took too long to respond. Action control has been restored.',
+                    type: 'environment',
+                    timestamp: new Date().toISOString(),
+                });
+            }
+        }, 30000);
 
         // Send via WebSocket if connected, otherwise fallback to REST
         try {
-            if (webSocketService.isConnected() && character) {
+            if (webSocketService.isConnected()) {
                 console.log(`%c🌐 [${new Date().toLocaleTimeString()}] SENDING VIA WEBSOCKET...`, 'background: #9b59b6; color: white; padding: 4px 8px; border-radius: 3px;');
 
                 // First, broadcast player message to other players so they can see it
-                webSocketService.sendPlayerMessage(character.name, actionText);
+                webSocketService.sendPlayerMessage(effectiveCharacter.name, actionText);
 
                 // Send action through WebSocket
-                webSocketService.sendAction(actionText, character);
+                webSocketService.sendAction(actionText, effectiveCharacter);
 
                 console.log(`%c✅ [${new Date().toLocaleTimeString()}] ACTION SENT VIA WEBSOCKET`, 'background: #27ae60; color: white; padding: 4px 8px; border-radius: 3px;');
                 console.log('%c─────────────────────────────────────────────────────', 'color: #27ae60;');
@@ -664,7 +808,7 @@ export const useGameStore = create<GameState>((set, get) => ({
                         'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                     },
                     body: JSON.stringify({
-                        character_name: character.name,
+                        character_name: effectiveCharacter.name,
                         action: actionText,
                     }),
                 });
@@ -682,7 +826,8 @@ export const useGameStore = create<GameState>((set, get) => ({
                 console.log(`   DM Response Length: ${data.dm_response?.length || 0}`);
                 console.log('%c─────────────────────────────────────────────────────', 'color: #27ae60;');
 
-                // Clear thinking state
+                // Clear thinking and pending state
+                set({ isActionPending: false });
                 state.setIsDMThinking(false);
 
                 // Add AI response from backend
@@ -700,15 +845,6 @@ export const useGameStore = create<GameState>((set, get) => ({
                     data.events.forEach((event: any, i: number) => {
                         console.log(`   Event ${i+1}: ${event.event_type} - ${event.description}`);
                         state.addEvent(event);
-
-                        const eventMessage = {
-                            sender_name: 'Game',
-                            text: event.description || `${event.event_type} occurred`,
-                            type: 'event',
-                            timestamp: new Date().toISOString(),
-                            event_type: event.event_type,
-                        };
-                        state.addMessage(eventMessage);
                     });
                     console.log('%c─────────────────────────────────────────────────────', 'color: #f39c12;');
                 }
@@ -719,6 +855,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             console.error('   Trace ID:', traceId);
             console.log('%c─────────────────────────────────────────────────────', 'color: #e74c3c;');
 
+            set({ isActionPending: false });
             state.setIsDMThinking(false);
 
             // Show error message

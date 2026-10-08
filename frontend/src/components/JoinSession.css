@@ -1,22 +1,30 @@
+/* ==========================================================================
+   JOIN SESSION - Strict Medieval Codex Style
+   MAGGxDND Design System (Stone Slate, Almond Cream, Taupe, Dark Coffee)
+   ========================================================================== */
+
 .join-session-page {
     min-height: 100vh;
     position: relative;
     overflow: hidden;
+    font-family: var(--font-body);
+    color: var(--text-primary);
 }
 
 .join-session-bg {
     position: fixed;
     inset: 0;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    background: radial-gradient(circle at 50% 20%, rgba(30, 54, 30, 0.4) 0%, rgba(24, 25, 28, 0.95) 70%, rgba(18, 19, 21, 0.98) 100%),
+                url('/assets/web-backgrounds/Background_green_success_accent.jpg') center / cover no-repeat;
     z-index: -1;
 }
 
 .join-session-content {
     position: relative;
     z-index: 1;
-    max-width: 800px;
+    max-width: 760px;
     margin: 0 auto;
-    padding: 2rem 1rem;
+    padding: 3rem 1.5rem;
 }
 
 .join-session-header {
@@ -27,32 +35,55 @@
 }
 
 .join-session-header h1 {
-    color: #e2e8f0;
+    font-family: var(--font-heading);
+    color: var(--color-snow);
     font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     margin: 0;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
 }
 
 .btn-back {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #e2e8f0;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-hairline);
+    color: var(--color-taupe);
     padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-xs);
     cursor: pointer;
-    font-size: 0.9rem;
-    transition: background 0.2s;
+    font-family: var(--font-heading);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
 }
 
 .btn-back:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--bg-coffee);
+    color: var(--color-almond);
+    border-color: var(--color-almond);
 }
 
 .join-session-container {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 1rem;
-    padding: 2rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    padding: 2.2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+.join-session-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--color-almond), transparent);
+    opacity: 0.6;
 }
 
 .join-session-title-card {
@@ -61,23 +92,31 @@
 }
 
 .join-session-title-card h2 {
-    color: #e2e8f0;
+    font-family: var(--font-heading);
+    color: var(--color-snow);
     font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     margin: 0 0 0.5rem;
 }
 
 .join-session-title-card p {
-    color: #94a3b8;
+    color: var(--color-almond);
+    font-family: var(--font-reading);
+    font-size: 15px;
     margin: 0;
 }
 
 .error-message {
-    background: rgba(239, 68, 68, 0.2);
-    border: 1px solid rgba(239, 68, 68, 0.4);
-    color: #fca5a5;
+    background: rgba(45, 15, 15, 0.7);
+    border: 1px solid rgba(180, 60, 60, 0.5);
+    border-left: 3px solid #e28a8a;
+    color: #e28a8a;
     padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-xs);
     margin-bottom: 1.5rem;
+    font-size: 13px;
 }
 
 .join-options-grid {
@@ -89,72 +128,88 @@
 .join-option {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.75rem;
-    padding: 1rem 1.25rem;
+    gap: 1.25rem;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-xs);
+    padding: 1.1rem 1.4rem;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
 }
 
 .join-option:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-1px);
+    background: var(--bg-coffee);
+    border-color: var(--color-almond);
+    transform: translateX(3px);
 }
 
 .join-option-icon {
     font-size: 2rem;
     flex-shrink: 0;
+    color: var(--color-almond);
 }
 
 .join-option-text h3 {
-    color: #e2e8f0;
+    font-family: var(--font-heading);
+    color: var(--color-snow);
     margin: 0 0 0.25rem;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
 }
 
 .join-option-text p {
-    color: #94a3b8;
+    color: var(--color-taupe);
     margin: 0;
     font-size: 0.85rem;
+    font-family: var(--font-ui);
 }
 
 .join-form {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.75rem;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-xs);
     padding: 1.5rem;
     margin-top: 1rem;
 }
 
 .join-form h3 {
-    color: #e2e8f0;
+    font-family: var(--font-heading);
+    color: var(--color-snow);
     margin: 0 0 1rem;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .join-form select,
 .join-form textarea {
     width: 100%;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 0.5rem;
-    padding: 0.75rem;
-    color: #e2e8f0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-xs);
+    padding: 0.75rem 1rem;
+    color: var(--color-snow);
     font-size: 0.95rem;
+    font-family: var(--font-body);
     margin-bottom: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.join-form select:focus,
+.join-form textarea:focus {
+    outline: none;
+    border-color: var(--color-almond);
 }
 
 .join-form textarea {
     resize: vertical;
-    font-family: inherit;
+    font-family: var(--font-reading);
 }
 
 .join-form select option {
-    background: #1a1a2e;
-    color: #e2e8f0;
+    background: var(--bg-primary);
+    color: var(--color-snow);
 }
 
 .join-form-actions {
@@ -163,47 +218,60 @@
 }
 
 .btn-join {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    border: none;
-    color: white;
+    background: var(--bg-coffee);
+    border: 1px solid var(--color-almond);
+    color: var(--color-almond);
     padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    font-weight: 600;
+    border-radius: var(--radius-xs);
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     cursor: pointer;
-    transition: opacity 0.2s;
+    transition: all 0.2s ease;
     flex: 1;
 }
 
 .btn-join:hover:not(:disabled) {
-    opacity: 0.9;
+    background: var(--color-almond);
+    color: var(--color-ink);
 }
 
 .btn-join:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
+    background: var(--bg-elevated);
+    border-color: var(--border-hairline);
+    color: var(--color-taupe);
 }
 
 .btn-cancel {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #e2e8f0;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-hairline);
+    color: var(--color-taupe);
     padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    font-size: 0.95rem;
+    border-radius: var(--radius-xs);
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s ease;
 }
 
 .btn-cancel:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--bg-coffee);
+    color: var(--color-almond);
+    border-color: var(--color-almond);
 }
 
 .dice-loader {
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(255, 255, 255, 0.1);
-    border-top-color: #8b5cf6;
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--border-hairline);
+    border-top-color: var(--color-almond);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     margin: 1rem auto;

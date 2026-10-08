@@ -6,6 +6,7 @@ import { QuickPlay } from './QuickPlay';
 import { BrowseSessions } from './BrowseSessions';
 import { Rulebook } from './Rulebook';
 import { LandingFooter } from './LandingFooter';
+import { VectorIcon } from './common/VectorIcon';
 import './HomePage.css';
 
 interface HomePageProps {
@@ -49,7 +50,7 @@ export const HomePage: React.FC<HomePageProps> = ({
     const backgroundRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (!isAuthenticated || !userId) {
+        if (!isAuthenticated) {
             // Force logout and redirect to landing by clearing auth state
             console.warn('⚠️ Not authenticated - redirecting to landing');
             setAuthenticated(false);
@@ -60,7 +61,7 @@ export const HomePage: React.FC<HomePageProps> = ({
         const loadData = async () => {
             try {
                 await Promise.all([
-                    loadCharacters(userId),
+                    userId ? loadCharacters(userId) : Promise.resolve(),
                     loadSessions()
                 ]);
             } catch (error) {
@@ -81,25 +82,15 @@ export const HomePage: React.FC<HomePageProps> = ({
 
             setScrolled(scrollTop > 50);
 
-            // Update scrollbar color based on scroll position
+            // Update scrollbar color with medieval stone and parchment tones
             const scrollbar = document.documentElement;
-            let color: string;
-
-            if (scrollProgress < 0.25) {
-                const t = scrollProgress / 0.25;
-                color = `rgb(${42 + t * (233 - 42)}, ${157 + t * (196 - 157)}, ${143 + t * (106 - 143)})`;
-            } else if (scrollProgress < 0.5) {
-                const t = (scrollProgress - 0.25) / 0.25;
-                color = `rgb(${233 + t * (255 - 233)}, ${196 + t * (107 - 196)}, ${106 + t * (53 - 106)})`;
-            } else if (scrollProgress < 0.75) {
-                const t = (scrollProgress - 0.5) / 0.25;
-                color = `rgb(${255 + t * (230 - 255)}, ${107 + t * (57 - 107)}, ${53 + t * (70 - 53)})`;
-            } else {
-                const t = (scrollProgress - 0.75) / 0.25;
-                color = `rgb(${230 + t * (157 - 230)}, ${57 + t * (78 - 57)}, ${70 + t * (221 - 70)})`;
-            }
-
-            scrollbar.style.setProperty('--scrollbar-color', color);
+            const taupe = { r: 146, g: 129, b: 122 };
+            const almond = { r: 241, g: 218, b: 191 };
+            const t = Math.min(1, Math.max(0, scrollProgress));
+            const r = Math.round(taupe.r + t * (almond.r - taupe.r));
+            const g = Math.round(taupe.g + t * (almond.g - taupe.g));
+            const b = Math.round(taupe.b + t * (almond.b - taupe.b));
+            scrollbar.style.setProperty('--scrollbar-color', `rgb(${r}, ${g}, ${b})`);
 
             // Move background at 20% scroll speed with limit
             // Background stops when it reaches the end of its extra 20% buffer
@@ -185,7 +176,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             <header className={`home-header ${scrolled ? 'scrolled' : ''}`}>
                 <div className="header-content">
                     <div className="logo" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                        <span className="logo-icon">🐉</span>
+                        <span className="logo-icon"><VectorIcon name="crown" /></span>
                         <span className="logo-text">
                             <span className="logo-magg">MAGG</span>
                             <span className="logo-x">x</span>
@@ -216,7 +207,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                             className={activeTab === 'browse' ? 'active browse-highlight' : 'browse-highlight'}
                             onClick={() => setActiveTab('browse')}
                         >
-                            🔍 Browse
+                            <VectorIcon name="rune" /> Browse
                         </button>
                     </nav>
 
@@ -225,7 +216,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                             className="btn-create-session"
                             onClick={() => setShowSessionCreation(true)}
                         >
-                            <span>⚔️</span>
+                            <VectorIcon name="sword" />
                             <span>Create Session</span>
                         </button>
                         
@@ -233,7 +224,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                             className="btn-profile"
                             onClick={handleProfileClick}
                         >
-                            <span className="profile-avatar">👤</span>
+                            <span className="profile-avatar"><VectorIcon name="knight" /></span>
                             <span className="profile-name">{username || 'Adventurer'}</span>
                         </button>
                         
@@ -242,7 +233,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                             onClick={handleLogout}
                             title="Logout"
                         >
-                            <span>🚪</span>
+                            <VectorIcon name="gate" />
                         </button>
                     </div>
                 </div>
@@ -263,7 +254,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 {runningSession && (
                     <div className="continue-game-section">
                         <button className="btn-continue-game" onClick={() => onStartGameSetup(runningSession.session_id)}>
-                            <span className="btn-icon">🎮</span>
+                            <span className="btn-icon"><VectorIcon name="sword" /></span>
                             <div className="btn-text">
                                 <span className="btn-title">Continue Adventure</span>
                                 <span className="btn-subtitle">{runningSession.session_name}</span>
@@ -314,7 +305,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                                         onClick={() => handleSessionJoin(session.session_id)}
                                     >
                                         <div className="session-icon">
-                                            {session.status === 'running' ? '🎮' : '📋'}
+                                            {session.status === 'running' ? <VectorIcon name="sword" /> : <VectorIcon name="banner" />}
                                         </div>
                                         <div className="session-info">
                                             <h3>{session.session_name}</h3>
@@ -330,7 +321,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                             </div>
                         ) : (
                             <div className="empty-state">
-                                <span className="empty-icon">📜</span>
+                                <span className="empty-icon"><VectorIcon name="banner" size="2.5rem" /></span>
                                 <p>No active sessions</p>
                                 <button
                                     className="btn-primary"
@@ -360,7 +351,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                                         onClick={() => handleCharacterSelect(char.id)}
                                     >
                                         <div className="char-avatar">
-                                            {char.race === 'Human' ? '🧙' : char.race === 'Elf' ? '🧝' : '🧌'}
+                                            {char.char_class?.toLowerCase().includes('wizard') ? <VectorIcon name="wizard" size="1.8rem" /> : <VectorIcon name="knight" size="1.8rem" />}
                                         </div>
                                         <div className="char-info">
                                             <h3>{char.name}</h3>
@@ -371,7 +362,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                             </div>
                         ) : (
                             <div className="empty-state">
-                                <span className="empty-icon">⚔️</span>
+                                <span className="empty-icon"><VectorIcon name="sword" size="2.5rem" /></span>
                                 <p>No characters yet</p>
                                 <button className="btn-primary">
                                     Create Your First Character
@@ -385,28 +376,28 @@ export const HomePage: React.FC<HomePageProps> = ({
                         </div>
                         <div className="quick-actions">
                                 <button className="action-btn" onClick={() => setShowSessionCreation(true)}>
-                                    <span className="action-icon">⚔️</span>
+                                    <span className="action-icon"><VectorIcon name="sword" /></span>
                                     <span>Create Session</span>
                                 </button>
                                 <button
                                     className="action-btn"
                                     onClick={onShowProfile}
                                 >
-                                    <span className="action-icon">📝</span>
+                                    <span className="action-icon"><VectorIcon name="banner" /></span>
                                     <span>New Character</span>
                                 </button>
                                 <button 
                                     className="action-btn"
                                     onClick={handleQuickPlayClick}
                                 >
-                                    <span className="action-icon">🎲</span>
+                                    <span className="action-icon"><VectorIcon name="dice" /></span>
                                     <span>Quick Play</span>
                                 </button>
                                 <button
                                     className="action-btn"
                                     onClick={handleRulebookClick}
                                 >
-                                    <span className="action-icon">📚</span>
+                                    <span className="action-icon"><VectorIcon name="banner" /></span>
                                     <span>Rulebook</span>
                                 </button>
                             </div>
@@ -434,7 +425,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                                     >
                                         <div className="char-card-inner">
                                             <div className="char-avatar-large">
-                                                {char.race === 'Human' ? '🧙' : char.race === 'Elf' ? '🧝' : '🧌'}
+                                                {char.char_class?.toLowerCase().includes('wizard') ? <VectorIcon name="wizard" size="2.5rem" /> : <VectorIcon name="knight" size="2.5rem" />}
                                             </div>
                                             <h3>{char.name}</h3>
                                             <p>Lvl {char.level} {char.race} {char.char_class}</p>
@@ -448,7 +439,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                             </div>
                         ) : (
                             <div className="empty-state-large">
-                                <span className="empty-icon">⚔️</span>
+                                <span className="empty-icon"><VectorIcon name="sword" size="2.5rem" /></span>
                                 <h3>No characters yet</h3>
                                 <p>Create your first character and start your adventure!</p>
                                 <button
@@ -491,15 +482,15 @@ export const HomePage: React.FC<HomePageProps> = ({
                                             {session.description || 'No description'}
                                         </p>
                                         <div className="session-meta">
-                                            <span>👥 {session.player_count}/{session.max_players} players</span>
-                                            <span>🎮 {session.game_mode}</span>
+                                            <span><VectorIcon name="knight" /> {session.player_count}/{session.max_players} players</span>
+                                            <span><VectorIcon name="sword" /> {session.game_mode}</span>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
                             <div className="empty-state-large">
-                                <span className="empty-icon">📜</span>
+                                <span className="empty-icon"><VectorIcon name="banner" size="2.5rem" /></span>
                                 <h3>No sessions yet</h3>
                                 <p>Create or join a session to start playing!</p>
                                 <button

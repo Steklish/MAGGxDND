@@ -1,95 +1,192 @@
+/* ==========================================================================
+   TURN QUEUE - Strict Medieval Initiative Order (Compact & Readable)
+   Palette: Coffee, Maroon, Clay Dust, Creme, Leather Couch, Deep Peach, Guave
+   ========================================================================== */
+
 .turn-queue {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background-color: rgba(157, 78, 221, 0.05);
-    border-radius: var(--radius-md);
-    border: 1px solid rgba(157, 78, 221, 0.2);
+    gap: 8px;
+    padding: 5px 12px;
+    background-color: var(--bg-secondary, #212226);
+    border-radius: var(--radius-sm, 2px);
+    border-bottom: 1px solid var(--color-leather, #37504d);
+    box-shadow: var(--shadow-sm);
+    overflow-x: auto;
+    white-space: nowrap;
 }
 
-.turn-queue-header {
-    display: flex;
-    justify-content: space-between;
+.turn-queue-label-badge {
+    display: inline-flex;
     align-items: center;
-    padding: 6px 12px;
-    background-color: rgba(157, 78, 221, 0.1);
-    border-radius: var(--radius-sm);
+    gap: 5px;
+    padding: 3px 8px;
+    background: var(--color-coffee, #371e13);
+    border: 1px solid var(--color-leather, #37504d);
+    border-radius: var(--radius-sm, 2px);
+    cursor: help;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
 }
 
-.turn-time {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    font-family: 'Rajdhani', sans-serif;
+.turn-queue-label-badge:hover {
+    border-color: var(--color-creme, #e1d3a9);
+    background: var(--color-leather, #37504d);
 }
 
-.queue-label {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    font-family: 'Rajdhani', sans-serif;
+.queue-badge-icon {
+    font-size: 0.8rem;
+    color: var(--color-creme, #e1d3a9);
+    display: flex;
+    align-items: center;
+}
+
+.queue-badge-text {
+    font-size: 0.72rem;
+    font-family: var(--font-heading, 'Cinzel', serif);
+    font-weight: 700;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
+    color: var(--color-creme, #e1d3a9);
+}
+
+.queue-help-glyph {
+    font-size: 0.68rem;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: rgba(225, 211, 169, 0.15);
+    color: var(--color-clay-dust, #c0aa8a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
 }
 
 .queue-empty {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.76rem;
+    color: var(--color-clay-dust, #c0aa8a);
+    font-family: var(--font-heading, 'Cinzel', serif);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.08em;
 }
 
 .turn-queue-list {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
+    min-width: 0;
 }
 
 .turn-entry {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 10px;
-    background-color: var(--bg-tertiary);
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-color);
-    transition: all 0.3s ease;
+    gap: 6px;
+    padding: 3px 8px;
+    background-color: var(--bg-tertiary, #28292e);
+    border-radius: var(--radius-sm, 2px);
+    border: 1px solid var(--border-color, #383940);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    flex-shrink: 0;
 }
 
 .turn-entry.next {
-    background: linear-gradient(135deg, rgba(157, 78, 221, 0.2) 0%, rgba(157, 78, 221, 0.1) 100%);
-    border-color: var(--accent-purple);
-    box-shadow: 0 0 10px rgba(157, 78, 221, 0.2);
+    background: linear-gradient(135deg, var(--color-maroon, #5e2a25) 0%, var(--color-coffee, #371e13) 100%);
+    border-color: var(--color-creme, #e1d3a9);
+    box-shadow: 0 0 10px rgba(225, 211, 169, 0.2);
 }
 
 .turn-entry:hover {
-    border-color: var(--accent-purple);
-    transform: translateX(4px);
+    border-color: var(--color-creme, #e1d3a9);
+    transform: translateY(-1px);
+}
+
+.turn-order-num {
+    font-size: 0.68rem;
+    font-family: var(--font-mono, monospace);
+    color: var(--color-clay-dust, #c0aa8a);
+    font-weight: 700;
+}
+
+.turn-entry.next .turn-order-num {
+    color: var(--color-creme, #e1d3a9);
+}
+
+.turn-avatar-mini {
+    width: 20px;
+    height: 20px;
+    border-radius: 2px;
+    object-fit: cover;
+    border: 1px solid var(--color-creme, #e1d3a9);
+    flex-shrink: 0;
 }
 
 .turn-indicator {
-    font-size: 1rem;
+    font-size: 0.8rem;
+    color: var(--color-creme, #e1d3a9);
+    display: flex;
+    align-items: center;
     flex-shrink: 0;
 }
 
 .turn-character {
-    font-size: 0.9rem;
-    color: var(--text-primary);
-    font-family: 'Rajdhani', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-size: 0.78rem;
+    color: var(--color-snow, #fffbff);
+    font-family: var(--font-heading, 'Cinzel', serif);
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
 }
 
-.turn-entry.next .turn-character {
-    color: var(--accent-purple);
-    text-shadow: 0 0 8px rgba(157, 78, 221, 0.3);
+.turn-state-pill {
+    font-size: 0.6rem;
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-family: var(--font-mono, monospace);
+    font-weight: 700;
+    letter-spacing: 0.05em;
 }
 
-.turn-timer {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    font-family: 'Rajdhani', sans-serif;
-    margin-left: auto;
+.turn-state-pill.state-active {
+    background: rgba(143, 124, 58, 0.35);
+    color: var(--color-creme, #e1d3a9);
+    border: 1px solid var(--color-guave, #8f7c3a);
+}
+
+.turn-state-pill.state-waiting {
+    background: rgba(0, 0, 0, 0.25);
+    color: var(--color-clay-dust, #c0aa8a);
+    border: 1px solid rgba(192, 170, 138, 0.2);
+}
+
+/* Tooltip helper contents */
+.turn-help-tooltip {
+    max-width: 260px;
+    text-align: left;
+    font-family: var(--font-body, serif);
+}
+
+.turn-help-title {
+    color: var(--color-creme, #e1d3a9);
+    font-size: 0.84rem;
+    font-family: var(--font-heading, 'Cinzel', serif);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.turn-help-text {
+    margin: 0;
+    font-size: 0.76rem;
+    line-height: 1.35;
+    color: var(--color-clay-dust, #c0aa8a);
+}
+
+.turn-hover-fallback {
+    padding: 6px 10px;
+    text-align: left;
+    font-size: 0.78rem;
+    color: var(--color-creme, #e1d3a9);
 }

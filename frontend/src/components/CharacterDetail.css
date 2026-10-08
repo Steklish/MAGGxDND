@@ -1,9 +1,13 @@
-/* Character Detail Styles */
+/* ==========================================================================
+   CHARACTER DETAIL PAGE - Strict Medieval Codex Style
+   MAGGxDND Design System (Stone Slate, Almond Cream, Taupe, Dark Coffee)
+   ========================================================================== */
 
 .character-detail {
     min-height: 100vh;
     background: var(--bg-primary);
     color: var(--text-primary);
+    font-family: var(--font-body);
 }
 
 .character-detail.loading {
@@ -12,12 +16,14 @@
     align-items: center;
     justify-content: center;
     gap: 20px;
+    padding: 80px 20px;
 }
 
+/* Detail Header */
 .detail-header {
     background: var(--bg-secondary);
-    padding: 20px 40px;
-    border-bottom: 1px solid var(--border-color);
+    padding: 18px 40px;
+    border-bottom: 1px solid var(--border-hairline);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -25,59 +31,82 @@
 }
 
 .detail-header h1 {
-    font-size: 28px;
+    font-family: var(--font-heading);
+    font-size: 24px;
     font-weight: 700;
+    letter-spacing: 0.08em;
     margin: 0;
-    background: var(--gradient-text);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--color-snow);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .btn-back,
 .btn-edit {
-    padding: 10px 20px;
-    border-radius: var(--radius-md);
-    font-weight: 600;
+    padding: 9px 20px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.3s ease;
-    border: none;
+    transition: all 0.2s ease;
+    border: 1px solid var(--border-hairline);
 }
 
 .btn-back {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
+    background: var(--bg-elevated);
+    border-color: var(--border-hairline);
+    color: var(--color-taupe);
 }
 
 .btn-back:hover {
-    border-color: var(--accent-orange);
+    background: var(--bg-coffee);
+    border-color: var(--color-almond);
+    color: var(--color-almond);
 }
 
 .btn-edit {
-    background: var(--accent-green);
-    color: #fff;
+    background: var(--bg-coffee);
+    border-color: var(--color-almond);
+    color: var(--color-almond);
 }
 
 .btn-edit:hover {
-    background: #27ae60;
-    transform: translateY(-2px);
+    background: var(--color-almond);
+    color: var(--color-ink);
+    box-shadow: 0 2px 10px rgba(241, 218, 191, 0.2);
 }
 
+/* Content Area */
 .detail-content {
-    padding: 40px;
+    padding: 36px 40px;
     max-width: 1200px;
     margin: 0 auto;
 }
 
+/* Overview Banner */
 .char-overview {
     display: flex;
-    gap: 40px;
-    margin-bottom: 40px;
-    padding: 32px;
+    gap: 36px;
+    margin-bottom: 36px;
+    padding: 28px 32px;
     background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    position: relative;
+}
+
+.char-overview::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--color-almond), transparent);
+    opacity: 0.6;
 }
 
 .char-portrait {
@@ -85,15 +114,17 @@
 }
 
 .portrait-placeholder {
-    width: 200px;
-    height: 200px;
-    background: var(--bg-tertiary);
-    border: 2px solid var(--border-color);
-    border-radius: var(--radius-lg);
+    width: 160px;
+    height: 160px;
+    background: var(--bg-coffee);
+    border: 1px solid var(--color-almond);
+    border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 100px;
+    font-size: 72px;
+    color: var(--color-almond);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
 .char-basic-info {
@@ -101,170 +132,212 @@
 }
 
 .char-basic-info h2 {
-    font-size: 32px;
+    font-family: var(--font-heading);
+    font-size: 28px;
     font-weight: 700;
-    margin: 0 0 8px;
+    letter-spacing: 0.06em;
+    margin: 0 0 6px;
+    color: var(--color-snow);
 }
 
 .char-class {
-    font-size: 18px;
-    color: var(--text-secondary);
-    margin: 0 0 24px;
+    font-family: var(--font-heading);
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-almond);
+    margin: 0 0 20px;
 }
 
 .char-stats-brief {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+    gap: 14px;
 }
 
 .stat-brief {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 16px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-hairline);
+    border-left: 2px solid var(--color-almond);
+    border-radius: var(--radius-xs);
+    padding: 12px 14px;
     text-align: center;
 }
 
 .stat-brief .stat-label {
     display: block;
-    font-size: 12px;
-    color: var(--text-muted);
+    font-family: var(--font-heading);
+    font-size: 11px;
+    color: var(--color-taupe);
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 8px;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
 }
 
 .stat-brief .stat-value {
     display: block;
-    font-size: 24px;
+    font-family: var(--font-mono);
+    font-size: 20px;
     font-weight: 700;
-    color: var(--accent-orange);
+    color: var(--color-snow);
 }
 
+/* Tabs */
 .char-tabs {
     display: flex;
-    gap: 8px;
-    margin-bottom: 24px;
-    border-bottom: 1px solid var(--border-color);
+    gap: 6px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-hairline);
     padding-bottom: 0;
 }
 
 .tab-btn {
-    padding: 12px 24px;
+    padding: 10px 22px;
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     border-bottom: 2px solid transparent;
-    color: var(--text-secondary);
-    font-weight: 600;
+    color: var(--color-taupe);
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .tab-btn:hover {
-    color: var(--text-primary);
+    color: var(--color-snow);
 }
 
 .tab-btn.active {
-    color: var(--accent-orange);
-    border-bottom-color: var(--accent-orange);
+    color: var(--color-almond);
+    border-bottom-color: var(--color-almond);
+    background: rgba(54, 36, 23, 0.3);
 }
 
+/* Tab Content */
 .tab-content {
     background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: 32px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-sm);
+    padding: 28px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .tab-content h3 {
-    font-size: 22px;
+    font-family: var(--font-heading);
+    font-size: 16px;
     font-weight: 700;
-    margin-bottom: 20px;
-    color: var(--text-primary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    color: var(--color-snow);
+    border-bottom: 1px solid var(--border-hairline);
+    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tab-content h3::before {
+    content: '❖';
+    color: var(--color-almond);
+    font-size: 12px;
 }
 
 /* Ability Scores */
 .ability-scores {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 16px;
-    margin-bottom: 32px;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
 }
 
 .ability-score {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 16px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-hairline);
+    border-top: 2px solid var(--color-almond);
+    border-radius: var(--radius-xs);
+    padding: 14px 10px;
     text-align: center;
 }
 
 .ability-label {
-    font-size: 12px;
-    color: var(--text-muted);
+    font-family: var(--font-heading);
+    font-size: 11px;
+    color: var(--color-taupe);
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 8px;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
 }
 
 .ability-value {
-    font-size: 28px;
+    font-family: var(--font-mono);
+    font-size: 24px;
     font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 4px;
+    color: var(--color-snow);
+    margin-bottom: 2px;
 }
 
 .ability-modifier {
-    font-size: 16px;
+    font-family: var(--font-mono);
+    font-size: 14px;
     font-weight: 600;
-    color: var(--accent-orange);
+    color: var(--color-almond);
 }
 
 .backstory {
+    font-family: var(--font-reading);
     font-size: 15px;
     color: var(--text-secondary);
-    line-height: 1.7;
+    line-height: 1.75;
 }
 
 /* Combat Stats */
 .combat-stats {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    gap: 14px;
     margin-bottom: 24px;
 }
 
 .combat-stat {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 16px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-xs);
+    padding: 14px 18px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .combat-stat span:first-child {
-    color: var(--text-secondary);
+    font-family: var(--font-heading);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-taupe);
 }
 
 .combat-stat span:last-child {
+    font-family: var(--font-mono);
     font-weight: 700;
-    color: var(--accent-orange);
+    font-size: 15px;
+    color: var(--color-almond);
 }
 
 .attacks-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .attack-item {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 16px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-xs);
+    padding: 14px 18px;
     display: flex;
     justify-content: space-between;
 }
@@ -277,43 +350,50 @@
 }
 
 .skill-item {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 12px 16px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-xs);
+    padding: 10px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .skill-name {
-    color: var(--text-primary);
+    font-family: var(--font-heading);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--color-snow);
 }
 
 .skill-value {
+    font-family: var(--font-mono);
     font-weight: 700;
-    color: var(--accent-orange);
+    font-size: 13px;
+    color: var(--color-almond);
 }
 
 /* Equipment */
 .equipment-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 10px;
 }
 
 .equipment-item {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 12px 16px;
-    font-size: 14px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-xs);
+    padding: 10px 16px;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    color: var(--color-snow);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
     .detail-header {
-        padding: 16px 20px;
+        padding: 14px 20px;
         flex-direction: column;
         text-align: center;
     }
@@ -324,13 +404,15 @@
 
     .char-overview {
         flex-direction: column;
-        gap: 24px;
+        gap: 20px;
+        align-items: center;
+        text-align: center;
     }
 
     .portrait-placeholder {
-        width: 150px;
-        height: 150px;
-        font-size: 75px;
+        width: 130px;
+        height: 130px;
+        font-size: 60px;
     }
 
     .char-stats-brief {

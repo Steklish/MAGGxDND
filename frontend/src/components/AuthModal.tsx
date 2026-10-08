@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useGameStore } from '../store/gameStore';
+import { VectorIcon } from './common/VectorIcon';
 import './AuthModal.css';
 
 interface AuthModalProps {
@@ -225,16 +226,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
                 withCredentials: true,
             });
 
-            const { access_token, expires_at } = response.data;
+            const { access_token, user_id, username, expires_at } = response.data;
 
             setAccessToken(access_token);
+            if (user_id) {
+                setUserId(user_id);
+                localStorage.setItem('userId', user_id.toString());
+            }
+            if (username) {
+                setUsername(username);
+                localStorage.setItem('username', username);
+            }
             setAuthenticated(true);
 
             // Store guest info
             localStorage.setItem('access_token', access_token);
+            localStorage.setItem('guest_token', access_token);
             localStorage.setItem('is_guest', 'true');
 
-            console.log('✅ Guest login successful');
+            console.log('✅ Guest login successful', { user_id, username });
             
             // Call success callback to trigger loading page
             if (onGuestSuccess) {
@@ -264,7 +274,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
                 <div className="auth-modal-content-overlay">
                     <div className="auth-modal-header">
                         <div className="auth-logo">
-                            <span className="auth-logo-icon">🐉</span>
+                            <VectorIcon name="crown" className="auth-logo-icon" />
                             <span className="auth-logo-text">
                                 <span className="auth-magg">MAGG</span>
                                 <span className="auth-x">x</span>
@@ -290,7 +300,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
 
                     {errors.submit && (
                         <div className="auth-submit-error">
-                            <span>⚠️</span>
+                            <VectorIcon name="shield-warrior" size={14} style={{ marginRight: 6 }} />
                             <span>{errors.submit}</span>
                         </div>
                     )}
@@ -415,7 +425,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
                         )}
                         {!oauthConfigured.google && !oauthConfigured.discord && (
                             <div className="oauth-notice">
-                                <span>⚠️ OAuth is not configured. Please use username/password or guest login.</span>
+                                <VectorIcon name="shield-warrior" size={14} style={{ marginRight: 6 }} />
+                                <span>OAuth is not configured. Please use username/password or guest login.</span>
                             </div>
                         )}
                         <button
@@ -424,7 +435,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onRegisterS
                             disabled={isLoading}
                             title="Continue as guest"
                         >
-                            <span className="social-icon">🎭</span>
+                            <VectorIcon name="woman" className="social-icon" />
                             <span>Continue as Guest</span>
                         </button>
                     </div>

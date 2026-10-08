@@ -106,6 +106,9 @@ class UnifiedObject(BaseModel):
     tags: Optional[List[str]] = Field(default_factory=list, description="Keywords for the GM: ['trapped', 'magical', 'explosive'].")
     item_description: Optional[str] = Field(None, description="Description when taken as an inventory item.")
 
+    # Visual / Media properties
+    image_url: Optional[str] = Field(default=None, description="URL or relative path to the object illustration or icon.")
+
     @computed_field
     @property
     def short_summary(self) -> str:
@@ -287,14 +290,14 @@ class Character(BaseModel):
     personality_traits: List[str] = Field(default_factory=list, description="Keywords for the AI to determine roleplay style (e.g., 'Brave', 'Greedy').")
 
     # 2. Vitals (Battle State)
-    max_hp: int = Field(..., ge=1, description="Maximum Hit Points.")
-    current_hp: int = Field(..., description="Current Hit Points. If <= 0, character is unconscious or dead.")
+    max_hp: int = Field(default=10, ge=1, description="Maximum Hit Points.")
+    current_hp: int = Field(default=10, description="Current Hit Points. If <= 0, character is unconscious or dead.")
     temp_hp: int = Field(0, ge=0, description="Temporary buffer HP that is lost before real HP.")
     armor_class: int = Field(10, description="Target number to hit this character.")
     speed: int = Field(30, description="Movement speed in feet per turn.")
 
     # 3. Core Stats
-    stats: AbilityScores = Field(..., description="The nested object containing STR, DEX, CON, etc.")
+    stats: AbilityScores = Field(default_factory=AbilityScores, description="The nested object containing STR, DEX, CON, etc.")
 
     # 4. Inventory & State
     inventory: List[Item] = Field(default_factory=list, description="List of all items carried.")
@@ -310,13 +313,25 @@ class Character(BaseModel):
 
     # 6. Spatial Information
     position: Coordinate2D = Field(default_factory=lambda: Coordinate2D(x=0.0, y=0.0), description="Current position of the character in 2D space")
+    current_scene: Optional[str] = Field(default=None, description="The name of the location or scene this character is currently located in.")
     
     abilities: List[SpellAbility] = Field(
         default_factory=list, 
         description="Known spells, class features, and racial traits available for use."
     )
+
+    # 7. Visual / Media & AI Ownership
+    image_url: Optional[str] = Field(default=None, description="URL or relative path to character portrait/avatar image.")
+    is_ai_controlled: bool = Field(default=False, description="Whether this character is currently operated by AI (e.g. offline player).")
+    controlled_by_player_id: Optional[str] = Field(default=None, description="Player UUID currently piloting this character.")
     # --- Computed Helpers (Logic) ---
     # These create derived fields automatically when serialized, giving the AI the math results.
+
+    @computed_field
+    @property
+    def is_npc(self) -> bool:
+        """Every single character becomes an NPC when it is not controlled by a player."""
+        return bool(self.is_ai_controlled or not self.controlled_by_player_id)
 
     @computed_field
     @property
@@ -417,3 +432,7 @@ class SceneNode(BaseModel):
     dimensions: Coordinate2D = Field(default_factory=lambda: Coordinate2D(x=10.0, y=10.0),
                                    description="Dimensions of the scene (width, height)")
     scale_unit: str = Field("feet", description="Unit of measurement for coordinates (e.g., feet, meters)")
+
+    # Visual / Media fields
+    image_url: Optional[str] = Field(default=None, description="URL or relative path to narrative/atmospheric scene illustration.")
+    battlemap_image_url: Optional[str] = Field(default=None, description="URL or relative path to top-down aerial tactical battle map background.")

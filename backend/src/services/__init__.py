@@ -9,6 +9,8 @@ from .ai_game_exceptions import (
     InvalidActionError
 )
 
+from .ai_game_service import AIGameService
+
 __all__ = [
     "user_service",
     "access_group_service",
@@ -16,6 +18,7 @@ __all__ = [
     "AccessGroupService",
     "auth_service",
     "AuthService",
+    "AIGameService",
     "AIServiceError",
     "GenerationError",
     "SessionNotInitializedError",

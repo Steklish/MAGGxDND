@@ -1,53 +1,70 @@
-/* OAuth Callback Styles */
+/* ==========================================================================
+   OAUTH CALLBACK - Strict Medieval Style
+   MAGGxDND Design System (Stone Slate, Almond Cream, Taupe, Dark Coffee)
+   ========================================================================== */
 
 .oauth-callback {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-primary);
+    background: radial-gradient(circle at 50% 30%, rgba(54, 36, 23, 0.3) 0%, rgba(24, 25, 28, 0.96) 70%, #121315 100%);
     padding: 20px;
+    font-family: var(--font-body);
 }
 
 .oauth-content {
     text-align: center;
     max-width: 400px;
-    padding: 40px;
+    padding: 36px 32px;
     background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.6);
+    position: relative;
+}
+
+.oauth-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--color-almond), transparent);
+    opacity: 0.6;
 }
 
 .oauth-spinner {
     position: relative;
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 24px;
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 20px;
 }
 
 .spinner-ring {
     position: absolute;
     width: 100%;
     height: 100%;
-    border: 3px solid transparent;
-    border-top-color: var(--accent-orange);
+    border: 2px solid transparent;
+    border-top-color: var(--color-almond);
     border-radius: 50%;
-    animation: spin 1.5s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    animation: spin 1.2s linear infinite;
 }
 
 .spinner-ring:nth-child(1) {
-    animation-delay: -0.45s;
-    border-top-color: var(--accent-yellow);
+    animation-delay: -0.4s;
+    border-top-color: var(--color-almond);
 }
 
 .spinner-ring:nth-child(2) {
-    animation-delay: -0.3s;
-    border-top-color: var(--accent-green);
+    animation-delay: -0.2s;
+    border-top-color: var(--color-taupe);
 }
 
 .spinner-ring:nth-child(3) {
-    animation-delay: -0.15s;
+    animation-delay: 0s;
+    border-top-color: var(--color-snow);
 }
 
 @keyframes spin {
@@ -57,50 +74,42 @@
 }
 
 .oauth-content h2 {
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 12px;
-    color: var(--text-primary);
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    color: var(--color-snow);
 }
 
 .oauth-content p {
+    font-family: var(--font-reading);
     font-size: 14px;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
+    color: var(--color-taupe);
+    margin-bottom: 6px;
 }
 
 .oauth-success-icon,
 .oauth-error-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-xs);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 48px;
-    margin: 0 auto 24px;
-    animation: scaleIn 0.5s ease;
+    font-size: 32px;
+    margin: 0 auto 20px;
 }
 
 .oauth-success-icon {
-    background: rgba(42, 157, 143, 0.2);
-    color: var(--accent-green);
-    border: 3px solid var(--accent-green);
+    background: var(--bg-coffee);
+    color: var(--color-almond);
+    border: 1px solid var(--color-almond);
 }
 
 .oauth-error-icon {
-    background: rgba(229, 62, 62, 0.2);
-    color: var(--accent-red);
-    border: 3px solid var(--accent-red);
-}
-
-@keyframes scaleIn {
-    from {
-        transform: scale(0);
-        opacity: 0;
-    }
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
+    background: rgba(45, 15, 15, 0.7);
+    color: #e28a8a;
+    border: 1px solid rgba(180, 60, 60, 0.5);
 }

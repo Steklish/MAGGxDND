@@ -1,6 +1,7 @@
 from logging import Logger
 from typing import TYPE_CHECKING, List, Optional
 import os
+import asyncio
 
 from core.utils.threads import run_list_in_parallel, run_list_in_parallel_generator
 if TYPE_CHECKING:
@@ -42,6 +43,21 @@ class Magg:
             events_str += f"Event {i+1}: {str(e.dict())}\n"
         return events_str
 
+    def _get_language_directive(self) -> str:
+        lang = getattr(self.session, "language", "ru") if self._session else "ru"
+        if lang == "ru":
+            return (
+                "### ЯЗЫКОВАЯ ДИРЕКТИВА (СТРОЖАЙШЕЕ ОБЯЗАТЕЛЬНОЕ ПРАВИЛО):\n"
+                "ТЫ ОБЯЗАН ВЕСТИ ВСЁ ПОВЕСТВОВАНИЕ ИСКЛЮЧИТЕЛЬНО НА РУССКОМ ЯЗЫКЕ!\n"
+                "- Все описания сцен, действий персонажей, чувств, ощущений, ранений и диалогов должны быть на богатом, живом, литературном русском языке.\n"
+                "- Категорически запрещено отвечать на английском языке.\n\n"
+            )
+        else:
+            return (
+                "### LANGUAGE DIRECTIVE (MANDATORY REQUIREMENT):\n"
+                "You MUST generate the entire narrative, descriptions, and dialogue in ENGLISH.\n\n"
+            )
+
     def inject_state(self, state : 'Session') -> None:
         self._session = state
         
@@ -50,6 +66,7 @@ class Magg:
             raise ValueError("Session not injected into Magg")
         
         prompt = f"""
+        {self._get_language_directive()}
         {self.character_prompt}
         Generate a vivid description of the current scene in the DND game.
         ## Game state:
@@ -63,10 +80,8 @@ class Magg:
             prompt=prompt
         )
         
-        new_message = Message(
-            sender_name="Mage",
-            text=description.description)
-        self.session.new_message(new_message)
+        if not getattr(self.session, "delivery", None):
+            self.session.new_message(Message(sender_name="GM", text=description.description))
 
         return description.description
     
@@ -76,6 +91,7 @@ class Magg:
 
         events_str = self._events_to_string(events)
         prompt = f"""
+{self._get_language_directive()}
 ### ROLE & PERSONA
 {self.character_prompt}
 
@@ -120,15 +136,14 @@ Based on the <current_events> above, generate your immersive D&D narrative descr
             prompt=prompt
         )
         
-        new_message = Message(
-            sender_name="Mage",
-            text=comment.comment)
-        self.session.new_message(new_message)
+        if not getattr(self.session, "delivery", None):
+            self.session.new_message(Message(sender_name="GM", text=comment.comment))
 
         return comment.comment
     
     def illegal_action_comment(self, prompt, reasoning, name) -> str:
-        prompt = f"""{self.character_prompt} 
+        prompt = f"""{self._get_language_directive()}
+        {self.character_prompt} 
         You need to comment on the illegal action attempted by players in a concise manner. (illigal due to {reasoning})
         
         # there is also past conversation history provided with your answers included (use it for natural conversation flow):
@@ -138,14 +153,13 @@ Based on the <current_events> above, generate your immersive D&D narrative descr
             pydantic_model=SimpleComment,
             prompt=prompt
         )
-        new_message = Message(
-            sender_name="Mage",
-            text=comment.comment)
-        self.session.new_message(new_message)
+        if not getattr(self.session, "delivery", None):
+            self.session.new_message(Message(sender_name="GM", text=comment.comment))
         return comment.comment
     
     def clarify_user_request(self, correction_question : str) -> str:
-        prompt = f"""{self.character_prompt}
+        prompt = f"""{self._get_language_directive()}
+        {self.character_prompt}
         You need to ask the last playerfor clarification on their request: "{correction_question}".
         Politely ask for necessary details so that you can better understand their intentions in the game. You may also provide meta game details to a player e g their inventory or a list of spells. Suggest options if not clear.
         
@@ -156,15 +170,14 @@ Based on the <current_events> above, generate your immersive D&D narrative descr
             pydantic_model=SimpleComment,
             prompt=prompt
         )
-        new_message = Message(
-            sender_name="Mage",
-            text=clarification.comment)
-        self.session.new_message(new_message)
+        if not getattr(self.session, "delivery", None):
+            self.session.new_message(Message(sender_name="GM", text=clarification.comment))
         return clarification.comment
 
     def comment_on_meta_request(self, request: str) -> str:
         """Handles meta requests/comments from players that are directed to the game master."""
-        prompt = f"""{self.character_prompt}
+        prompt = f"""{self._get_language_directive()}
+        {self.character_prompt}
         A player has made a meta request/comment: "{request}". Which is a request made on behalf of a user not their game character. So handle it respodingly.
         Respond to this meta request in character as the game master. This could be a question about the game,
         a request for information, or an out-of-character comment. Answer the question based on the game state or provide user the information they ask for. Take previous messages into consideration and use the context.
@@ -179,15 +192,13 @@ Based on the <current_events> above, generate your immersive D&D narrative descr
             pydantic_model=SimpleComment,
             prompt=prompt
         )
-        new_message = Message(
-            sender_name="Mage",
-            text=response.comment)
-        self.session.new_message(new_message)
+        if not getattr(self.session, "delivery", None):
+            self.session.new_message(Message(sender_name="GM", text=response.comment))
         return response.comment
     
     async def world_intervention(self, events : List[Event]):
         self.logger.debug("starting world intervention processing")
-        prompt = f"""
+        prompt = f"""{self._get_language_directive()}
 ## Input Data
 You will receive:
 1.  **Current Scene Assets:** A list of NPCs and Objects currently present.
@@ -257,11 +268,16 @@ Analyze the Event Log for specific triggers:
             actions.append(self.session.manipulator._external_action_as_a_supervisor)
             args.append((f"objects {res.new_objects} must be added to the scene",))
             
-        async for event in run_list_in_parallel_generator(
-            funcs=actions,
-            args_list=args
-        ):
-            yield event
+        for func, arg in zip(actions, args):
+            try:
+                events_list = func(*arg)
+                if isinstance(events_list, list):
+                    for event in events_list:
+                        yield event
+                elif isinstance(events_list, Event):
+                    yield events_list
+            except Exception as exc:
+                self.logger.warning(f"Error executing supervisor action: {exc}")
             
     async def check_plot_following(self, events : list[Event]):
         """
@@ -271,9 +287,10 @@ Analyze the Event Log for specific triggers:
         # Only check plot following if a plot exists
         if not self.session._plot:
             self.logger.debug("No plot available, skipping plot following check")
-            raise ValueError("No plot available, skipping plot following check")
+            return
 
         prompt = f"""
+{self._get_language_directive()}
 ### ROLE & PERSONA
 {self.character_prompt}
 
@@ -369,11 +386,16 @@ Return a PlotFollowingIntervention response with the appropriate action and deta
                 actions.append(self.session.manipulator._external_action_as_a_supervisor)
                 args.append((f"objects {res.new_objects} must be added to the scene",))
 
-            async for event in run_list_in_parallel_generator(
-                funcs=actions,
-                args_list=args
-            ):
-                yield event
+            for func, arg in zip(actions, args):
+                try:
+                    events_list = func(*arg)
+                    if isinstance(events_list, list):
+                        for event in events_list:
+                            yield event
+                    elif isinstance(events_list, Event):
+                        yield events_list
+                except Exception as exc:
+                    self.logger.warning(f"Error executing supervisor action: {exc}")
         else:
             self.logger.debug("No plot following intervention required")
 
@@ -389,30 +411,39 @@ Return a PlotFollowingIntervention response with the appropriate action and deta
             self.logger.debug("[MAGG] handle_events: no events to process, skipping")
             return None
 
-        self.logger.debug("running world_intervention, comment, and check_plot_following in parallel")
+        self.logger.debug("Running Game Master comment, world intervention, and plot check")
         comment = None
 
-        async for result in run_list_in_parallel_generator(
-            funcs=[
-                self.world_intervention,
-                self.comment,
-                self.check_plot_following
-                ],
-            args_list=[
-                (events,),
-                (events,),
-                (events,)
-            ]
-        ):
-            if isinstance(result, Event):
-                self.logger.debug(f"Event produced {result.description[:10]}...")
-                # Publish to OTHER subscribers only — do NOT re-add to MAGG's own queue
-                # (world_intervention's execute_events already adds to the global pool;
-                # we only need to notify other subscribers like the frontend)
-                self.event_queue.publish_to_others(result)
-            elif isinstance(result, str):
-                self.logger.debug(f"Comment produced {result[:10]}...")
-                comment = result
-            # Note: check_plot_following yields events which are handled as above
+        # 1. Generate Game Master narrative comment
+        try:
+            comment = await asyncio.to_thread(self.comment, events)
+            self.logger.debug(f"Comment produced: {comment[:40] if comment else 'None'}...")
+        except Exception as e:
+            self.logger.error(f"Error generating Game Master comment: {e}", exc_info=True)
+            is_ru = getattr(self.session, "language", "ru") == "ru"
+            if events:
+                last_event_desc = events[-1].description or ("Действие возымело эффект." if is_ru else "The action takes effect.")
+                comment = f"Пока события разворачиваются: {last_event_desc}" if is_ru else f"As events unfold, {last_event_desc}"
+            else:
+                comment = "Вы берете мгновение, чтобы оценить обстановку." if is_ru else "You take a moment to assess the situation."
+
+        # 2. Check world intervention
+        try:
+            async for result in self.world_intervention(events):
+                if isinstance(result, Event):
+                    self.logger.debug(f"World intervention event produced: {result.description[:30]}...")
+                    self.event_queue.publish_to_others(result)
+        except Exception as e:
+            self.logger.error(f"Error in world intervention: {e}", exc_info=True)
+
+        # 3. Check plot following (only if plot exists)
+        if self.session._plot:
+            try:
+                async for result in self.check_plot_following(events):
+                    if isinstance(result, Event):
+                        self.logger.debug(f"Plot intervention event produced: {result.description[:30]}...")
+                        self.event_queue.publish_to_others(result)
+            except Exception as e:
+                self.logger.error(f"Error in plot following: {e}", exc_info=True)
 
         return comment

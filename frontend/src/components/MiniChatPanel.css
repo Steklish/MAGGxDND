@@ -1,57 +1,65 @@
-/* Mini Chat Panel - Collapsed state */
+/* ==========================================================================
+   MINI CHAT PANEL (Collapsed State) - Strict Medieval Style
+   MAGGxDND Design System (Stone Slate, Almond Cream, Taupe, Dark Coffee)
+   ========================================================================== */
+
 .mini-chat-panel {
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 12px 4px;
-    gap: 12px;
+    gap: 10px;
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     width: 100%;
     box-sizing: border-box;
+    font-family: var(--font-body);
 }
 
 /* Mini Chat Filters */
 .mini-chat-filters {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-hairline);
     width: 100%;
 }
 
 .mini-filter-btn {
-    width: calc(4vw * (var(--header-height, 140) / 140));
-    height: calc(4vw * (var(--header-height, 140) / 140));
-    min-width: 32px;
-    min-height: 32px;
-    max-width: 40px;
-    max-height: 40px;
-    border-radius: var(--radius-md);
-    background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
-    border: 2px solid var(--border-color);
+    width: 34px;
+    height: 34px;
+    min-width: 30px;
+    min-height: 30px;
+    border-radius: var(--radius-xs);
+    background: linear-gradient(135deg, rgba(40, 41, 46, 0.88) 0%, rgba(28, 29, 33, 0.94) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border: 1px solid var(--border-hairline);
     cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: calc(1.2rem * (var(--header-height, 140) / 140));
+    font-size: 1rem;
     padding: 0;
     flex-shrink: 0;
+    color: var(--color-taupe);
 }
 
 .mini-filter-btn:hover {
-    border-color: var(--accent-orange);
-    box-shadow: 0 0 8px rgba(255, 107, 53, 0.3);
+    border-color: var(--color-almond);
+    color: var(--color-snow);
+    background: linear-gradient(135deg, rgba(54, 36, 23, 0.92) 0%, rgba(34, 22, 14, 0.97) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
 }
 
 .mini-filter-btn.active {
-    border-color: var(--accent-orange);
-    background: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(255, 107, 53, 0.1) 100%);
-    box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+    border-color: var(--color-almond);
+    background: linear-gradient(135deg, rgba(54, 36, 23, 0.92) 0%, rgba(34, 22, 14, 0.97) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    color: var(--color-almond);
 }
 
 /* Mini Chat Items */
@@ -69,17 +77,16 @@
 /* Mini Message Icon */
 .mini-message-icon {
     position: relative;
-    width: calc(4vw * (var(--header-height, 140) / 140));
-    height: calc(4vw * (var(--header-height, 140) / 140));
-    min-width: 32px;
-    min-height: 32px;
-    max-width: 40px;
-    max-height: 40px;
-    border-radius: var(--radius-md);
-    background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
-    border: 2px solid var(--border-color);
+    width: 34px;
+    height: 34px;
+    min-width: 30px;
+    min-height: 30px;
+    border-radius: var(--radius-xs);
+    background: linear-gradient(135deg, rgba(40, 41, 46, 0.88) 0%, rgba(28, 29, 33, 0.94) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border: 1px solid var(--border-hairline);
     cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -87,43 +94,39 @@
 }
 
 .mini-message-icon:hover {
-    box-shadow: 0 0 8px rgba(255, 107, 53, 0.3);
+    border-color: var(--color-almond);
+    background: linear-gradient(135deg, rgba(54, 36, 23, 0.92) 0%, rgba(34, 22, 14, 0.97) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
 }
 
 .mini-message-icon.dm-message {
-    border-color: var(--accent-orange);
-}
-
-.mini-message-icon.dm-message:hover {
-    box-shadow: 0 0 8px rgba(255, 107, 53, 0.3);
+    border-color: var(--color-almond);
+    background: linear-gradient(135deg, rgba(54, 36, 23, 0.92) 0%, rgba(34, 22, 14, 0.97) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
 }
 
 .mini-message-icon.player-message {
-    border-color: var(--accent-blue);
-}
-
-.mini-message-icon.player-message:hover {
-    box-shadow: 0 0 8px rgba(88, 166, 255, 0.3);
+    border-color: var(--border-medium);
 }
 
 .mini-message-indicator {
-    font-size: 1.2rem;
+    font-size: 1rem;
+    color: var(--color-almond);
 }
 
 /* Mini Event Icon */
 .mini-event-icon {
     position: relative;
-    width: calc(4vw * (var(--header-height, 140) / 140));
-    height: calc(4vw * (var(--header-height, 140) / 140));
-    min-width: 32px;
-    min-height: 32px;
-    max-width: 40px;
-    max-height: 40px;
-    border-radius: var(--radius-md);
-    background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
-    border: 2px solid var(--border-color);
+    width: 34px;
+    height: 34px;
+    min-width: 30px;
+    min-height: 30px;
+    border-radius: var(--radius-xs);
+    background: linear-gradient(135deg, rgba(40, 41, 46, 0.88) 0%, rgba(28, 29, 33, 0.94) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border: 1px solid var(--border-hairline);
     cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -131,68 +134,85 @@
 }
 
 .mini-event-icon:hover {
-    border-color: var(--accent-purple);
-    box-shadow: 0 0 8px rgba(157, 78, 221, 0.3);
+    border-color: var(--color-almond);
+    background: linear-gradient(135deg, rgba(54, 36, 23, 0.92) 0%, rgba(34, 22, 14, 0.97) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
 }
 
 .mini-event-icon-symbol {
-    font-size: 1.2rem;
+    font-size: 1rem;
+    color: var(--color-taupe);
 }
 
 /* Mini Message Tooltip */
 .mini-message-tooltip {
+    background: linear-gradient(135deg, rgba(33, 34, 38, 0.94) 0%, rgba(24, 25, 28, 0.98) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border: 1px solid var(--border-color, #383940);
+    border-radius: var(--radius-xs);
+    padding: 8px 12px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    max-width: 250px;
-    font-family: 'Rajdhani', sans-serif;
+    gap: 4px;
+    max-width: 240px;
+    font-family: var(--font-body);
 }
 
 .mini-message-sender {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: 700;
-    color: var(--accent-orange);
+    font-family: var(--font-heading);
+    color: var(--color-almond);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.06em;
 }
 
 .mini-message-text {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-family: var(--font-reading);
+    color: var(--color-snow);
     line-height: 1.4;
 }
 
 /* Mini Event Tooltip */
 .mini-event-tooltip {
+    background: linear-gradient(135deg, rgba(33, 34, 38, 0.94) 0%, rgba(24, 25, 28, 0.98) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border: 1px solid var(--border-color, #383940);
+    border-radius: var(--radius-xs);
+    padding: 8px 12px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    max-width: 250px;
-    font-family: 'Rajdhani', sans-serif;
+    gap: 4px;
+    max-width: 240px;
+    font-family: var(--font-body);
 }
 
 .mini-event-tooltip-header {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--border-color);
+    gap: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border-hairline);
 }
 
 .mini-event-tooltip-icon {
-    font-size: 1.2rem;
+    font-size: 1rem;
+    color: var(--color-almond);
 }
 
 .mini-event-tooltip-title {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: 700;
-    color: var(--accent-purple);
+    font-family: var(--font-heading);
+    color: var(--color-snow);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.06em;
 }
 
 .mini-event-tooltip-description {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
+    font-size: 0.78rem;
+    font-family: var(--font-reading);
+    color: var(--color-taupe);
     line-height: 1.4;
 }

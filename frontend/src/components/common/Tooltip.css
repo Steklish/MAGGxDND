@@ -1,4 +1,8 @@
-/* Tooltip Container */
+/* ==========================================================================
+   TOOLTIP - Strict Medieval Grimoire Style
+   MAGGxDND Design System (Stone Slate, Almond Cream, Taupe, Dark Coffee)
+   ========================================================================== */
+
 .tooltip-container {
     position: static;
     display: block;
@@ -10,11 +14,11 @@
 
 /* Tooltip Styles */
 .tooltip {
-    background-color: var(--bg-tertiary);
-    border: 2px solid var(--accent-yellow);
-    border-radius: var(--radius-md);
-    padding: 12px 16px;
-    box-shadow: var(--shadow-lg), 0 0 20px rgba(233, 196, 106, 0.2);
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-xs);
+    padding: 12px 14px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
     font-size: 0.85rem;
     line-height: 1.5;
     color: var(--text-primary);
@@ -27,55 +31,49 @@
     width: auto;
     height: auto;
     max-height: none;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
 }
 
-/* Character Preview Tooltip - border and background handled by inline styles */
 .tooltip .character-preview {
     border: none;
     background: transparent;
-}
-
-.tooltip.tooltip-right,
-.tooltip.tooltip-left,
-.tooltip.tooltip-top,
-.tooltip.tooltip-bottom {
-    /* Position is handled by inline styles in component */
 }
 
 /* Character Preview Tooltip */
 .character-preview {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     max-height: none;
     overflow: visible;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
 }
 
 .character-preview-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--accent-yellow);
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-hairline);
 }
 
 .character-preview-name {
     display: block;
-    font-size: 1.3rem;
+    font-size: 1.15rem;
     font-weight: 700;
-    color: var(--accent-yellow);
-    margin-bottom: 4px;
-    font-family: 'Rajdhani', sans-serif;
+    color: var(--color-snow);
+    margin-bottom: 2px;
+    font-family: var(--font-heading);
     text-transform: uppercase;
-    letter-spacing: 1.5px;
+    letter-spacing: 0.08em;
 }
 
 .character-preview-subtitle {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.75rem;
+    color: var(--color-almond);
+    font-family: var(--font-heading);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 .character-preview-section {
@@ -85,16 +83,16 @@
 }
 
 .character-preview-section-title {
-    font-size: 0.8rem;
-    color: var(--accent-yellow);
+    font-size: 0.75rem;
+    color: var(--color-taupe);
     text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 600;
-    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    font-family: var(--font-heading);
     display: block;
-    margin-bottom: 6px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid rgba(233, 196, 106, 0.3);
+    margin-bottom: 4px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid var(--border-hairline);
 }
 
 .character-preview-stats {
@@ -107,25 +105,26 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 8px;
-    background-color: var(--bg-secondary);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-color);
+    padding: 6px;
+    background-color: var(--bg-elevated);
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border-hairline);
 }
 
 .character-preview-stat-name {
-    font-size: 0.7rem;
-    color: var(--text-secondary);
-    font-weight: 600;
-    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.65rem;
+    color: var(--color-taupe);
+    font-weight: 700;
+    font-family: var(--font-heading);
     text-transform: uppercase;
+    letter-spacing: 0.06em;
 }
 
 .character-preview-stat-value {
-    font-size: 1.2rem;
+    font-size: 1.05rem;
     font-weight: 700;
-    color: var(--accent-yellow);
-    font-family: 'Rajdhani', sans-serif;
+    color: var(--color-snow);
+    font-family: var(--font-mono);
 }
 
 .character-preview-hp {
@@ -136,38 +135,39 @@
 
 .character-preview-hp-bar {
     flex: 1;
-    height: 10px;
+    height: 6px;
     background-color: var(--bg-primary);
-    border-radius: var(--radius-sm);
+    border-radius: 1px;
     overflow: hidden;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-hairline);
 }
 
 .character-preview-hp-fill {
     height: 100%;
+    background-color: var(--color-almond);
     transition: width 0.3s ease;
 }
 
 .character-preview-hp-text {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-snow);
     white-space: nowrap;
-    min-width: 70px;
-    font-family: 'Rajdhani', sans-serif;
+    min-width: 60px;
+    font-family: var(--font-mono);
 }
 
 .character-preview-vitals-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    font-family: 'Rajdhani', sans-serif;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--color-taupe);
 }
 
 .character-preview-vitals-grid span {
     font-weight: 600;
+    color: var(--color-snow);
 }
 
 .character-preview-conditions {
@@ -177,117 +177,117 @@
 }
 
 .character-preview-condition {
-    font-size: 0.8rem;
-    color: var(--accent-yellow);
-    background-color: rgba(233, 196, 106, 0.1);
-    padding: 4px 8px;
-    border-radius: var(--radius-sm);
-    border: 1px solid rgba(233, 196, 106, 0.2);
-    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.7rem;
+    color: var(--color-almond);
+    background-color: var(--bg-coffee);
+    padding: 2px 6px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border-hairline);
+    font-family: var(--font-heading);
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.04em;
 }
 
 .character-preview-abilities {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
 }
 
 .character-preview-ability {
-    padding: 8px 10px;
-    background-color: var(--bg-secondary);
-    border-radius: var(--radius-md);
-    border-left: 3px solid var(--accent-yellow);
+    padding: 6px 8px;
+    background-color: var(--bg-elevated);
+    border-radius: var(--radius-xs);
+    border-left: 2px solid var(--color-almond);
+    border-top: 1px solid var(--border-hairline);
+    border-right: 1px solid var(--border-hairline);
+    border-bottom: 1px solid var(--border-hairline);
     margin-bottom: 4px;
-    transition: all 0.3s ease;
 }
 
 .character-preview-ability:hover {
-    background-color: rgba(233, 196, 106, 0.08);
-    box-shadow: 0 0 10px rgba(233, 196, 106, 0.2);
+    background-color: var(--bg-coffee);
 }
 
 .character-preview-ability-name {
     font-weight: 600;
-    color: var(--text-primary);
-    font-size: 0.9rem;
+    color: var(--color-snow);
+    font-size: 0.82rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 6px;
     margin-bottom: 2px;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-heading);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.04em;
 }
 
 .spell-level-tag {
-    font-size: 0.7rem;
-    color: var(--accent-yellow);
-    background-color: rgba(233, 196, 106, 0.1);
-    padding: 1px 6px;
-    border-radius: var(--radius-sm);
-    border: 1px solid rgba(233, 196, 106, 0.2);
-    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.65rem;
+    color: var(--color-almond);
+    background-color: var(--bg-coffee);
+    padding: 1px 5px;
+    border-radius: 1px;
+    border: 1px solid var(--border-hairline);
+    font-family: var(--font-heading);
     font-weight: 600;
 }
 
 .character-preview-ability-desc {
-    font-size: 0.85rem;
+    font-size: 0.78rem;
     color: var(--text-secondary);
     line-height: 1.4;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-reading);
 }
 
 .character-preview-inventory {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
 }
 
 .character-preview-inventory-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 8px;
-    background-color: var(--bg-secondary);
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-color);
-    font-size: 0.85rem;
-    color: var(--text-primary);
-    font-family: 'Rajdhani', sans-serif;
-    transition: all 0.3s ease;
+    padding: 5px 8px;
+    background-color: var(--bg-elevated);
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border-hairline);
+    font-size: 0.78rem;
+    color: var(--color-snow);
+    font-family: var(--font-ui);
 }
 
 .character-preview-inventory-item:hover {
-    border-color: var(--accent-yellow);
-    background-color: rgba(233, 196, 106, 0.08);
-}
+    border-color: var(--color-almond);
+    background-color: var(--bg-coffee);
 }
 
 .equipped-badge {
-    font-size: 0.9rem;
+    font-size: 0.75rem;
+    color: var(--color-almond);
 }
 
 /* Filter Tooltip */
 .filter-tooltip {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    font-family: 'Rajdhani', sans-serif;
+    gap: 6px;
+    font-family: var(--font-body);
 }
 
 .filter-tooltip-title {
-    font-size: 1rem;
+    font-size: 0.85rem;
     font-weight: 700;
-    color: var(--accent-orange);
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--border-color);
-    font-family: 'Rajdhani', sans-serif;
+    color: var(--color-almond);
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border-hairline);
+    font-family: var(--font-heading);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.08em;
 }
 
 .filter-tooltip-icon {
@@ -297,12 +297,13 @@
 }
 
 .filter-tooltip-icon span:first-child {
-    font-size: 1.2rem;
+    font-size: 1rem;
+    color: var(--color-almond);
 }
 
 .filter-tooltip-description {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--text-secondary);
     line-height: 1.4;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-reading);
 }

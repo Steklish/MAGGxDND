@@ -1,0 +1,395 @@
+.ergonomic-scene-viewer {
+    background: rgba(11, 14, 22, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(12px);
+}
+
+.ergonomic-scene-viewer.empty-state {
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+}
+
+.scene-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    max-width: 320px;
+}
+
+.placeholder-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+}
+
+.scene-placeholder h3 {
+    color: #f59e0b;
+    margin-bottom: 6px;
+}
+
+/* Toolbar */
+.scene-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.3);
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.scene-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.location-icon {
+    font-size: 1rem;
+}
+
+.location-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.location-dim {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.06);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.scene-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tool-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.tool-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+}
+
+.tool-btn.active {
+    background: rgba(245, 158, 11, 0.2);
+    border-color: #f59e0b;
+    color: #f59e0b;
+}
+
+.tool-btn.regenerate-btn {
+    border-color: rgba(245, 158, 11, 0.4);
+    color: #f59e0b;
+}
+
+.tool-btn.regenerate-btn:hover:not(:disabled) {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: #f59e0b;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+}
+
+.tool-btn.regenerate-btn.loading,
+.tool-btn.regenerate-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.zoom-label {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+    min-width: 36px;
+    text-align: center;
+}
+
+/* Viewport */
+.scene-viewport {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, rgba(30, 41, 59, 0.25) 0%, rgba(10, 14, 22, 0.8) 100%);
+    scrollbar-width: thin;
+}
+
+.grid-zoom-container {
+    position: relative;
+    transition: transform 0.15s ease-out;
+    padding: 8px;
+}
+
+.tactical-map-background {
+    position: absolute;
+    inset: 8px;
+    width: calc(100% - 16px);
+    height: calc(100% - 16px);
+    object-fit: fill;
+    z-index: 0;
+    pointer-events: none;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+/* Grid */
+.tactical-grid {
+    position: relative;
+    display: grid;
+    gap: 2px;
+    background: transparent;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    z-index: 1;
+}
+
+.tactical-cell {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: background 0.1s ease;
+}
+
+.grid-visible .tactical-cell {
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.tactical-cell:hover {
+    background: rgba(245, 158, 11, 0.15);
+}
+
+/* Tokens */
+.tactical-token {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 800;
+    z-index: 5;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    user-select: none;
+}
+
+.tactical-token:hover {
+    transform: scale(1.25);
+    z-index: 10;
+}
+
+.tactical-token.selected {
+    outline: 2px solid #f59e0b;
+    box-shadow: 0 0 12px #f59e0b;
+    transform: scale(1.2);
+    z-index: 9;
+}
+
+.player-token {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: #ffffff;
+    border: 2px solid #60a5fa;
+}
+
+.player-token.self-token {
+    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+    border: 2px solid #c084fc;
+    box-shadow: 0 0 8px rgba(139, 92, 246, 0.6);
+}
+
+.npc-token.ally {
+    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+    color: #ffffff;
+    border: 2px solid #34d399;
+}
+
+.npc-token.hostile {
+    background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+    color: #ffffff;
+    border: 2px solid #f87171;
+}
+
+.object-token {
+    border-radius: 6px;
+    font-size: 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Hover Coordinate Badge */
+.hover-coordinate-badge {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    pointer-events: none;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 20;
+}
+
+/* Inspector Drawer */
+.tactical-inspector-drawer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: rgba(18, 24, 38, 0.95);
+    border-top: 1px solid rgba(245, 158, 11, 0.3);
+    z-index: 15;
+    animation: slideUpInspector 0.2s ease;
+}
+
+@keyframes slideUpInspector {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+.inspector-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid #f59e0b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #f59e0b;
+    flex-shrink: 0;
+}
+
+.inspector-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.inspector-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.inspector-name {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.inspector-tag {
+    font-size: 0.65rem;
+    font-weight: 800;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 1px 5px;
+    border-radius: 4px;
+}
+
+.inspector-coords {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.inspector-vitals {
+    display: flex;
+    gap: 12px;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.inspector-vitals strong {
+    color: #ffffff;
+}
+
+.inspector-desc {
+    margin: 0;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.inspector-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.target-btn {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    border: none;
+    color: #0b0d14;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.target-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4);
+}
+
+.close-inspector-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.close-inspector-btn:hover {
+    color: #ffffff;
+}
+
+.tactical-footer-hint {
+    padding: 6px 16px;
+    background: rgba(0, 0, 0, 0.25);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.45);
+}

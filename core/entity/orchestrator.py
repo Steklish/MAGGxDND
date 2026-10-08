@@ -32,6 +32,19 @@ class Orchestrator:
         
     def add_state(self, state : "Session"):
         self.state = state
+
+    def _get_language_directive(self) -> str:
+        lang = getattr(self.state, "language", "ru") if hasattr(self, "state") and self.state else "ru"
+        if lang == "ru":
+            return (
+                "### ЯЗЫКОВАЯ ДИРЕКТИВА:\n"
+                "Отвечай строго на РУССКОМ ЯЗЫКЕ! Все пояснения, формулировки вопросов и правила должны быть на русском языке.\n\n"
+            )
+        else:
+            return (
+                "### LANGUAGE DIRECTIVE:\n"
+                "Respond strictly in ENGLISH. All explanations, questions, and rulings must be in English.\n\n"
+            )
         
     def request(self, username : str, request_text : str, message_cahce : str | None = None) -> UserInteractionProcessing:
         if not self.state:
@@ -66,8 +79,26 @@ class Orchestrator:
         )
         
         
-    def meta_interaction(self, username : str, request_text : str):
-        pass
+    def meta_interaction(self, username : str, request_text : str) -> OrchestrationVerdict:
+        """Process meta interaction / questions about stats, abilities, or rules."""
+        if not self.state:
+            raise ValueError("Orchestrator has no state assigned.")
+
+        prompt = f"""{self._get_language_directive()}
+        User '{username}' asked a meta-game or rules/character question:
+        "{request_text}"
+
+        ## Current Session Context:
+        {self.state.get_session_context()}
+
+        Provide a concise, helpful explanation answering the question based on D&D 5e rules and current character/session state.
+        """
+        response_text = self.generator.generate(prompt)
+        return OrchestrationVerdict(
+            verdict_type=OrchestrationVerdictType.META_REQUEST,
+            details=response_text,
+            original_request=request_text
+        )
 
 
     def character_action_story(self, character : 'Player | NPC', request_text : str, processed_interaction : UserInteractionProcessing) -> OrchestrationVerdict:
@@ -137,7 +168,7 @@ class Orchestrator:
 
         check = self.generator.generate_one_shot(
             pydantic_model=RulesCheck,
-            prompt=self.combat_rules + f"\n\nRecent Messages History:\n{m_history}\n\n{character.character.name} requests {request_text} \n\n User interaction: {processed_interaction.user_request_saturated}\n\n Does this interaction violate any combat dnd rules?"
+            prompt=self._get_language_directive() + self.combat_rules + f"\n\nRecent Messages History:\n{m_history}\n\n{character.character.name} requests {request_text} \n\n User interaction: {processed_interaction.user_request_saturated}\n\n Does this interaction violate any combat dnd rules?"
         )
         if check.is_rule_violation:
             return RuleViolationObject(details=check.violation_details if check.violation_details else "No details provided")
@@ -153,7 +184,7 @@ class Orchestrator:
 
         check = self.generator.generate_one_shot(
             pydantic_model=RulesCheck,
-            prompt=self.story_rules + f"\n\nRecent Messages History:\n{m_history}\n\n{username} requests {request_text} \n\n User interaction: {processed_interaction.user_request_saturated}\n\n Does this interaction violate any story rules? Answer in JSON format."
+            prompt=self._get_language_directive() + self.story_rules + f"\n\nRecent Messages History:\n{m_history}\n\n{username} requests {request_text} \n\n User interaction: {processed_interaction.user_request_saturated}\n\n Does this interaction violate any story rules? Answer in JSON format."
         )
         if check.is_rule_violation:
             return RuleViolationObject(details=check.violation_details if check.violation_details else "No details provided")
@@ -168,7 +199,7 @@ class Orchestrator:
         for m in self.state.messages[-MAX_MESSAGES_HISTORY_PROVIDED:]:
             m_history += f"\n\n sender: {m.sender_name}\n text: {m.text}"
 
-        clarity_prompt = f"""
+        clarity_prompt = f"""{self._get_language_directive()}
         You are reviewing a player action to determine if it needs clarification before being processed.
 
         ## Action Request:

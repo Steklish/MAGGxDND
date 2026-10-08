@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { VectorIcon } from './common/VectorIcon';
 import './ProfilePage.css';
 
 interface ProfilePageProps {
@@ -75,7 +76,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onGoHo
                         ← Back
                     </button>
                     <button className="btn-home" onClick={onGoHome}>
-                        🏠 Home
+                        <VectorIcon name="castle" size={14} style={{ marginRight: 6, display: 'inline-block', verticalAlign: 'middle' }} />
+                        Home
                     </button>
                 </div>
                 
@@ -88,47 +90,50 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onGoHo
             <div className="profile-content">
                 {/* User Stats Overview */}
                 <div className="stats-section">
-                    <h2>📊 Your Statistics</h2>
+                    <h2>
+                        <VectorIcon name="rune-square" size={20} style={{ marginRight: 8, display: 'inline-block', verticalAlign: 'middle' }} />
+                        Your Statistics
+                    </h2>
                     
                     <div className="stats-grid">
                         <div className="stat-card">
-                            <div className="stat-icon">📅</div>
+                            <div className="stat-icon"><VectorIcon name="banner" size={24} /></div>
                             <div className="stat-value">{userStats.registrationDate}</div>
                             <div className="stat-label">Registered Since</div>
                         </div>
                         
                         <div className="stat-card">
-                            <div className="stat-icon">🎭</div>
+                            <div className="stat-icon"><VectorIcon name="woman" size={24} /></div>
                             <div className="stat-value">{userStats.totalCharacters}</div>
                             <div className="stat-label">Total Characters</div>
                         </div>
                         
                         <div className="stat-card">
-                            <div className="stat-icon">⚔️</div>
+                            <div className="stat-icon"><VectorIcon name="sword" size={24} /></div>
                             <div className="stat-value">{userStats.totalSessions}</div>
                             <div className="stat-label">Active Sessions</div>
                         </div>
                         
                         <div className="stat-card">
-                            <div className="stat-icon">⏱️</div>
+                            <div className="stat-icon"><VectorIcon name="magic-swirl" size={24} /></div>
                             <div className="stat-value">{userStats.totalPlayTime}h</div>
                             <div className="stat-label">Total Play Time</div>
                         </div>
                         
                         <div className="stat-card">
-                            <div className="stat-icon">🏆</div>
+                            <div className="stat-icon"><VectorIcon name="crown" size={24} /></div>
                             <div className="stat-value">{userStats.gamesWon}</div>
                             <div className="stat-label">Games Completed</div>
                         </div>
                         
                         <div className="stat-card">
-                            <div className="stat-icon">🎲</div>
+                            <div className="stat-icon"><VectorIcon name="dice" size={24} /></div>
                             <div className="stat-value">{userStats.favoriteClass}</div>
                             <div className="stat-label">Favorite Class</div>
                         </div>
                         
                         <div className="stat-card">
-                            <div className="stat-icon">📆</div>
+                            <div className="stat-icon"><VectorIcon name="rune" size={24} /></div>
                             <div className="stat-value">{userStats.lastActive}</div>
                             <div className="stat-label">Last Active</div>
                         </div>
@@ -137,7 +142,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onGoHo
 
                 {/* Account Settings */}
                 <div className="settings-section">
-                    <h2>⚙️ Account Settings</h2>
+                    <h2>
+                        <VectorIcon name="shield-warrior" size={20} style={{ marginRight: 8, display: 'inline-block', verticalAlign: 'middle' }} />
+                        Account Settings
+                    </h2>
                     
                     <div className="settings-card">
                         <div className="setting-item">
@@ -152,7 +160,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ userId, onBack, onGoHo
                         
                         <div className="setting-actions">
                             <button className="btn-logout" onClick={handleLogout}>
-                                🚪 Logout
+                                <VectorIcon name="gate" size={14} style={{ marginRight: 6, display: 'inline-block', verticalAlign: 'middle' }} />
+                                Logout
                             </button>
                         </div>
                     </div>

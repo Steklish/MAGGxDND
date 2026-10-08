@@ -1,49 +1,59 @@
-/* Events Panel Styles */
+/* ==========================================================================
+   EVENTS PANEL - Strict Medieval Combat & Chronicle Log
+   Palette: Snow (#FFFBFF), Almond Cream (#F1DABF), Taupe (#92817A),
+            Dark Coffee (#362417), Stone Gray (#18191C, #212226)
+   ========================================================================== */
+
 .events-panel {
     display: flex;
     flex-direction: column;
     height: 100%;
-    font-family: 'Rajdhani', sans-serif;
-    background: var(--bg-secondary);
+    font-family: var(--font-body, Georgia, serif);
+    background: var(--bg-card, #212226);
+    border: 1px solid var(--border-color, #383940);
+    border-radius: var(--radius-sm, 2px);
 }
 
 .events-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--spacing-md) var(--spacing-lg);
-    border-bottom: 2px solid var(--accent-yellow);
-    background: linear-gradient(180deg, rgba(233, 196, 106, 0.15) 0%, rgba(20, 20, 30, 0.85) 100%);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color, #383940);
+    background: linear-gradient(135deg, rgba(54, 36, 23, 0.92) 0%, rgba(34, 22, 14, 0.97) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
     position: sticky;
     top: 0;
     z-index: 10;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
 }
 
 .events-header h2 {
-    font-size: 1.3rem;
-    color: var(--accent-yellow);
+    font-size: 1.05rem;
+    color: var(--color-almond, #f1dabf);
     margin: 0;
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 600;
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.6));
+    letter-spacing: 0.1em;
 }
 
 .events-count {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    background: rgba(255, 255, 255, 0.05);
+    font-size: 0.75rem;
+    font-family: var(--font-mono, monospace);
+    color: var(--color-almond, #f1dabf);
+    background: rgba(241, 218, 191, 0.12);
+    border: 1px solid rgba(241, 218, 191, 0.25);
     padding: 2px 8px;
-    border-radius: 10px;
+    border-radius: var(--radius-sm, 2px);
 }
 
 .events-list {
     flex: 1;
     overflow-y: auto;
-    padding: var(--spacing-md);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .no-events {
@@ -52,36 +62,41 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: var(--text-secondary);
+    color: var(--color-taupe, #92817a);
     text-align: center;
+    font-family: var(--font-lore, Georgia, serif);
 }
 
 .no-events .hint {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     margin-top: 8px;
-    opacity: 0.7;
+    font-style: italic;
 }
 
 .event-entry {
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    padding: 10px;
-    margin-bottom: 8px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 6px;
-    border-left: 3px solid var(--accent-yellow);
+    padding: 8px 12px;
+    background: linear-gradient(135deg, rgba(33, 34, 38, 0.88) 0%, rgba(24, 25, 28, 0.94) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border-radius: var(--radius-sm, 2px);
+    border: 1px solid var(--border-color, #383940);
+    border-left: 3px solid var(--color-almond, #f1dabf);
     transition: all 0.2s ease;
     cursor: default;
 }
 
 .event-entry:hover {
-    background: rgba(255, 255, 255, 0.06);
-    transform: translateX(2px);
+    background: linear-gradient(135deg, rgba(44, 45, 52, 0.88) 0%, rgba(32, 33, 38, 0.94) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border-color: var(--color-taupe, #92817a);
+    border-left-color: var(--color-almond, #f1dabf);
 }
 
 .event-icon {
     font-size: 1.1rem;
+    color: var(--color-almond, #f1dabf);
     flex-shrink: 0;
     margin-top: 2px;
 }
@@ -93,33 +108,36 @@
 
 .event-description {
     display: block;
-    font-size: 0.9rem;
-    color: var(--text-primary);
-    line-height: 1.4;
+    font-size: 0.95rem;
+    font-family: var(--font-body, Georgia, serif);
+    color: var(--color-snow, #fffbff);
+    line-height: 1.5;
     margin-bottom: 4px;
 }
 
 .event-type {
     display: inline-block;
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    background: rgba(255, 255, 255, 0.05);
-    padding: 2px 6px;
-    border-radius: 3px;
+    font-size: 0.68rem;
+    font-family: var(--font-ui, 'Cinzel', serif);
+    font-weight: 700;
+    color: var(--color-taupe, #92817a);
+    background: var(--bg-tertiary, #28292e);
+    border: 1px solid var(--border-color, #383940);
+    padding: 1px 6px;
+    border-radius: 2px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.08em;
 }
 
 /* Event Tooltip */
 .event-tooltip {
     padding: 12px 16px;
-    background: rgba(20, 20, 35, 0.95);
-    border: 1px solid var(--accent-orange);
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+    background: var(--bg-card, #212226);
+    border: 1px solid var(--color-almond, #f1dabf);
+    border-radius: var(--radius-sm, 2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
     max-width: 300px;
     z-index: 10000;
-    backdrop-filter: blur(8px);
 }
 
 .event-tooltip-header {
@@ -131,41 +149,28 @@
 
 .event-tooltip-icon {
     font-size: 1.2rem;
+    color: var(--color-almond, #f1dabf);
 }
 
 .event-tooltip-title {
     font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--accent-orange);
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-weight: 700;
+    color: var(--color-almond, #f1dabf);
+    letter-spacing: 0.06em;
 }
 
 .event-tooltip-description {
     margin: 0 0 8px;
-    font-size: 0.85rem;
-    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-family: var(--font-body, Georgia, serif);
+    color: var(--color-snow, #fffbff);
     line-height: 1.5;
 }
 
 .event-tooltip-meta {
     margin: 0;
     font-size: 0.75rem;
-    color: var(--text-muted);
-}
-
-/* Scrollbar */
-.events-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-.events-list::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02);
-}
-
-.events-list::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-}
-
-.events-list::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    font-family: var(--font-mono, monospace);
+    color: var(--color-taupe, #92817a);
 }

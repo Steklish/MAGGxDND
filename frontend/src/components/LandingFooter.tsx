@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FooterPages } from './FooterPages';
+import { VectorIcon } from './common/VectorIcon';
 import './LandingFooter.css';
 
 export const LandingFooter: React.FC = () => {
@@ -16,7 +17,10 @@ export const LandingFooter: React.FC = () => {
                 <div className="footer-content">
                     {/* Left Section - Game Rules */}
                     <div className="footer-section">
-                        <h4 className="footer-title">📚 D&D Rules</h4>
+                        <h4 className="footer-title">
+                            <VectorIcon name="banner" size={16} style={{ marginRight: 8, display: 'inline-block', verticalAlign: 'middle' }} />
+                            D&D Rules
+                        </h4>
                         <ul className="footer-links">
                             <li>
                                 <a href="https://dnd.wizards.com/resources/rules" target="_blank" rel="noopener noreferrer">
@@ -48,7 +52,10 @@ export const LandingFooter: React.FC = () => {
 
                     {/* Center Section - Resources */}
                     <div className="footer-section">
-                        <h4 className="footer-title">🎲 Resources</h4>
+                        <h4 className="footer-title">
+                            <VectorIcon name="dice" size={16} style={{ marginRight: 8, display: 'inline-block', verticalAlign: 'middle' }} />
+                            Resources
+                        </h4>
                         <ul className="footer-links">
                             <li>
                                 <a href="https://www.dndbeyond.com/characters" target="_blank" rel="noopener noreferrer">
@@ -80,7 +87,10 @@ export const LandingFooter: React.FC = () => {
 
                     {/* Right Section - Project */}
                     <div className="footer-section">
-                        <h4 className="footer-title">🐉 About</h4>
+                        <h4 className="footer-title">
+                            <VectorIcon name="crown" size={16} style={{ marginRight: 8, display: 'inline-block', verticalAlign: 'middle' }} />
+                            About
+                        </h4>
                         <ul className="footer-links">
                             <li>
                                 <button className="footer-link-btn" onClick={() => handlePageClick('what-is-dnd')}>

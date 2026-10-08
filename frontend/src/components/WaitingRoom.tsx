@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { ErrorBoundary } from './common/ErrorBoundary';
+import { VectorIcon } from './common/VectorIcon';
 import './WaitingRoom.css';
 
 interface Player {
@@ -247,10 +248,10 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart
                     </div>
                     <div className="error-actions">
                         <button className="error-retry-btn" onClick={() => window.location.reload()}>
-                            🔄 Retry
+                            <VectorIcon name="rune-circle" /> Retry
                         </button>
                         <button className="error-home-btn" onClick={onBack}>
-                            🏠 Back to Home
+                            <VectorIcon name="castle" /> Back to Home
                         </button>
                     </div>
                 </div>
@@ -267,7 +268,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart
             <header className={`waiting-room-header ${scrolled ? 'scrolled' : ''}`}>
                 <div className="header-content">
                     <div className="logo" onClick={() => navigate('/home')}>
-                        <span className="logo-icon">🐉</span>
+                        <span className="logo-icon"><VectorIcon name="crown" /></span>
                         <span className="logo-text">
                             <span className="logo-magg">MAGG</span>
                             <span className="logo-x">x</span>
@@ -286,7 +287,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart
                             className="btn-profile"
                             onClick={() => navigate('/profile')}
                         >
-                            <span className="profile-avatar">👤</span>
+                            <span className="profile-avatar"><VectorIcon name="knight" /></span>
                             <span className="profile-name">{username || 'Adventurer'}</span>
                         </button>
 
@@ -295,7 +296,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart
                             onClick={handleLogout}
                             title="Logout"
                         >
-                            <span>🚪</span>
+                            <VectorIcon name="gate" />
                         </button>
                     </div>
                 </div>
@@ -307,7 +308,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart
                     {/* Session Title Card */}
                     <div className="waiting-room-title-card">
                         <div className="waiting-room-title-header">
-                            <div className="session-icon-large">🎲</div>
+                            <div className="session-icon-large"><VectorIcon name="dice" size="2.5rem" /></div>
                             <div className="waiting-room-title-info">
                                 <h1>{session.session_name}</h1>
                                 <span className={`session-status status-${session.status.toLowerCase()}`}>
@@ -320,7 +321,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart
                                     className={`btn-ready ${isReady ? 'ready' : ''}`}
                                     onClick={handleToggleReady}
                                 >
-                                    {isReady ? '✅ Ready!' : '🎯 Get Ready'}
+                                    {isReady ? <><VectorIcon name="shield" /> Ready!</> : <><VectorIcon name="sword" /> Get Ready</>}
                                 </button>
                                 
                                 {/* Start button for owner only (shown when ready) */}
@@ -330,7 +331,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart
                                         onClick={handleStartGame}
                                         disabled={!canStartGame}
                                     >
-                                        🚀 Start Game
+                                        <VectorIcon name="horse" /> Start Game
                                     </button>
                                 )}
                             </div>
@@ -341,14 +342,14 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart
                     <div className="waiting-room-grid">
                         {/* Session Info */}
                         <div className="waiting-room-info-card">
-                            <h2>📋 Session Information</h2>
+                            <h2><VectorIcon name="banner" /> Session Information</h2>
                             <div className="info-grid">
                                 <div className="info-item full-width">
                                     <span className="info-label">Session ID</span>
                                     <div className="session-id-container">
                                         <span className="info-value mono">{session.session_id}</span>
                                         <button className="btn-copy" onClick={handleCopySessionId} title="Copy Session ID">
-                                            📋 Copy
+                                            <VectorIcon name="banner" /> Copy
                                         </button>
                                     </div>
                                 </div>
@@ -378,7 +379,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart
 
                             {/* Ready Status Notice */}
                             <div className="ready-notice">
-                                <div className="notice-icon">ℹ️</div>
+                                <div className="notice-icon"><VectorIcon name="rune" /></div>
                                 <div className="notice-content">
                                     <strong>Waiting for Players</strong>
                                     <p>
@@ -396,7 +397,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart
                         {/* Players List */}
                         <div className="players-ready-card">
                             <div className="players-card-header">
-                                <h2>👥 Players ({session.players.length})</h2>
+                                <h2><VectorIcon name="knight" /> Players ({session.players.length})</h2>
                                 {!playerId && (
                                     <span className="hint-text">Join to participate</span>
                                 )}
@@ -415,15 +416,15 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart
                                                         <span className="player-character">{player.character_name}</span>
                                                     )}
                                                     {player.role === 'owner' && (
-                                                        <span className="player-role-badge">👑 Owner</span>
+                                                        <span className="player-role-badge"><VectorIcon name="crown" /> Owner</span>
                                                     )}
                                                 </div>
                                                 <div className="player-status-section">
                                                     <span className={`player-status ${player.connected ? 'connected' : 'disconnected'}`}>
-                                                        {player.connected ? '🟢' : '🔴'}
+                                                        <span className={`status-dot ${player.connected ? 'online' : 'offline'}`} />
                                                     </span>
                                                     <span className={`player-ready-badge ${player.is_ready ? 'ready' : ''}`}>
-                                                        {player.is_ready ? '✅ Ready' : '⏳ Not Ready'}
+                                                        {player.is_ready ? <><VectorIcon name="shield" /> Ready</> : <><VectorIcon name="rune" /> Not Ready</>}
                                                     </span>
                                                 </div>
                                             </div>
@@ -432,7 +433,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ sessionId, onGameStart
                                 </div>
                             ) : (
                                 <div className="empty-players">
-                                    <div className="empty-icon">👥</div>
+                                    <div className="empty-icon"><VectorIcon name="knight" size="2.5rem" /></div>
                                     <p>No players connected yet</p>
                                     <p className="empty-hint">Share the session ID to invite players!</p>
                                 </div>

@@ -1,0 +1,227 @@
+/* ==========================================================================
+   HOVER TIPS STYLING - Medieval Card System with Swatch Palette
+   ========================================================================== */
+
+.hover-tip-card {
+    min-width: 240px;
+    max-width: 320px;
+    padding: 12px 14px;
+    background: var(--bg-secondary, #212226);
+    border: 1px solid var(--color-leather, #37504d);
+    border-radius: var(--radius-sm, 2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 12px rgba(55, 30, 19, 0.6);
+    font-family: var(--font-body, serif);
+    color: var(--color-snow, #fffbff);
+    text-align: left;
+    user-select: none;
+    pointer-events: none;
+}
+
+.hover-tip-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(192, 170, 138, 0.2);
+}
+
+.hover-tip-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-sm, 2px);
+    object-fit: cover;
+    border: 1px solid var(--color-creme, #e1d3a9);
+    flex-shrink: 0;
+}
+
+.hover-tip-avatar-placeholder {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-coffee, #371e13);
+    border: 1px solid var(--color-clay-dust, #c0aa8a);
+    color: var(--color-creme, #e1d3a9);
+    border-radius: var(--radius-sm, 2px);
+    flex-shrink: 0;
+}
+
+.hover-glyph {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm, 2px);
+    flex-shrink: 0;
+}
+
+.hover-glyph.arcane-glyph {
+    background: rgba(92, 74, 106, 0.4);
+    border: 1px solid rgba(168, 85, 48, 0.5);
+    color: var(--color-deep-peach, #a85530);
+}
+
+.hover-glyph.item-glyph {
+    background: var(--color-coffee, #371e13);
+    border: 1px solid var(--color-leather, #37504d);
+    color: var(--color-creme, #e1d3a9);
+}
+
+.hover-tip-name {
+    margin: 0;
+    font-size: 0.95rem;
+    font-family: var(--font-heading, 'Cinzel', serif);
+    font-weight: 700;
+    color: var(--color-creme, #e1d3a9);
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+}
+
+.hover-tip-sub {
+    font-size: 0.76rem;
+    color: var(--color-clay-dust, #c0aa8a);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+/* Vital Row */
+.hover-tip-vital-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.hover-vital-box {
+    background: var(--bg-tertiary, #28292e);
+    border: 1px solid var(--border-color, #383940);
+    border-radius: var(--radius-sm, 2px);
+    padding: 4px 8px;
+}
+
+.hover-vital-box.hp-box {
+    flex: 1;
+}
+
+.hover-vital-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    font-family: var(--font-mono, monospace);
+    color: var(--color-clay-dust, #c0aa8a);
+    margin-bottom: 3px;
+}
+
+.hover-hp-track {
+    height: 5px;
+    background: var(--bg-primary, #18191c);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.hover-hp-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.hover-vital-box.badge-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 42px;
+}
+
+.vital-badge-val {
+    font-size: 0.85rem;
+    font-weight: 700;
+    font-family: var(--font-mono, monospace);
+    color: var(--color-creme, #e1d3a9);
+    line-height: 1;
+}
+
+.vital-badge-lbl {
+    font-size: 0.65rem;
+    color: var(--color-clay-dust, #c0aa8a);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* Stats Grid */
+.hover-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+    background: var(--bg-primary, #18191c);
+    padding: 6px;
+    border-radius: var(--radius-sm, 2px);
+    border: 1px solid rgba(55, 80, 77, 0.45);
+}
+
+.hover-stat-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--bg-secondary, #212226);
+    padding: 3px 2px;
+    border-radius: 2px;
+    border: 1px solid var(--border-subtle, #292a30);
+}
+
+.stat-name {
+    font-size: 0.6rem;
+    color: var(--color-clay-dust, #c0aa8a);
+    font-family: var(--font-heading, 'Cinzel', serif);
+    font-weight: 700;
+}
+
+.stat-val {
+    font-size: 0.78rem;
+    font-weight: 700;
+    font-family: var(--font-mono, monospace);
+    color: var(--color-snow, #fffbff);
+}
+
+.stat-mod {
+    font-size: 0.62rem;
+    font-family: var(--font-mono, monospace);
+    color: var(--color-creme, #e1d3a9);
+}
+
+/* Meta Grid */
+.hover-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 10px;
+    margin-bottom: 8px;
+    font-size: 0.75rem;
+    background: var(--bg-primary, #18191c);
+    padding: 6px 8px;
+    border-radius: var(--radius-sm, 2px);
+    border: 1px solid rgba(55, 80, 77, 0.35);
+}
+
+.meta-item {
+    color: var(--color-snow, #fffbff);
+}
+
+.meta-lbl {
+    color: var(--color-clay-dust, #c0aa8a);
+    margin-right: 4px;
+}
+
+.meta-val-accent {
+    color: var(--color-deep-peach, #a85530);
+    font-weight: 700;
+    font-family: var(--font-mono, monospace);
+}
+
+.hover-tip-desc {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--color-clay-dust, #c0aa8a);
+    line-height: 1.35;
+    font-style: italic;
+}

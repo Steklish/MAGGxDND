@@ -21,13 +21,17 @@
 
 **MAGGxDND** is an AI-powered D&D 5e game engine with a real-time web interface. It features:
 
-- 🤖 **AI Dungeon Master (MAGG)** — Powered by Google Gemini for dynamic storytelling
-- 🎮 **Real-Time WebSocket Communication** — Bidirectional game updates via WebSockets
-- 🌍 **Living World** — NPCs act independently with their own goals and motivations
-- 📝 **Full Character Creation** — AI-powered character generation with procedural fallback
-- 🎲 **D&D 5e Rules** — Complete combat system with story and combat modes
-- 💾 **Save/Load** — Persistent game state with JSON serialization
-- 🌐 **Multiplayer** — Multiple players can join the same session simultaneously
+- 🤖 **Omniscient AI Dungeon Master (MAGG)** — Powered by Google Gemini with full awareness of campaign plot, active quest objectives, world map graph, scene objects, and all characters across visited realms.
+- 🗺️ **Dynamic World & Location Graph** — Procedurally generates starting scenes with thematic interactive objects upon session creation. Tracks visited locations in a connected graph (`location_graph`). Traversing to new locations procedurally generates fresh scenes and pins new NPCs; returning to previously visited locations loads cached scenes.
+- 👥 **Location-Pinned NPCs & Living World** — NPCs are pinned to specific locations (`character.current_scene`). The engine processes turns and reactions only for NPCs in the party's current location, keeping off-screen NPCs dormant in the background.
+- ⚔️ **Dual-Mode Event & Turn Queues**:
+  - *Story Mode*: Free-form party action queue where player actions trigger immediate reactions from location-present NPCs and narrative DM evaluation.
+  - *Combat Mode*: Strict initiative- and speed-sliced round queue (`turn_queue`) governed by `RoundDeterminator`.
+- 🚪 **Dynamic Entrance Narratives & Character Takeover** — Generates rich DM narratives describing how an adventurer entered the game upon joining or claiming. Abandoned characters convert to AI companions, and incoming players can join and take over existing AI companions or session NPCs.
+- 🎮 **Real-Time WebSocket Communication** — Bidirectional game updates via WebSockets with robust connection recovery.
+- 🎨 **Visual Asset & Battle Map System** — Top-down aerial battle maps, character portraits, item cards, and SVG fallbacks.
+- 💾 **Save/Load & Persistence** — Persistent game state in SQLite and JSON serialization.
+- 🌐 **Multiplayer** — Multiple players can join the same session simultaneously.
 
 ### Architecture Overview
 
@@ -88,11 +92,19 @@ MAGGxDND uses a **layered hexagonal architecture** with clean separation between
    - Events published to `EventPool` (pub/sub system)
    - `Manipulators` handle specific event types (combat, movement, items)
 
-3. **Session Isolation**: Each game session is fully isolated
-   - Sessions created via `SessionFactory` with all dependencies injected
-   - `SessionManager` tracks active sessions and WebSocket connections
+3. **World Graph & Location-Pinned Scope**:
+   - The world is organized as a dynamic location graph (`location_graph`)
+   - NPCs are bound to locations; game loop execution is scoped to the party's current location
 
-4. **AI-First with Fallback**: AI handles narrative generation, but procedural generation works when AI unavailable
+4. **Dual Queue Modes**:
+   - Story mode provides fluid narrative pacing and reactive event consumption
+   - Combat mode enforces strict 5e initiative order and round tracking
+
+5. **Session-Scoped Roster & Seamless Takeover**:
+   - Characters belong to the session, enabling players to disconnect without stalling the story
+   - New players can immediately take over existing AI companions or session NPCs
+
+6. **AI-First with Fallback**: AI handles narrative generation, but procedural generation works when AI is unavailable
 
 ### Tech Stack
 

@@ -1,238 +1,1104 @@
-.chat-panel {
+/* ==========================================================================
+   CHRONICLE & CHAT - Strict Medieval / Fantasy Style
+   Palette: Snow (#FFFBFF), Almond Cream (#F1DABF), Taupe (#92817A),
+            Dark Coffee (#362417), Stone Gray (#18191C, #212226, #28292E)
+   ========================================================================== */
+
+.ergonomic-chat-panel {
+    background: var(--bg-card, #212226);
+    border: 1px solid var(--border-color, #383940);
+    border-radius: var(--radius-sm, 2px);
     display: flex;
     flex-direction: column;
     height: 100%;
-    font-family: 'Rajdhani', sans-serif;
-    background: var(--bg-secondary);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    font-family: var(--font-body, 'EB Garamond', Georgia, serif);
 }
 
-.chat-header {
+/* Header */
+.chronicle-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--spacing-md) var(--spacing-lg);
-    border-bottom: 1px solid var(--border-color);
-    background: linear-gradient(180deg, rgba(255, 107, 53, 0.15) 0%, rgba(20, 20, 30, 0.85) 100%);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-color, #383940);
+    background: linear-gradient(135deg, rgba(54, 36, 23, 0.92) 0%, rgba(34, 22, 14, 0.97) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    gap: 12px;
+    flex-shrink: 0;
 }
 
-.chat-header h2 {
-    font-size: 1.3rem;
-    margin: 0;
-    color: var(--text-primary);
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: headerPulse 3s infinite;
-    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.6));
-}
-
-@keyframes headerPulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.7;
-    }
-}
-
-.filter-buttons {
+.chronicle-title-group {
     display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-bottom: 1px solid var(--border-color);
+    align-items: center;
+    gap: 8px;
 }
 
-.filter-buttons button {
-    padding: 6px 12px;
-    background-color: #64748b;
-    border: 1px solid #64748b;
-    border-radius: var(--radius-sm);
-    color: #fff;
-    font-size: 0.8rem;
-    font-family: 'Rajdhani', sans-serif;
+.chronicle-icon {
+    font-size: 1rem;
+    color: var(--color-almond, #f1dabf);
+    display: flex;
+    align-items: center;
+}
+
+.chronicle-title-group h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--color-snow, #fffbff);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+}
+
+.chronicle-badge {
+    background: rgba(241, 218, 191, 0.12);
+    border: 1px solid rgba(241, 218, 191, 0.25);
+    color: var(--color-almond, #f1dabf);
+    font-size: 0.72rem;
+    padding: 1px 6px;
+    border-radius: var(--radius-sm, 2px);
+    font-family: var(--font-mono, monospace);
+    font-weight: 600;
+}
+
+
+
+/* Filters */
+.chronicle-filters {
+    display: flex;
+    gap: 5px;
+    padding: 6px 14px;
+    border-bottom: 1px solid var(--border-color, #383940);
+    background: linear-gradient(180deg, rgba(33, 34, 38, 0.94) 0%, rgba(24, 25, 28, 0.97) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+}
+
+.chronicle-filter-chip {
+    background: linear-gradient(135deg, rgba(40, 41, 46, 0.88) 0%, rgba(28, 29, 33, 0.94) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border: 1px solid var(--border-color, #383940);
+    color: var(--color-taupe, #92817a);
+    padding: 3px 8px;
+    border-radius: var(--radius-sm, 2px);
+    font-size: 0.74rem;
+    font-family: var(--font-ui, 'Cinzel', serif);
+    font-weight: 600;
+    letter-spacing: 0.05em;
     cursor: pointer;
-    transition: all var(--transition-fast);
-    position: relative;
-    overflow: hidden;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
-.filter-buttons button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
+.chronicle-filter-chip:hover {
+    background: linear-gradient(135deg, rgba(54, 36, 23, 0.88) 0%, rgba(34, 22, 14, 0.95) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    color: var(--color-snow, #fffbff);
+    border-color: var(--color-taupe, #92817a);
+}
+
+.chronicle-filter-chip.active {
+    background: linear-gradient(135deg, rgba(54, 36, 23, 0.92) 0%, rgba(34, 22, 14, 0.97) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border-color: var(--color-almond, #f1dabf);
+    color: var(--color-almond, #f1dabf);
+}
+
+/* Compact Foldable Scene Lore Strip */
+.chronicle-scene-lore-strip {
+    border-bottom: 1px solid var(--border-color, #383940);
+    background: rgba(54, 36, 23, 0.25);
+    flex-shrink: 0;
+}
+
+.lore-strip-toggle-btn {
     width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transition: left var(--transition-slow);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 14px;
+    background: transparent;
+    border: none;
+    color: var(--color-taupe, #92817a);
+    font-size: 0.78rem;
+    font-family: var(--font-title, 'Cinzel', serif);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
 }
 
-.filter-buttons button:hover {
-    background-color: #475569;
-    border-color: #475569;
-    color: #fff;
-    transform: translateY(-2px);
+.lore-strip-toggle-btn:hover {
+    background: rgba(146, 129, 122, 0.1);
+    color: var(--color-almond, #f1dabf);
 }
 
-.filter-buttons button:hover::before {
-    left: 100%;
+.lore-strip-icon {
+    margin-right: 6px;
 }
 
-.filter-buttons button.active {
-    background: var(--gradient-primary);
-    color: var(--text-primary);
-    border-color: var(--accent-orange);
-    box-shadow: var(--shadow-glow);
-    transform: translateY(-2px);
+.lore-strip-title {
+    flex: 1;
+    text-align: left;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--color-almond, #f1dabf);
+    text-transform: uppercase;
 }
 
-.chat-messages {
+.lore-strip-indicator {
+    font-size: 0.7rem;
+    color: var(--color-taupe, #92817a);
+}
+
+.lore-strip-body {
+    padding: 8px 14px 10px 14px;
+    background: var(--bg-main, #18191c);
+    border-top: 1px solid var(--border-color, #383940);
+}
+
+.lore-strip-text {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--color-taupe, #92817a);
+    font-family: var(--font-lore, 'Cormorant Garamond', Georgia, serif);
+    font-style: italic;
+}
+
+/* Feed */
+.chronicle-feed {
     flex: 1;
     overflow-y: auto;
-    padding: var(--spacing-md);
+    padding: 12px 14px;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    min-height: 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(241, 218, 191, 0.2) transparent;
 }
 
-.no-messages {
+.chronicle-feed::-webkit-scrollbar {
+    width: 5px;
+}
+
+.chronicle-feed::-webkit-scrollbar-thumb {
+    background: rgba(241, 218, 191, 0.2);
+    border-radius: 2px;
+}
+
+/* Empty State */
+.chronicle-empty {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: var(--text-secondary);
+    min-height: 160px;
+    color: var(--color-taupe, #92817a);
     text-align: center;
+    gap: 6px;
+    font-family: var(--font-lore, Georgia, serif);
 }
 
-.no-messages .hint {
-    font-size: 0.85rem;
-    margin-top: 8px;
-    opacity: 0.7;
-    font-family: 'Rajdhani', sans-serif;
+.empty-glyph {
+    color: var(--color-almond, #f1dabf);
+    opacity: 0.4;
 }
 
-.chat-entry {
-    flex: 0 0 auto;
-    min-width: 0;
-    padding: 10px 12px;
-    background-color: var(--bg-tertiary);
-    border-radius: var(--radius-md);
-    border-left: 3px solid transparent;
-    animation: slideInLeft 0.3s ease-out forwards;
+.chronicle-empty p {
+    margin: 0;
+    font-size: 1rem;
+    font-family: var(--font-title, 'Cinzel', serif);
+    color: var(--color-almond, #f1dabf);
+    letter-spacing: 0.08em;
+}
+
+.empty-hint {
+    font-size: 0.82rem;
+    color: var(--color-taupe, #92817a);
+    font-style: italic;
+}
+
+/* Rows */
+.chat-row {
+    display: flex;
+    align-items: flex-start;
+    animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(2px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.chat-avatar-wrapper {
+    width: 34px;
+    height: 34px;
+    position: relative;
+    border-radius: var(--radius-sm, 2px);
+    flex-shrink: 0;
+    background: var(--bg-tertiary, #28292e);
+    border: 1px solid var(--border-color, #383940);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.chat-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-sm, 2px);
     display: block;
-    position: relative;
-    overflow: hidden;
-    transition: all var(--transition-fast);
 }
 
-.chat-entry::before {
-    content: '';
+.avatar-status-badge {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 2px;
-    height: 100%;
-    background: var(--gradient-orange);
-    transform: scaleY(0);
-    transition: transform var(--transition-normal);
-}
-
-.chat-entry:hover {
-    background-color: rgba(255, 107, 53, 0.05);
-    transform: translateX(2px);
-}
-
-.chat-entry:hover::before {
-    transform: scaleY(1);
-}
-
-.chat-entry.dm-message {
-    border-left-color: var(--accent-orange);
-    background-color: rgba(255, 107, 53, 0.08);
-    box-shadow: 0 0 15px rgba(255, 107, 53, 0.15);
-    position: relative;
-}
-
-.chat-entry.dm-message::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 4px;
-    height: 100%;
-    background: var(--gradient-orange);
-    opacity: 0;
-    transition: opacity var(--transition-normal);
-}
-
-.chat-entry.dm-message:hover::after {
-    opacity: 1;
-}
-
-.chat-entry.event {
-    border-left-color: var(--accent-green);
-    background-color: rgba(42, 157, 143, 0.05);
-}
-
-.message-content {
+    bottom: -3px;
+    right: -3px;
+    font-size: 0.6rem;
+    background: var(--bg-secondary, #212226);
+    border-radius: 50%;
+    width: 14px;
+    height: 14px;
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color, #383940);
 }
 
-.sender {
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: var(--accent-orange);
-    font-family: 'Rajdhani', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.text {
-    color: var(--text-primary);
-    line-height: 1.5;
-}
-
-.event-content {
-    display: flex;
+/* 1. Player (Self) Row - Right Aligned */
+.chat-row.player-row {
+    justify-content: flex-end;
     align-items: flex-start;
     gap: 8px;
 }
 
-.event-content-with-tooltip {
-    cursor: help;
-    display: inline-block;
+.chat-bubble-group.group-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    max-width: 82%;
 }
 
-.event-content-with-tooltip:hover .event-content {
-    background-color: rgba(255, 107, 53, 0.1);
-    border-radius: var(--radius-sm);
+.chat-sender-meta.meta-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+
+.player-name-me {
+    font-size: 0.76rem;
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-weight: 700;
+    color: var(--color-almond, #f1dabf);
+    letter-spacing: 0.05em;
+}
+
+.chat-timestamp {
+    font-size: 0.68rem;
+    color: var(--color-taupe, #92817a);
+    font-family: var(--font-mono, monospace);
+}
+
+.player-bubble {
+    background: linear-gradient(135deg, rgba(43, 34, 29, 0.84) 0%, rgba(28, 21, 17, 0.92) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border: 1px solid rgba(241, 218, 191, 0.3);
+    border-radius: 4px 0 4px 4px;
+    padding: 8px 12px;
+    color: var(--color-snow, #fffbff);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    word-break: break-word;
+}
+
+.avatar-player {
+    border-color: var(--color-almond, #f1dabf);
+}
+
+.player-badge {
+    background: var(--bg-coffee, #362417);
+    border-color: var(--color-almond, #f1dabf);
+    color: var(--color-almond, #f1dabf);
+}
+
+/* 2. Incoming (Party & NPCs) Row - Left Aligned */
+.chat-row.incoming-row {
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.chat-bubble-group.group-left {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: 82%;
+}
+
+.chat-sender-meta.meta-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+
+.sender-ally {
+    font-size: 0.76rem;
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-weight: 700;
+    color: var(--color-almond, #f1dabf);
+    letter-spacing: 0.05em;
+}
+
+.sender-hostile {
+    font-size: 0.76rem;
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-weight: 700;
+    color: #e57373;
+    letter-spacing: 0.05em;
+}
+
+.chat-role-pill {
+    font-size: 0.6rem;
+    font-family: var(--font-ui, 'Cinzel', serif);
+    font-weight: 800;
+    padding: 1px 5px;
+    border-radius: var(--radius-sm, 2px);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.role-ally {
+    background: rgba(241, 218, 191, 0.1);
+    color: var(--color-almond, #f1dabf);
+    border: 1px solid rgba(241, 218, 191, 0.25);
+}
+
+.role-hostile {
+    background: rgba(229, 115, 115, 0.12);
+    color: #e57373;
+    border: 1px solid rgba(229, 115, 115, 0.3);
+}
+
+.incoming-bubble {
+    background: linear-gradient(135deg, rgba(33, 34, 38, 0.86) 0%, rgba(26, 27, 30, 0.94) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border: 1px solid var(--border-color, #383940);
+    border-radius: 0 4px 4px 4px;
+    padding: 8px 12px;
+    color: #e6e1da;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    word-break: break-word;
+}
+
+.hostile-bubble {
+    background: linear-gradient(135deg, rgba(42, 27, 27, 0.86) 0%, rgba(26, 18, 18, 0.94) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border-color: rgba(229, 115, 115, 0.3);
+    color: #fce8e6;
+}
+
+.avatar-ally {
+    border-color: var(--color-taupe, #92817a);
+}
+
+.avatar-hostile {
+    border-color: #e57373;
+}
+
+/* 3. Dungeon Master Narrative Card */
+.chat-row.dm-row {
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.avatar-dm {
+    width: 38px;
+    height: 38px;
+    border-color: var(--color-almond, #f1dabf);
+    box-shadow: 0 0 10px rgba(241, 218, 191, 0.25);
+}
+
+.dm-crest-img {
+    border-radius: var(--radius-sm, 2px);
+}
+
+.dm-badge {
+    background: var(--bg-coffee, #362417);
+    border-color: var(--color-almond, #f1dabf);
+    color: var(--color-almond, #f1dabf);
+}
+
+.dm-narrative-card {
+    flex: 1;
+    min-width: 0;
+    background: linear-gradient(135deg, rgba(40, 33, 27, 0.86) 0%, rgba(24, 19, 16, 0.94) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border-left: 3px solid var(--color-almond, #f1dabf);
+    border-top: 1px solid rgba(241, 218, 191, 0.2);
+    border-right: 1px solid var(--border-color, #383940);
+    border-bottom: 1px solid var(--border-color, #383940);
+    border-radius: 0 4px 4px 4px;
+    padding: 10px 14px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.dm-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(241, 218, 191, 0.15);
+    padding-bottom: 4px;
+}
+
+.dm-title-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dm-crown {
+    color: var(--color-almond, #f1dabf);
+    font-size: 0.85rem;
+}
+
+.dm-title {
+    font-size: 0.74rem;
+    font-weight: 800;
+    color: var(--color-almond, #f1dabf);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-family: var(--font-title, 'Cinzel', serif);
+}
+
+.dm-narrative-prose {
+    font-family: var(--font-lore, 'Cormorant Garamond', Georgia, serif);
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--color-snow, #fffbff);
+    letter-spacing: 0.02em;
+    word-break: break-word;
+}
+
+/* 4. Tactical or System Events: Round Tile Pill (User's Exact Desired Tile) */
+.chat-row.center-row {
+    justify-content: center;
+    margin: 4px auto;
+    width: 100%;
+}
+
+.event-tactical-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(33, 34, 38, 0.88) 0%, rgba(24, 25, 28, 0.94) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border: 1px solid rgba(241, 218, 191, 0.25);
+    padding: 5px 16px;
+    border-radius: 9999px; /* Round tile pill */
+    font-family: var(--font-lore, 'Cormorant Garamond', Georgia, serif);
+    font-size: 0.92rem;
+    font-style: italic;
+    color: var(--color-almond, #f1dabf);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    max-width: 92%;
+    text-align: center;
 }
 
 .event-icon {
-    font-size: 1rem;
-    flex-shrink: 0;
+    font-size: 0.85rem;
+    color: var(--color-almond, #f1dabf);
+    display: flex;
+    align-items: center;
 }
 
 .event-text {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
     line-height: 1.4;
-    font-family: 'Rajdhani', sans-serif;
+}
+
+.event-time {
+    font-size: 0.68rem;
+    color: var(--color-taupe, #92817a);
+    font-family: var(--font-mono, monospace);
+    font-style: normal;
+    margin-left: 4px;
+}
+
+/* 5. Dice Rolls - Centered Tactical Pill */
+.roll-tactical-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(54, 36, 23, 0.88) 0%, rgba(34, 22, 14, 0.94) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border: 1px solid var(--color-almond, #f1dabf);
+    padding: 5px 14px;
+    border-radius: 9999px;
+    font-size: 0.82rem;
+    color: var(--color-snow, #fffbff);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    max-width: 90%;
+}
+
+.roll-icon {
+    font-size: 0.9rem;
+    color: var(--color-almond, #f1dabf);
+}
+
+.roll-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono, monospace);
+}
+
+.roll-sender {
+    font-weight: 700;
+    color: var(--color-almond, #f1dabf);
+}
+
+.roll-text {
+    font-weight: 600;
+    color: var(--color-snow, #fffbff);
+}
+
+.roll-time {
+    font-size: 0.65rem;
+    color: var(--color-taupe, #92817a);
+    margin-left: 4px;
+}
+
+/* Quest Fanfare Card */
+.quest-fanfare-row {
+    margin: 8px 0;
+}
+
+.quest-fanfare-card {
+    background: linear-gradient(135deg, rgba(43, 34, 29, 0.85) 0%, rgba(26, 20, 17, 0.92) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border: 1px solid var(--color-almond, #f1dabf);
+    box-shadow: 0 0 16px rgba(241, 218, 191, 0.2);
+    border-radius: var(--radius-sm, 2px);
+    padding: 10px 16px;
+    max-width: 88%;
+    text-align: center;
+}
+
+.quest-fanfare-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.quest-fanfare-icon {
+    font-size: 1rem;
+    color: var(--color-almond, #f1dabf);
+}
+
+.quest-fanfare-tag {
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--color-almond, #f1dabf);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.quest-fanfare-text {
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: var(--color-snow, #fffbff);
+    font-weight: 600;
+}
+
+/* Jump to bottom */
+.jump-bottom-btn {
+    position: absolute;
+    bottom: 120px;
+    right: 16px;
+    background: var(--bg-coffee, #362417);
+    border: 1px solid var(--color-almond, #f1dabf);
+    color: var(--color-snow, #fffbff);
+    font-family: var(--font-ui, 'Cinzel', serif);
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 9999px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.jump-bottom-btn:hover {
+    background: var(--bg-coffee-light, #483222);
+    box-shadow: 0 0 12px rgba(241, 218, 191, 0.3);
+}
+
+/* ==========================================================================
+   Integrated Foldable Fast Commands Bar
+   ========================================================================== */
+
+.chat-fast-commands-container {
+    background: linear-gradient(180deg, rgba(33, 34, 38, 0.94) 0%, rgba(24, 25, 28, 0.97) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border-top: 1px solid var(--border-color, #383940);
+    flex-shrink: 0;
+}
+
+.fast-commands-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 12px;
+    border-bottom: 1px solid transparent;
+}
+
+.fast-commands-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    color: var(--color-taupe, #92817a);
+    font-family: var(--font-ui, 'Cinzel', serif);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: var(--radius-sm, 2px);
+    transition: color 0.15s ease;
+}
+
+.fast-commands-toggle-btn:hover {
+    color: var(--color-almond, #f1dabf);
+}
+
+.commands-icon {
+    color: var(--color-almond, #f1dabf);
+    font-size: 0.8rem;
+}
+
+.commands-title {
+    text-transform: uppercase;
+}
+
+.commands-chevron {
+    font-size: 0.65rem;
+    color: var(--color-taupe, #92817a);
+    margin-left: 4px;
+}
+
+.fast-commands-category-tabs {
+    display: flex;
+    gap: 4px;
+}
+
+.category-tab {
+    background: linear-gradient(135deg, rgba(40, 41, 46, 0.88) 0%, rgba(28, 29, 33, 0.94) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border: 1px solid var(--border-color, #383940);
+    color: var(--color-taupe, #92817a);
+    padding: 2px 6px;
+    font-size: 0.68rem;
+    font-family: var(--font-ui, 'Cinzel', serif);
+    font-weight: 600;
+    border-radius: var(--radius-sm, 2px);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.category-tab:hover {
+    color: var(--color-snow, #fffbff);
+}
+
+.category-tab.active {
+    background: linear-gradient(135deg, rgba(54, 36, 23, 0.92) 0%, rgba(34, 22, 14, 0.97) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border-color: var(--color-almond, #f1dabf);
+    color: var(--color-almond, #f1dabf);
+}
+
+.fast-commands-body {
+    padding: 6px 12px 8px 12px;
+    background: linear-gradient(180deg, rgba(24, 25, 28, 0.92) 0%, rgba(18, 19, 21, 0.96) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border-top: 1px solid var(--border-color, #383940);
+}
+
+.fast-chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.fast-chip-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(135deg, rgba(40, 41, 46, 0.88) 0%, rgba(28, 29, 33, 0.94) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border: 1px solid var(--border-color, #383940);
+    color: var(--color-taupe, #92817a);
+    padding: 3px 8px;
+    border-radius: var(--radius-sm, 2px);
+    font-family: var(--font-ui, 'Cinzel', serif);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.fast-chip-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(54, 36, 23, 0.92) 0%, rgba(34, 22, 14, 0.97) 100%),
+                url('/assets/web-backgrounds/pattern.jpg') center / cover no-repeat;
+    border-color: var(--color-almond, #f1dabf);
+    color: var(--color-almond, #f1dabf);
+}
+
+.fast-chip-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.fast-chip-btn.spell-chip {
+    border-color: rgba(241, 218, 191, 0.25);
+    color: var(--color-almond, #f1dabf);
+}
+
+.fast-chip-btn.item-chip {
+    border-color: rgba(146, 129, 122, 0.3);
+}
+
+/* ==========================================================================
+   Integrated Prompt Input Area (United with Chat)
+   ========================================================================== */
+
+.chat-input-area {
+    background: var(--bg-secondary, #212226);
+    border-top: 1px solid var(--border-color, #383940);
+    padding: 8px 12px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.chat-clarification-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(54, 36, 23, 0.4);
+    border: 1px solid var(--color-almond, #f1dabf);
+    border-radius: var(--radius-sm, 2px);
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    color: var(--color-snow, #fffbff);
+}
+
+.chat-dm-thinking-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(54, 36, 23, 0.35);
+    border: 1px solid rgba(241, 218, 191, 0.2);
+    border-radius: var(--radius-sm, 2px);
+    padding: 4px 8px;
+    font-size: 0.74rem;
+    color: var(--color-almond, #f1dabf);
+    font-family: var(--font-lore, Georgia, serif);
+    font-style: italic;
+}
+
+.thinking-pulse {
+    width: 6px;
+    height: 6px;
+    background: var(--color-almond, #f1dabf);
+    border-radius: 50%;
+    animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+    from { opacity: 0.3; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1.2); }
+}
+
+.chat-action-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chat-action-textarea {
+    flex: 1;
+    min-height: 36px;
+    max-height: 90px;
+    background: var(--bg-main, #18191c);
+    border: 1px solid var(--border-color, #383940);
+    border-radius: var(--radius-sm, 2px);
+    padding: 7px 10px;
+    color: var(--color-snow, #fffbff);
+    font-family: var(--font-body, Georgia, serif);
+    font-size: 0.88rem;
+    line-height: 1.4;
+    resize: none;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.chat-action-textarea:focus {
+    border-color: var(--color-almond, #f1dabf);
+    box-shadow: 0 0 6px rgba(241, 218, 191, 0.15);
+}
+
+.chat-action-textarea::placeholder {
+    color: var(--color-taupe, #92817a);
+    font-style: italic;
+}
+
+.chat-form-buttons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.chat-act-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-accent, #37504d);
+    border: 1px solid var(--color-almond, #f1dabf);
+    color: var(--color-snow, #fffbff);
+    font-family: var(--font-ui, 'Cinzel', serif);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    border-radius: var(--radius-sm, 2px);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.chat-act-btn:hover:not(:disabled) {
+    background: #42615d;
+    box-shadow: 0 0 10px rgba(55, 80, 77, 0.45);
+    border-color: var(--color-snow, #fffbff);
+    transform: translateY(-1px);
+}
+
+.chat-act-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    border-color: var(--border-color, #383940);
+}
+
+.chat-pass-btn {
+    background: var(--bg-tertiary, #28292e);
+    border: 1px solid var(--border-color, #383940);
+    color: var(--color-taupe, #92817a);
+    font-family: var(--font-ui, 'Cinzel', serif);
+    font-size: 0.74rem;
+    font-weight: 600;
+    padding: 7px 10px;
+    border-radius: var(--radius-sm, 2px);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.chat-pass-btn:hover:not(:disabled) {
+    background: var(--bg-secondary, #212226);
+    color: var(--color-snow, #fffbff);
+    border-color: var(--color-taupe, #92817a);
+}
+
+.chat-pass-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Container for feed and overlay */
+.chronicle-feed-container {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* DM Thinking Overlay */
+.dm-thinking-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 25;
+    background: rgba(18, 16, 15, 0.82);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    animation: fadeInOverlay 0.25s ease-out;
+}
+
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.dm-thinking-card {
+    background: linear-gradient(135deg, rgba(40, 27, 18, 0.95) 0%, rgba(24, 21, 20, 0.98) 100%);
+    border: 1px solid rgba(241, 218, 191, 0.35);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(241, 218, 191, 0.15);
+    border-radius: 4px;
+    padding: 20px 24px;
+    max-width: 440px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+}
+
+.dm-arcane-runes-spinner {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rune-glyph {
+    font-size: 1.6rem;
+    color: var(--color-almond, #f1dabf);
+    text-shadow: 0 0 12px rgba(241, 218, 191, 0.7);
+    animation: runePulse 2s ease-in-out infinite alternate;
+}
+
+.rune-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1.5px dashed rgba(241, 218, 191, 0.4);
+}
+
+.rune-ring.ring-outer {
+    animation: spinClockwise 10s linear infinite;
+}
+
+.rune-ring.ring-inner {
+    inset: 6px;
+    border: 1.5px solid transparent;
+    border-top: 1.5px solid #d4af37;
+    border-bottom: 1.5px solid #d4af37;
+    animation: spinCounterClockwise 4s linear infinite;
+}
+
+@keyframes spinClockwise {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes spinCounterClockwise {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(-360deg); }
+}
+
+@keyframes runePulse {
+    from { transform: scale(0.92); opacity: 0.8; filter: drop-shadow(0 0 4px #f1dabf); }
+    to { transform: scale(1.08); opacity: 1; filter: drop-shadow(0 0 14px #ffd700); }
+}
+
+.dm-thinking-title {
+    margin: 0;
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-snow, #fffbff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.dm-thinking-title svg {
+    color: #e6c587;
+    width: 16px;
+    height: 16px;
+}
+
+.dm-thinking-subtitle {
+    margin: 4px 0 0;
+    font-size: 0.82rem;
+    color: var(--color-almond, #f1dabf);
+    opacity: 0.85;
+    line-height: 1.4;
+}
+
+.dm-thinking-progress-bar {
+    width: 100%;
+    height: 3px;
+    background: rgba(241, 218, 191, 0.12);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+    margin-top: 4px;
+}
+
+.dm-thinking-progress-shimmer {
+    position: absolute;
+    top: 0;
+    left: -50%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, #e6c587, transparent);
+    animation: shimmerSlide 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmerSlide {
+    from { left: -50%; }
+    to { left: 100%; }
+}
+
+/* Combat Turn Lock Banner */
+.chat-turn-lock-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    background: rgba(70, 24, 24, 0.45);
+    border: 1px solid rgba(198, 70, 70, 0.4);
+    border-radius: var(--radius-sm, 2px);
+    color: #f7b2b2;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    animation: fadeInBanner 0.2s ease;
+}
+
+.turn-lock-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
 }

@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, status, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
+import uuid
 from pydantic import BaseModel
 from typing import Optional
 
@@ -103,27 +104,70 @@ def login_with_json(response: Response, request: LoginRequest, db: Session = Dep
     )
 
 @router.post("/guest", response_model=AuthResponse)
-def guest_login(response: Response, request: Optional[GuestLoginRequest] = None):
+def guest_login(response: Response, request: Optional[GuestLoginRequest] = None, db: Session = Depends(get_db)):
     """
-    Create a guest token for unauthorized users.
-    Guests can explore the app with limited permissions.
+    Create a guest user and token for unauthorized users.
+    Guests can explore the app and participate in game sessions.
     """
-    guest_token, expire = security.create_guest_token()
+    requested_name = request.username.strip() if request and request.username else None
     
-    # Set guest cookie
+    if requested_name:
+        existing = user_repo.get_by_username(db, requested_name)
+        if existing:
+            guest_user = existing
+        else:
+            guest_user = User(
+                username=requested_name,
+                hashed_password=security.get_password_hash(uuid.uuid4().hex)
+            )
+            db.add(guest_user)
+            db.commit()
+            db.refresh(guest_user)
+    else:
+        guest_uuid = uuid.uuid4().hex[:8]
+        guest_name = f"Guest_{guest_uuid}"
+        while user_repo.get_by_username(db, guest_name):
+            guest_uuid = uuid.uuid4().hex[:8]
+            guest_name = f"Guest_{guest_uuid}"
+        guest_user = User(
+            username=guest_name,
+            hashed_password=security.get_password_hash(uuid.uuid4().hex)
+        )
+        db.add(guest_user)
+        db.commit()
+        db.refresh(guest_user)
+
+    expire = datetime.now(timezone.utc) + timedelta(minutes=security.GUEST_TOKEN_EXPIRE_MINUTES)
+    guest_token = security.create_access_token(
+        data={"sub": guest_user.username, "is_guest": True, "user_id": guest_user.id},
+        expires_delta=timedelta(minutes=security.GUEST_TOKEN_EXPIRE_MINUTES)
+    )
+    
+    # Set cookies
+    response.set_cookie(
+        key="access_token",
+        value=guest_token,
+        httponly=True,
+        samesite="lax",
+        secure=False,
+        path="/",
+        max_age=24 * 60 * 60
+    )
     response.set_cookie(
         key="guest_token",
         value=guest_token,
         httponly=True,
         samesite="lax",
-        secure=False,  # Set to True in production
+        secure=False,
         path="/",
-        max_age=24 * 60 * 60  # 24 hours
+        max_age=24 * 60 * 60
     )
     
     return AuthResponse(
         access_token=guest_token,
         token_type="bearer",
+        user_id=guest_user.id,
+        username=guest_user.username,
         is_guest=True,
         expires_at=expire
     )

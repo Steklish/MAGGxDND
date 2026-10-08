@@ -7,6 +7,7 @@ export interface GameSession {
     game_mode: string;
     status: string;
     description?: string;
+    language?: string;
     player_count: number;
     max_players: number;
     created_at?: string;
@@ -27,6 +28,7 @@ export interface SessionResponse {
     player_count: number;
     status: string;
     description?: string;
+    language?: string;
 }
 
 export interface SessionListResponse {
@@ -53,6 +55,7 @@ export interface PlayerInfo {
 export interface SessionCreateRequest {
     session_name: string;
     game_mode?: string;
+    language?: string;
     max_players?: number;
     description?: string;
     guide?: string;
@@ -248,10 +251,34 @@ export const sessionAPI = {
     },
 
     /**
+     * Get real-time character roster for a session (showing online players vs AI-controlled characters)
+     */
+    getSessionRoster: async (sessionId: string): Promise<any[]> => {
+        const response = await api.get<any[]>(`/sessions/${sessionId}/roster`);
+        return response.data;
+    },
+
+    /**
+     * Claim an existing character in a session (taking over from AI or offline status)
+     */
+    claimCharacter: async (sessionId: string, request: { character_name: string; player_name?: string }): Promise<PlayerInfo> => {
+        const response = await api.post<PlayerInfo>(`/sessions/${sessionId}/claim-character`, request);
+        return response.data;
+    },
+
+    /**
      * Start game from waiting room
      */
     startGameFromWaitingRoom: async (sessionId: string): Promise<GameSession> => {
         const response = await api.post<GameSession>(`/sessions/${sessionId}/start-game`);
+        return response.data;
+    },
+
+    /**
+     * Update session narrative language ('ru' or 'en')
+     */
+    updateSessionLanguage: async (sessionId: string, language: string): Promise<{ status: string; language: string }> => {
+        const response = await api.patch<{ status: string; language: string }>(`/sessions/${sessionId}/language`, { language });
         return response.data;
     },
 };

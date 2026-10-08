@@ -66,6 +66,8 @@ class SessionManager:
         self._player_websockets: Dict[str, Dict[str, WebSocket]] = {}
         self._player_subscriber_queues: Dict[str, Dict[str, SubscriberQueue]] = {}
         self._session_locks: Dict[str, asyncio.Lock] = {}
+        self._disconnect_grace_tasks: Dict[str, Dict[str, asyncio.Task]] = {}
+        self._disconnect_timestamps: Dict[str, Dict[str, float]] = {}
         self._initialized = True
     
     @classmethod
@@ -96,6 +98,8 @@ class SessionManager:
             self._player_websockets[session_id] = {}
             self._player_subscriber_queues[session_id] = {}
             self._session_locks[session_id] = asyncio.Lock()
+            self._disconnect_grace_tasks[session_id] = {}
+            self._disconnect_timestamps[session_id] = {}
             logger.info(f"✅ Session registered: {session_id}")
     
     def get_session(self, session_id: str) -> Optional[Session]:
@@ -133,6 +137,8 @@ class SessionManager:
     ) -> bool:
         """
         Зарегистрировать WebSocket подключение игрока.
+        Автоматически отменяет активный льготный период (disconnect grace period),
+        если игрок переподключился до истечения таймаута.
         
         Args:
             session_id: ID сессии
@@ -143,19 +149,75 @@ class SessionManager:
             True если успешно, False если сессия не найдена
         """
         if session_id not in self._player_websockets:
-            return False
+            self._player_websockets[session_id] = {}
             
+        # Cancel any pending disconnect grace timeout since player has successfully reconnected
+        self.cancel_disconnect_grace(session_id, player_id)
+        
         self._player_websockets[session_id][player_id] = websocket
         return True
     
     def unregister_player_websocket(
         self,
         session_id: str,
-        player_id: str
-    ) -> None:
-        """Отключить игрока от сессии."""
+        player_id: str,
+        websocket: Optional[WebSocket] = None
+    ) -> bool:
+        """
+        Отключить игрока от сессии.
+        Если передан websocket, удаляет регистрацию ТОЛЬКО если текущий сокет совпадает
+        с закрывающимся (предотвращает случайное снятие нового реконнекта старым сокетом).
+        
+        Returns:
+            True если сокет был успешно разрегистрирован, False если сокет уже не активен.
+        """
         if session_id in self._player_websockets:
-            self._player_websockets[session_id].pop(player_id, None)
+            current_ws = self._player_websockets[session_id].get(player_id)
+            if websocket is None or current_ws is websocket:
+                self._player_websockets[session_id].pop(player_id, None)
+                return True
+        return False
+    
+    def schedule_disconnect_grace(
+        self,
+        session_id: str,
+        player_id: str,
+        task: asyncio.Task
+    ) -> None:
+        """Запланировать задачу льготного периода переподключения игрока."""
+        import time
+        if session_id not in self._disconnect_grace_tasks:
+            self._disconnect_grace_tasks[session_id] = {}
+        self.cancel_disconnect_grace(session_id, player_id)
+        self._disconnect_grace_tasks[session_id][player_id] = task
+
+        if session_id not in self._disconnect_timestamps:
+            self._disconnect_timestamps[session_id] = {}
+        self._disconnect_timestamps[session_id][player_id] = time.time()
+
+    def cancel_disconnect_grace(
+        self,
+        session_id: str,
+        player_id: str
+    ) -> bool:
+        """Отменить льготный период при реконнекте игрока."""
+        tasks_map = self._disconnect_grace_tasks.get(session_id, {})
+        task = tasks_map.pop(player_id, None)
+        if task and not task.done():
+            task.cancel()
+        if session_id in self._disconnect_timestamps:
+            self._disconnect_timestamps[session_id].pop(player_id, None)
+        return task is not None
+
+    def is_player_in_grace(
+        self,
+        session_id: str,
+        player_id: str
+    ) -> bool:
+        """Проверить, находится ли игрок в состоянии временного отключения."""
+        tasks_map = self._disconnect_grace_tasks.get(session_id, {})
+        task = tasks_map.get(player_id)
+        return task is not None and not task.done()
     
     def get_player_websocket(
         self,

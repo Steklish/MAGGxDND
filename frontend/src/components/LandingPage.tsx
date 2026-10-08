@@ -4,6 +4,7 @@ import { AuthModal } from './AuthModal';
 import { CharacterCreation } from './CharacterCreation';
 import { ProfilePage } from './ProfilePage';
 import { useGameStore } from '../store/gameStore';
+import { VectorIcon } from './common/VectorIcon';
 import './LandingPage.css';
 
 interface LandingPageProps {
@@ -19,7 +20,31 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
     const [scrolled, setScrolled] = useState(false);
 
     // Handle quick start (demo mode)
-    const handleQuickStart = () => {
+    const handleQuickStart = async () => {
+        try {
+            const response = await fetch('/api/v1/auth/guest', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'
+            });
+            if (response.ok) {
+                const data = await response.json();
+                if (data.access_token) {
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('guest_token', data.access_token);
+                    localStorage.setItem('is_guest', 'true');
+                    if (data.user_id) {
+                        localStorage.setItem('userId', data.user_id.toString());
+                        setUserId(data.user_id);
+                    }
+                    if (data.username) {
+                        localStorage.setItem('username', data.username);
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('Quick start guest login failed:', e);
+        }
         setAuthenticated(true);
     };
 
@@ -41,6 +66,10 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
 
     // Handle guest login success
     const handleGuestSuccess = () => {
+        const storedUserId = localStorage.getItem('userId');
+        if (storedUserId) {
+            setUserId(parseInt(storedUserId));
+        }
         setAuthenticated(true);
     };
 
@@ -64,34 +93,15 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
 
             setScrolled(scrollTop > 50);
 
-            // Update scrollbar color based on scroll position
+            // Update scrollbar color with medieval stone and parchment tones
             const scrollbar = document.documentElement;
-            let color1, color2;
-
-            // Color stops: Orange (start) → Yellow (middle) → Purple (end)
-            const orange = { r: 255, g: 107, b: 53 };   // #FF6B35
-            const yellow = { r: 233, g: 196, b: 106 };  // #E9C46A
-            const purple = { r: 157, g: 78, b: 221 };   // #9D4EDD
-
-            if (progress < 0.5) {
-                // Orange to Yellow (0% - 50% scroll)
-                const t = progress / 0.5;
-                const r = Math.round(orange.r + t * (yellow.r - orange.r));
-                const g = Math.round(orange.g + t * (yellow.g - orange.g));
-                const b = Math.round(orange.b + t * (yellow.b - orange.b));
-                color1 = `rgb(${r}, ${g}, ${b})`;
-                color2 = `rgb(${r}, ${g}, ${b})`;
-            } else {
-                // Yellow to Purple (50% - 100% scroll)
-                const t = (progress - 0.5) / 0.5;
-                const r = Math.round(yellow.r + t * (purple.r - yellow.r));
-                const g = Math.round(yellow.g + t * (purple.g - yellow.g));
-                const b = Math.round(yellow.b + t * (purple.b - yellow.b));
-                color1 = `rgb(${r}, ${g}, ${b})`;
-                color2 = `rgb(${r}, ${g}, ${b})`;
-            }
-
-            scrollbar.style.setProperty('--scrollbar-color', color1);
+            const taupe = { r: 146, g: 129, b: 122 };
+            const almond = { r: 241, g: 218, b: 191 };
+            const t = Math.min(1, Math.max(0, progress));
+            const r = Math.round(taupe.r + t * (almond.r - taupe.r));
+            const g = Math.round(taupe.g + t * (almond.g - taupe.g));
+            const b = Math.round(taupe.b + t * (almond.b - taupe.b));
+            scrollbar.style.setProperty('--scrollbar-color', `rgb(${r}, ${g}, ${b})`);
 
             // Animate sections on scroll
             const sections = document.querySelectorAll('.feature-card, .step-card');
@@ -138,7 +148,7 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
             <header className={`landing-header ${scrolled ? 'scrolled' : ''}`}>
                 <div className="header-content">
                     <div className="logo" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                        <span className="logo-icon">🐉</span>
+                        <VectorIcon name="crown" className="logo-icon" />
                         <span className="logo-text">
                             <span className="logo-magg">MAGG</span>
                             <span className="logo-x">x</span>
@@ -168,7 +178,8 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
                             onClick={handleQuickStart}
                             title="Try demo without account"
                         >
-                            Quick Start ⚡
+                            <span>Quick Start</span>
+                            <VectorIcon name="horse" size={14} style={{ marginLeft: 6, display: 'inline-block', verticalAlign: 'middle' }} />
                         </button>
                     </div>
                 </div>
@@ -202,7 +213,7 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
                             className="btn-secondary"
                             onClick={() => scrollToSection('features')}
                         >
-                            <span className="btn-icon">⚔️</span>
+                            <span className="btn-icon"><VectorIcon name="sword" /></span>
                             <span>Learn More</span>
                         </button>
                     </div>
@@ -228,7 +239,7 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
                         <div className="card-glow"></div>
                         <div className="card-content">
                             <div className="card-header">
-                                <span className="card-icon">🎲</span>
+                                <span className="card-icon"><VectorIcon name="dice" /></span>
                                 <span className="card-title">Session #2847</span>
                             </div>
                             <div className="card-body">
@@ -257,7 +268,7 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
                 </div>
                 <div className="features-grid">
                     <div className="feature-card" id="feature-1">
-                        <div className="feature-icon">🧙‍♂️</div>
+                        <div className="feature-icon"><VectorIcon name="wizard" size={36} /></div>
                         <h3>AI Dungeon Master</h3>
                         <p>
                             Our AI adapts to your playstyle, creating personalized narratives 
@@ -270,7 +281,7 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
                         </div>
                     </div>
                     <div className="feature-card" id="feature-2">
-                        <div className="feature-icon">⚔️</div>
+                        <div className="feature-icon"><VectorIcon name="sword" size={36} /></div>
                         <h3>Real-Time Combat</h3>
                         <p>
                             Engaging turn-based combat with initiative tracking, 
@@ -283,7 +294,7 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
                         </div>
                     </div>
                     <div className="feature-card" id="feature-3">
-                        <div className="feature-icon">📜</div>
+                        <div className="feature-icon"><VectorIcon name="banner" size={36} /></div>
                         <h3>Living World</h3>
                         <p>
                             A world that evolves with your actions. NPCs remember, 
@@ -296,7 +307,7 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
                         </div>
                     </div>
                     <div className="feature-card" id="feature-4">
-                        <div className="feature-icon">👥</div>
+                        <div className="feature-icon"><VectorIcon name="knight" size={36} /></div>
                         <h3>Multiplayer Ready</h3>
                         <p>
                             Play with friends online. Coordinate strategies, share 
@@ -309,7 +320,7 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
                         </div>
                     </div>
                     <div className="feature-card" id="feature-5">
-                        <div className="feature-icon">🎭</div>
+                        <div className="feature-icon"><VectorIcon name="woman" size={36} /></div>
                         <h3>Character Creation</h3>
                         <p>
                             Build unique characters with deep customization. 
@@ -322,7 +333,7 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
                         </div>
                     </div>
                     <div className="feature-card" id="feature-6">
-                        <div className="feature-icon">📊</div>
+                        <div className="feature-icon"><VectorIcon name="rune-square" size={36} /></div>
                         <h3>Progress Tracking</h3>
                         <p>
                             Track your adventures, review past sessions, and 
@@ -352,7 +363,7 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
                                 <circle className="step-circle-bg" cx="50" cy="50" r="45" />
                                 <circle className="step-circle-fill" cx="50" cy="50" r="45" />
                             </svg>
-                            <span className="step-icon">📝</span>
+                            <span className="step-icon"><VectorIcon name="banner" size={26} /></span>
                         </div>
                         <div className="step-content">
                             <h3>Create Your Account</h3>
@@ -369,7 +380,7 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
                                 <circle className="step-circle-bg" cx="50" cy="50" r="45" />
                                 <circle className="step-circle-fill" cx="50" cy="50" r="45" />
                             </svg>
-                            <span className="step-icon">🎮</span>
+                            <span className="step-icon"><VectorIcon name="sword" size={26} /></span>
                         </div>
                         <div className="step-content">
                             <h3>Join or Create a Session</h3>
@@ -386,7 +397,7 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
                                 <circle className="step-circle-bg" cx="50" cy="50" r="45" />
                                 <circle className="step-circle-fill" cx="50" cy="50" r="45" />
                             </svg>
-                            <span className="step-icon">🎲</span>
+                            <span className="step-icon"><VectorIcon name="dice" size={26} /></span>
                         </div>
                         <div className="step-content">
                             <h3>Play & Immerse</h3>

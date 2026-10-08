@@ -1,0 +1,74 @@
+.global-language-selector {
+    display: inline-flex;
+    align-items: center;
+    user-select: none;
+}
+
+.language-toggle-track {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(18, 22, 28, 0.85);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 20px;
+    padding: 2px;
+    gap: 2px;
+    backdrop-filter: blur(8px);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s ease;
+}
+
+.language-toggle-track:hover {
+    border-color: rgba(212, 175, 55, 0.6);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 10px rgba(212, 175, 55, 0.2);
+}
+
+.lang-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 16px;
+    padding: 3px 8px;
+    color: #94a3b8;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    line-height: 1;
+}
+
+.lang-pill:hover:not(.active) {
+    color: #f1f5f9;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.lang-pill.active {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.3), rgba(184, 134, 11, 0.2));
+    border-color: rgba(212, 175, 55, 0.6);
+    color: #ffd700;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.3), inset 0 1px 2px rgba(255, 215, 0, 0.2);
+    font-weight: 700;
+}
+
+.lang-flag {
+    font-size: 0.85rem;
+    line-height: 1;
+    display: inline-block;
+}
+
+.lang-code {
+    text-transform: uppercase;
+}
+
+/* Variant styles */
+.global-language-selector.variant-badge .lang-pill {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+}
+
+.global-language-selector.variant-full .lang-pill {
+    padding: 5px 12px;
+    font-size: 0.85rem;
+}

@@ -1,0 +1,477 @@
+/* ==========================================================================
+   DICE ROLLER TRAY - Strict Medieval / Fantasy Style
+   Palette: Snow (#FFFBFF), Almond Cream (#F1DABF), Taupe (#92817A),
+            Dark Coffee (#362417), Stone Gray (#18191C, #212226, #28292E)
+   ========================================================================== */
+
+.dice-roller-panel {
+    background: var(--bg-tile-pattern-dark, #212226);
+    border: 1px solid var(--color-almond, #f1dabf);
+    border-radius: var(--radius-sm, 2px);
+    padding: 16px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8), 0 0 16px rgba(54, 36, 23, 0.5);
+    color: var(--text-primary, #fffbff);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 420px;
+    width: 100%;
+    font-family: var(--font-body, Georgia, serif);
+}
+
+.dice-roller-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color, #383940);
+    padding-bottom: 8px;
+    background: var(--bg-menu-coffee-pattern, #362417);
+    margin: -16px -16px 4px -16px;
+    padding: 10px 16px;
+}
+
+.dice-header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dice-header-title h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-weight: 700;
+    color: var(--color-almond, #f1dabf);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.dice-icon {
+    font-size: 1.2rem;
+    color: var(--color-almond, #f1dabf);
+}
+
+.dice-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--color-taupe, #92817a);
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+}
+
+.dice-close-btn:hover {
+    color: var(--color-snow, #fffbff);
+}
+
+/* Presets Bar */
+.dice-presets-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    background: var(--bg-tile-pattern-elevated, #212226);
+    padding: 6px 8px;
+    border-radius: var(--radius-sm, 2px);
+    border: 1px solid var(--border-color, #383940);
+}
+
+.preset-label {
+    font-size: 0.72rem;
+    color: var(--color-taupe, #92817a);
+    text-transform: uppercase;
+    font-family: var(--font-ui, 'Cinzel', serif);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+}
+
+.preset-btn {
+    background: var(--bg-tile-pattern-elevated, #28292e);
+    border: 1px solid var(--border-color, #383940);
+    color: var(--color-snow, #fffbff);
+    padding: 3px 8px;
+    border-radius: var(--radius-sm, 2px);
+    font-size: 0.75rem;
+    font-family: var(--font-ui, 'Cinzel', serif);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.preset-btn:hover {
+    background: var(--bg-tile-pattern-coffee, #362417);
+    border-color: var(--color-almond, #f1dabf);
+    color: var(--color-almond, #f1dabf);
+    transform: translateY(-1px);
+}
+
+/* Dice Types Selector Chips */
+.dice-types-selector {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+
+.dice-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 4px;
+    background: var(--bg-tile-pattern-elevated, #28292e);
+    border: 1px solid var(--border-color, #383940);
+    border-radius: var(--radius-sm, 2px);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--color-taupe, #92817a);
+}
+
+.dice-chip:hover {
+    background: var(--bg-card-hover, #26272c);
+    border-color: var(--color-taupe, #92817a);
+    color: var(--color-snow, #fffbff);
+    transform: translateY(-1px);
+}
+
+.dice-chip.selected {
+    background: var(--bg-tile-pattern-coffee, #362417);
+    border-color: var(--color-almond, #f1dabf);
+    color: var(--color-almond, #f1dabf);
+    box-shadow: 0 0 10px rgba(241, 218, 191, 0.25);
+}
+
+.dice-glyph {
+    font-size: 1.1rem;
+    margin-bottom: 2px;
+}
+
+.dice-type-name {
+    font-size: 0.75rem;
+    font-family: var(--font-ui, 'Cinzel', serif);
+    font-weight: 700;
+}
+
+/* Controls Grid */
+.dice-controls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 8px;
+    align-items: center;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.control-group label {
+    font-size: 0.7rem;
+    color: var(--color-taupe, #92817a);
+    text-transform: uppercase;
+    font-family: var(--font-ui, 'Cinzel', serif);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+}
+
+.counter-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-tile-pattern-elevated, #28292e);
+    border: 1px solid var(--border-color, #383940);
+    border-radius: var(--radius-sm, 2px);
+    overflow: hidden;
+}
+
+.counter-controls button {
+    background: rgba(146, 129, 122, 0.1);
+    border: none;
+    color: var(--color-snow, #fffbff);
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: background 0.15s ease;
+}
+
+.counter-controls button:hover:not(:disabled) {
+    background: var(--bg-tile-pattern-coffee, #362417);
+    color: var(--color-almond, #f1dabf);
+}
+
+.counter-controls button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.counter-controls span {
+    font-size: 0.9rem;
+    font-weight: 700;
+    font-family: var(--font-mono, monospace);
+    color: var(--color-snow, #fffbff);
+    padding: 0 8px;
+}
+
+.advantage-group {
+    grid-column: span 2;
+}
+
+.advantage-toggle {
+    display: flex;
+    background: var(--bg-tile-pattern-elevated, #28292e);
+    border: 1px solid var(--border-color, #383940);
+    border-radius: var(--radius-sm, 2px);
+    overflow: hidden;
+}
+
+.adv-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--color-taupe, #92817a);
+    padding: 5px 6px;
+    font-size: 0.75rem;
+    font-family: var(--font-ui, 'Cinzel', serif);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.adv-btn:hover {
+    color: var(--color-snow, #fffbff);
+}
+
+.adv-btn.active {
+    background: rgba(146, 129, 122, 0.2);
+    color: var(--color-snow, #fffbff);
+}
+
+.adv-btn.active.adv {
+    background: rgba(62, 99, 69, 0.35);
+    color: #86efac;
+}
+
+.adv-btn.active.disadv {
+    background: rgba(158, 42, 43, 0.35);
+    color: #fca5a5;
+}
+
+/* Roll Label Input */
+.roll-label-input-container {
+    width: 100%;
+}
+
+.roll-label-input {
+    width: 100%;
+    background: var(--bg-tertiary, #28292e);
+    border: 1px solid var(--border-color, #383940);
+    border-radius: var(--radius-sm, 2px);
+    padding: 6px 10px;
+    color: var(--color-snow, #fffbff);
+    font-family: var(--font-body, Georgia, serif);
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.roll-label-input:focus {
+    border-color: var(--color-almond, #f1dabf);
+    box-shadow: 0 0 8px rgba(241, 218, 191, 0.2);
+}
+
+/* Main Roll Button */
+.main-roll-btn {
+    background: var(--bg-tile-pattern-coffee, #362417);
+    border: 1px solid var(--color-almond, #f1dabf);
+    color: var(--color-almond, #f1dabf);
+    font-family: var(--font-ui, 'Cinzel', serif);
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm, 2px);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+    transition: all 0.2s ease;
+}
+
+.main-roll-btn:hover:not(:disabled) {
+    background: var(--bg-coffee-light, #483222);
+    color: var(--color-snow, #fffbff);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(241, 218, 191, 0.25);
+}
+
+.main-roll-btn.rolling {
+    animation: pulseRoll 0.3s infinite alternate;
+}
+
+@keyframes pulseRoll {
+    0% { transform: scale(0.98); opacity: 0.8; }
+    100% { transform: scale(1.02); opacity: 1; }
+}
+
+/* Result Card */
+.dice-result-card {
+    background: var(--bg-tile-pattern-dark, #212226);
+    border: 1px solid var(--color-almond, #f1dabf);
+    border-radius: var(--radius-sm, 2px);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    animation: fadeInResult 0.25s ease;
+}
+
+@keyframes fadeInResult {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: var(--color-taupe, #92817a);
+    font-family: var(--font-ui, 'Cinzel', serif);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.result-tag {
+    font-weight: 700;
+    color: var(--color-almond, #f1dabf);
+}
+
+.result-big-display {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.result-total {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--color-snow, #fffbff);
+    font-family: var(--font-mono, monospace);
+    line-height: 1;
+    text-shadow: 0 0 16px rgba(241, 218, 191, 0.4);
+}
+
+.result-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.breakdown-formula {
+    font-size: 0.85rem;
+    color: var(--color-almond, #f1dabf);
+    font-family: var(--font-mono, monospace);
+}
+
+.dropped-roll {
+    color: #fca5a5;
+    text-decoration: line-through;
+}
+
+.crit-badge {
+    font-size: 0.75rem;
+    font-family: var(--font-ui, 'Cinzel', serif);
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 2px;
+    width: fit-content;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.crit-badge.success {
+    background: rgba(62, 99, 69, 0.35);
+    color: #86efac;
+    border: 1px solid #4ade80;
+}
+
+.crit-badge.fail {
+    background: rgba(158, 42, 43, 0.35);
+    color: #fca5a5;
+    border: 1px solid #f87171;
+}
+
+.result-actions {
+    margin-top: 4px;
+}
+
+.insert-action-btn {
+    width: 100%;
+    background: var(--bg-tile-pattern-elevated, #28292e);
+    border: 1px solid var(--border-color, #383940);
+    color: var(--color-snow, #fffbff);
+    font-family: var(--font-ui, 'Cinzel', serif);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm, 2px);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.insert-action-btn:hover {
+    background: var(--bg-tile-pattern-coffee, #362417);
+    border-color: var(--color-almond, #f1dabf);
+    color: var(--color-almond, #f1dabf);
+}
+
+/* Roll History */
+.roll-history-section {
+    border-top: 1px solid var(--border-color, #383940);
+    padding-top: 8px;
+}
+
+.history-title {
+    font-size: 0.7rem;
+    color: var(--color-taupe, #92817a);
+    text-transform: uppercase;
+    font-family: var(--font-ui, 'Cinzel', serif);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--color-snow, #fffbff);
+    font-family: var(--font-mono, monospace);
+    padding: 2px 6px;
+    border-radius: 2px;
+    background: var(--bg-tile-pattern-elevated, #28292e);
+    border: 1px solid var(--border-color, #383940);
+}
+
+.history-total {
+    font-weight: 700;
+    color: var(--color-almond, #f1dabf);
+}
+
+.history-rolls {
+    color: var(--color-taupe, #92817a);
+}

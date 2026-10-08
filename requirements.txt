@@ -3,7 +3,8 @@
 # Core Data Validation & Serialization
 pydantic>=2.0.0
 
-# Google Gemini AI Integration
+# Google Gemini AI Integration (Official Modern SDK & legacy fallback)
+google-genai>=2.0.0
 google-generativeai>=0.3.0
 
 # Vector Database for Embeddings

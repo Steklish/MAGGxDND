@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { VectorIcon } from './common/VectorIcon';
 import './CharacterDetail.css';
 
 interface CharacterDetailProps {
@@ -46,7 +47,10 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({ characterId, o
             <div className="detail-header">
                 <button className="btn-back" onClick={onBack}>← Back</button>
                 <h1>{character.name}</h1>
-                <button className="btn-edit" onClick={onEdit}>✏️ Edit</button>
+                <button className="btn-edit" onClick={onEdit}>
+                    <VectorIcon name="halberd" size={14} style={{ marginRight: 6, display: 'inline-block', verticalAlign: 'middle' }} />
+                    Edit
+                </button>
             </div>
 
             <div className="detail-content">
@@ -54,7 +58,13 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({ characterId, o
                 <div className="char-overview">
                     <div className="char-portrait">
                         <div className="portrait-placeholder">
-                            {character.race === 'Human' ? '🧙' : character.race === 'Elf' ? '🧝' : '🧌'}
+                            {character.race === 'Human' ? (
+                                <VectorIcon name="wizard" size={48} />
+                            ) : character.race === 'Elf' ? (
+                                <VectorIcon name="magic-trident" size={48} />
+                            ) : (
+                                <VectorIcon name="knight" size={48} />
+                            )}
                         </div>
                     </div>
                     

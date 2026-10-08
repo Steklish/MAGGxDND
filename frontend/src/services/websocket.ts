@@ -51,9 +51,9 @@ export class WebSocketService {
 
     constructor(config: WebSocketConfig = {}) {
         this.config = {
-            maxReconnectAttempts: config.maxReconnectAttempts ?? 5,
+            maxReconnectAttempts: config.maxReconnectAttempts ?? 10,
             reconnectDelay: config.reconnectDelay ?? 1000,
-            reconnectBackoffMultiplier: config.reconnectBackoffMultiplier ?? 2,
+            reconnectBackoffMultiplier: config.reconnectBackoffMultiplier ?? 1.5,
             heartbeatInterval: config.heartbeatInterval ?? 30000,
         };
         this.maxReconnectAttempts = this.config.maxReconnectAttempts!;
@@ -74,6 +74,7 @@ export class WebSocketService {
         this.playerId = playerId;
         this.reconnectAttempts = 0;
         this.isManualDisconnect = false;
+        this.maxReconnectAttempts = this.config.maxReconnectAttempts ?? 10;
 
         if (onMessage) {
             this.addMessageHandler(onMessage);
@@ -154,7 +155,6 @@ export class WebSocketService {
     disconnect(): void {
         console.log('[WebSocket] Disconnecting...');
         this.isManualDisconnect = true;
-        this.maxReconnectAttempts = 0; // Prevent reconnect
 
         this.stopHeartbeat();
 
@@ -215,7 +215,7 @@ export class WebSocketService {
             return;
         }
 
-        const message = {
+        const message: ClientMessage = {
             type: 'PLAYER_MESSAGE',
             payload: {
                 sender_name: senderName,
@@ -237,10 +237,12 @@ export class WebSocketService {
             return;
         }
 
-        const actionMsg: PlayerActionMessage = {
+        const actionMsg: any = {
             type: 'PLAYER_ACTION',
             payload: {
                 player_id: this.playerId,
+                character_name: character?.name || 'Player',
+                action: requestText,
                 request_text: requestText,
                 character: character,
                 timestamp: Date.now() / 1000,
@@ -249,7 +251,7 @@ export class WebSocketService {
 
         console.log('[WebSocket] → Sending action:', {
             type: actionMsg.type,
-            characterName: character.name,
+            characterName: character?.name || 'Player',
             requestText: requestText,
             payload: actionMsg.payload
         });
@@ -322,7 +324,8 @@ export class WebSocketService {
             return;
         }
 
-        const delay = this.reconnectDelay * Math.pow(this.reconnectBackoffMultiplier, this.reconnectAttempts);
+        const rawDelay = this.reconnectDelay * Math.pow(this.reconnectBackoffMultiplier, this.reconnectAttempts);
+        const delay = Math.min(10000, Math.round(rawDelay));
         console.log(
             `[WebSocket] Attempting reconnect ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts} in ${delay}ms`
         );
@@ -459,10 +462,10 @@ export class WebSocketService {
                         type: 'TURN_QUEUE_UPDATE',
                         payload: {
                             turn_queue: activePlayerName ? [{
-                                character_name: activePlayerName,
-                                type: 'player',
-                                is_active: true,
+                                character: activePlayerName,
+                                next_turn: data.turn_time || Date.now() / 1000,
                             }] : [],
+                            turn_time: data.turn_time || Date.now() / 1000,
                         },
                     };
                 }
@@ -502,7 +505,7 @@ export class WebSocketService {
                     type: 'ACTION_RESULT',
                     payload: {
                         success: data.success,
-                        dm_response: data.dm_response || '',
+                        result: data.dm_response || '',
                         game_state: data.game_state || {},
                         error: data.error,
                     },

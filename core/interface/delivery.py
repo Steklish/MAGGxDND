@@ -89,6 +89,25 @@ class Delivery(ABC):
         
         return result
 
+    def has_request_from_player(self, player_id: str) -> bool:
+        """Check without consuming if a request exists for the specified player/character."""
+        with self._lock:
+            temp_storage = []
+            found = False
+            while not self.request_queue.empty():
+                try:
+                    req = self.request_queue.get_nowait()
+                    temp_storage.append(req)
+                    if req.player_id == player_id:
+                        found = True
+                except Empty:
+                    break
+
+            for req in temp_storage:
+                self.request_queue.put(req)
+
+            return found
+
     def wait_for_request(self, timeout: Optional[float] = None) -> Optional[Request]:
         """Wait for a request to be available in the queue."""
         try:

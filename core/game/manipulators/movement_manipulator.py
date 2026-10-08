@@ -70,7 +70,7 @@ You are an action classifier and you need to determine exact information of a mo
         character.character.position = task.target_position
         
         # Calculate if the movement is within scene bounds
-        if self.session.spatial_enabled:
+        if self.session.spatial_enabled and self.session.current_scene:
             if not self.session.is_within_scene_bounds(task.target_position, self.session.current_scene):
                 self.logger.warning(f"Character {character.character.name} moved outside scene bounds")
                 # Optionally, we could return a failure event instead

@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { VectorIcon } from './VectorIcon';
 import './ErrorBoundary.css';
 
 // Preload the error background image so it's ready instantly
@@ -160,13 +161,13 @@ export class ErrorBoundary extends Component<Props, State> {
                         )}
                         <div className="error-actions">
                             <button className="error-retry-btn" onClick={this.handleRetry}>
-                                🔄 Retry
+                                <VectorIcon name="rune-circle" /> Retry
                             </button>
                             <button
                                 className="error-home-btn"
                                 onClick={() => window.location.href = '/'}
                             >
-                                🏠 Go to Login
+                                <VectorIcon name="castle" /> Go to Login
                             </button>
                         </div>
                     </div>

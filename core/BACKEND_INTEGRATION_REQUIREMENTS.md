@@ -34,14 +34,29 @@ from skls_generator.generator import Generator
 
 **Возможности:**
 - `init_new_session(scene, player_characters, npcs)` - инициализация сессии
-- `game_loop()` - основной игровой цикл
-- `get_session_context()` - контекст сессии для AI
+- `add_location_to_graph(location_name, scene_node)` - регистрация локации в графе мира
+- `connect_locations(loc1, loc2)` - соединение локаций ребром графа
+- `transition_to_location(new_location_name, description)` - динамический переход:
+  - Если локация новая: генерирует `SceneNode`, интерактивные объекты, пинит новых NPC, добавляет в граф и связывает ребром.
+  - Если локация посещена: загружает существующую сцену и сохранённые объекты.
+- `game_loop()` - двухрежимный игровой цикл:
+  - *Story Mode*: Свободная очередь действий. Ход игрока -> Очередь событий для NPC, находящихся в текущей локации (`npc.character.current_scene == self.current_location_name`) -> Нарративный комментарий DM (MAGG) и проверка задач главы.
+  - *Combat Mode*: Пошаговая инициативная очередь (`turn_queue`) под управлением `RoundDeterminator`. NPC вне текущей сцены пропускаются.
+- `get_session_context()` - всеведущий контекст сессии для AI:
+  - Сюжет кампании и задачи текущей главы
+  - Текущая сцена с координатами интерактивных объектов
+  - Топология графа мира и все посещённые локации
+  - Персонажи (PCs и NPCs) в текущей локации
+  - Персонажи в других локациях мира
+  - Пространственная видимость (кто кого и что видит)
 - `get_messages_formatted()` - история сообщений для AI
 
 **Возвращает:**
 - SceneNode - текущая сцена
+- Dict[str, SceneNode] - все локации (`all_locations`)
+- Dict[str, Set[str]] - граф переходов (`location_graph`)
 - List[Player] - игроки
-- List[NPC] - NPC
+- List[NPC] - NPC сессии
 - Messages - история сообщений
 
 ### 1.3 Схемы данных
@@ -265,7 +280,7 @@ from skls_embeddings.embedding_client import EmbeddingClient
 ```python
 # .env
 GEMINI_API_KEY=xxx
-GEMINI_MODEL=gemini-flash-lite-latest
+GEMINI_MODEL=gemini-flash-latest
 LLAMACPP_CHAT_BASE=http://localhost:8080  # опционально
 AI_GEN_RETRIES=3
 ```
@@ -428,3 +443,25 @@ async def test_process_player_action():
     assert 'dm_response' in result
     assert len(result['events']) > 0
 ```
+
+---
+
+## 11. Динамический граф локаций, NPC и вход игроков
+
+### 11.1 Граф локаций и переход
+- Сессия хранит `location_graph: Dict[str, Set[str]]` и `all_locations: Dict[str, SceneNode]`.
+- Переход осуществляется через `transition_to_location(new_location_name, description)`:
+  - Если локация не посещалась: создаётся новый `SceneNode` с интерактивными объектами (`UnifiedObject`), генерируются тематические NPC (`current_scene=new_location_name`), добавляется ребро в граф.
+  - Если локация уже посещалась: загружается ранее сохранённая сцена без дублирования.
+- Эндпоинт: `POST /api/v1/sessions/{session_id}/transition-location`.
+
+### 11.2 Локационная изоляция обработки NPC
+- Каждый NPC хранит поле `character.current_scene`.
+- Игровой цикл (`game_loop`) вызывает обработку реакций и ходов `npc.run()` **только** для тех NPC, чья сцена совпадает с текущей сценой партии (`npc.character.current_scene == self.current_location_name`).
+- NPC в других локациях остаются зафиксированными и не расходуют вызовы AI и время игрока.
+
+### 11.3 Динамический нарратив входа и передача персонажей
+- При входе нового игрока или захвате персонажа генерируется нарратив (`generate_character_entrance_narrative`), объясняющий появление искателя приключений в текущей сцене.
+- При выходе игрока (`leave_session` / `WebSocketDisconnect`) персонаж не удаляется из сессии, а переходит в статус AI-компаньона.
+- Любой подключившийся игрок может взять под контроль свободного AI-компаньона или повысить NPC до управляемого персонажа через эндпоинт `/claim-character`.
+
